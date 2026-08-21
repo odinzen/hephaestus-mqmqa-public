@@ -7,7 +7,7 @@ build maps onto the JORS section structure so "done" is well defined.
 ## The contribution
 
 A free, dependency-light, browser-runnable Modified Quasichemical Model (quadruplet
-approximation) engine, plus an openly-licensed oxide-slag database it runs. Together they
+approximation) engine, **Hephaestus**, plus an openly-licensed oxide-slag database it runs. Together they
 are a complete open path for slag/salt thermodynamics that today requires commercial
 software. The reuse hook is zero-install, in-browser access (WASM) and thin language
 bindings.

@@ -1,9 +1,13 @@
-# mqmqa
+# Hephaestus
 
-A small, standalone implementation of the **Modified Quasichemical Model in the
-Quadruplet Approximation (MQMQA)**: a C core with a thin Python wrapper. The MQMQA
+**Hephaestus** is a small, standalone engine for the **Modified Quasichemical Model in
+the Quadruplet Approximation (MQMQA)**: a C core with a thin Python wrapper. The MQMQA
 describes short-range ordering in ionic liquids (molten salts, oxide slags,
-electrolytes), the physics behind FactSage's oxide/slag databases.
+electrolytes), the physics behind FactSage's oxide/slag databases. Named for the god of
+the forge, it computes the thermodynamics of the melt.
+
+The scientific model is MQMQA (a standard acronym); the engine that implements it is
+Hephaestus. The library is currently imported as `mqmqa`.
 
 ## Scope and honest positioning
 

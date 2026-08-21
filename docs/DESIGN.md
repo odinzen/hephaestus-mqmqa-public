@@ -41,22 +41,24 @@ zeta (quadruplets-per-pair) terms, SUBQ and SUBG variants. Build term by term.
 
 ## The database
 
-Seed the open oxide-slag database from `odinzen_assessment_workspace/assessments/` (digitized
-literature: CaO-SiO2 first, the classic Pelton-Blander MQM system, then the CaO-Al2O3-SiO2
-ternary). CC-BY-4.0. Grows as the work matures. The engine also runs the free MSTDB-TC salt
-database unchanged, giving an immediate demo without any assessment work.
+Seed the open oxide-slag database from our own digitized literature assessments (CaO-SiO2
+first, the classic Pelton-Blander MQM system, then the CaO-Al2O3-SiO2 ternary). CC-BY-4.0.
+Grows as the work matures. The engine also runs the free MSTDB-TC salt database unchanged,
+giving an immediate demo without any assessment work.
 
 ## Availability and archiving (JORS requires this)
 
-- Engine MIT, database CC-BY-4.0.
+- One repository, two licenses: the engine code is MIT (root `LICENSE`); the open slag
+  database lives under `data/` with its own CC-BY-4.0 license.
 - Public GitHub repo, tagged release archived to Zenodo for a citable DOI.
 - Versioned; dependencies documented; tests runnable.
 
 ## Boundaries
 
-Clean-room from the papers only. No reuse or mention of the Odinzen Rust kernel. No FactSage
-code, database, or trademark; only open data. Nothing of Michael's existing proprietary work
-is released.
+Clean-room from the published papers only; no proprietary code is reused. The open slag
+database is assembled solely from published experimental literature (digitized phase
+diagrams and calorimetry); no closed, optimized, or otherwise proprietary database
+parameters go into it. No FactSage code, database, or trademark; only open data.
 
 ## Status
 

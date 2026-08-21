@@ -73,6 +73,23 @@ MQMQA_API double mqmqa_ideal_mixing_energy(
     const double *zeta,
     int soln_type);
 
+/* MQMQA excess energy for cation-mixing 'Q'-code interaction parameters (Poschmann
+ * eqs 19,20,24 with the eq-17 assembly), J per mole of quadruplets. First cut:
+ * binary cation mixing (A != B, single mixing anion X = Y), no chemical-group
+ * expansion and no ternary constituent. Each parameter k mixes cations par_A[k],
+ * par_B[k] on anion par_X[k] with exponents par_p[k], par_q[k] and interaction
+ * coefficient par_L[k] (evaluated at T). Zx,Zy are the anion-slot coordination
+ * numbers per quadruplet, as in mqmqa_ideal_mixing_energy. */
+MQMQA_API double mqmqa_excess_energy_q_cation(
+    int n_cat, int n_an, int n_quads,
+    const int *quad_ca, const int *quad_cb,
+    const int *quad_ax, const int *quad_ay,
+    const double *X,
+    const double *Zx, const double *Zy,
+    int n_params,
+    const int *par_A, const int *par_B, const int *par_X,
+    const double *par_p, const double *par_q, const double *par_L);
+
 #ifdef __cplusplus
 }
 #endif

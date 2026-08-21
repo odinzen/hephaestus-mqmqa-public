@@ -32,6 +32,15 @@ _ffi.cdef(
         const double *Za, const double *Zb, const double *Zx, const double *Zy,
         const double *zeta,
         int soln_type);
+    double mqmqa_excess_energy_q_cation(
+        int n_cat, int n_an, int n_quads,
+        const int *quad_ca, const int *quad_cb,
+        const int *quad_ax, const int *quad_ay,
+        const double *X,
+        const double *Zx, const double *Zy,
+        int n_params,
+        const int *par_A, const int *par_B, const int *par_X,
+        const double *par_p, const double *par_q, const double *par_L);
     """
 )
 
@@ -83,4 +92,18 @@ def ideal_mixing_energy(T, n_cat, n_an, quad_ca, quad_cb, quad_ax, quad_ay, X,
         _dbls(X),
         _dbls(Za), _dbls(Zb), _dbls(Zx), _dbls(Zy),
         _dbls(zeta), int(soln_type),
+    )
+
+
+def excess_energy_q_cation(n_cat, n_an, quad_ca, quad_cb, quad_ax, quad_ay, X,
+                           Zx, Zy, par_A, par_B, par_X, par_p, par_q, par_L):
+    """Excess energy for cation-mixing Q-code parameters, J per mole of quadruplets."""
+    return _lib.mqmqa_excess_energy_q_cation(
+        int(n_cat), int(n_an), len(X),
+        _ints(quad_ca), _ints(quad_cb), _ints(quad_ax), _ints(quad_ay),
+        _dbls(X),
+        _dbls(Zx), _dbls(Zy),
+        len(par_A),
+        _ints(par_A), _ints(par_B), _ints(par_X),
+        _dbls(par_p), _dbls(par_q), _dbls(par_L),
     )

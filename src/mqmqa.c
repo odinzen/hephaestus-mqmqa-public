@@ -176,18 +176,37 @@ static double z_anion(int q, int s, const int *ax, const int *ay,
     return 1.0; /* unreachable when s is in the quad */
 }
 
-double mqmqa_excess_energy_q_cation(
+/* Coordination of cation index s in quadruplet q (its two cation slots). */
+static double z_cation(int q, int s, const int *ca, const int *cb,
+                       const double *Za, const double *Zb)
+{
+    if (ca[q] == s) return Za[q];
+    if (cb[q] == s) return Zb[q];
+    return 1.0; /* unreachable when s is in the quad */
+}
+
+/* Excess energy for a set of MQMX interaction parameters, J per mole of quadruplets
+ * (Poschmann eqs 19,20,24 for the mixing term, eq 17 for the assembly). Handles the
+ * Q mixing code (cation and anion mixing) and the G code with zero exponents
+ * (mixing term = 1). Assumes each mixing sublattice is a single chemical group, so
+ * the nu/gamma expansion is empty (true for the databases targeted first).
+ *
+ * Per parameter k: par_mix = 0 for cation mixing (A != B, single anion X = Y),
+ * 1 for anion mixing (single cation A = B, anions X != Y). par_code = 0 for Q,
+ * 1 for G. For cation mixing par_A,par_B are the mixing cations and par_X the
+ * anion; for anion mixing par_A is the cation and par_X,par_Y the mixing anions.
+ */
+double mqmqa_excess_energy(
     int n_cat, int n_an, int n_quads,
     const int *quad_ca, const int *quad_cb,
     const int *quad_ax, const int *quad_ay,
     const double *X,
-    const double *Zx, const double *Zy,
+    const double *Za, const double *Zb, const double *Zx, const double *Zy,
     int n_params,
-    const int *par_A, const int *par_B, const int *par_X,
+    const int *par_mix, const int *par_code,
+    const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
     const double *par_p, const double *par_q, const double *par_L)
 {
-    /* pair amounts n_ik (eq 5), needed for Xi = Y_ik = n_ik/4 (no chemical-group
-     * expansion in this first cut). */
     double *nik = (double *)calloc((size_t)n_cat * (size_t)n_an, sizeof(double));
     for (int q = 0; q < n_quads; ++q) {
         const double xq = X[q];
@@ -196,35 +215,67 @@ double mqmqa_excess_energy_q_cation(
         nik[(size_t)quad_cb[q] * n_an + quad_ax[q]] += xq;
         nik[(size_t)quad_cb[q] * n_an + quad_ay[q]] += xq;
     }
+#define NIK(i, k) nik[(size_t)(i) * n_an + (k)]
 
     double energy = 0.0;
     for (int k = 0; k < n_params; ++k) {
-        const int A = par_A[k], B = par_B[k], Xn = par_X[k];
+        const int A = par_A[k], B = par_B[k], Xn = par_X[k], Yn = par_Y[k];
         const double p = par_p[k], qx = par_q[k];
-        const double Xi_i = nik[(size_t)A * n_an + Xn] / 4.0;
-        const double Xi_j = nik[(size_t)B * n_an + Xn] / 4.0;
-        const double mix = pow(Xi_i, p) * pow(Xi_j, qx)
-                           / pow(Xi_i + Xi_j, p + qx);
-        const double g = par_L[k] * mix;
+
+        /* mixing term */
+        double g;
+        if (par_code[k] == 1) {                     /* G code */
+            const double mix = (p == 0.0 && qx == 0.0)
+                ? 1.0
+                : pow(0.0, 0.0);                    /* nonzero-exponent G not yet done */
+            g = par_L[k] * mix;
+        } else {                                    /* Q code, eq 24 */
+            double Xi_i, Xi_j;
+            if (par_mix[k] == 0) {                  /* cation mixing: Xi over anion Xn */
+                Xi_i = NIK(A, Xn) / 4.0;
+                Xi_j = NIK(B, Xn) / 4.0;
+            } else {                                /* anion mixing: Xi over cation A */
+                Xi_i = NIK(A, Xn) / 4.0;
+                Xi_j = NIK(A, Yn) / 4.0;
+            }
+            const double mix = pow(Xi_i, p) * pow(Xi_j, qx)
+                               / pow(Xi_i + Xi_j, p + qx);
+            g = par_L[k] * mix;
+        }
 
         const int qbase = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay,
-                                    A, B, Xn, Xn);
+                                    A, B, Xn, Yn);
         const double Xbase = X[qbase];
-        const double zX_base = z_anion(qbase, Xn, quad_ax, quad_ay, Zx, Zy);
 
-        /* anion factor (X == Y branch), Poschmann eq 17: spread over other anions */
-        double anion_factor = 0.0;
-        for (int m = 0; m < n_an; ++m) {
-            if (m == Xn) continue;
-            const int qi = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay,
-                                     A, B, Xn, m);
-            if (qi >= 0)
-                anion_factor += X[qi] / z_anion(qi, Xn, quad_ax, quad_ay, Zx, Zy);
+        /* cation factor (A == B branch): spread over other cations */
+        double cation_factor = 0.0;
+        if (A == B) {
+            for (int m = 0; m < n_cat; ++m) {
+                if (m == A) continue;
+                const int qi = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay,
+                                         A, m, Xn, Yn);
+                if (qi >= 0)
+                    cation_factor += X[qi] / z_cation(qi, A, quad_ca, quad_cb, Za, Zb);
+            }
+            cation_factor *= z_cation(qbase, A, quad_ca, quad_cb, Za, Zb) / 2.0;
         }
-        anion_factor *= zX_base / 2.0;
 
-        energy += 0.5 * g * (Xbase + anion_factor);
+        /* anion factor (X == Y branch): spread over other anions */
+        double anion_factor = 0.0;
+        if (Xn == Yn) {
+            for (int m = 0; m < n_an; ++m) {
+                if (m == Xn) continue;
+                const int qi = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay,
+                                         A, B, Xn, m);
+                if (qi >= 0)
+                    anion_factor += X[qi] / z_anion(qi, Xn, quad_ax, quad_ay, Zx, Zy);
+            }
+            anion_factor *= z_anion(qbase, Xn, quad_ax, quad_ay, Zx, Zy) / 2.0;
+        }
+
+        energy += 0.5 * g * (Xbase + cation_factor + anion_factor);
     }
+#undef NIK
 
     free(nik);
     return energy;

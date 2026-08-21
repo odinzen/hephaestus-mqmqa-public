@@ -73,21 +73,26 @@ MQMQA_API double mqmqa_ideal_mixing_energy(
     const double *zeta,
     int soln_type);
 
-/* MQMQA excess energy for cation-mixing 'Q'-code interaction parameters (Poschmann
- * eqs 19,20,24 with the eq-17 assembly), J per mole of quadruplets. First cut:
- * binary cation mixing (A != B, single mixing anion X = Y), no chemical-group
- * expansion and no ternary constituent. Each parameter k mixes cations par_A[k],
- * par_B[k] on anion par_X[k] with exponents par_p[k], par_q[k] and interaction
- * coefficient par_L[k] (evaluated at T). Zx,Zy are the anion-slot coordination
- * numbers per quadruplet, as in mqmqa_ideal_mixing_energy. */
-MQMQA_API double mqmqa_excess_energy_q_cation(
+/* MQMQA excess energy for a set of MQMX interaction parameters, J per mole of
+ * quadruplets (Poschmann eqs 19,20,24 mixing term, eq 17 assembly). Handles the Q
+ * code (cation and anion mixing) and the G code with zero exponents. Assumes each
+ * mixing sublattice is a single chemical group (empty nu/gamma). Not yet covered:
+ * nonzero-exponent G (needs Chi), Bragg-Williams B/H, reciprocal R, ternary terms,
+ * multi-group expansion.
+ *
+ * Per parameter k: par_mix 0 = cation mixing (A != B, X = Y), 1 = anion mixing
+ * (A = B, X != Y). par_code 0 = Q, 1 = G. par_A,par_B cations; par_X,par_Y anions;
+ * par_p,par_q exponents; par_L interaction coefficient at T. Za..Zy are the
+ * per-quadruplet slot coordination numbers, as in mqmqa_ideal_mixing_energy. */
+MQMQA_API double mqmqa_excess_energy(
     int n_cat, int n_an, int n_quads,
     const int *quad_ca, const int *quad_cb,
     const int *quad_ax, const int *quad_ay,
     const double *X,
-    const double *Zx, const double *Zy,
+    const double *Za, const double *Zb, const double *Zx, const double *Zy,
     int n_params,
-    const int *par_A, const int *par_B, const int *par_X,
+    const int *par_mix, const int *par_code,
+    const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
     const double *par_p, const double *par_q, const double *par_L);
 
 #ifdef __cplusplus

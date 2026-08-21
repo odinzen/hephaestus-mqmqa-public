@@ -9,7 +9,7 @@ from ._abi import (
     ideal_entropy_binary,
     reference_energy,
     ideal_mixing_energy,
-    excess_energy_q_cation,
+    excess_energy,
 )
 
 __all__ = [
@@ -17,5 +17,5 @@ __all__ = [
     "ideal_entropy_binary",
     "reference_energy",
     "ideal_mixing_energy",
-    "excess_energy_q_cation",
+    "excess_energy",
 ]

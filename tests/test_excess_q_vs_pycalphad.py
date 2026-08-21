@@ -1,8 +1,13 @@
-"""Validate the C cation-mixing Q-code excess term against pycalphad.
+"""Validate the C excess term against pycalphad's excess_mixing_energy.
 
-The Fe-O sub-slag's excess parameters are exactly two cation-mixing Q-code MQMX
-terms (FE2/FE3 on O), so pycalphad's full excess_mixing_energy here equals the
-sum this C routine computes.
+Two oracles from the Shishin Fe-Sb-S-O slag:
+  - Fe-O sub-slag: two cation-mixing Q params (single anion, factors vanish).
+  - Full Fe-Sb-S-O: the same Q params (now with a non-zero anion factor from the
+    second anion) plus one anion-mixing G param (non-zero cation factor). This
+    exercises the eq-17 factor assembly and the G code.
+
+Chemical groups are single-per-sublattice in this database, so the nu/gamma
+expansion is empty and this covers the excess exactly.
 """
 
 import sys
@@ -23,9 +28,9 @@ DAT = Path("C:/Users/busta/Code/pycalphad/pycalphad/tests/databases/Shishin_Fe-S
 T = 1873.0
 
 
-def _build_case():
+def _build_case(comps):
     dbf = Database(str(DAT))
-    mod = ModelMQMQA(dbf, ["FE", "O", "VA"], "SLAG-LIQ")
+    mod = ModelMQMQA(dbf, comps, "SLAG-LIQ")
     cations = list(mod.cations)
     anions = list(mod.anions)
     ci = {c: i for i, c in enumerate(cations)}
@@ -36,10 +41,12 @@ def _build_case():
     quad_cb = [ci[B] for (A, B, X, Y) in quads]
     quad_ax = [ai[X] for (A, B, X, Y) in quads]
     quad_ay = [ai[Y] for (A, B, X, Y) in quads]
+    Za = [float(mod.Z(dbf, q[0], *q)) for q in quads]
+    Zb = [float(mod.Z(dbf, q[1], *q)) for q in quads]
     Zx = [float(mod.Z(dbf, q[2], *q)) for q in quads]
     Zy = [float(mod.Z(dbf, q[3], *q)) for q in quads]
 
-    Xval = {q: 0.05 + 0.01 * i for i, q in enumerate(quads)}
+    Xval = {q: 0.03 + 0.005 * i for i, q in enumerate(quads)}
     Xarr = [Xval[q] for q in quads]
 
     def evalG(expr):
@@ -50,35 +57,48 @@ def _build_case():
         & (where("parameter_type") == "MQMX")
         & (where("constituent_array").test(mod._array_validity))
     )
-    par_A, par_B, par_X, par_p, par_q, par_L = [], [], [], [], [], []
+    pm = dict(mix=[], code=[], A=[], B=[], X=[], Y=[], p=[], q=[], L=[])
     for prm in params:
         (A, B), (X, Y) = prm["constituent_array"]
-        assert prm["mixing_code"] == "Q" and A != B and X == Y, "first cut: cation Q only"
-        par_A.append(ci[A])
-        par_B.append(ci[B])
-        par_X.append(ai[X])
-        par_p.append(prm["exponents"][0])
-        par_q.append(prm["exponents"][1])
-        par_L.append(evalG(prm["parameter"]))
+        code = prm["mixing_code"]
+        assert code in ("Q", "G"), f"code {code} not yet handled"
+        if A != B and X == Y:
+            pm["mix"].append(0)
+        elif A == B and X != Y:
+            pm["mix"].append(1)
+        else:
+            raise AssertionError("reciprocal excess not yet handled")
+        pm["code"].append(0 if code == "Q" else 1)
+        pm["A"].append(ci[A]); pm["B"].append(ci[B])
+        pm["X"].append(ai[X]); pm["Y"].append(ai[Y])
+        pm["p"].append(prm["exponents"][0]); pm["q"].append(prm["exponents"][1])
+        pm["L"].append(evalG(prm["parameter"]))
 
     subs = {v.T: T}
     subs.update({mod._X_ijkl(*q): Xval[q] for q in quads})
     exc_py = float(mod.excess_mixing_energy(dbf).subs(subs))
 
-    exc_c = mqmqa.excess_energy_q_cation(
+    exc_c = mqmqa.excess_energy(
         len(cations), len(anions),
         quad_ca, quad_cb, quad_ax, quad_ay, Xarr,
-        Zx, Zy,
-        par_A, par_B, par_X, par_p, par_q, par_L,
+        Za, Zb, Zx, Zy,
+        pm["mix"], pm["code"], pm["A"], pm["B"], pm["X"], pm["Y"],
+        pm["p"], pm["q"], pm["L"],
     )
     return exc_py, exc_c
 
 
-def test_excess_q_cation_matches_pycalphad():
-    exc_py, exc_c = _build_case()
-    assert abs(exc_c - exc_py) <= 1e-6 * max(1.0, abs(exc_py)), (exc_c, exc_py)
+def test_excess_feo():
+    py, c = _build_case(["FE", "O", "VA"])
+    assert abs(c - py) <= 1e-6 * max(1.0, abs(py)), (c, py)
+
+
+def test_excess_full_shishin():
+    py, c = _build_case(["FE", "SB", "S", "O", "VA"])
+    assert abs(c - py) <= 1e-6 * max(1.0, abs(py)), (c, py)
 
 
 if __name__ == "__main__":
-    py, c = _build_case()
-    print(f"pycalphad = {py:.6f}\nC         = {c:.6f}\ndiff      = {abs(c - py):.3e}")
+    for comps in (["FE", "O", "VA"], ["FE", "SB", "S", "O", "VA"]):
+        py, c = _build_case(comps)
+        print(f"{'+'.join(comps):20s} py={py:.6f}  C={c:.6f}  diff={abs(c-py):.3e}")

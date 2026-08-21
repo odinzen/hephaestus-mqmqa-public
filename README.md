@@ -40,6 +40,12 @@ salt from the 2023 pycalphad paper). Nothing is claimed working until it matches
 Early scaffold. Nothing implemented yet. A C toolchain is being set up before any
 C is written, so that every line is compiled and tested, not asserted.
 
+## Publication
+
+Intended as a single-author **JORS** (Journal of Open Research Software) metapaper covering
+both the engine and the open slag database as one open-science contribution. See
+`docs/DESIGN.md`.
+
 ## License
 
 MIT (see LICENSE). Model equations are public; this is an independent

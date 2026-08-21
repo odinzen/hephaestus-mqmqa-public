@@ -119,11 +119,14 @@ def _energies_from_reader(path, phase):
                                       Za, Zb, Zx, Zy, zeta, db.is_subq(p))
 
     mx = db.mqmx(p, T)
-    # excess is validated only where the C routine implements the code: Q (any
-    # exponents) and G with zero exponents; cation or anion mixing (mix 0/1).
-    supported = all(
-        mix in (0, 1) and code in (0, 1) and not (code == 1 and (pe or qe))
-        for mix, code, pe, qe in zip(mx["mix"], mx["code"], mx["p"], mx["q"])
+    # excess is validated where the C routine implements the code: Q (Xi, any
+    # exponents) and G (Chi, any exponents), cation or anion mixing, and a single
+    # chemical group per sublattice (so the nu/gamma expansion vanishes). B/H, R,
+    # reciprocal mixing, and multi-group Chi are not yet implemented.
+    single_group = (len({c["group"] for c in cats}) == 1
+                    and len({a["group"] for a in ans}) == 1)
+    supported = single_group and all(
+        mix in (0, 1) and code in (0, 1) for mix, code in zip(mx["mix"], mx["code"])
     )
     exc = None
     if supported:

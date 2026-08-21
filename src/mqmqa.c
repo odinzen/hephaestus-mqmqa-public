@@ -222,12 +222,30 @@ double mqmqa_excess_energy(
         const int A = par_A[k], B = par_B[k], Xn = par_X[k], Yn = par_Y[k];
         const double p = par_p[k], qx = par_q[k];
 
+        /* Only Q and G codes, and simple cation/anion mixing, are implemented.
+         * Bragg-Williams (B/H), reciprocal (R), and reciprocal mixing return NaN
+         * rather than a wrong number. */
+        if (par_code[k] != 0 && par_code[k] != 1) return NAN;
+        if (par_mix[k] != 0 && par_mix[k] != 1) return NAN;
+
         /* mixing term */
         double g;
-        if (par_code[k] == 1) {                     /* G code */
-            if (p != 0.0 || qx != 0.0)
-                return NAN;    /* nonzero-exponent G needs Chi_mix, not yet implemented */
-            g = par_L[k];                           /* zero exponents: mixing term is 1 */
+        if (par_code[k] == 1) {                     /* G code, Chi_mix (Poschmann eq 21/23) */
+            /* Single chemical group per sublattice, so the nu/gamma sums vanish and
+             * Chi_i = X(i,i)/[X(i,i)+X(i,j)+X(j,j)] over the two mixing constituents. */
+            int qii, qij, qjj;
+            if (par_mix[k] == 0) {                  /* cation mixing over anion Xn */
+                qii = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay, A, A, Xn, Xn);
+                qij = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay, A, B, Xn, Xn);
+                qjj = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay, B, B, Xn, Xn);
+            } else {                                /* anion mixing over cation A */
+                qii = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay, A, A, Xn, Xn);
+                qij = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay, A, A, Xn, Yn);
+                qjj = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay, A, A, Yn, Yn);
+            }
+            const double den = X[qii] + X[qij] + X[qjj];
+            const double chi_i = X[qii] / den, chi_j = X[qjj] / den;
+            g = par_L[k] * pow(chi_i, p) * pow(chi_j, qx);
         } else {                                    /* Q code, eq 24 */
             double Xi_i, Xi_j;
             if (par_mix[k] == 0) {                  /* cation mixing: Xi over anion Xn */

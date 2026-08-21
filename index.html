@@ -85,6 +85,24 @@
   .muted { color:var(--muted); }
   .hidden { display:none; }
 
+  /* phase-diagram card */
+  select { font:inherit; padding:.35rem .5rem; border:1px solid var(--line);
+           border-radius:6px; background:var(--field); color:var(--ink); }
+  .pdctl { display:grid; grid-template-columns:auto 1fr; gap:.5rem .8rem;
+           align-items:center; max-width:30rem; margin-bottom:.9rem; }
+  .pdctl label { color:var(--muted); font-size:var(--fs-sm); }
+  .pdwrap { position:relative; margin-top:1rem; }
+  #pdcanvas { width:100%; height:auto; display:block; border:1px solid var(--line);
+              border-radius:8px; background:var(--card); }
+  .spinner { width:1rem; height:1rem; border:2px solid var(--line);
+             border-top-color:var(--brand); border-radius:50%; display:inline-block;
+             vertical-align:-2px; animation:spin .7s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .legend { display:flex; gap:1rem; flex-wrap:wrap; margin-top:.7rem;
+            font-size:var(--fs-sm); color:var(--muted); }
+  .legend span { display:inline-flex; align-items:center; gap:.35rem; }
+  .swatch { width:.8rem; height:.8rem; border-radius:3px; border:1px solid var(--line); }
+
   footer { margin-top:2.2rem; color:var(--muted); font-size:var(--fs-sm);
            border-top:1px solid var(--line); padding-top:1.1rem; }
   .madeby { display:flex; align-items:center; gap:.5rem; margin-bottom:.55rem; }
@@ -177,6 +195,34 @@
         </table>
       </div>
     </div>
+
+    <div class="card">
+      <h2>Phase diagram</h2>
+      <p class="muted" style="margin:0 0 .9rem">
+        Pick a binary join between two salt end members. The engine computes the
+        liquid Gibbs energy across the join and takes the lower convex hull against
+        the database's stoichiometric compounds, so the liquidus and the melting
+        invariants are solved in your browser, point by point.</p>
+      <div class="pdctl" id="pdctl">
+        <label for="pdA">End member A</label><select id="pdA"></select>
+        <label for="pdB">End member B</label><select id="pdB"></select>
+        <label for="pdCommon" id="pdCommonLab">Shared ion</label><select id="pdCommon"></select>
+        <label for="pdTmin">Temperature range (K)</label>
+        <span class="row" style="gap:.4rem">
+          <input type="number" id="pdTmin" value="400" min="200" max="6000" step="10" style="width:5.5rem">
+          <span class="muted">to</span>
+          <input type="number" id="pdTmax" value="1700" min="200" max="6000" step="10" style="width:5.5rem">
+        </span>
+      </div>
+      <div class="row">
+        <button id="pdgen" type="button">Generate diagram</button>
+        <span id="pdmsg" class="muted"></span>
+      </div>
+      <div id="pdout" class="hidden">
+        <div class="pdwrap"><canvas id="pdcanvas"></canvas></div>
+        <div class="legend" id="pdlegend"></div>
+      </div>
+    </div>
   </div>
 
   <footer>
@@ -184,8 +230,8 @@
       <span class="oz-word"><span class="oz-odin">odin</span><span class="oz-zen">zen</span></span>
     </div>
     <p style="margin:0">Engine MIT. An open Modified Quasichemical Model for slags and
-      salts, running fully in your browser. The equilibrium solver and steel-system
-      phase diagrams are on the roadmap.</p>
+      salts, running fully in your browser. Single-phase equilibrium and binary phase
+      diagrams are solved client-side; larger multicomponent systems are on the roadmap.</p>
   </footer>
 
 </div>
@@ -214,6 +260,7 @@ Hephaestus().then(M => {
     pairG:  M.cwrap('mqmqa_ph_pair_gibbs',null,['number','number','number','number']),
     nStoich:M.cwrap('mqmqa_db_num_stoich','number',['number']),
     stName: M.cwrap('mqmqa_db_stoich_name','string',['number','number']),
+    stG:    M.cwrap('mqmqa_db_stoich_gibbs','number',['number','number','number']),
     isSubq: M.cwrap('mqmqa_db_phase_is_subq','number',['number','number']),
     pairStoich: M.cwrap('mqmqa_ph_pair_stoich',null,['number','number','number']),
     pairZeta: M.cwrap('mqmqa_ph_pair_zeta',null,['number','number','number']),
@@ -292,6 +339,7 @@ function loadDatabase(text, name) {
   document.getElementById('tval').textContent = t.value + ' K';
   updatePairs();
   populateComponents();
+  populateDiagram();
 }
 
 function updatePairs() {
@@ -523,11 +571,324 @@ document.getElementById('solve').addEventListener('click', () => {
   out.classList.remove('hidden');
 });
 
+// ---- binary phase diagram (liquid convex hull vs stoichiometric compounds) ----
+//
+// A join is parameterized by xi, the mole fraction of end member B. The liquid
+// Gibbs energy along the join comes from the same in-browser solver used above;
+// the solids are the database compounds that sit on the join. The stable state at
+// any (xi, T) is the lower convex hull of the liquid curve plus those solid points,
+// carried per salt formula so the hull and lever rule share one basis.
+
+let pdResult = null;          // last computed diagram, kept for redraw on theme change
+let pdVary = [], pdCommon = []; // ion menus for the loaded system
+const PD_FLOOR = 0.0015;      // keep the liquid sampling off the pure end members
+
+function pdGcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ const t=a%b; a=b; b=t; } return a||1; }
+function pdFormula(els){ return Object.entries(els).map(([e,n])=>n===1?e:e+n).join(''); }
+
+// Neutral salt of one cation and one anion, reduced to smallest integers. `vary`
+// is the element that changes along the join; the other is shared with the partner.
+function pdSalt(catSym,catQ,anSym,anQ,vary){
+  const g=pdGcd(catQ,anQ), nc=Math.abs(anQ)/g, na=Math.abs(catQ)/g;
+  const els={}; els[catSym]=(els[catSym]||0)+nc; els[anSym]=(els[anSym]||0)+na;
+  return {els, vary, common:(vary===catSym?anSym:catSym), atoms:nc+na, label:pdFormula(els)};
+}
+function pdEnd(varyIon, commonIon){
+  const cat = varyIon.isCat ? varyIon : commonIon;
+  const an  = varyIon.isCat ? commonIon : varyIon;
+  return pdSalt(cat.sym, cat.q, an.sym, an.q, varyIon.sym);
+}
+
+function allElements(){ const o=[]; for(let i=0;i<api.nEl(db);i++) o.push(api.el(db,i)); return o; }
+
+// Parse a stoichiometric compound name (its leading formula token) into element
+// counts, matching against the database's element symbols (longest first).
+function pdParse(name, elements){
+  let f=name.split('(')[0]; const us=f.indexOf('_'); if(us>0) f=f.slice(0,us);
+  const syms=[...elements].sort((a,b)=>b.length-a.length); const c={}; let i=0;
+  while(i<f.length){ let sym=null; for(const s of syms){ if(f.startsWith(s,i)){ sym=s; break; } }
+    if(!sym) return null; i+=sym.length; let j=i;
+    while(j<f.length && f[j]>='0' && f[j]<='9') j++;
+    const n=j>i?parseInt(f.slice(i,j),10):1; c[sym]=(c[sym]||0)+n; i=j; }
+  return c;
+}
+
+// Every stoichiometric compound sitting exactly on the join, as its join fraction
+// xi, salt-formula units per compound, database index, and solid/liquid kind.
+function pdDiscretes(endA, endB){
+  const elements=allElements();
+  const varyA=endA.vary, varyB=endB.vary, common=endA.common;
+  const joinEls=new Set([varyA,varyB,common]); const out=[];
+  for(let i=0;i<api.nStoich(db);i++){
+    const name=api.stName(db,i); const c=pdParse(name,elements); if(!c) continue;
+    if(Object.keys(c).some(e=>!joinEls.has(e))) continue;
+    const aA=c[varyA]||0, aB=c[varyB]||0, dA=endA.els[varyA], dB=endB.els[varyB];
+    if(aA%dA!==0 || aB%dB!==0) continue;
+    const n0=aA/dA, n1=aB/dB, units=n0+n1; if(units<=0) continue;
+    const reqCommon=n0*endA.els[common]+n1*endB.els[common];
+    if(Math.abs((c[common]||0)-reqCommon)>1e-9) continue;
+    out.push({xi:n1/units, units, name, idx:i, solid:/\(S\)/.test(name)});
+  }
+  return out;
+}
+
+const pdAtoms=(endA,endB,xi)=>(1-xi)*endA.atoms+xi*endB.atoms;
+
+function pdLiquidG(comps,endA,endB,xi,T){
+  const t={};
+  for(const e of new Set([...Object.keys(endA.els),...Object.keys(endB.els)]))
+    t[e]=(1-xi)*(endA.els[e]||0)+xi*(endB.els[e]||0);
+  return solveEquilibrium(buildInputs(comps,T), t).GM;
+}
+
+function pdLowerHull(points){
+  const pts=points.slice().sort((a,b)=> a[0]-b[0] || a[1]-b[1]); const hull=[];
+  for(const pt of pts){ const x=pt[0], g=pt[1];
+    while(hull.length>=2){
+      const x1=hull[hull.length-2][0], g1=hull[hull.length-2][1];
+      const x2=hull[hull.length-1][0], g2=hull[hull.length-1][1];
+      if((x2-x1)*(g-g1)-(g2-g1)*(x-x1) <= 0) hull.pop(); else break;
+    }
+    hull.push(pt);
+  }
+  return hull;
+}
+
+// Pure end-member melting invariants: temperatures where a solid and a liquid
+// discrete at the same join point swap stability.
+function pdMelts(disc){
+  const out=[];
+  for(const s of disc.filter(d=>d.solid)){
+    const l=disc.find(d=>!d.solid && Math.abs(d.xi-s.xi)<1e-6); if(!l) continue;
+    const f=T=>api.stG(db,s.idx,T)/s.units - api.stG(db,l.idx,T)/l.units;
+    let lo=200, hi=6000; if(f(lo)*f(hi)>0) continue;
+    for(let it=0;it<70;it++){ const m=0.5*(lo+hi); if(f(lo)*f(m)<=0) hi=m; else lo=m; }
+    out.push({xi:s.xi, T:0.5*(lo+hi), solid:s.name, liquid:l.name});
+  }
+  return out;
+}
+
+function pdBuildHull(pts){
+  const byx=new Map();
+  for(const p of pts){ if(!isFinite(p[1])) continue; const k=p[0].toFixed(9);
+    const e=byx.get(k); if(!e||p[1]<e[1]) byx.set(k,p); }
+  return pdLowerHull([...byx.values()]);
+}
+
+// One temperature column, solved in two passes so the liquidus is smooth without
+// paying for a fine grid across the whole join. Pass one samples the liquid coarsely
+// to locate where LIQUID reaches the lower hull; pass two resamples densely inside
+// that band (plus a margin) so the liquid-solid boundaries are well resolved. Points
+// sharing an xi keep only the lower one, so a pure end member's solid and liquid do
+// not both survive at their melting crossover. Returns the region classification per
+// xi cell (0 liquid, 1 two-phase, 2 subsolidus) and the liquidus envelope xL, rL.
+function pdColumn(comps,endA,endB,disc,T,xiCells){
+  const aps=xi=>pdAtoms(endA,endB,xi);
+  const liqPt=xi=>[xi, pdLiquidG(comps,endA,endB,xi,T)*aps(xi), 'liq'];
+  const discPts=disc.map(d=>[d.xi, api.stG(db,d.idx,T)/d.units, d.solid?'sol':'liq']);
+
+  const coarse=[]; const nC=64;
+  for(let k=0;k<nC;k++){ const xi=PD_FLOOR+(1-2*PD_FLOOR)*k/(nC-1); coarse.push(liqPt(xi)); }
+  let H=pdBuildHull(coarse.concat(discPts));
+  const liqXi=H.filter(h=>h[2]==='liq').map(h=>h[0]);
+
+  if(liqXi.length){
+    const pad=0.04;
+    const lo=Math.max(PD_FLOOR, Math.min(...liqXi)-pad);
+    const hi=Math.min(1-PD_FLOOR, Math.max(...liqXi)+pad);
+    const fine=[]; const nF=150;
+    for(let k=0;k<nF;k++){ const xi=lo+(hi-lo)*k/(nF-1); fine.push(liqPt(xi)); }
+    H=pdBuildHull(coarse.concat(fine, discPts));
+  }
+
+  const hx=H.map(h=>h[0]);
+  const cls=new Int8Array(xiCells);
+  for(let c=0;c<xiCells;c++){
+    const xi=(c+0.5)/xiCells;
+    let k=0; while(k<hx.length && hx[k]<xi) k++;
+    k=Math.min(Math.max(k,1),H.length-1);
+    const a=H[k-1][2], b=H[k][2];
+    cls[c] = (a==='liq'&&b==='liq') ? 0 : (a==='sol'&&b==='sol') ? 2 : 1;
+  }
+  let rL=NaN, lL=NaN;
+  for(let k=0;k<H.length-1;k++){
+    const a=H[k][2], b=H[k+1][2];
+    if(a==='liq'&&b==='sol'){ const x=H[k][0]; if(isNaN(rL)||x>rL) rL=x; }
+    if(a==='sol'&&b==='liq'){ const x=H[k+1][0]; if(isNaN(lL)||x<lL) lL=x; }
+  }
+  return {T, cls, rL, lL};
+}
+
+function populateDiagram(){
+  pdResult=null;
+  document.getElementById('pdout').classList.add('hidden');
+  document.getElementById('pdmsg').textContent='';
+  const cats=[], ans=[];
+  for(let i=0;i<api.nCat(db,phase);i++) cats.push({sym:elementOf(api.cat(db,phase,i)), q:api.catQ(db,phase,i), isCat:true});
+  for(let k=0;k<api.nAn(db,phase);k++) ans.push({sym:elementOf(api.an(db,phase,k)), q:api.anQ(db,phase,k), isCat:false});
+  // vary whichever sublattice has two or more members; share the other
+  if(cats.length>=2){ pdVary=cats; pdCommon=ans; }
+  else if(ans.length>=2){ pdVary=ans; pdCommon=cats; }
+  else { pdVary=cats; pdCommon=ans; }
+
+  const A=document.getElementById('pdA'), B=document.getElementById('pdB'), C=document.getElementById('pdCommon');
+  const fill=(sel,ions)=>{ sel.innerHTML=''; ions.forEach((ion,i)=>{ const o=document.createElement('option');
+    o.value=i; o.textContent=ion.sym; sel.appendChild(o); }); };
+  fill(A,pdVary); fill(B,pdVary); fill(C,pdCommon);
+  A.value=0; B.value=Math.min(1,pdVary.length-1); C.value=0;
+  const commonRow = pdCommon.length>1;
+  document.getElementById('pdCommonLab').style.display = commonRow?'':'none';
+  C.style.display = commonRow?'':'none';
+  const pdgen=document.getElementById('pdgen');
+  pdgen.disabled = pdVary.length<2 || pdCommon.length<1;
+  document.getElementById('pdmsg').textContent = pdgen.disabled ?
+    'This system has no two-component join to plot.' : '';
+}
+
+async function generateDiagram(){
+  const msg=document.getElementById('pdmsg'), out=document.getElementById('pdout');
+  if(!db){ msg.textContent='Load a database first.'; return; }
+  const ia=+document.getElementById('pdA').value, ib=+document.getElementById('pdB').value, ic=+document.getElementById('pdCommon').value;
+  if(ia===ib){ msg.textContent='Pick two different end members.'; return; }
+  const common=pdCommon[ic]||pdCommon[0];
+  const endA=pdEnd(pdVary[ia], common), endB=pdEnd(pdVary[ib], common);
+  const comps=[pdVary[ia].sym, pdVary[ib].sym, common.sym];
+  let Tmin=+document.getElementById('pdTmin').value, Tmax=+document.getElementById('pdTmax').value;
+  if(!(Tmax>Tmin)){ msg.textContent='Temperature max must exceed min.'; return; }
+
+  const disc=pdDiscretes(endA,endB);
+  const melts=pdMelts(disc);
+  const xiCells=280, nT=120;
+  const cols=[];
+  document.getElementById('pdgen').disabled=true;
+  // Yield about a dozen times so the spinner repaints and progress advances.
+  // Fewer, coarser yields keep the run short even when a background tab clamps
+  // its timers, at the cost of blocking for one chunk of columns at a time.
+  const yieldEvery=Math.max(1, Math.round(nT/12));
+  for(let j=0;j<nT;j++){
+    const T=Tmin+(Tmax-Tmin)*j/(nT-1);
+    cols.push(pdColumn(comps,endA,endB,disc,T,xiCells));
+    if(j%yieldEvery===0){
+      msg.innerHTML='<span class="spinner"></span> Computing '+Math.round(100*(j+1)/nT)+'%';
+      await new Promise(r=>setTimeout(r));
+    }
+  }
+  document.getElementById('pdgen').disabled=false;
+  msg.textContent='';
+  pdResult={endA, endB, comps, Tmin, Tmax, cols, xiCells, disc, melts};
+  out.classList.remove('hidden');
+  drawDiagram();
+  renderLegend();
+}
+
+function pdThemeColors(){
+  const cs=getComputedStyle(document.documentElement);
+  const hex=v=>{ let s=cs.getPropertyValue(v).trim(); if(s[0]==='#') s=s.slice(1);
+    if(s.length===3) s=s.split('').map(c=>c+c).join('');
+    return {r:parseInt(s.slice(0,2),16), g:parseInt(s.slice(2,4),16), b:parseInt(s.slice(4,6),16)}; };
+  return {brand:hex('--brand'), ink:hex('--ink'), line:hex('--line'), muted:hex('--muted'), card:hex('--card')};
+}
+const rgba=(c,a)=>`rgba(${c.r},${c.g},${c.b},${a})`;
+
+function drawDiagram(){
+  if(!pdResult) return;
+  const {endA, endB, Tmin, Tmax, cols, xiCells, melts}=pdResult;
+  const cv=document.getElementById('pdcanvas');
+  const dpr=window.devicePixelRatio||1;
+  const cssW=cv.clientWidth||640, cssH=420;
+  cv.width=cssW*dpr; cv.height=cssH*dpr;
+  const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,cssW,cssH);
+  const col=pdThemeColors();
+
+  const mL=54, mR=16, mT=34, mB=48;
+  const L=mL, R=cssW-mR, TP=mT, BP=cssH-mB, PW=R-L, PH=BP-TP;
+  const X=f=>L+f*PW;                       // f = mole fraction of B in [0,1]
+  const Y=t=>BP-(t-Tmin)/(Tmax-Tmin)*PH;
+
+  // T-band edges so each column paints a contiguous horizontal strip
+  const Tedge=[Tmin];
+  for(let j=0;j<cols.length-1;j++) Tedge.push(0.5*(cols[j].T+cols[j+1].T));
+  Tedge.push(Tmax);
+  const fillClass=[rgba(col.brand,0.13), rgba(col.muted,0.16), rgba(col.muted,0.34)];
+  for(let j=0;j<cols.length;j++){
+    const yTop=Y(Tedge[j+1]), yBot=Y(Tedge[j]), cls=cols[j].cls;
+    let c=0;
+    while(c<xiCells){ let c2=c+1; while(c2<xiCells && cls[c2]===cls[c]) c2++;
+      ctx.fillStyle=fillClass[cls[c]];
+      ctx.fillRect(X(c/xiCells), yTop, X(c2/xiCells)-X(c/xiCells), yBot-yTop+0.6);
+      c=c2; }
+  }
+
+  // liquidus envelope curves
+  const drawBranch=key=>{ ctx.beginPath(); let started=false;
+    for(const cc of cols){ const x=cc[key]; if(isNaN(x)){ started=false; continue; }
+      const px=X(x), py=Y(cc.T); if(!started){ ctx.moveTo(px,py); started=true; } else ctx.lineTo(px,py); }
+    ctx.stroke(); };
+  ctx.lineWidth=2; ctx.strokeStyle=rgba(col.brand,1); ctx.lineJoin='round';
+  drawBranch('rL'); drawBranch('lL');
+
+  // melting invariants: open marker at the end member, dashed guide at that T
+  ctx.setLineDash([4,3]); ctx.lineWidth=1.2; ctx.strokeStyle=rgba(col.ink,0.6);
+  for(const m of melts){
+    if(m.T<Tmin||m.T>Tmax) continue;
+    const yy=Y(m.T), xx=X(m.xi);
+    ctx.beginPath(); ctx.moveTo(X(m.xi>0.5?0.72:0.0), yy); ctx.lineTo(xx, yy); ctx.stroke();
+    ctx.setLineDash([]); ctx.beginPath(); ctx.arc(xx, yy, 4, 0, 2*Math.PI);
+    ctx.fillStyle=rgba(col.card,1); ctx.fill();
+    ctx.lineWidth=1.4; ctx.strokeStyle=rgba(col.ink,0.85); ctx.stroke();
+    ctx.setLineDash([4,3]); ctx.lineWidth=1.2; ctx.strokeStyle=rgba(col.ink,0.6);
+  }
+  ctx.setLineDash([]);
+
+  // axes frame and ticks
+  ctx.strokeStyle=rgba(col.line,1); ctx.lineWidth=1; ctx.strokeRect(L,TP,PW,PH);
+  ctx.fillStyle=rgba(col.ink,0.9); ctx.font='11px system-ui,sans-serif';
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  for(let p=0;p<=100;p+=20){ const px=X(p/100);
+    ctx.strokeStyle=rgba(col.line,0.7); ctx.beginPath(); ctx.moveTo(px,TP); ctx.lineTo(px,BP); ctx.stroke();
+    ctx.fillText(p+'', px, BP+5); }
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  const tstep = (Tmax-Tmin)>1200?300:(Tmax-Tmin)>600?200:100;
+  const t0=Math.ceil(Tmin/tstep)*tstep;
+  for(let t=t0;t<=Tmax;t+=tstep){ const py=Y(t);
+    ctx.strokeStyle=rgba(col.line,0.7); ctx.beginPath(); ctx.moveTo(L,py); ctx.lineTo(R,py); ctx.stroke();
+    ctx.fillText(t+'', L-6, py); }
+
+  // labels
+  ctx.fillStyle=rgba(col.muted,1); ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText('Composition (mol% '+endB.label+')', L+PW/2, cssH-16);
+  ctx.save(); ctx.translate(14, TP+PH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('Temperature (K)', 0, 0); ctx.restore();
+  ctx.fillStyle=rgba(col.ink,1); ctx.font='600 13px system-ui,sans-serif'; ctx.textBaseline='bottom';
+  ctx.fillText(endA.label+' - '+endB.label+' phase diagram', L+PW/2, TP-8);
+  ctx.font='11px system-ui,sans-serif'; ctx.fillStyle=rgba(col.muted,1); ctx.textBaseline='top';
+  ctx.textAlign='left';  ctx.fillText(endA.label, L, BP+20);
+  ctx.textAlign='right'; ctx.fillText(endB.label, R, BP+20);
+}
+
+function renderLegend(){
+  const col=pdThemeColors();
+  const lg=document.getElementById('pdlegend');
+  const sw=c=>`<span class="swatch" style="background:${c}"></span>`;
+  const line=`<span style="display:inline-block;width:.9rem;height:0;border-top:2px solid ${rgba(col.brand,1)}"></span>`;
+  lg.innerHTML =
+    '<span>'+sw(rgba(col.brand,0.13))+'liquid</span>'+
+    '<span>'+sw(rgba(col.muted,0.16))+'liquid + solid</span>'+
+    '<span>'+sw(rgba(col.muted,0.34))+'subsolidus</span>'+
+    '<span>'+line+' liquidus</span>'+
+    '<span>&#9711; melting invariant</span>';
+}
+
+document.getElementById('pdgen').addEventListener('click', generateDiagram);
+window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
+
 // theme toggle (dark default; choice persists in localStorage)
 document.getElementById('theme').addEventListener('click', () => {
   const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
   document.documentElement.dataset.theme = next;
   localStorage.setItem('hephaestus-theme', next);
+  if(pdResult){ drawDiagram(); renderLegend(); }
 });
 </script>
 </body>

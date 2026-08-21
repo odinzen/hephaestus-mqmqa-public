@@ -280,3 +280,95 @@ double mqmqa_excess_energy(
     free(nik);
     return energy;
 }
+
+/* ------------------------------------------------------------------ *
+ * Coordination numbers Z (Pelton, Chartrand, Eriksson 2001, eqs 23-24)
+ *
+ * Pure-pair coordinations (A==B, X==Y) are read from the database's MQMZ
+ * parameters; mixed and reciprocal quadruplets are computed recursively from
+ * them. The recursion always reduces toward pure pairs, which are the base case.
+ * ------------------------------------------------------------------ */
+
+typedef struct {
+    int n_cat, n_an;
+    const double *qc, *qa;                   /* |charges| */
+    int n_mqmz;
+    const int *mA, *mB, *mX, *mY;            /* canonical (A<=B, X<=Y) indices */
+    const double *mZ;                        /* [n_mqmz*4], slots A,B,X,Y */
+} zctx;
+
+static int mqmz_lookup(const zctx *c, int A, int B, int X, int Y)
+{
+    for (int i = 0; i < c->n_mqmz; ++i)
+        if (c->mA[i] == A && c->mB[i] == B && c->mX[i] == X && c->mY[i] == Y)
+            return i;
+    return -1;
+}
+
+static double z_calc(const zctx *c, int sp_cat, int sp, int A, int B, int X, int Y);
+
+static double z_get(const zctx *c, int sp_cat, int sp, int A, int B, int X, int Y)
+{
+    if (A > B) { int t = A; A = B; B = t; }
+    if (X > Y) { int t = X; X = Y; Y = t; }
+    const int idx = mqmz_lookup(c, A, B, X, Y);
+    if (idx >= 0) {
+        const int slot = sp_cat ? (sp == A ? 0 : 1) : (sp == X ? 2 : 3);
+        return c->mZ[(size_t)idx * 4 + slot];
+    }
+    return z_calc(c, sp_cat, sp, A, B, X, Y);
+}
+
+static double z_calc(const zctx *c, int sp_cat, int sp, int A, int B, int X, int Y)
+{
+    if (A == B && X == Y)
+        return NAN;                          /* pure pair must be an MQMZ parameter */
+
+    if (A != B && X != Y) {                  /* reciprocal, eqs 23-24 */
+        const double F = 0.125 * (
+            c->qc[A] / z_get(c, 1, A, A, A, X, Y)
+            + c->qc[B] / z_get(c, 1, B, B, B, X, Y)
+            + c->qa[X] / z_get(c, 0, X, A, B, X, X)
+            + c->qa[Y] / z_get(c, 0, Y, A, B, Y, Y));
+        double inv;
+        if (sp_cat) {
+            inv = F * (
+                z_get(c, 0, X, A, B, X, X) / (c->qa[X] * z_get(c, 1, sp, A, B, X, X))
+                + z_get(c, 0, Y, A, B, Y, Y) / (c->qa[Y] * z_get(c, 1, sp, A, B, Y, Y)));
+        } else {
+            inv = F * (
+                z_get(c, 1, A, A, A, X, Y) / (c->qc[A] * z_get(c, 0, sp, A, A, X, Y))
+                + z_get(c, 1, B, B, B, X, Y) / (c->qc[B] * z_get(c, 0, sp, B, B, X, Y)));
+        }
+        return 1.0 / inv;
+    }
+
+    if (A != B) {                            /* X == Y */
+        if (sp_cat)
+            return z_get(c, 1, sp, sp, sp, X, X);
+        return 2.0 * c->qa[sp] / (
+            c->qc[A] / z_get(c, 1, A, A, A, sp, sp)
+            + c->qc[B] / z_get(c, 1, B, B, B, sp, sp));
+    }
+
+    /* A == B, X != Y */
+    if (sp_cat)
+        return 2.0 * c->qc[sp] / (
+            c->qa[X] / z_get(c, 0, X, sp, sp, X, X)
+            + c->qa[Y] / z_get(c, 0, Y, sp, sp, Y, Y));
+    return z_get(c, 0, sp, A, A, sp, sp);
+}
+
+double mqmqa_coordination(
+    int sp_is_cation, int sp_idx,
+    int A, int B, int X, int Y,
+    int n_cat, int n_an,
+    const double *q_cat, const double *q_an,
+    int n_mqmz,
+    const int *mz_A, const int *mz_B, const int *mz_X, const int *mz_Y,
+    const double *mz_Z)
+{
+    (void)n_cat; (void)n_an;
+    zctx c = {n_cat, n_an, q_cat, q_an, n_mqmz, mz_A, mz_B, mz_X, mz_Y, mz_Z};
+    return z_get(&c, sp_is_cation, sp_idx, A, B, X, Y);
+}

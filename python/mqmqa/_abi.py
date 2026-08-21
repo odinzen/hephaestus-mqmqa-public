@@ -42,6 +42,14 @@ _ffi.cdef(
         const int *par_mix, const int *par_code,
         const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
         const double *par_p, const double *par_q, const double *par_L);
+    double mqmqa_coordination(
+        int sp_is_cation, int sp_idx,
+        int A, int B, int X, int Y,
+        int n_cat, int n_an,
+        const double *q_cat, const double *q_an,
+        int n_mqmz,
+        const int *mz_A, const int *mz_B, const int *mz_X, const int *mz_Y,
+        const double *mz_Z);
     """
 )
 
@@ -109,4 +117,17 @@ def excess_energy(n_cat, n_an, quad_ca, quad_cb, quad_ax, quad_ay, X,
         _ints(par_mix), _ints(par_code),
         _ints(par_A), _ints(par_B), _ints(par_X), _ints(par_Y),
         _dbls(par_p), _dbls(par_q), _dbls(par_L),
+    )
+
+
+def coordination(sp_is_cation, sp_idx, A, B, X, Y, n_cat, n_an, q_cat, q_an,
+                 mz_A, mz_B, mz_X, mz_Y, mz_Z):
+    """Coordination number Z of a species in a quadruplet."""
+    return _lib.mqmqa_coordination(
+        int(sp_is_cation), int(sp_idx),
+        int(A), int(B), int(X), int(Y),
+        int(n_cat), int(n_an),
+        _dbls(q_cat), _dbls(q_an),
+        len(mz_A),
+        _ints(mz_A), _ints(mz_B), _ints(mz_X), _ints(mz_Y), _dbls(mz_Z),
     )

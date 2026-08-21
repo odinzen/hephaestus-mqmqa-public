@@ -95,6 +95,20 @@ MQMQA_API double mqmqa_excess_energy(
     const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
     const double *par_p, const double *par_q, const double *par_L);
 
+/* Coordination number Z of a species in a quadruplet (Pelton 2001 eqs 23-24).
+ * sp_is_cation selects the sublattice; sp_idx, A, B, X, Y are cation/anion indices
+ * (A,B cations; X,Y anions). Pure-pair coordinations come from the MQMZ table:
+ * n_mqmz entries with canonical indices mz_A<=mz_B, mz_X<=mz_Y and mz_Z holding the
+ * four slot coordinations [A,B,X,Y] per entry. q_cat/q_an are absolute charges. */
+MQMQA_API double mqmqa_coordination(
+    int sp_is_cation, int sp_idx,
+    int A, int B, int X, int Y,
+    int n_cat, int n_an,
+    const double *q_cat, const double *q_an,
+    int n_mqmz,
+    const int *mz_A, const int *mz_B, const int *mz_X, const int *mz_Y,
+    const double *mz_Z);
+
 #ifdef __cplusplus
 }
 #endif

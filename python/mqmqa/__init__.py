@@ -10,6 +10,7 @@ from ._abi import (
     reference_energy,
     ideal_mixing_energy,
     excess_energy,
+    coordination,
 )
 
 __all__ = [
@@ -18,4 +19,5 @@ __all__ = [
     "reference_energy",
     "ideal_mixing_energy",
     "excess_energy",
+    "coordination",
 ]

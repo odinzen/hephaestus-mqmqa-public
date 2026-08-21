@@ -23,7 +23,8 @@
 extern "C" {
 #endif
 
-/* Molar gas constant R (J/mol/K), CODATA 2018. */
+/* Molar gas constant R (J/mol/K): the CALPHAD/SGTE conventional value 8.3145 that
+ * the databases are assessed with, matching pycalphad. Not CODATA 2018. */
 MQMQA_API double mqmqa_R(void);
 
 /* Ideal binary configurational entropy, -R (x ln x + (1-x) ln(1-x)), J/mol/K.
@@ -53,6 +54,24 @@ MQMQA_API double mqmqa_reference_energy(
     const int *pair_c, const int *pair_a,
     const double *Gax, const double *stoich,
     const double *Z);
+
+/* MQMQA ideal-mixing (configurational entropy) energy, J per mole of quadruplets,
+ * following Poschmann 2021 eqs 5-14. Returns Sid * T * R.
+ *
+ * Za,Zb,Zx,Zy give the coordination number of each of quadruplet q's four
+ * constituents (cation a, cation b, anion x, anion y). zeta is the row-major
+ * [n_cat*n_an] table of pair coordination-equivalence factors. soln_type is
+ * 0 for SUBG, 1 for SUBQ (which uses the 0.75 / 0.5 exponents and starred pairs).
+ */
+MQMQA_API double mqmqa_ideal_mixing_energy(
+    double T,
+    int n_cat, int n_an, int n_quads,
+    const int *quad_ca, const int *quad_cb,
+    const int *quad_ax, const int *quad_ay,
+    const double *X,
+    const double *Za, const double *Zb, const double *Zx, const double *Zy,
+    const double *zeta,
+    int soln_type);
 
 #ifdef __cplusplus
 }

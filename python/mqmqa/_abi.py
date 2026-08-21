@@ -23,6 +23,15 @@ _ffi.cdef(
         const int *pair_c, const int *pair_a,
         const double *Gax, const double *stoich,
         const double *Z);
+    double mqmqa_ideal_mixing_energy(
+        double T,
+        int n_cat, int n_an, int n_quads,
+        const int *quad_ca, const int *quad_cb,
+        const int *quad_ax, const int *quad_ay,
+        const double *X,
+        const double *Za, const double *Zb, const double *Zx, const double *Zy,
+        const double *zeta,
+        int soln_type);
     """
 )
 
@@ -59,4 +68,19 @@ def reference_energy(quad_ca, quad_cb, quad_ax, quad_ay, X,
         _ints(pair_c), _ints(pair_a),
         _dbls(Gax), _dbls(stoich),
         _dbls(Z),
+    )
+
+
+def ideal_mixing_energy(T, n_cat, n_an, quad_ca, quad_cb, quad_ax, quad_ay, X,
+                        Za, Zb, Zx, Zy, zeta, soln_type):
+    """MQMQA ideal-mixing (configurational entropy) energy, J per mole of quadruplets.
+
+    soln_type: 0 for SUBG, 1 for SUBQ. zeta is a flat [n_cat*n_an] sequence.
+    """
+    return _lib.mqmqa_ideal_mixing_energy(
+        float(T), int(n_cat), int(n_an), len(X),
+        _ints(quad_ca), _ints(quad_cb), _ints(quad_ax), _ints(quad_ay),
+        _dbls(X),
+        _dbls(Za), _dbls(Zb), _dbls(Zx), _dbls(Zy),
+        _dbls(zeta), int(soln_type),
     )

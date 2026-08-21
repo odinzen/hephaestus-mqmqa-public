@@ -6,12 +6,13 @@ from mqmqa import R, ideal_entropy_binary
 
 
 def test_gas_constant():
-    assert abs(R() - 8.314462618) < 1e-9
+    # CALPHAD/SGTE conventional value, matching pycalphad v.R (not CODATA 2018)
+    assert abs(R() - 8.3145) < 1e-9
 
 
 def test_ideal_binary_entropy_matches_hand_value():
     x = 0.3
-    expected = -8.314462618 * (x * math.log(x) + (1.0 - x) * math.log(1.0 - x))
+    expected = -8.3145 * (x * math.log(x) + (1.0 - x) * math.log(1.0 - x))
     assert abs(ideal_entropy_binary(x) - expected) < 1e-12
 
 

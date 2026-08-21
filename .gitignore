@@ -19,3 +19,4 @@ web/hephaestus.wasm
 
 # Local demo data (not committed)
 web/*.dat
+web/*.png

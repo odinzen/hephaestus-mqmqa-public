@@ -153,6 +153,76 @@ def element_moles(inp, X):
     return els
 
 
+def _lower_hull(points):
+    """Lower convex hull of (x, g) points, sorted by x. Returns the hull vertices
+    as (x, g, payload) in increasing x (monotone chain, keeping the lower side)."""
+    pts = sorted(points, key=lambda q: q[0])
+    hull = []
+    for x, g, tag in pts:
+        while len(hull) >= 2:
+            (x1, g1, _), (x2, g2, _) = hull[-2], hull[-1]
+            if (x2 - x1) * (g - g1) - (g2 - g1) * (x - x1) <= 0:
+                hull.pop()
+            else:
+                break
+        hull.append((x, g, tag))
+    return hull
+
+
+def multiphase_binary(inp, end0, end1, solids, xi, ngrid=400):
+    """Stable phase assemblage along a binary join between two salt endmembers.
+
+    end0, end1 are the endmember element compositions (dict element -> atom count),
+    e.g. KF = {"K":1,"F":1} and NiF2 = {"NI":1,"F":2}. xi is the bulk mole fraction
+    of end1. solids is a list of (xi_solid, G_per_formula_unit, name), each solid a
+    point on the join. The liquid Gibbs energy along the join is computed from the C
+    engine via the single-phase solver; the stable state at xi is the lower convex
+    hull, a single phase or a two-phase tie-line.
+
+    Returns {phases, fractions, GM} where GM is per mole of atoms, matching the
+    convention of equilibrate. Energies are carried per mole of endmember ("salt")
+    formula so the hull and lever rule stay in one consistent basis.
+    """
+    els = sorted(set(end0) | set(end1))
+
+    def join_comp(t):
+        return {e: (1 - t) * end0.get(e, 0.0) + t * end1.get(e, 0.0) for e in els}
+
+    def atoms_per_salt(t):
+        return sum(join_comp(t).values())
+
+    def liq_g(t):
+        comp = join_comp(t)
+        return equilibrate(inp, comp)["GM"] * atoms_per_salt(t)
+
+    grid = np.concatenate([np.linspace(1e-3, 0.12, ngrid // 3),
+                           np.linspace(0.12, 1 - 1e-3, ngrid - ngrid // 3)])
+    points = [(float(t), liq_g(float(t)), ("LIQUID", float(t))) for t in grid]
+    for xs, gs, name in solids:
+        points.append((xs, gs, (name, xs)))
+
+    hull = _lower_hull(points)
+    hx = [h[0] for h in hull]
+    j = int(np.searchsorted(hx, xi))
+    j = min(max(j, 1), len(hull) - 1)
+    left, right = hull[j - 1], hull[j]
+    g_at = left[1] + (right[1] - left[1]) * (xi - left[0]) / (right[0] - left[0])
+
+    if abs(right[0] - left[0]) < 1e-9 or left[2][0] == right[2][0]:
+        phases = [left[2][0]]
+        fractions = [1.0]
+    else:
+        fr = (xi - left[0]) / (right[0] - left[0])
+        phases = [left[2][0], right[2][0]]
+        fractions = [1 - fr, fr]
+    return {
+        "phases": phases,
+        "fractions": fractions,
+        "endpoints": [left[2][1], right[2][1]],
+        "GM": g_at / atoms_per_salt(xi),
+    }
+
+
 def equilibrate(inp, x_target):
     """Minimize G over the quadruplet fractions at fixed composition.
 

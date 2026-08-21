@@ -225,10 +225,9 @@ double mqmqa_excess_energy(
         /* mixing term */
         double g;
         if (par_code[k] == 1) {                     /* G code */
-            const double mix = (p == 0.0 && qx == 0.0)
-                ? 1.0
-                : pow(0.0, 0.0);                    /* nonzero-exponent G not yet done */
-            g = par_L[k] * mix;
+            if (p != 0.0 || qx != 0.0)
+                return NAN;    /* nonzero-exponent G needs Chi_mix, not yet implemented */
+            g = par_L[k];                           /* zero exponents: mixing term is 1 */
         } else {                                    /* Q code, eq 24 */
             double Xi_i, Xi_j;
             if (par_mix[k] == 0) {                  /* cation mixing: Xi over anion Xn */

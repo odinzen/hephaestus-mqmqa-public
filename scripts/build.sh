@@ -20,6 +20,6 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
     -O2 -std=c11 -Wall -Wextra \
     -shared -I"$ROOT/src" \
     -o "$ROOT/python/mqmqa/mqmqa.dll" \
-    "$ROOT/src/mqmqa.c"
+    "$ROOT/src/mqmqa.c" "$ROOT/src/cs_dat.c"
 
 echo "built $ROOT/python/mqmqa/mqmqa.dll"

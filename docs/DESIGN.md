@@ -60,5 +60,18 @@ is released.
 
 ## Status
 
-Walking skeleton verified (C -> clang/mingw DLL -> cffi -> Python). Next: reference-energy
-term in C, validated against pycalphad on a concrete slag sub-case.
+Energy path complete and validated to machine precision against pycalphad: reference,
+ideal-mixing, and excess (Q code any exponents; G code zero exponents), plus coordination
+numbers Z (recursive, including reciprocal quadruplets).
+
+ChemSage `.dat` reader done (`src/cs_dat.c`): parses the header, SUBQ/SUBG phases (pairs,
+charges, chemical groups, MQMZ coordinations, MQMX excess), and stoichiometric compounds,
+into an in-memory database with no pycalphad. Validated by loading the reader's own data
+into the energy routines and reproducing pycalphad's reference/ideal/excess on the Shishin
+Fe-Sb-S-O slag (SUBQ, reciprocal), a Cu-Ni SUBG salt, and the KF-NiF2 SUBG salt. Reads the
+open MQMQA `.dat` files in pycalphad's test set (KF-NiF2, Ocadiz-Flores, tern-tests).
+
+Next, in order: (1) excess-model follow-ons the reader unlocks (nonzero-exponent G via
+Chi_mix, Bragg-Williams B/H, reciprocal R); (2) the equilibrium solver (minimise G over
+quadruplet fractions at fixed composition); (3) WASM build and the browser calculator.
+Databases containing non-MQMQA solution phases (QKTO, SUBL) are not yet read.

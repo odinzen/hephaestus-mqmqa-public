@@ -50,6 +50,53 @@ _ffi.cdef(
         int n_mqmz,
         const int *mz_A, const int *mz_B, const int *mz_X, const int *mz_Y,
         const double *mz_Z);
+
+    void *mqmqa_db_read_file(const char *path);
+    void *mqmqa_db_read_string(const char *text);
+    void mqmqa_db_free(void *db);
+    const char *mqmqa_db_error(void);
+
+    int mqmqa_db_num_elements(const void *db);
+    const char *mqmqa_db_element(const void *db, int i);
+    double mqmqa_db_element_mass(const void *db, int i);
+
+    int mqmqa_db_num_phases(const void *db);
+    int mqmqa_db_phase_index(const void *db, const char *name);
+    const char *mqmqa_db_phase_name(const void *db, int p);
+    int mqmqa_db_phase_is_subq(const void *db, int p);
+
+    int mqmqa_ph_num_cations(const void *db, int p);
+    int mqmqa_ph_num_anions(const void *db, int p);
+    const char *mqmqa_ph_cation(const void *db, int p, int i);
+    const char *mqmqa_ph_anion(const void *db, int p, int k);
+    double mqmqa_ph_cation_charge(const void *db, int p, int i);
+    double mqmqa_ph_anion_charge(const void *db, int p, int k);
+    int mqmqa_ph_cation_group(const void *db, int p, int i);
+    int mqmqa_ph_anion_group(const void *db, int p, int k);
+
+    int mqmqa_ph_num_pairs(const void *db, int p);
+    void mqmqa_ph_pair_indices(const void *db, int p, int *cat, int *an);
+    void mqmqa_ph_pair_stoich(const void *db, int p, double *stoich);
+    void mqmqa_ph_pair_zeta(const void *db, int p, double *zeta);
+    void mqmqa_ph_pair_gibbs(const void *db, int p, double T, double *G);
+
+    int mqmqa_ph_num_mqmz(const void *db, int p);
+    void mqmqa_ph_mqmz(const void *db, int p,
+                       int *A, int *B, int *X, int *Y, double *Z);
+
+    int mqmqa_ph_num_mqmx(const void *db, int p);
+    void mqmqa_ph_mqmx(const void *db, int p,
+                       int *mix, int *code, int *A, int *B, int *X, int *Y,
+                       int *p_exp, int *q_exp);
+    void mqmqa_ph_mqmx_L(const void *db, int p, double T, double *L);
+
+    int mqmqa_db_num_stoich(const void *db);
+    const char *mqmqa_db_stoich_name(const void *db, int i);
+    double mqmqa_db_stoich_gibbs(const void *db, int i, double T);
+
+    int mqmqa_num_quadruplets(int n_cat, int n_an);
+    void mqmqa_enumerate_quadruplets(int n_cat, int n_an,
+                                     int *ca, int *cb, int *ax, int *ay);
     """
 )
 

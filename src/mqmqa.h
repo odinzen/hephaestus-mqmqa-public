@@ -76,9 +76,9 @@ MQMQA_API double mqmqa_ideal_mixing_energy(
 /* MQMQA excess energy for a set of MQMX interaction parameters, J per mole of
  * quadruplets (Poschmann eqs 19,20,24 mixing term, eq 17 assembly). Handles the Q
  * code (cation and anion mixing) and the G code with zero exponents. Assumes each
- * mixing sublattice is a single chemical group (empty nu/gamma). Not yet covered:
- * nonzero-exponent G (needs Chi), Bragg-Williams B/H, reciprocal R, ternary terms,
- * multi-group expansion.
+ * mixing sublattice is a single chemical group (empty nu/gamma). Unsupported cases
+ * return NaN rather than a wrong number: nonzero-exponent G (needs Chi),
+ * Bragg-Williams B/H, reciprocal R, ternary terms, multi-group expansion.
  *
  * Per parameter k: par_mix 0 = cation mixing (A != B, X = Y), 1 = anion mixing
  * (A = B, X != Y). par_code 0 = Q, 1 = G. par_A,par_B cations; par_X,par_Y anions;

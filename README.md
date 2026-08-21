@@ -37,8 +37,12 @@ salt from the 2023 pycalphad paper). Nothing is claimed working until it matches
 
 ## Status
 
-Early scaffold. Nothing implemented yet. A C toolchain is being set up before any
-C is written, so that every line is compiled and tested, not asserted.
+The C energy path is complete and validated to machine precision against pycalphad:
+reference, ideal-mixing, and excess energies, plus recursive coordination numbers. A
+ChemSage `.dat` reader loads the pair, coordination, and excess parameters and the
+SUBQ/SUBG phase structure with no pycalphad at runtime (pycalphad stays the oracle).
+Next up: the excess-model cases the reader unlocks, then the equilibrium solver, then
+the WebAssembly build and browser calculator. See `docs/DESIGN.md`.
 
 ## Publication
 

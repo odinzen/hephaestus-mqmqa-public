@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hephaestus — open MQMQA slag/salt engine</title>
+<style>
+  :root { color-scheme: light dark; --fg:#1a1a1a; --muted:#666; --bg:#fafafa;
+          --card:#fff; --line:#e3e3e3; --accent:#b3402a; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fg:#e8e8e8; --muted:#9a9a9a; --bg:#161616; --card:#1f1f1f;
+            --line:#333; --accent:#e0714f; } }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+         color:var(--fg); background:var(--bg); }
+  main { max-width:760px; margin:0 auto; padding:2rem 1.25rem 4rem; }
+  h1 { font-size:1.7rem; margin:0 0 .2rem; letter-spacing:-.02em; }
+  h1 .flame { color:var(--accent); }
+  .tag { color:var(--muted); margin:0 0 1.5rem; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px;
+          padding:1.1rem 1.25rem; margin:1rem 0; }
+  .card h2 { font-size:.8rem; text-transform:uppercase; letter-spacing:.08em;
+             color:var(--muted); margin:0 0 .8rem; font-weight:600; }
+  button, .filebtn { font:inherit; border:1px solid var(--accent); color:#fff;
+          background:var(--accent); border-radius:8px; padding:.5rem .9rem;
+          cursor:pointer; }
+  .filebtn.ghost { background:transparent; color:var(--accent); }
+  input[type=file] { display:none; }
+  .row { display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; }
+  .kv { display:grid; grid-template-columns:auto 1fr; gap:.15rem 1rem; margin:0; }
+  .kv dt { color:var(--muted); }
+  .kv dd { margin:0; }
+  .chip { display:inline-block; border:1px solid var(--line); border-radius:999px;
+          padding:.05rem .55rem; margin:.1rem .2rem .1rem 0; font-size:.85rem; }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  th,td { text-align:left; padding:.35rem .5rem; border-bottom:1px solid var(--line); }
+  td.num { text-align:right; }
+  label.temp { display:flex; gap:.7rem; align-items:center; margin:.2rem 0 1rem; }
+  input[type=range] { flex:1; accent-color:var(--accent); }
+  .muted { color:var(--muted); }
+  .hidden { display:none; }
+  footer { color:var(--muted); font-size:.85rem; margin-top:2rem; }
+  code { background:color-mix(in srgb, var(--fg) 8%, transparent); padding:.05rem .3rem;
+         border-radius:4px; }
+</style>
+</head>
+<body>
+<main>
+  <h1><span class="flame">◆</span> Hephaestus</h1>
+  <p class="tag">An open Modified Quasichemical Model engine for slags and salts.
+     Runs entirely in your browser — nothing is uploaded, nothing is installed.</p>
+
+  <div class="card">
+    <h2>1 · Load a thermodynamic database</h2>
+    <div class="row">
+      <label class="filebtn">Choose a ChemSage .dat file
+        <input type="file" id="file" accept=".dat,.DAT,text/plain">
+      </label>
+      <button class="filebtn ghost" id="example" type="button">Load example</button>
+      <span id="loadmsg" class="muted">No database loaded yet.</span>
+    </div>
+  </div>
+
+  <div id="results" class="hidden">
+    <div class="card">
+      <h2>System</h2>
+      <dl class="kv">
+        <dt>Elements</dt><dd id="els"></dd>
+        <dt>Solution phase</dt><dd id="phase"></dd>
+        <dt>Cations</dt><dd id="cats"></dd>
+        <dt>Anions</dt><dd id="ans"></dd>
+        <dt>Solid compounds</dt><dd id="solids"></dd>
+      </dl>
+    </div>
+
+    <div class="card">
+      <h2>Pair energies vs temperature</h2>
+      <label class="temp">Temperature
+        <input type="range" id="temp" min="500" max="3000" step="1" value="1873">
+        <b id="tval">1873 K</b>
+      </label>
+      <table>
+        <thead><tr><th>Pair</th><th class="num">Gibbs energy (J/mol)</th></tr></thead>
+        <tbody id="pairs"></tbody>
+      </table>
+      <p class="muted" style="margin:.8rem 0 0">
+        These are the pair (endmember) Gibbs energies the engine evaluates from the
+        loaded database. Composition equilibria and phase diagrams come next.</p>
+    </div>
+  </div>
+
+  <footer>
+    Engine: MIT. This is an early build — the equilibrium solver and steel-system
+    phase diagrams are on the roadmap.
+  </footer>
+</main>
+
+<script src="./hephaestus.js"></script>
+<script>
+let api = null, db = 0, phase = 0, nPairs = 0, catNames = [], anNames = [];
+
+Hephaestus().then(M => {
+  api = {
+    read:   M.cwrap('mqmqa_db_read_string','number',['string']),
+    error:  M.cwrap('mqmqa_db_error','string',[]),
+    free:   M.cwrap('mqmqa_db_free',null,['number']),
+    nEl:    M.cwrap('mqmqa_db_num_elements','number',['number']),
+    el:     M.cwrap('mqmqa_db_element','string',['number','number']),
+    nPh:    M.cwrap('mqmqa_db_num_phases','number',['number']),
+    phName: M.cwrap('mqmqa_db_phase_name','string',['number','number']),
+    nCat:   M.cwrap('mqmqa_ph_num_cations','number',['number','number']),
+    nAn:    M.cwrap('mqmqa_ph_num_anions','number',['number','number']),
+    cat:    M.cwrap('mqmqa_ph_cation','string',['number','number','number']),
+    an:     M.cwrap('mqmqa_ph_anion','string',['number','number','number']),
+    catQ:   M.cwrap('mqmqa_ph_cation_charge','number',['number','number','number']),
+    anQ:    M.cwrap('mqmqa_ph_anion_charge','number',['number','number','number']),
+    nPairs: M.cwrap('mqmqa_ph_num_pairs','number',['number','number']),
+    pairIx: M.cwrap('mqmqa_ph_pair_indices',null,['number','number','number','number']),
+    pairG:  M.cwrap('mqmqa_ph_pair_gibbs',null,['number','number','number','number']),
+    nStoich:M.cwrap('mqmqa_db_num_stoich','number',['number']),
+    stName: M.cwrap('mqmqa_db_stoich_name','string',['number','number']),
+  };
+  api.M = M;
+});
+
+document.getElementById('file').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  if (!f || !api) return;
+  const text = await f.text();
+  loadDatabase(text, f.name);
+});
+
+document.getElementById('example').addEventListener('click', async () => {
+  if (!api) return;
+  document.getElementById('loadmsg').textContent = 'Loading example…';
+  try {
+    const text = await (await fetch('./example.dat')).text();
+    loadDatabase(text, 'example.dat');
+  } catch (err) {
+    document.getElementById('loadmsg').textContent = 'Example not found next to this page.';
+  }
+});
+
+function loadDatabase(text, name) {
+  const M = api.M;
+  if (db) { api.free(db); db = 0; }
+  db = api.read(text);
+  const msg = document.getElementById('loadmsg');
+  if (!db) { msg.textContent = 'Could not read this file: ' + api.error(); return; }
+
+  phase = 0; // first solution phase
+  msg.textContent = name + ' loaded.';
+  document.getElementById('results').classList.remove('hidden');
+
+  const els = []; for (let i=0;i<api.nEl(db);i++) els.push(api.el(db,i));
+  document.getElementById('els').textContent = els.join(', ');
+  document.getElementById('phase').textContent = api.phName(db,phase);
+
+  catNames = []; const catEl = document.getElementById('cats'); catEl.innerHTML='';
+  for (let i=0;i<api.nCat(db,phase);i++){
+    catNames.push(api.cat(db,phase,i));
+    catEl.appendChild(chip(api.cat(db,phase,i)+' (+'+api.catQ(db,phase,i)+')'));
+  }
+  anNames = []; const anEl = document.getElementById('ans'); anEl.innerHTML='';
+  for (let k=0;k<api.nAn(db,phase);k++){
+    anNames.push(api.an(db,phase,k));
+    anEl.appendChild(chip(api.an(db,phase,k)+' (−'+api.anQ(db,phase,k)+')'));
+  }
+  const solids=[]; for(let i=0;i<api.nStoich(db);i++) solids.push(api.stName(db,i));
+  document.getElementById('solids').textContent = solids.length ? solids.join(', ') : '—';
+
+  nPairs = api.nPairs(db,phase);
+  // cache pair (cation,anion) index labels once
+  const cbuf = M._malloc(nPairs*4), abuf = M._malloc(nPairs*4);
+  api.pairIx(db,phase,cbuf,abuf);
+  window._pairLabels = [];
+  for (let k=0;k<nPairs;k++){
+    const ci = M.getValue(cbuf+k*4,'i32'), ai = M.getValue(abuf+k*4,'i32');
+    window._pairLabels.push(catNames[ci]+' / '+anNames[ai]);
+  }
+  M._free(cbuf); M._free(abuf);
+
+  // keep the label honest with the actual (possibly step-snapped) slider value
+  const t = document.getElementById('temp');
+  document.getElementById('tval').textContent = t.value + ' K';
+  updatePairs();
+}
+
+function updatePairs() {
+  if (!db) return;
+  const M = api.M;
+  const T = +document.getElementById('temp').value;
+  const gbuf = M._malloc(nPairs*8);
+  api.pairG(db,phase,T,gbuf);
+  const tbody = document.getElementById('pairs'); tbody.innerHTML='';
+  for (let k=0;k<nPairs;k++){
+    const g = M.getValue(gbuf+k*8,'double');
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>'+window._pairLabels[k]+'</td><td class="num">'+
+                   g.toLocaleString(undefined,{maximumFractionDigits:0})+'</td>';
+    tbody.appendChild(tr);
+  }
+  M._free(gbuf);
+}
+
+document.getElementById('temp').addEventListener('input', e => {
+  document.getElementById('tval').textContent = e.target.value + ' K';
+  updatePairs();
+});
+
+function chip(t){ const s=document.createElement('span'); s.className='chip'; s.textContent=t; return s; }
+</script>
+</body>
+</html>

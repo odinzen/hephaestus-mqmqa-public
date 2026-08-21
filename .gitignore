@@ -12,3 +12,10 @@ _cffi_*.c
 
 # Reference oracle dumps that are regenerated
 reference/*.raw.json
+
+# WASM build output (regenerated from src by scripts/build_wasm.sh)
+web/hephaestus.js
+web/hephaestus.wasm
+
+# Local demo data (not committed)
+web/*.dat

@@ -11,6 +11,7 @@ from ._abi import (
     ideal_mixing_energy,
     excess_energy,
     coordination,
+    c_equilibrate,
 )
 from ._database import Database, enumerate_quadruplets
 
@@ -21,6 +22,7 @@ __all__ = [
     "ideal_mixing_energy",
     "excess_energy",
     "coordination",
+    "c_equilibrate",
     "Database",
     "enumerate_quadruplets",
 ]

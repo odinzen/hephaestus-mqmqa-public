@@ -389,3 +389,357 @@ double mqmqa_coordination(
     zctx c = {n_cat, n_an, q_cat, q_an, n_mqmz, mz_A, mz_B, mz_X, mz_Y, mz_Z};
     return z_get(&c, sp_is_cation, sp_idx, A, B, X, Y);
 }
+
+/* ------------------------------------------------------------------ *
+ * Single-phase equilibrium (constrained Gibbs minimization)
+ *
+ * The constraints are linear in X, so the feasible set is an affine subspace.
+ * We reduce to unconstrained minimization over that subspace's coordinates and
+ * run Nelder-Mead there. Small dense linear algebra (Gauss-Jordan) builds the
+ * subspace; the reduced dimension is n_quads - rank, typically 1-3.
+ * ------------------------------------------------------------------ */
+
+/* Gauss-Jordan reduction of the augmented system [C | d] (m rows, n unknowns) to
+ * reduced row echelon form, then read off one particular solution and a null-space
+ * basis. Writes the particular solution to x0 (n) and stacks the null-space basis
+ * vectors as columns 0..(*n_null-1) of Nspace (n rows by n columns, row-major).
+ * Returns the rank, or -1 if the system is inconsistent. */
+static int constraint_nullspace(const double *Cin, const double *d, int m, int n,
+                                double *x0, double *Nspace, int *n_null)
+{
+    const double tol = 1e-12;
+    double *M = (double *)malloc((size_t)m * (n + 1) * sizeof(double));
+    int *pivcol = (int *)malloc((size_t)m * sizeof(int));
+    if (!M || !pivcol) { free(M); free(pivcol); return -1; }
+    for (int i = 0; i < m; ++i) {
+        for (int j = 0; j < n; ++j) M[(size_t)i * (n + 1) + j] = Cin[(size_t)i * n + j];
+        M[(size_t)i * (n + 1) + n] = d[i];
+    }
+
+    int rank = 0;
+    for (int col = 0; col < n && rank < m; ++col) {
+        int piv = -1;
+        double best = tol;
+        for (int r = rank; r < m; ++r) {
+            const double v = fabs(M[(size_t)r * (n + 1) + col]);
+            if (v > best) { best = v; piv = r; }
+        }
+        if (piv < 0) continue;                       /* free column */
+        for (int j = 0; j <= n; ++j) {
+            double t = M[(size_t)rank * (n + 1) + j];
+            M[(size_t)rank * (n + 1) + j] = M[(size_t)piv * (n + 1) + j];
+            M[(size_t)piv * (n + 1) + j] = t;
+        }
+        const double p = M[(size_t)rank * (n + 1) + col];
+        for (int j = 0; j <= n; ++j) M[(size_t)rank * (n + 1) + j] /= p;
+        for (int r = 0; r < m; ++r) {
+            if (r == rank) continue;
+            const double f = M[(size_t)r * (n + 1) + col];
+            if (f == 0.0) continue;
+            for (int j = 0; j <= n; ++j)
+                M[(size_t)r * (n + 1) + j] -= f * M[(size_t)rank * (n + 1) + j];
+        }
+        pivcol[rank] = col;
+        ++rank;
+    }
+
+    /* inconsistent if a pivot-free row still carries a nonzero right-hand side */
+    for (int r = rank; r < m; ++r) {
+        if (fabs(M[(size_t)r * (n + 1) + n]) > 1e-9) {
+            free(M); free(pivcol); return -1;
+        }
+    }
+
+    char *is_pivot = (char *)calloc((size_t)n, 1);
+    for (int r = 0; r < rank; ++r) is_pivot[pivcol[r]] = 1;
+
+    for (int j = 0; j < n; ++j) x0[j] = 0.0;
+    for (int r = 0; r < rank; ++r)
+        x0[pivcol[r]] = M[(size_t)r * (n + 1) + n];   /* free vars = 0 */
+
+    int nn = 0;
+    for (int f = 0; f < n; ++f) {
+        if (is_pivot[f]) continue;
+        double *v = Nspace + (size_t)nn * n;
+        for (int j = 0; j < n; ++j) v[j] = 0.0;
+        v[f] = 1.0;
+        for (int r = 0; r < rank; ++r)
+            v[pivcol[r]] = -M[(size_t)r * (n + 1) + f];
+        double norm = 0.0;
+        for (int j = 0; j < n; ++j) norm += v[j] * v[j];
+        norm = sqrt(norm);
+        if (norm > 0.0) for (int j = 0; j < n; ++j) v[j] /= norm;  /* unit t scale */
+        ++nn;
+    }
+    *n_null = nn;
+
+    free(is_pivot); free(M); free(pivcol);
+    return rank;
+}
+
+/* Everything the objective needs to turn reduced coordinates t into an energy. */
+typedef struct {
+    double T;
+    int n_cat, n_an, n_quads;
+    const int *ca, *cb, *ax, *ay;
+    const double *Za, *Zb, *Zx, *Zy, *zeta;
+    int soln_type;
+    int n_pairs;
+    const int *pair_c, *pair_a;
+    const double *Gax, *stoich, *Zref;
+    int n_params;
+    const int *par_mix, *par_code, *par_A, *par_B, *par_X, *par_Y;
+    const double *par_p, *par_q, *par_L;
+    const double *x0, *N;                            /* affine subspace X = x0 + N t */
+    int n_null;
+    double *Xbuf;                                    /* scratch, length n_quads */
+} eqctx;
+
+static void ctx_X_from_t(const eqctx *c, const double *t)
+{
+    for (int q = 0; q < c->n_quads; ++q) {
+        double x = c->x0[q];
+        for (int j = 0; j < c->n_null; ++j)
+            x += c->N[(size_t)j * c->n_quads + q] * t[j];
+        c->Xbuf[q] = x;
+    }
+}
+
+static double ctx_gibbs_per_quad(const eqctx *c, const double *X)
+{
+    return mqmqa_reference_energy(c->n_quads, c->ca, c->cb, c->ax, c->ay, X,
+                                  c->n_pairs, c->pair_c, c->pair_a,
+                                  c->Gax, c->stoich, c->Zref)
+         + mqmqa_ideal_mixing_energy(c->T, c->n_cat, c->n_an, c->n_quads,
+                                     c->ca, c->cb, c->ax, c->ay, X,
+                                     c->Za, c->Zb, c->Zx, c->Zy, c->zeta, c->soln_type)
+         + mqmqa_excess_energy(c->n_cat, c->n_an, c->n_quads,
+                               c->ca, c->cb, c->ax, c->ay, X,
+                               c->Za, c->Zb, c->Zx, c->Zy,
+                               c->n_params, c->par_mix, c->par_code,
+                               c->par_A, c->par_B, c->par_X, c->par_Y,
+                               c->par_p, c->par_q, c->par_L);
+}
+
+#define EQ_XMIN 1e-11
+
+/* Phase-1 objective: the negated smallest quadruplet fraction. Minimizing it
+ * maximizes min(X), driving toward the interior of the feasible segment (a
+ * Chebyshev-style center) rather than stopping at the first feasible vertex,
+ * which would strand the energy descent in a corner. */
+static double obj_feasible(const double *t, void *vc)
+{
+    eqctx *c = (eqctx *)vc;
+    ctx_X_from_t(c, t);
+    double lo = c->Xbuf[0];
+    for (int q = 1; q < c->n_quads; ++q)
+        if (c->Xbuf[q] < lo) lo = c->Xbuf[q];
+    return -lo;
+}
+
+/* Phase-2 objective: G_per_quad on the feasible subspace, with a large offset for
+ * any bound violation so the simplex is driven back inside rather than into the
+ * log-domain errors of the energy routines. */
+static double obj_energy(const double *t, void *vc)
+{
+    eqctx *c = (eqctx *)vc;
+    ctx_X_from_t(c, t);
+    double viol = 0.0;
+    for (int q = 0; q < c->n_quads; ++q)
+        if (c->Xbuf[q] < EQ_XMIN) viol += (EQ_XMIN - c->Xbuf[q]);
+    if (viol > 0.0) return 1e12 + 1e6 * viol;
+    return ctx_gibbs_per_quad(c, c->Xbuf);
+}
+
+typedef double (*eq_objfn)(const double *t, void *ctx);
+
+/* Nelder-Mead simplex minimization of f over k reduced coordinates, refining t
+ * in place. Small k (1-3 here), so the O(k^2) bookkeeping is negligible. */
+static void nelder_mead(eq_objfn f, void *ctx, int k, double *t,
+                        double step, int maxiter, double tol)
+{
+    if (k <= 0) return;
+    const int np = k + 1;
+    double *pts = (double *)malloc((size_t)np * k * sizeof(double));
+    double *fv = (double *)malloc((size_t)np * sizeof(double));
+    double *cen = (double *)malloc((size_t)k * sizeof(double));
+    double *xr = (double *)malloc((size_t)k * sizeof(double));
+    double *xe = (double *)malloc((size_t)k * sizeof(double));
+    if (!pts || !fv || !cen || !xr || !xe) {
+        free(pts); free(fv); free(cen); free(xr); free(xe); return;
+    }
+
+    for (int i = 0; i < np; ++i) {
+        for (int j = 0; j < k; ++j) pts[(size_t)i * k + j] = t[j];
+        if (i > 0) pts[(size_t)i * k + (i - 1)] += step;
+        fv[i] = f(&pts[(size_t)i * k], ctx);
+    }
+
+    for (int iter = 0; iter < maxiter; ++iter) {
+        /* order the simplex: index of best (lo), worst (hi), second worst (nh) */
+        int lo = 0, hi = 0, nh = -1;
+        for (int i = 1; i < np; ++i) {
+            if (fv[i] < fv[lo]) lo = i;
+            if (fv[i] > fv[hi]) hi = i;
+        }
+        for (int i = 0; i < np; ++i)
+            if (i != hi && (nh < 0 || fv[i] > fv[nh])) nh = i;
+
+        if (fabs(fv[hi] - fv[lo]) <= tol * (fabs(fv[lo]) + tol)) break;
+
+        for (int j = 0; j < k; ++j) {
+            double s = 0.0;
+            for (int i = 0; i < np; ++i) if (i != hi) s += pts[(size_t)i * k + j];
+            cen[j] = s / k;
+        }
+
+        for (int j = 0; j < k; ++j) xr[j] = cen[j] + (cen[j] - pts[(size_t)hi * k + j]);
+        double fr = f(xr, ctx);
+
+        if (fr < fv[lo]) {                           /* expand */
+            for (int j = 0; j < k; ++j) xe[j] = cen[j] + 2.0 * (xr[j] - cen[j]);
+            double fe = f(xe, ctx);
+            const double *src = (fe < fr) ? xe : xr;
+            const double fbest = (fe < fr) ? fe : fr;
+            for (int j = 0; j < k; ++j) pts[(size_t)hi * k + j] = src[j];
+            fv[hi] = fbest;
+        } else if (fr < fv[nh]) {                    /* accept reflection */
+            for (int j = 0; j < k; ++j) pts[(size_t)hi * k + j] = xr[j];
+            fv[hi] = fr;
+        } else {                                     /* contract */
+            for (int j = 0; j < k; ++j) xe[j] = cen[j] + 0.5 * (pts[(size_t)hi * k + j] - cen[j]);
+            double fc = f(xe, ctx);
+            if (fc < fv[hi]) {
+                for (int j = 0; j < k; ++j) pts[(size_t)hi * k + j] = xe[j];
+                fv[hi] = fc;
+            } else {                                 /* shrink toward best */
+                for (int i = 0; i < np; ++i) {
+                    if (i == lo) continue;
+                    for (int j = 0; j < k; ++j)
+                        pts[(size_t)i * k + j] = pts[(size_t)lo * k + j]
+                            + 0.5 * (pts[(size_t)i * k + j] - pts[(size_t)lo * k + j]);
+                    fv[i] = f(&pts[(size_t)i * k], ctx);
+                }
+            }
+        }
+    }
+
+    int lo = 0;
+    for (int i = 1; i < np; ++i) if (fv[i] < fv[lo]) lo = i;
+    for (int j = 0; j < k; ++j) t[j] = pts[(size_t)lo * k + j];
+
+    free(pts); free(fv); free(cen); free(xr); free(xe);
+}
+
+double mqmqa_equilibrate(
+    double T,
+    int n_cat, int n_an, int n_quads,
+    const int *quad_ca, const int *quad_cb,
+    const int *quad_ax, const int *quad_ay,
+    const double *Za, const double *Zb, const double *Zx, const double *Zy,
+    const double *zeta,
+    int soln_type,
+    int n_pairs,
+    const int *pair_c, const int *pair_a,
+    const double *Gax, const double *stoich,
+    const double *Zref,
+    int n_params,
+    const int *par_mix, const int *par_code,
+    const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
+    const double *par_p, const double *par_q, const double *par_L,
+    int n_elem,
+    const int *cat_elem, const int *an_elem,
+    const double *target,
+    double *X_out, double *comp_err_out)
+{
+    /* per-element linear coefficients E[e][q] and atoms-per-quadruplet A[q] */
+    double *E = (double *)calloc((size_t)n_elem * n_quads, sizeof(double));
+    double *A = (double *)calloc((size_t)n_quads, sizeof(double));
+    if (!E || !A) { free(E); free(A); return NAN; }
+    for (int q = 0; q < n_quads; ++q) {
+        const double ia = 1.0 / Za[q], ib = 1.0 / Zb[q];
+        const double ix = 1.0 / Zx[q], iy = 1.0 / Zy[q];
+        E[(size_t)cat_elem[quad_ca[q]] * n_quads + q] += ia;
+        E[(size_t)cat_elem[quad_cb[q]] * n_quads + q] += ib;
+        E[(size_t)an_elem[quad_ax[q]] * n_quads + q] += ix;
+        E[(size_t)an_elem[quad_ay[q]] * n_quads + q] += iy;
+        A[q] = ia + ib + ix + iy;
+    }
+
+    /* Constraint rows: one per element fixing X_e = target_e (the element-fraction
+     * rows sum to the normalization, so one element row is dropped as redundant),
+     * plus the explicit normalization sum(X) = 1 as the last row. */
+    const int m = n_elem;                            /* (n_elem - 1) element rows + 1 */
+    double *C = (double *)calloc((size_t)m * n_quads, sizeof(double));
+    double *d = (double *)calloc((size_t)m, sizeof(double));
+    if (!C || !d) { free(E); free(A); free(C); free(d); return NAN; }
+    for (int e = 0; e < n_elem - 1; ++e) {
+        for (int q = 0; q < n_quads; ++q)
+            C[(size_t)e * n_quads + q] = E[(size_t)e * n_quads + q] - target[e] * A[q];
+        d[e] = 0.0;
+    }
+    for (int q = 0; q < n_quads; ++q) C[(size_t)(m - 1) * n_quads + q] = 1.0;
+    d[m - 1] = 1.0;
+
+    double *x0 = (double *)malloc((size_t)n_quads * sizeof(double));
+    double *N = (double *)malloc((size_t)n_quads * n_quads * sizeof(double));
+    if (!x0 || !N) { free(E); free(A); free(C); free(d); free(x0); free(N); return NAN; }
+    int n_null = 0;
+    const int rank = constraint_nullspace(C, d, m, n_quads, x0, N, &n_null);
+    free(C); free(d);
+    if (rank < 0) { free(E); free(A); free(x0); free(N); return NAN; }
+
+    eqctx ctx = {
+        T, n_cat, n_an, n_quads,
+        quad_ca, quad_cb, quad_ax, quad_ay,
+        Za, Zb, Zx, Zy, zeta, soln_type,
+        n_pairs, pair_c, pair_a, Gax, stoich, Zref,
+        n_params, par_mix, par_code, par_A, par_B, par_X, par_Y,
+        par_p, par_q, par_L,
+        x0, N, n_null,
+        (double *)malloc((size_t)n_quads * sizeof(double)),
+    };
+    if (!ctx.Xbuf) { free(E); free(A); free(x0); free(N); return NAN; }
+
+    double gm = NAN;
+    if (n_null == 0) {
+        ctx_X_from_t(&ctx, NULL);                    /* unique solution */
+    } else {
+        double *t = (double *)calloc((size_t)n_null, sizeof(double));
+        if (!t) { free(ctx.Xbuf); free(E); free(A); free(x0); free(N); return NAN; }
+
+        /* Phase 1: reach a strictly interior feasible point. */
+        nelder_mead(obj_feasible, &ctx, n_null, t, 0.1, 4000, 1e-16);
+        /* Phase 2: descend the energy, restarting the simplex to sharpen it. */
+        for (int r = 0; r < 4; ++r)
+            nelder_mead(obj_energy, &ctx, n_null, t, 0.05, 4000, 1e-12);
+        ctx_X_from_t(&ctx, t);
+        free(t);
+    }
+
+    /* Clamp roundoff-negative fractions to zero before the final evaluation: the
+     * energy routines skip zero-weight quadruplets, so this keeps a fraction left
+     * a hair below zero by the minimizer from poisoning G with a log of a negative. */
+    for (int q = 0; q < n_quads; ++q)
+        if (ctx.Xbuf[q] < 0.0) ctx.Xbuf[q] = 0.0;
+
+    /* GM per mole of atoms; report the worst element mole-fraction error. */
+    double n_atoms = 0.0;
+    for (int q = 0; q < n_quads; ++q) n_atoms += ctx.Xbuf[q] * A[q];
+    if (n_atoms > 0.0) {
+        double worst = 0.0;
+        for (int e = 0; e < n_elem; ++e) {
+            double xe = 0.0;
+            for (int q = 0; q < n_quads; ++q) xe += ctx.Xbuf[q] * E[(size_t)e * n_quads + q];
+            const double err = fabs(xe / n_atoms - target[e]);
+            if (err > worst) worst = err;
+        }
+        if (comp_err_out) *comp_err_out = worst;
+        gm = ctx_gibbs_per_quad(&ctx, ctx.Xbuf) / n_atoms;
+    }
+
+    if (X_out) for (int q = 0; q < n_quads; ++q) X_out[q] = ctx.Xbuf[q];
+
+    free(ctx.Xbuf); free(E); free(A); free(x0); free(N);
+    return gm;
+}

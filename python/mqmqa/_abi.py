@@ -50,6 +50,26 @@ _ffi.cdef(
         int n_mqmz,
         const int *mz_A, const int *mz_B, const int *mz_X, const int *mz_Y,
         const double *mz_Z);
+    double mqmqa_equilibrate(
+        double T,
+        int n_cat, int n_an, int n_quads,
+        const int *quad_ca, const int *quad_cb,
+        const int *quad_ax, const int *quad_ay,
+        const double *Za, const double *Zb, const double *Zx, const double *Zy,
+        const double *zeta,
+        int soln_type,
+        int n_pairs,
+        const int *pair_c, const int *pair_a,
+        const double *Gax, const double *stoich,
+        const double *Zref,
+        int n_params,
+        const int *par_mix, const int *par_code,
+        const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
+        const double *par_p, const double *par_q, const double *par_L,
+        int n_elem,
+        const int *cat_elem, const int *an_elem,
+        const double *target,
+        double *X_out, double *comp_err_out);
 
     void *mqmqa_db_read_file(const char *path);
     void *mqmqa_db_read_string(const char *text);
@@ -178,3 +198,52 @@ def coordination(sp_is_cation, sp_idx, A, B, X, Y, n_cat, n_an, q_cat, q_an,
         len(mz_A),
         _ints(mz_A), _ints(mz_B), _ints(mz_X), _ints(mz_Y), _dbls(mz_Z),
     )
+
+
+def c_equilibrate(inp, x_target):
+    """Solve the single-phase equilibrium in C, given inputs from build_inputs.
+
+    inp is the dict that mqmqa.equilibrium.build_inputs produces; x_target maps
+    element -> mole fraction (need not be normalized). Returns a dict with the
+    equilibrium quadruplet fractions X, molar Gibbs energy GM (J per mole of
+    atoms), and the composition error, mirroring equilibrium.equilibrate.
+    """
+    ex = inp["ex"]
+    elements = sorted(set(inp["cat_el"]) | set(inp["an_el"]))
+    eid = {e: i for i, e in enumerate(elements)}
+    cat_elem = [eid[e] for e in inp["cat_el"]]
+    an_elem = [eid[e] for e in inp["an_el"]]
+
+    tgt = {e.upper(): 0.0 for e in elements}
+    for e, v in x_target.items():
+        tgt[e.upper()] += float(v)
+    tot = sum(tgt.values())
+    target = [tgt[e] / tot for e in elements]
+
+    n_quads = len(inp["quads"])
+    X_out = _ffi.new("double[]", n_quads)
+    comp_err = _ffi.new("double[]", 1)
+
+    gm = _lib.mqmqa_equilibrate(
+        float(inp["T"]),
+        int(inp["ncat"]), int(inp["nan"]), n_quads,
+        _ints(inp["qca"]), _ints(inp["qcb"]), _ints(inp["qax"]), _ints(inp["qay"]),
+        _dbls(inp["Za"]), _dbls(inp["Zb"]), _dbls(inp["Zx"]), _dbls(inp["Zy"]),
+        _dbls(inp["zeta"]), int(inp["soln_type"]),
+        len(inp["pcat"]),
+        _ints(inp["pcat"]), _ints(inp["pan"]),
+        _dbls(inp["pG"]), _dbls(inp["pstoich"]), _dbls(inp["Ztab"]),
+        len(ex["A"]),
+        _ints(ex["mix"]), _ints(ex["code"]),
+        _ints(ex["A"]), _ints(ex["B"]), _ints(ex["X"]), _ints(ex["Y"]),
+        _dbls(ex["p"]), _dbls(ex["q"]), _dbls(ex["L"]),
+        len(elements),
+        _ints(cat_elem), _ints(an_elem),
+        _dbls(target),
+        X_out, comp_err,
+    )
+    return {
+        "X": [X_out[q] for q in range(n_quads)],
+        "GM": gm,
+        "comp_error": comp_err[0],
+    }

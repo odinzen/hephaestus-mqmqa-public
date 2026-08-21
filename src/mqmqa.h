@@ -110,6 +110,48 @@ MQMQA_API double mqmqa_coordination(
     const int *mz_A, const int *mz_B, const int *mz_X, const int *mz_Y,
     const double *mz_Z);
 
+/* Single-phase equilibrium: minimize the molar Gibbs energy over the quadruplet
+ * fractions X at a fixed bulk composition and temperature T. Ports the Python
+ * reference solver (python/mqmqa/equilibrium.py) to C for the browser build.
+ *
+ * The objective is G_per_quad = reference + ideal-mixing + excess (the three
+ * energy routines above, evaluated on the same inputs). The constraints are all
+ * linear in X: normalization sum(X) = 1 plus one row per element fixing that
+ * element's mole fraction to the target. Charge neutrality is automatic. Working
+ * on the constraints' feasible affine subspace X = x0 + N t (x0 a particular
+ * solution, N a null-space basis), the reduced coordinates t are minimized with
+ * Nelder-Mead, keeping every X >= 0.
+ *
+ * Inputs mirror the three energy routines, plus mass balance:
+ *   cat_elem[i]  element id (0..n_elem-1) of cation i,
+ *   an_elem[k]   element id of anion k,
+ *   target[e]    target mole fraction of element e (normalized to sum 1).
+ *
+ * On success writes the equilibrium quadruplet fractions to X_out (length
+ * n_quads), the largest element mole-fraction error to comp_err_out (may be
+ * NULL), and returns GM, the molar Gibbs energy per mole of atoms (J/mol).
+ * Returns NaN if the linear system or the minimization fails. */
+MQMQA_API double mqmqa_equilibrate(
+    double T,
+    int n_cat, int n_an, int n_quads,
+    const int *quad_ca, const int *quad_cb,
+    const int *quad_ax, const int *quad_ay,
+    const double *Za, const double *Zb, const double *Zx, const double *Zy,
+    const double *zeta,
+    int soln_type,
+    int n_pairs,
+    const int *pair_c, const int *pair_a,
+    const double *Gax, const double *stoich,
+    const double *Zref,
+    int n_params,
+    const int *par_mix, const int *par_code,
+    const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
+    const double *par_p, const double *par_q, const double *par_L,
+    int n_elem,
+    const int *cat_elem, const int *an_elem,
+    const double *target,
+    double *X_out, double *comp_err_out);
+
 #ifdef __cplusplus
 }
 #endif

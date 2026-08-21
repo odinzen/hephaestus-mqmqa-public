@@ -85,7 +85,36 @@
       </table>
       <p class="muted" style="margin:.8rem 0 0">
         These are the pair (endmember) Gibbs energies the engine evaluates from the
-        loaded database. Composition equilibria and phase diagrams come next.</p>
+        loaded database.</p>
+    </div>
+
+    <div class="card">
+      <h2>Solve equilibrium</h2>
+      <p class="muted" style="margin:0 0 .8rem">
+        Pick the components, set their mole fractions and a temperature, and the
+        engine minimizes the Gibbs energy over the quadruplet distribution.</p>
+      <div id="complist" class="row" style="margin-bottom:.6rem"></div>
+      <div id="compfields" class="kv" style="max-width:340px;margin-bottom:.9rem"></div>
+      <label class="temp" style="margin:.2rem 0 1rem">Temperature
+        <input type="number" id="eqT" min="200" max="6000" step="1" value="1873"
+               style="width:6rem;font:inherit;padding:.35rem .5rem;border:1px solid var(--line);
+                      border-radius:6px;background:var(--card);color:var(--fg)">
+        <span class="muted">K</span>
+      </label>
+      <div class="row">
+        <button id="solve" type="button">Solve equilibrium</button>
+        <span id="eqmsg" class="muted"></span>
+      </div>
+      <div id="eqout" class="hidden" style="margin-top:1rem">
+        <dl class="kv">
+          <dt>Molar Gibbs energy</dt><dd id="gm"></dd>
+          <dt>Composition error</dt><dd id="cerr"></dd>
+        </dl>
+        <table style="margin-top:.8rem">
+          <thead><tr><th>Quadruplet</th><th class="num">Fraction</th></tr></thead>
+          <tbody id="quadtab"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -119,6 +148,18 @@ Hephaestus().then(M => {
     pairG:  M.cwrap('mqmqa_ph_pair_gibbs',null,['number','number','number','number']),
     nStoich:M.cwrap('mqmqa_db_num_stoich','number',['number']),
     stName: M.cwrap('mqmqa_db_stoich_name','string',['number','number']),
+    isSubq: M.cwrap('mqmqa_db_phase_is_subq','number',['number','number']),
+    pairStoich: M.cwrap('mqmqa_ph_pair_stoich',null,['number','number','number']),
+    pairZeta: M.cwrap('mqmqa_ph_pair_zeta',null,['number','number','number']),
+    nMqmz:  M.cwrap('mqmqa_ph_num_mqmz','number',['number','number']),
+    mqmz:   M.cwrap('mqmqa_ph_mqmz',null,Array(7).fill('number')),
+    nMqmx:  M.cwrap('mqmqa_ph_num_mqmx','number',['number','number']),
+    mqmx:   M.cwrap('mqmqa_ph_mqmx',null,Array(10).fill('number')),
+    mqmxL:  M.cwrap('mqmqa_ph_mqmx_L',null,['number','number','number','number']),
+    nQuad:  M.cwrap('mqmqa_num_quadruplets','number',['number','number']),
+    enumQ:  M.cwrap('mqmqa_enumerate_quadruplets',null,Array(6).fill('number')),
+    coord:  M.cwrap('mqmqa_coordination','number',Array(15).fill('number')),
+    equil:  M.cwrap('mqmqa_equilibrate','number',Array(36).fill('number')),
   };
   api.M = M;
 });
@@ -184,6 +225,7 @@ function loadDatabase(text, name) {
   const t = document.getElementById('temp');
   document.getElementById('tval').textContent = t.value + ' K';
   updatePairs();
+  populateComponents();
 }
 
 function updatePairs() {
@@ -209,6 +251,211 @@ document.getElementById('temp').addEventListener('input', e => {
 });
 
 function chip(t){ const s=document.createElement('span'); s.className='chip'; s.textContent=t; return s; }
+
+// ---- equilibrium solver (composition + temperature -> quadruplet distribution) ----
+
+function elementOf(name){ return name.match(/^[A-Z]+/)[0]; }
+
+// typed-array marshaling to/from the WASM heap
+function iArr(a){ const M=api.M, p=M._malloc(Math.max(a.length,1)*4);
+  for(let i=0;i<a.length;i++) M.setValue(p+i*4, a[i]|0, 'i32'); return p; }
+function dArr(a){ const M=api.M, p=M._malloc(Math.max(a.length,1)*8);
+  for(let i=0;i<a.length;i++) M.setValue(p+i*8, a[i], 'double'); return p; }
+function readI(p,n){ const M=api.M, o=[]; for(let i=0;i<n;i++) o.push(M.getValue(p+i*4,'i32')); return o; }
+function readD(p,n){ const M=api.M, o=[]; for(let i=0;i<n;i++) o.push(M.getValue(p+i*8,'double')); return o; }
+
+function phaseElements(){
+  const els=new Set();
+  for(let i=0;i<api.nCat(db,phase);i++) els.add(elementOf(api.cat(db,phase,i)));
+  for(let k=0;k<api.nAn(db,phase);k++) els.add(elementOf(api.an(db,phase,k)));
+  return [...els];
+}
+
+function populateComponents(){
+  const list=document.getElementById('complist'); list.innerHTML='';
+  document.getElementById('eqout').classList.add('hidden');
+  document.getElementById('eqmsg').textContent='';
+  // default selection: the first cation element and first anion element, a valid subsystem
+  const firstCat=elementOf(api.cat(db,phase,0)), firstAn=elementOf(api.an(db,phase,0));
+  for(const e of phaseElements()){
+    const lab=document.createElement('label'); lab.className='chip'; lab.style.cursor='pointer';
+    const cb=document.createElement('input'); cb.type='checkbox'; cb.value=e;
+    cb.checked=(e===firstCat||e===firstAn); cb.style.marginRight='.35rem';
+    cb.addEventListener('change', renderCompFields);
+    lab.appendChild(cb); lab.appendChild(document.createTextNode(e));
+    list.appendChild(lab);
+  }
+  renderCompFields();
+}
+
+function selectedComponents(){
+  return [...document.querySelectorAll('#complist input:checked')].map(c=>c.value);
+}
+
+function renderCompFields(){
+  const box=document.getElementById('compfields'); box.innerHTML='';
+  const sel=selectedComponents();
+  const val = sel.length ? (1/sel.length) : 0;
+  for(const e of sel){
+    const dt=document.createElement('dt'); dt.textContent=e+' mole fraction';
+    const dd=document.createElement('dd');
+    const inp=document.createElement('input'); inp.type='number'; inp.step='0.01';
+    inp.min='0'; inp.value=val.toFixed(2); inp.dataset.el=e;
+    inp.style.cssText='width:6rem;font:inherit;padding:.3rem .45rem;border:1px solid var(--line);'+
+                      'border-radius:6px;background:var(--card);color:var(--fg)';
+    dd.appendChild(inp); box.appendChild(dt); box.appendChild(dd);
+  }
+}
+
+// Assemble the solver inputs for the selected element subsystem at temperature T.
+// Mirrors python/mqmqa/equilibrium.build_inputs: restrict cations/anions to the
+// subsystem, reindex, and gather coordination, pair, and excess data.
+function buildInputs(comp, T){
+  const M=api.M, compSet=new Set(comp.map(c=>c.toUpperCase()));
+  const nCatAll=api.nCat(db,phase), nAnAll=api.nAn(db,phase);
+  const catKeep=[], anKeep=[];
+  for(let i=0;i<nCatAll;i++) if(compSet.has(elementOf(api.cat(db,phase,i)))) catKeep.push(i);
+  for(let k=0;k<nAnAll;k++) if(compSet.has(elementOf(api.an(db,phase,k)))) anKeep.push(k);
+  const catNew=new Map(catKeep.map((o,n)=>[o,n])), anNew=new Map(anKeep.map((o,n)=>[o,n]));
+  const ncat=catKeep.length, nan=anKeep.length;
+
+  const qCat=catKeep.map(i=>api.catQ(db,phase,i)), qAn=anKeep.map(k=>api.anQ(db,phase,k));
+  const catEl=catKeep.map(i=>elementOf(api.cat(db,phase,i)));
+  const anEl=anKeep.map(k=>elementOf(api.an(db,phase,k)));
+  const catNm=catKeep.map(i=>api.cat(db,phase,i)), anNm=anKeep.map(k=>api.an(db,phase,k));
+
+  const nq=api.nQuad(ncat,nan);
+  const pca=M._malloc(nq*4),pcb=M._malloc(nq*4),pax=M._malloc(nq*4),pay=M._malloc(nq*4);
+  api.enumQ(ncat,nan,pca,pcb,pax,pay);
+  const qca=readI(pca,nq),qcb=readI(pcb,nq),qax=readI(pax,nq),qay=readI(pay,nq);
+  [pca,pcb,pax,pay].forEach(p=>M._free(p));
+
+  const nmz=api.nMqmz(db,phase);
+  const zA=M._malloc(nmz*4),zB=M._malloc(nmz*4),zX=M._malloc(nmz*4),zY=M._malloc(nmz*4),zZ=M._malloc(nmz*32);
+  api.mqmz(db,phase,zA,zB,zX,zY,zZ);
+  const gA=readI(zA,nmz),gB=readI(zB,nmz),gX=readI(zX,nmz),gY=readI(zY,nmz),gZ=readD(zZ,nmz*4);
+  [zA,zB,zX,zY,zZ].forEach(p=>M._free(p));
+  const mzA=[],mzB=[],mzX=[],mzY=[],mzZ=[];
+  for(let i=0;i<nmz;i++){
+    if(catNew.has(gA[i])&&catNew.has(gB[i])&&anNew.has(gX[i])&&anNew.has(gY[i])){
+      mzA.push(catNew.get(gA[i])); mzB.push(catNew.get(gB[i]));
+      mzX.push(anNew.get(gX[i])); mzY.push(anNew.get(gY[i]));
+      mzZ.push(gZ[i*4],gZ[i*4+1],gZ[i*4+2],gZ[i*4+3]);
+    }
+  }
+  const pqc=dArr(qCat),pqa=dArr(qAn),pmA=iArr(mzA),pmB=iArr(mzB),pmX=iArr(mzX),pmY=iArr(mzY),pmZ=dArr(mzZ);
+  const Z=(isCat,sp,A,B,X,Y)=>api.coord(isCat,sp,A,B,X,Y,ncat,nan,pqc,pqa,mzA.length,pmA,pmB,pmX,pmY,pmZ);
+
+  const Za=[],Zb=[],Zx=[],Zy=[];
+  for(let q=0;q<nq;q++){
+    Za.push(Z(1,qca[q],qca[q],qcb[q],qax[q],qay[q]));
+    Zb.push(Z(1,qcb[q],qca[q],qcb[q],qax[q],qay[q]));
+    Zx.push(Z(0,qax[q],qca[q],qcb[q],qax[q],qay[q]));
+    Zy.push(Z(0,qay[q],qca[q],qcb[q],qax[q],qay[q]));
+  }
+
+  const npAll=api.nPairs(db,phase);
+  const cbuf=M._malloc(npAll*4),abuf=M._malloc(npAll*4),sbuf=M._malloc(npAll*8),zbuf=M._malloc(npAll*8),gbuf=M._malloc(npAll*8);
+  api.pairIx(db,phase,cbuf,abuf); api.pairStoich(db,phase,sbuf); api.pairZeta(db,phase,zbuf); api.pairG(db,phase,T,gbuf);
+  const pc=readI(cbuf,npAll),pa=readI(abuf,npAll),ps=readD(sbuf,npAll),pz=readD(zbuf,npAll),pg=readD(gbuf,npAll);
+  [cbuf,abuf,sbuf,zbuf,gbuf].forEach(p=>M._free(p));
+  const pcat=[],pan=[],pG=[],pstoich=[],pzeta=[];
+  for(let i=0;i<npAll;i++){
+    if(catNew.has(pc[i])&&anNew.has(pa[i])){
+      pcat.push(catNew.get(pc[i])); pan.push(anNew.get(pa[i]));
+      pG.push(pg[i]); pstoich.push(ps[i]); pzeta.push(pz[i]);
+    }
+  }
+  const Ztab=[];
+  for(const c of pcat) for(let q=0;q<nq;q++)
+    Ztab.push((c===qca[q]||c===qcb[q])?Z(1,c,qca[q],qcb[q],qax[q],qay[q]):1.0);
+  const zeta=new Array(ncat*nan).fill(0);
+  for(let i=0;i<pcat.length;i++) zeta[pcat[i]*nan+pan[i]]=pzeta[i];
+
+  const nxAll=api.nMqmx(db,phase);
+  const xm=M._malloc(nxAll*4),xc=M._malloc(nxAll*4),xA=M._malloc(nxAll*4),xB=M._malloc(nxAll*4),
+        xX=M._malloc(nxAll*4),xY=M._malloc(nxAll*4),xp=M._malloc(nxAll*4),xq=M._malloc(nxAll*4),xL=M._malloc(nxAll*8);
+  api.mqmx(db,phase,xm,xc,xA,xB,xX,xY,xp,xq); api.mqmxL(db,phase,T,xL);
+  const emix=readI(xm,nxAll),ecode=readI(xc,nxAll),eA=readI(xA,nxAll),eB=readI(xB,nxAll),
+        eX=readI(xX,nxAll),eY=readI(xY,nxAll),ep=readI(xp,nxAll),eq=readI(xq,nxAll),eL=readD(xL,nxAll);
+  [xm,xc,xA,xB,xX,xY,xp,xq,xL].forEach(p=>M._free(p));
+  const ex={mix:[],code:[],A:[],B:[],X:[],Y:[],p:[],q:[],L:[]};
+  for(let i=0;i<nxAll;i++){
+    if(catNew.has(eA[i])&&catNew.has(eB[i])&&anNew.has(eX[i])&&anNew.has(eY[i])){
+      ex.mix.push(emix[i]); ex.code.push(ecode[i]);
+      ex.A.push(catNew.get(eA[i])); ex.B.push(catNew.get(eB[i]));
+      ex.X.push(anNew.get(eX[i])); ex.Y.push(anNew.get(eY[i]));
+      ex.p.push(ep[i]); ex.q.push(eq[i]); ex.L.push(eL[i]);
+    }
+  }
+
+  [pqc,pqa,pmA,pmB,pmX,pmY,pmZ].forEach(p=>M._free(p));
+  const quadLabel=q=>catNm[qca[q]]+'/'+catNm[qcb[q]]+' · '+anNm[qax[q]]+'/'+anNm[qay[q]];
+  return {ncat,nan,nq,qca,qcb,qax,qay,Za,Zb,Zx,Zy,zeta,soln:api.isSubq(db,phase),
+          pcat,pan,pG,pstoich,Ztab,ex,catEl,anEl,T,quadLabel};
+}
+
+function solveEquilibrium(inp, target){
+  const M=api.M;
+  const elements=[...new Set([...inp.catEl,...inp.anEl])].sort();
+  const eid=new Map(elements.map((e,i)=>[e,i]));
+  const catElem=inp.catEl.map(e=>eid.get(e)), anElem=inp.anEl.map(e=>eid.get(e));
+  const tgt=new Array(elements.length).fill(0);
+  let tot=0; for(const v of Object.values(target)) tot+=v;
+  for(const [e,v] of Object.entries(target)) tgt[eid.get(e.toUpperCase())]+=v/tot;
+
+  const p={
+    qca:iArr(inp.qca),qcb:iArr(inp.qcb),qax:iArr(inp.qax),qay:iArr(inp.qay),
+    Za:dArr(inp.Za),Zb:dArr(inp.Zb),Zx:dArr(inp.Zx),Zy:dArr(inp.Zy),zeta:dArr(inp.zeta),
+    pc:iArr(inp.pcat),pa:iArr(inp.pan),G:dArr(inp.pG),st:dArr(inp.pstoich),Zref:dArr(inp.Ztab),
+    xm:iArr(inp.ex.mix),xc:iArr(inp.ex.code),xA:iArr(inp.ex.A),xB:iArr(inp.ex.B),
+    xX:iArr(inp.ex.X),xY:iArr(inp.ex.Y),xp:dArr(inp.ex.p),xq:dArr(inp.ex.q),xL:dArr(inp.ex.L),
+    ce:iArr(catElem),ae:iArr(anElem),tg:dArr(tgt),Xout:M._malloc(inp.nq*8),cerr:M._malloc(8),
+  };
+  const gm=api.equil(
+    inp.T, inp.ncat, inp.nan, inp.nq,
+    p.qca,p.qcb,p.qax,p.qay, p.Za,p.Zb,p.Zx,p.Zy, p.zeta, inp.soln,
+    inp.pcat.length, p.pc,p.pa,p.G,p.st,p.Zref,
+    inp.ex.A.length, p.xm,p.xc,p.xA,p.xB,p.xX,p.xY,p.xp,p.xq,p.xL,
+    elements.length, p.ce,p.ae,p.tg, p.Xout,p.cerr);
+  const X=readD(p.Xout,inp.nq), cerr=M.getValue(p.cerr,'double');
+  Object.values(p).forEach(ptr=>M._free(ptr));
+  return {GM:gm, X, comp_error:cerr};
+}
+
+document.getElementById('solve').addEventListener('click', () => {
+  const msg=document.getElementById('eqmsg'), out=document.getElementById('eqout');
+  out.classList.add('hidden');
+  if(!db){ msg.textContent='Load a database first.'; return; }
+  const sel=selectedComponents();
+  const hasCat=sel.some(e=>{ for(let i=0;i<api.nCat(db,phase);i++) if(elementOf(api.cat(db,phase,i))===e) return true; return false; });
+  const hasAn=sel.some(e=>{ for(let k=0;k<api.nAn(db,phase);k++) if(elementOf(api.an(db,phase,k))===e) return true; return false; });
+  if(!hasCat||!hasAn){ msg.textContent='Select at least one cation element and one anion element.'; return; }
+  const target={}; let sum=0;
+  document.querySelectorAll('#compfields input').forEach(inp=>{
+    const v=parseFloat(inp.value)||0; target[inp.dataset.el]=v; sum+=v;
+  });
+  if(sum<=0){ msg.textContent='Enter nonzero mole fractions.'; return; }
+  const T=parseFloat(document.getElementById('eqT').value)||1873;
+
+  msg.textContent='Solving...';
+  const inp=buildInputs(sel, T);
+  const res=solveEquilibrium(inp, target);
+  if(!isFinite(res.GM)){ msg.textContent='The solver did not converge for this composition.'; return; }
+  msg.textContent='';
+
+  document.getElementById('gm').textContent =
+    res.GM.toLocaleString(undefined,{maximumFractionDigits:2})+' J/mol';
+  document.getElementById('cerr').textContent = res.comp_error.toExponential(1);
+  const tb=document.getElementById('quadtab'); tb.innerHTML='';
+  inp.qca.map((_,q)=>q).sort((a,b)=>res.X[b]-res.X[a]).forEach(q=>{
+    if(res.X[q]<1e-9) return;
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+inp.quadLabel(q)+'</td><td class="num">'+res.X[q].toFixed(5)+'</td>';
+    tb.appendChild(tr);
+  });
+  out.classList.remove('hidden');
+});
 </script>
 </body>
 </html>

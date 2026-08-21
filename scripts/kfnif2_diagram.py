@@ -12,21 +12,17 @@ this join, so they appear only as metastable composition markers. The diagram is
 therefore a single NiF2 liquidus, i.e. the solubility limit of NiF2 in the LIQUID2
 solution, closing at the NiF2 melting invariant near 1627 K.
 
-Two numerical points matter for a clean liquidus:
-  - The reference SLSQP solver in equilibrium.py lands on slightly different local
-    minima from a single fixed start, which injects a few kJ of composition noise.
-    A short multi-start (uniform + previous-composition + random) and keeping the
-    lowest feasible energy removes it, giving a smooth G(xi) curve.
-  - The dilute liquidus sits where the LIQUID2 curve first splits off a tie-line to
-    the far NiF2 point. That boundary is read by classifying the assemblage at each
-    bulk xi (lower convex hull) and bisecting in xi, which is well conditioned,
-    rather than by extracting the tangent point to the distant xi=1 vertex.
+Getting a clean liquidus hinges on a clean liquid free-energy curve. On this join
+LIQUID2 has two cations (Ni, K) and one anion (F), so only three quadruplets, and
+the composition plus normalization constraints leave a single internal degree of
+freedom. Minimizing along that one-dimensional line directly (rather than with the
+general SLSQP reference solver, which settles on slightly different local minima
+from point to point) removes the few-hundred-joule scatter that otherwise swamps
+the shallow common tangent and makes the traced boundary jagged.
 """
 
-import os
-
 import numpy as np
-from scipy.optimize import minimize
+from scipy.optimize import minimize_scalar
 from scipy.interpolate import RectBivariateSpline
 
 import matplotlib
@@ -41,89 +37,89 @@ PHASE = "LIQUID2"
 COMPONENTS = ["K", "NI", "F"]
 OUT_PNG = "web/kfnif2_diagram.png"
 
-# Endmembers of the join and the map xi (mol fraction NiF2) -> element amounts.
-# Along the join a "salt formula unit" is (1-xi) KF + xi NiF2, with 2+xi atoms.
-def join_target(xi):
-    return {"K": 1.0 - xi, "NI": xi, "F": 1.0 + xi}
 
+# Along the join a "salt formula unit" is (1-xi) KF + xi NiF2, with 2+xi atoms.
 def atoms_per_salt(xi):
     return (1.0 - xi) * 2.0 + xi * 3.0
+
 
 # Discrete (fixed-composition) phases on the join, as
 # name -> (xi, stoich-key, salt-formula-units per formula, kind).
 DISCRETE = {
-    "KF_S1(S)":    (0.0,       "KF_S1(S)",    1, "solid"),
-    "NIF2_S1(S)":  (1.0,       "NIF2_S1(S)",  1, "solid"),
-    "NIKF3_S1(S)": (0.5,       "NIKF3_S1(S)", 2, "solid"),
-    "NIK2F4_S1(S)":(1.0 / 3.0, "NIK2F4_S1(S)",3, "solid"),
-    "KF_L1(LIQ)":  (0.0,       "KF_L1(LIQ)",  1, "liquid"),
-    "NIF2_L1(LIQ)":(1.0,       "NIF2_L1(LIQ)",1, "liquid"),
+    "KF_S1(S)":     (0.0,       "KF_S1(S)",     1, "solid"),
+    "NIF2_S1(S)":   (1.0,       "NIF2_S1(S)",   1, "solid"),
+    "NIKF3_S1(S)":  (0.5,       "NIKF3_S1(S)",  2, "solid"),
+    "NIK2F4_S1(S)": (1.0 / 3.0, "NIK2F4_S1(S)", 3, "solid"),
+    "KF_L1(LIQ)":   (0.0,       "KF_L1(LIQ)",   1, "liquid"),
+    "NIF2_L1(LIQ)": (1.0,       "NIF2_L1(LIQ)", 1, "liquid"),
 }
 
 
 def discrete_gibbs(db, sidx, T):
     """Per-salt-formula Gibbs energy of every discrete phase at T."""
-    out = {}
-    for name, (xi, key, units, kind) in DISCRETE.items():
-        out[name] = (xi, db.stoich_gibbs(sidx[key], T) / units, kind)
-    return out
+    return {name: (xi, db.stoich_gibbs(sidx[key], T) / units, kind)
+            for name, (xi, key, units, kind) in DISCRETE.items()}
 
 
-def solve_liquid(inp, xi, extra=None, nrand=2, seed=0):
-    """Minimum molar Gibbs energy of LIQUID2 at composition xi on the join.
+def _null_space(A, rtol=1e-12):
+    _, s, vh = np.linalg.svd(A)
+    rank = int((s > rtol * s[0]).sum())
+    return vh[rank:].conj().T
 
-    Returns (G_per_atom, X) or (None, None) if no start met the composition
-    constraint. The multi-start guards against SLSQP settling on a higher local
-    minimum, which is what makes the raw curve noisy.
-    """
-    tg = join_target(xi)
-    tot = sum(tg.values())
-    tg = {k: v / tot for k, v in tg.items()}
-    els = sorted(tg)
+
+def element_coeffs(inp, element):
+    """Moles of `element` contributed per mole of each quadruplet (a linear map)."""
     n = len(inp["quads"])
+    c = np.zeros(n)
+    for k in range(n):
+        e = np.zeros(n)
+        e[k] = 1.0
+        c[k] = element_moles(inp, e).get(element, 0.0)
+    return c
 
-    def resid(X):
-        m = element_moles(inp, X)
-        t = sum(m.values())
-        return [m.get(e, 0.0) / t - tg[e] for e in els[:-1]]
 
-    cons = [{"type": "eq", "fun": lambda X: sum(X) - 1.0},
-            {"type": "eq", "fun": resid}]
-    rng = np.random.default_rng(seed)
-    starts = [np.full(n, 1.0 / n)]
-    if extra is not None:
-        starts.append(extra)
-    starts += [rng.dirichlet(np.ones(n)) for _ in range(nrand)]
+def solve_liquid(inp, xi, cNi, cK):
+    """Minimum molar Gibbs energy of LIQUID2 (per mole of atoms) at join point xi.
 
-    best_g, best_x = None, None
-    for x0 in starts:
-        r = minimize(lambda X: gibbs_per_quad(inp, X), x0, method="SLSQP",
-                     bounds=[(1e-12, 1.0)] * n, constraints=cons,
-                     options={"ftol": 1e-12, "maxiter": 400})
-        m = element_moles(inp, r.x)
-        t = sum(m.values())
-        err = max(abs(m.get(e, 0.0) / t - tg[e]) for e in els)
-        if err < 1e-7:
-            g = gibbs_per_quad(inp, r.x) / t
-            if best_g is None or g < best_g:
-                best_g, best_x = g, r.x
-    return best_g, best_x
+    sum(X)=1 and the fixed Ni:K ratio pin a one-parameter line in quadruplet space;
+    the energy is minimized exactly along it with X held non-negative. cNi and cK
+    are the per-quadruplet element coefficients for the current temperature.
+    """
+    n = len(inp["quads"])
+    tNi, tK = xi, 1.0 - xi
+    A = np.vstack([np.ones(n), cNi * tK - cK * tNi])
+    X0, *_ = np.linalg.lstsq(A, np.array([1.0, 0.0]), rcond=None)
+    basis = _null_space(A)
+
+    def g(X):
+        return gibbs_per_quad(inp, X) / sum(element_moles(inp, X).values())
+
+    if basis.shape[1] == 0:
+        return g(X0)
+    d = basis[:, 0]
+    eps = 1e-12
+    lo, hi = -1e12, 1e12
+    for k in range(n):
+        if d[k] > 1e-15:
+            lo = max(lo, (eps - X0[k]) / d[k])
+        elif d[k] < -1e-15:
+            hi = min(hi, (eps - X0[k]) / d[k])
+    r = minimize_scalar(lambda s: g(X0 + s * d), bounds=(lo, hi),
+                        method="bounded", options={"xatol": 1e-11})
+    return g(X0 + r.x * d)
 
 
 def precompute_liquid(db, phase, xi_grid, T_grid):
-    """One multi-start minimization per (xi, T) node. Sweeping xi ascending and
-    feeding the previous solution as an extra start keeps neighbouring nodes on the
-    same branch, so the surface is smooth."""
+    """LIQUID2 molar Gibbs energy (per atom) on the (xi, T) grid, one exact solve
+    per node. The element coefficient maps depend only on T, so build them once
+    per column."""
     G = np.zeros((len(xi_grid), len(T_grid)))
     for j, T in enumerate(T_grid):
         inp = build_inputs(db, phase, float(T), components=COMPONENTS)
-        prev = None
+        cNi = element_coeffs(inp, "NI")
+        cK = element_coeffs(inp, "K")
         for i, xi in enumerate(xi_grid):
-            g, prev = solve_liquid(inp, float(xi), extra=prev)
-            if g is None:  # keep the surface finite; nodes this deep are unused
-                g = G[i - 1, j] if i else 0.0
-            G[i, j] = g
-        print(f"  T={T:6.1f} K done ({j + 1}/{len(T_grid)})", flush=True)
+            G[i, j] = solve_liquid(inp, float(xi), cNi, cK)
     return G
 
 
@@ -144,11 +140,8 @@ class Liquidus:
         self.xi_lo = float(xi_grid[0])
         self.xi_hi = float(xi_grid[-1])
 
-    def liquid_salt(self, xi, T):
-        return float(self.spl(xi, T))
-
     def hull(self, T):
-        u = np.linspace(self.xi_lo, self.xi_hi, 400)
+        u = np.linspace(self.xi_lo, self.xi_hi, 500)
         g = self.spl(u, T).ravel()
         pts = [(float(x), float(gg), ("LIQUID2", float(x))) for x, gg in zip(u, g)]
         for name, (xi, gsalt, _kind) in discrete_gibbs(self.db, self.sidx, T).items():
@@ -177,7 +170,7 @@ class Liquidus:
             return np.nan
         if self.is_two_phase(lo, T):
             return lo
-        for _ in range(40):
+        for _ in range(44):
             m = 0.5 * (lo + hi)
             if self.is_two_phase(m, T):
                 hi = m
@@ -185,35 +178,12 @@ class Liquidus:
                 lo = m
         return 0.5 * (lo + hi)
 
-    def T_at(self, xi, T_lo, T_hi):
-        """Liquidus temperature at fixed xi by bisection in T.
-
-        At fixed xi the LIQUID2 solution is stable above the liquidus and two-phase
-        below it, so the transition in T is monotone and well conditioned. This is
-        the smooth-boundary route the coarse-grid-plus-contour approach fails at.
-        Returns None if xi stays single-phase (below the liquidus foot) or two-phase
-        (its liquidus lies above T_hi) across the whole bracket.
-        """
-        if not self.is_two_phase(xi, T_lo):
-            return None
-        if self.is_two_phase(xi, T_hi):
-            return None
-        for _ in range(46):
-            m = 0.5 * (T_lo + T_hi)
-            if self.is_two_phase(xi, m):
-                T_lo = m
-            else:
-                T_hi = m
-        return 0.5 * (T_lo + T_hi)
-
 
 def nif2_melting(db, sidx, lo=1400.0, hi=1800.0):
     """Temperature where NiF2 solid and NiF2 liquid share a Gibbs energy."""
     for _ in range(60):
         m = 0.5 * (lo + hi)
-        s = db.stoich_gibbs(sidx["NIF2_S1(S)"], m)
-        l = db.stoich_gibbs(sidx["NIF2_L1(LIQ)"], m)
-        if s < l:
+        if db.stoich_gibbs(sidx["NIF2_S1(S)"], m) < db.stoich_gibbs(sidx["NIF2_L1(LIQ)"], m):
             lo = m
         else:
             hi = m
@@ -239,13 +209,12 @@ def validate(db, sidx, liq, points):
         pyc_gm = float(np.asarray(eq.GM.values).ravel()[0])
         rows.append(dict(xi=xi, T=T,
                          eng_phases=sorted(eng_phases), eng_gm=eng_gm,
-                         pyc_phases=pyc_phases, pyc_gm=pyc_gm,
-                         d_gm=eng_gm - pyc_gm))
+                         pyc_phases=pyc_phases, pyc_gm=pyc_gm, d_gm=eng_gm - pyc_gm))
     return rows
 
 
-def phase_key(names):
-    """Compact label mapping engine phase names to diagram phases."""
+def diagram_phase(names):
+    """Map engine phase names to the diagram's phase labels for a fair comparison."""
     s = set(names)
     if s == {"LIQUID2"}:
         return "L"
@@ -256,51 +225,46 @@ def phase_key(names):
     return "+".join(sorted(s))
 
 
-def make_figure(liq, T_melt, T_grid, val_points, out_png):
+def make_figure(liq, T_melt, val_points, out_png):
     Tmin, Tmax = 450.0, 1700.0
-    Tline = np.linspace(Tmin, Tmax, 260)
+    Tline = np.linspace(Tmin, Tmax, 300)
     xiL = np.array([liq.xi_at(T) for T in Tline])
     good = np.isfinite(xiL)
     xL_pct = xiL * 100.0
+    knee_pct = liq.xi_at(T_melt) * 100.0
 
     fig, ax = plt.subplots(figsize=(7.2, 5.4))
 
-    # Region shading (greyscale-friendly, light).
-    solidus_pct = liq.xi_at(T_melt) * 100.0
-    # single-phase LIQUID2 to the left of the liquidus
+    # Region shading, light and greyscale-friendly.
     ax.fill_betweenx(Tline[good], 0.0, xL_pct[good], color="0.93", zorder=0)
-    # two-phase fields to the right, split by the NiF2 melting invariant
-    Tb = Tline[good]
-    xr = xL_pct[good]
+    Tb, xr = Tline[good], xL_pct[good]
     below = Tb <= T_melt
     ax.fill_betweenx(Tb[below], xr[below], 100.0, color="0.82", zorder=0)
-    ax.fill_betweenx(Tb[~below], xr[~below], 100.0, color="0.72", zorder=0)
+    ax.fill_betweenx(Tb[~below], xr[~below], 100.0, color="0.71", zorder=0)
 
     # Liquidus and the NiF2 melting invariant.
     ax.plot(xL_pct[good], Tline[good], color="black", lw=2.0, zorder=4,
             label="NiF2 liquidus (engine)")
-    ax.hlines(T_melt, solidus_pct, 100.0, color="black", lw=1.4, ls="--", zorder=4,
-              label=f"NiF2 melting invariant, {T_melt:.0f} K")
+    ax.hlines(T_melt, knee_pct, 100.0, color="black", lw=1.4, ls="--", zorder=4,
+              label=f"NiF2 melting, {T_melt:.0f} K")
     ax.plot([100.0], [T_melt], marker="o", ms=6, mfc="white", mec="black",
             mew=1.4, zorder=5)
 
     # Metastable compound compositions (never on the hull in this database).
-    for name, x in [("KF", 0.0), ("NiK2F4", 100.0 / 3.0), ("NiKF3", 50.0)]:
-        if 0.0 < x < 100.0:
-            ax.axvline(x, color="0.5", ls=":", lw=0.9, zorder=1)
-        ax.text(x, Tmax - 30, name, rotation=90, ha="right", va="top",
-                fontsize=8, color="0.35")
+    for name, x in [("NiK2F4", 100.0 / 3.0), ("NiKF3", 50.0)]:
+        ax.axvline(x, color="0.55", ls=":", lw=0.9, zorder=1)
+        ax.text(x + 1.0, 560, name + " (metastable)", rotation=90, ha="left",
+                va="bottom", fontsize=8, color="0.35")
 
     # Validation markers.
-    vx = [xi * 100.0 for xi, _ in val_points]
-    vy = [T for _, T in val_points]
-    ax.plot(vx, vy, linestyle="none", marker="s", ms=5, mfc="none",
-            mec="black", mew=1.1, zorder=6, label="pycalphad validation points")
+    ax.plot([xi * 100.0 for xi, _ in val_points], [T for _, T in val_points],
+            linestyle="none", marker="s", ms=5, mfc="none", mec="black", mew=1.1,
+            zorder=6, label="pycalphad validation points")
 
     # Region labels.
-    ax.text(2.5, 1200, "LIQUID2", fontsize=10, rotation=90, va="center", color="0.15")
-    ax.text(55, 1050, "LIQUID2 + NiF2(s)", fontsize=10, ha="center", color="0.15")
-    ax.text(55, 1665, "LIQUID2 + NiF2(liq)", fontsize=9.5, ha="center", color="0.15")
+    ax.text(2.7, 1000, "LIQUID2", fontsize=10, rotation=90, va="center", color="0.15")
+    ax.text(60, 1150, "LIQUID2 + NiF2(s)", fontsize=10, ha="center", color="0.15")
+    ax.text(60, 1665, "LIQUID2 + NiF2(liq)", fontsize=9.5, ha="center", color="0.15")
 
     ax.set_xlim(0, 100)
     ax.set_ylim(Tmin, Tmax)
@@ -321,52 +285,42 @@ def main():
     sidx = {n: i for i, n in enumerate(db.stoich)}
     phase = db.phase_index(PHASE)
 
-    xi_grid = np.linspace(0.003, 0.16, 26)
-    T_grid = np.linspace(450.0, 1700.0, 22)
-    cache = os.environ.get("KFNIF2_CACHE")
-    if cache and os.path.exists(cache):
-        print(f"loading cached LIQUID2 surface from {cache}")
-        data = np.load(cache)
-        xi_grid, T_grid, G_atom = data["xi"], data["T"], data["G"]
-    else:
-        print(f"precomputing LIQUID2 on {len(xi_grid)}x{len(T_grid)} grid ...")
-        G_atom = precompute_liquid(db, phase, xi_grid, T_grid)
-        if cache:
-            np.savez(cache, xi=xi_grid, T=T_grid, G=G_atom)
-            print(f"cached surface to {cache}")
+    xi_grid = np.linspace(0.003, 0.16, 40)
+    T_grid = np.linspace(450.0, 1700.0, 30)
+    print(f"computing LIQUID2 surface on {len(xi_grid)}x{len(T_grid)} grid ...")
+    G_atom = precompute_liquid(db, phase, xi_grid, T_grid)
 
     liq = Liquidus(db, sidx, xi_grid, T_grid, G_atom)
     T_melt = nif2_melting(db, sidx)
     print(f"engine NiF2 melting invariant (NIF2_S1 = NIF2_L1): {T_melt:.2f} K")
 
-    # Liquidus smoothness check against pycalphad reference compositions.
+    # Liquidus smoothness and accuracy against pycalphad reference compositions.
     ref = {500: 0.0379, 700: 0.0492, 900: 0.0581, 1100: 0.0650,
            1300: 0.0704, 1500: 0.0745}
-    print("\nliquidus xi (mol fraction NiF2): engine vs pycalphad")
-    x_prev = None
-    monotone = True
+    print("\nliquidus composition (mol fraction NiF2): engine vs pycalphad")
+    prev, monotone = None, True
     for T in sorted(ref):
         xe = liq.xi_at(T)
         print(f"  T={T:5.0f}  engine={xe:.4f}  pycalphad={ref[T]:.4f}  d={xe-ref[T]:+.4f}")
-        if x_prev is not None and xe < x_prev - 1e-4:
+        if prev is not None and xe < prev - 1e-4:
             monotone = False
-        x_prev = xe
+        prev = xe
     print(f"  liquidus monotonic in T: {monotone}")
 
-    # Validation points: single-phase, two solid two-phase, one liquid two-phase.
+    # Validation: one single-phase point, two NiF2-solid ties, one NiF2-liquid tie.
     val_points = [(0.03, 900.0), (0.10, 900.0), (0.20, 1300.0),
                   (0.50, 1500.0), (0.50, 1660.0)]
     rows = validate(db, sidx, liq, val_points)
     print("\nvalidation (GM in J per mole of atoms):")
     for r in rows:
-        ok = phase_key(r["eng_phases"]) == phase_key(r["pyc_phases"])
+        match = diagram_phase(r["eng_phases"]) == diagram_phase(r["pyc_phases"])
         print(f"  xi={r['xi']:.3f} T={r['T']:.0f}K")
         print(f"    engine   : {r['eng_phases']}  GM={r['eng_gm']:.1f}")
         print(f"    pycalphad: {r['pyc_phases']}  GM={r['pyc_gm']:.1f}")
-        print(f"    assemblage match={ok}  dGM={r['d_gm']:+.1f} "
+        print(f"    assemblage match={match}  dGM={r['d_gm']:+.1f} "
               f"({100*r['d_gm']/r['pyc_gm']:+.3f}%)")
 
-    make_figure(liq, T_melt, T_grid, val_points, OUT_PNG)
+    make_figure(liq, T_melt, val_points, OUT_PNG)
     print(f"\nsaved {OUT_PNG}")
 
 

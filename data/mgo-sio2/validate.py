@@ -7,7 +7,7 @@ Checks, all reporting real numbers:
      an independent H - T*S evaluation of the same open Robie-Hemingway / NIST-JANAF
      data (confirms the coefficients are encoded and parsed correctly).
   3. The database reproduces the published fusion points Tm(SiO2)=1996 K and
-     Tm(CaO)=3200 K: the liquid endmember minus the pure-solid reference crosses zero
+     Tm(MgO)=3098 K: the liquid endmember minus the pure-solid reference crosses zero
      there (the engine evaluates dG_fus to ~0 at the published melting temperatures).
   4. The single-phase solver runs on a mixed MgO-SiO2 melt and the pure-oxide limits
      return the endmember energies (a sanity check that the phase is well-formed).
@@ -100,11 +100,11 @@ def main():
     print("=" * 70)
     import numpy as np
     T = 1873.0
-    inp = eq.build_inputs(db, p, T, components=["CA", "SI", "O"])
+    inp = eq.build_inputs(db, p, T, components=["MG", "SI", "O"])
     # Pure limits: evaluate the pure quadruplet directly. The SLSQP solver is
     # unreliable exactly at a composition corner (a quadruplet fraction pinned to
     # zero), so the endmember reduction is checked on the pure quadruplet itself.
-    for name, qtag in (("CaO", (0, 0, 0, 0)), ("SiO2", (1, 1, 0, 0))):
+    for name, qtag in (("MgO", (0, 0, 0, 0)), ("SiO2", (1, 1, 0, 0))):
         i = inp["quads"].index(qtag)
         X = np.zeros(len(inp["quads"])); X[i] = 1.0
         g_quad = eq.gibbs_per_quad(inp, X)
@@ -116,7 +116,7 @@ def main():
               f"diff={abs(g_per_formula - g_ref):.2e} J/mol")
     # Interior melt: the solver converges and returns a smooth ideal-mixing energy.
     for xSiO2 in (0.25, 0.50, 0.75):
-        comp = {"CA": (1 - xSiO2), "SI": xSiO2, "O": (1 - xSiO2) + 2 * xSiO2}
+        comp = {"MG": (1 - xSiO2), "SI": xSiO2, "O": (1 - xSiO2) + 2 * xSiO2}
         r = eq.equilibrate(inp, comp)
         print(f"  x(SiO2)={xSiO2:.2f}  GM={r['GM']:12.2f} J/mol-atom  converged={r['success']}")
     print("  (endmember/structure check; interior mixing is validated in "

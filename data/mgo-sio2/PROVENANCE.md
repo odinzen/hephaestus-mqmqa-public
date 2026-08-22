@@ -50,3 +50,29 @@ cristobalite endmember as CaO-SiO2 (consistency across the slag family).
 Built only from open/public-domain data (CODATA, NIST-JANAF, Robie-Hemingway 1995;
 Greig 1927 and Bowen-Andersen 1914 for the coming phase-diagram fit). No FactSage/FToxid
 or other external-TDB optimized parameters.
+
+## Miscibility-gap finding (v0.x / v0.4 model-form, 2026-08-22)
+
+Attempting the excess fit surfaced the model-form limit head-on. The target is Greig's
+silica-rich liquid-liquid gap: at 1968 K two conjugate liquids at x_SiO2 ~ 0.59 and ~0.99
+(monotectic with cristobalite).
+
+Tested against the engine:
+- **The engine CAN produce a miscibility gap.** A positive Q-code excess raises the mixed
+  quadruplet energy and yields a spinodal (d2 Gmix/dx2 < 0). So gaps are representable -
+  earlier "cation-mixing can only deviate negative" was too strong; the sign of L sets it.
+- **But charge-proportional Z misplaces it.** A symmetric positive term puts the gap
+  MgO-rich (x_SiO2 ~ 0.10-0.35). Si-weighted positive terms ((0,q), q up to 3) move it
+  silica-ward but saturate at ~0.33-0.70 - they cannot reach the measured 0.59-0.99.
+- **The lever is the coordination Z, not the excess.** The gap can't be placed at the
+  silica corner while Z stays charge-proportional (Z = 0.68872*charge). Real silicate MQM
+  databases (FactSage FToxid) use SiO2-specific, non-charge-proportional coordination to
+  capture the silica network and put the gap where it belongs. Adopting SiO2-specific Z is
+  a model-structure change (it re-defines the pure-SiO2 endmember reference), so it is the
+  v0.4 step, done carefully, not a parameter tweak.
+
+Consequence for the plan: the CENTRAL, negative-deviation part (forsterite congruent melting
+2163 K, periclase-forsterite eutectic 2123 K, enstatite incongruent) is fittable now with a
+cation-mixing excess + the hull classifier, as in CaO-SiO2 - that is the achievable v0.2.
+The silica-rich gap is deferred to v0.4 (SiO2-specific coordination), and the hull classifier
++ MLIP triangulation carry over unchanged.

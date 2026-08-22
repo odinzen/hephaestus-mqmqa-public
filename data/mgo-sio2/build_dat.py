@@ -108,7 +108,12 @@ def _mqmx_block(excess):
     return out
 
 
-def build(excess=None, version=None):
+def build(excess=None, version=None, z_si=None, z_o_si=None, zeta_si=None):
+    """SiO2 pure-quadruplet coordination overrides (the v0.4 lever). Defaults (None)
+    give the charge-proportional base (Z_Si=2.7549, Z_O=1.3774, zeta=1.3774) used in
+    v0.1-v0.2. Setting z_si / z_o_si / zeta_si independently makes SiO2 non-charge-
+    proportional to place the silica-rich miscibility gap. Note: scaling all three by a
+    common factor is a gauge no-op; only the RATIOS relative to the MgO quad matter."""
     L = []
     ap = L.append
 
@@ -141,8 +146,10 @@ def build(excess=None, version=None):
         # five quadruplet-stoichiometry values: [n_cation, n_anion, 0, 0, 0]
         ap("  " + "   ".join(f"{v:.5f}" for v in
                              [se.get(ox["cation"], 0.0), se.get(ox["anion"], 0.0), 0.0, 0.0, 0.0]))
-        # pair zeta: the anion-coordination base value (divalent O convention)
-        ap(f"  {1.3774438:.7f}")
+        # pair zeta: the anion-coordination base value (divalent O convention);
+        # SiO2 may override it (v0.4 non-charge-proportional lever)
+        zeta = (zeta_si if (name == "SiO2" and zeta_si is not None) else 1.3774438)
+        ap(f"  {zeta:.7f}")
 
     # --- cation / anion sublattice definitions ---
     ap("   2   1")  # n_cat, n_an
@@ -157,12 +164,14 @@ def build(excess=None, version=None):
     ap("   1   1")  # anion index of each pair
 
     # --- MQMZ coordination entries (pure quadruplets only; mixed ones derived) ---
-    # linear indices: cations 1..2, anion 3
+    # linear indices: cations 1..2, anion 3. MgO stays charge-proportional; SiO2's
+    # cation Z (z_si) and its O-slot Z (z_o_si) can be overridden (the v0.4 lever).
     z_mg = 2 * Z_PER_CHARGE
-    z_si = 4 * Z_PER_CHARGE
     z_o = 2 * Z_PER_CHARGE
+    zsi = 4 * Z_PER_CHARGE if z_si is None else z_si
+    zosi = 2 * Z_PER_CHARGE if z_o_si is None else z_o_si
     ap(f"   1   1   3   3   {z_mg:.7f}   {z_mg:.7f}   {z_o:.7f}   {z_o:.7f}")
-    ap(f"   2   2   3   3   {z_si:.7f}   {z_si:.7f}   {z_o:.7f}   {z_o:.7f}")
+    ap(f"   2   2   3   3   {zsi:.7f}   {zsi:.7f}   {zosi:.7f}   {zosi:.7f}")
 
     # --- excess (MQMX): none in v0.1 (ideal), fitted Q terms in v0.2. ---
     if excess:

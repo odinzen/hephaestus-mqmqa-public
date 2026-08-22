@@ -41,7 +41,8 @@ def main():
     print("1. EXCESS TERMS PRESENT")
     print("=" * 70)
     mx = db.mqmx(p, 2000.0)
-    print(f"  MQMX terms: {len(mx['A'])}  (expect 2 Q-code cation-mixing terms)")
+    print(f"  MQMX terms: {len(mx['A'])}  (2 central cation-mixing terms; v0.4 adds a "
+          f"3rd silica-weighted term for the gap)")
     for i in range(len(mx["A"])):
         print(f"    term {i}: code={mx['code'][i]} quad(A,B,X,Y)="
               f"({mx['A'][i]},{mx['B'][i]},{mx['X'][i]},{mx['Y'][i]}) "

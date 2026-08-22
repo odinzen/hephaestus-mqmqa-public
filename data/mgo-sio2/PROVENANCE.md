@@ -1,13 +1,15 @@
 # MgO-SiO2-liquid.dat provenance
 
-Open MgO-SiO2 liquid-slag MQMQA database, now at **v0.2** (central negative-deviation
-liquid). Built by `build_dat.py`; endmembers validated by `validate.py`, the fitted
-excess by `validate_v02.py`, invariants classified by `phase_hull.py`; fit reproduced by
-`v02_fit.py`. Second system in the open slag family (after CaO-SiO2); chosen because it
-exercises the two phenomena CaO-SiO2 could not yet capture - a liquid-liquid
-**miscibility gap** and an **incongruent (peritectic) melting**. v0.2 fits the central
-liquid (forsterite congruent melting, enstatite peritectic) and correctly classifies the
-enstatite peritectic; the silica-rich gap is the deferred v0.4 model-form step.
+Open MgO-SiO2 liquid-slag MQMQA database, now at **v0.4** (central liquid + silica-rich
+miscibility gap). Built by `build_dat.py`; endmembers validated by `validate.py`, the v0.2
+central excess by `validate_v02.py`, invariants classified by `phase_hull.py`; fits
+reproduced by `v02_fit.py` (central) and `v04_fit.py` (+ silica gap), the gap-lever mapped
+in `v04_explore.py`. Second system in the open slag family (after CaO-SiO2); chosen because
+it exercises the two phenomena CaO-SiO2 could not yet capture - a liquid-liquid
+**miscibility gap** and an **incongruent (peritectic) melting**. v0.2 fit the central
+liquid (forsterite congruent melting, enstatite peritectic); v0.4 adds the silica-rich gap
+(Greig conjugate liquids 0.59/0.99) via a silica-weighted excess - NOT via SiO2-specific
+coordination, which direct experiments showed is a gauge no-op here (see the v0.4 section).
 
 ## Primary sources (all open)
 
@@ -148,7 +150,7 @@ dHf_ox -60 vs Ca2SiO4 -126 kJ/mol; Mg is a weaker network modifier).
     in the deferred-gap region.
 - **Silica-rich miscibility gap not modelled** (Greig 1927). It is a positive deviation the
   charge-proportional-Z cation-mixing excess structurally cannot place at the silica corner -
-  the v0.4 model-form step (SiO2-specific coordination Z), documented below.
+  the v0.4 model-form step, documented below. (v0.4 now DOES model it - see the v0.4 section.)
 
 ## Statement on sources
 
@@ -162,28 +164,75 @@ coefficients are our own least-squares result against the melting anchor and the
 structures for the MLIP checks are open COD entries (9006398 forsterite, 1000047 enstatite,
 9009666 quartz).
 
-## Miscibility-gap finding (v0.x / v0.4 model-form, 2026-08-22)
+## v0.4 excess (silica-rich miscibility gap)
 
-Attempting the excess fit surfaced the model-form limit head-on. The target is Greig's
-silica-rich liquid-liquid gap: at 1968 K two conjugate liquids at x_SiO2 ~ 0.59 and ~0.99
-(monotectic with cristobalite).
+v0.4 adds the model-form term that places Greig's silica-rich liquid-liquid gap (1968 K
+monotectic, conjugate liquids x_SiO2 ~ 0.59 and ~0.99). Reproduce with `v04_fit.py`; the
+lever was mapped in `v04_explore.py`.
 
-Tested against the engine:
-- **The engine CAN produce a miscibility gap.** A positive Q-code excess raises the mixed
-  quadruplet energy and yields a spinodal (d2 Gmix/dx2 < 0). So gaps are representable -
-  earlier "cation-mixing can only deviate negative" was too strong; the sign of L sets it.
-- **But charge-proportional Z misplaces it.** A symmetric positive term puts the gap
-  MgO-rich (x_SiO2 ~ 0.10-0.35). Si-weighted positive terms ((0,q), q up to 3) move it
-  silica-ward but saturate at ~0.33-0.70 - they cannot reach the measured 0.59-0.99.
-- **The lever is the coordination Z, not the excess.** The gap can't be placed at the
-  silica corner while Z stays charge-proportional (Z = 0.68872*charge). Real silicate MQM
-  databases (FactSage FToxid) use SiO2-specific, non-charge-proportional coordination to
-  capture the silica network and put the gap where it belongs. Adopting SiO2-specific Z is
-  a model-structure change (it re-defines the pure-SiO2 endmember reference), so it is the
-  v0.4 step, done carefully, not a parameter tweak.
+### What the lever actually is (correcting the earlier coordination hypothesis)
 
-Consequence for the plan: the CENTRAL, negative-deviation part (forsterite congruent melting
-2163 K, periclase-forsterite eutectic 2123 K, enstatite incongruent) is fittable now with a
-cation-mixing excess + the hull classifier, as in CaO-SiO2 - that is the achievable v0.2.
-The silica-rich gap is deferred to v0.4 (SiO2-specific coordination), and the hull classifier
-+ MLIP triangulation carry over unchanged.
+An earlier note here proposed that SiO2-specific, non-charge-proportional COORDINATION Z
+places the gap (as FactSage FToxid is said to do). Direct engine experiments
+(`v04_explore.py`) REFUTE that for this single-anion (Mg,Si / O) binary:
+
+- **Coordination Z (and pair zeta) is a GAUGE no-op for the ideal mixing.** With one
+  anion, the pure-quadruplet stoichiometry locks Z_Si = 2*Z_O, and scaling the SiO2 quad's
+  (Z_Si, Z_O, zeta) together leaves the endmember AND the ideal delta_g_mix exactly
+  invariant (identical to machine precision across factors 1-6). zeta alone is likewise a
+  no-op. So coordination creates no asymmetry by itself here.
+- **Coordination only moves an EXCESS-driven gap toward MgO, never toward silica.** With a
+  fixed positive excess, scaling Z_Si up opens an MgO-rich spinodal (x ~ 0.05-0.40);
+  scaling it down suppresses the gap entirely. It cannot point the gap at the silica corner.
+- **The real lever is a SILICA-WEIGHTED EXCESS.** A single Q-code term on (Mg,Si,O,O) with
+  the chi_Si exponent, (0,q), L > 0, opens a spinodal whose silica edge marches outward with
+  q: (0,3) -> 0.81, (0,5) -> 0.89, (0,6) -> 0.92 (at fixed L). Because chi_Si^q ~ 0 for
+  x_SiO2 < ~0.55, the term is nearly orthogonal to the central v0.2 excess - it opens the
+  gap without disturbing the forsterite/enstatite region. The excess (its sign and chi
+  weighting), not the coordination, sets where the gap sits. This applies to the whole
+  silica-gap family (the CaO-SiO2 silica gap too).
+
+### Model and fitted values
+
+v0.4 = v0.2 (central) + one silica-weighted term, with the symmetric g00 enthalpy
+re-tuned to hold forsterite melting (the silica term slightly destabilises the liquid at
+x=1/3). g10 (chi_Mg skew) and the g00 entropy slope carry over from v0.2 unchanged:
+
+| term | code | (p,q) | coefficients, J/mol |
+|---|---|---|---|
+| g00 | Q | (0,0) | -79055.6 - 3.5875*T |
+| g10 | Q | (1,0) | +30163.1 |
+| g_si | Q | (0,5) | +100958.1 |
+
+Two anchors fix the two re-fit coefficients (they solve almost separably): forsterite
+congruent melting = 2163 K fixes g00's enthalpy; the MgO-side conjugate liquid = 0.59 at
+1968 K fixes L_si. The chi_Si exponent q = 5 is the fitted network order (q = 4 gives too
+narrow a gap, q = 6 slightly too silica-ward); it is our own choice on the open Greig data,
+not a FactSage parameter.
+
+### Results (reproduce with v04_fit.py / phase_hull.py)
+
+- **Silica-rich miscibility gap (binodal) at 1968 K = 0.588-0.982** - matching Greig's
+  conjugate liquids 0.59 / 0.99 essentially exactly. It forms a proper dome: widening as T
+  drops (0.571-0.986 at 1800 K), narrowing as T rises, consolute above 2450 K.
+- The ONLY instability is this silica gap (spinodal ~0.70-0.92); no spurious MgO-rich gap.
+- **forsterite Mg2SiO4 CONGRUENT melting = 2159-2163 K** (target 2163); the silica term even
+  resolves the v0.2 hull near-coincidence, so forsterite now classifies cleanly congruent.
+- **enstatite MgSiO3 INCONGRUENT / peritectic (-> liquid + forsterite)** at ~1946 K (measured
+  ~1830; the type is right, the T solid-model-limited).
+- Central liquid depth preserved: dH_mix(x=1/3) = -24.5 kJ/mol-oxide (= the v0.2 MLIP
+  anchor); dH_mix(x=1/2) = -18.7 (the silica term makes the enstatite side ~4 kJ shallower).
+
+### Honest limitations
+
+- The **monotectic and consolute temperatures are not independently fit** - only the gap
+  conjugate compositions at 1968 K are anchored. The gap dome and the monotectic invariant
+  (gap meeting the cristobalite liquidus) follow from the model; their exact temperatures
+  are solid-model-limited (cristobalite endmember, Neumann-Kopp), as are the enstatite
+  peritectic (~1946 vs 1830 K) and the silica-side eutectic.
+- The **periclase-forsterite eutectic** remains near-coincident with forsterite melting (the
+  refractory-MgO limit carried from v0.2), not 40 K below.
+- q = 5 is an empirical network order; a physically-derived silica-network treatment (or a
+  richer structural model) is a further refinement.
+- Built only from open data (Greig 1927 gap; the v0.2 sources); the silica term is our own
+  fit, no FactSage/FToxid parameters.

@@ -86,7 +86,7 @@ def main():
     print("3. PUBLISHED FUSION POINTS  (dG_fus = G_liq - G_solid -> 0 at Tm)")
     print("=" * 70)
     for name, Tm_pub, src in (("SiO2", 1996.0, "NIST-JANAF cristobalite<->liquid"),
-                              ("CaO", 3200.0, "NIST-JANAF Tm (flagged high, ESTIMATED dHfus)")):
+                              ("CaO", 2845.0, "CRC 2572 degC (v0.3 corrected; dHfus still ESTIMATED)")):
         ox = bd.OXIDES[name]
         pr = db.pairs(p, Tm_pub)
         g_liq = pr["G"][idx[name]]

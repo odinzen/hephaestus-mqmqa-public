@@ -27,8 +27,12 @@ T0 = 298.15  # K, reference temperature for dHf and S298
 # a, b, c are the Haas-Fisher solid Cp coefficients Cp = a + b*T + c*T^-2 (J/mol/K).
 OXIDES = {
     "CaO": dict(
+        # Tm corrected in v0.3: the v0.1 value 3200 K was the old JANAF estimate,
+        # ~350 K too high (Abdul 2023 notes the "dramatic change in the melting point
+        # of CaO in the recent reassessment"). 2845 K = 2572 degC, the modern value
+        # (CRC Handbook). dHfus keeps the JANAF/MgO-analog estimate (still approximate).
         dHf=-635100.0, S298=38.1, a=51.85, b=2.444e-3, c=-9.340e5,
-        Tm=3200.0, dHfus=79500.0,
+        Tm=2845.0, dHfus=79500.0,
         n_cat=1, n_an=2, cation="Ca", anion="O", stoich_el={"Ca": 1.0, "O": 1.0},
     ),
     "SiO2": dict(
@@ -104,11 +108,11 @@ def _mqmx_block(excess):
     return out
 
 
-def build(excess=None):
+def build(excess=None, version=None):
     L = []
     ap = L.append
 
-    ver = "v0.2" if excess else "v0.1"
+    ver = version or ("v0.2" if excess else "v0.1")
     ap(f" System CaO-SiO2  open oxide-slag database {ver}"
        "  (provenance: data/cao-sio2/PROVENANCE.md)")
     # header: n_el, n_soln, [soln species-count per phase], n_stoich

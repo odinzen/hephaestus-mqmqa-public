@@ -36,8 +36,13 @@ quantities are computed. All primary sources are open or public domain.
 | Cp a (J/mol/K) | 51.85 | 72.75 | R&H 1995, p.47 (lime) / p.50 (beta-cristobalite) |
 | Cp b (J/mol/K^2) | 2.444e-3 | 1.300e-3 | R&H 1995, same |
 | Cp c (J K/mol) | -9.340e5 | -4.132e6 | R&H 1995, same |
-| Tm (fusion) | 3200 K | 1996 K | NIST-JANAF |
-| dHfus | 79500 J/mol | 9581 J/mol | NIST-JANAF |
+| Tm (fusion) | 2845 K (v0.3; was 3200) | 1996 K | CaO: CRC 2572 degC / SiO2: NIST-JANAF |
+| dHfus | 79500 J/mol | 9581 J/mol | NIST-JANAF (CaO dHfus still an estimate) |
+
+**v0.3 CaO melting correction:** the v0.1/v0.2 CaO Tm = 3200 K was the old JANAF
+estimate, ~350 K too high (Abdul 2023 notes the "dramatic change in the melting point of
+CaO in the recent reassessment"). v0.3 uses 2845 K (2572 degC, CRC Handbook evaluated
+value). dHfus is retained as the JANAF/MgO-analog estimate and remains approximate.
 
 Heat capacity is the Haas-Fisher form Cp = a + b*T + c*T^-2 (the R&H d*T^-0.5 and e*T^2
 terms are zero for both oxides). SiO2 uses the beta-cristobalite branch; the alpha branch
@@ -89,7 +94,8 @@ points, dG_fus = G_liq - G_solid = 0 at Tm(SiO2)=1996 K and Tm(CaO)=3200 K.
   A 32 (2001) 1355-1360, DOI 10.1007/s11661-001-0226-3.
 - **Pair zeta:** 1.3774438 (the divalent-oxygen base value) for both pairs.
 - **Excess (MQMX) parameters:** two Q-code cation-mixing terms on the (Ca,Si,O,O)
-  quadruplet, FITTED to open activity data (see the v0.2 section below). NOT taken from any
+  quadruplet, FITTED from open data (v0.3: activities + calorimetry + compound melting,
+  cross-checked by an independent MLIP - see the v0.3 section below). NOT taken from any
   external or proprietary TDB.
 
 ## v0.2 excess parameters (fitted from open activity data)
@@ -174,11 +180,79 @@ miscibility gap, so it is excluded.
 - **Activity accuracy is ~30-40%**, limited by the scatter in the open KEMS data, not by the
   optimizer. This is stated rather than polished away.
 
+## v0.3 excess (MLIP- and phase-diagram-anchored liquid)
+
+v0.2 fit the excess to activities alone and came out too shallow to melt the compounds.
+v0.3 re-grounds the liquid on the data the field actually trusts, cross-checked by an
+independent machine-learned potential. The arbitration behind it (why the activities are
+NOT the primary constraint) is recorded below.
+
+### What changed and why (the arbitration)
+
+- **Reference state = solid.** Abdul 2023 (the modern open assessment) reports CaO-SiO2
+  activities vs cristobalite / solid CaO, and does NOT fit activities at all - it fits the
+  phase diagram + calorimetry and checks activities. At 1933/1821 K both pure oxides are
+  solid, so a KEMS "pure oxide" reference is the solid. v0.3 treats Stolyarova and
+  Kay-Taylor as solid-referenced.
+- **Stolyarova is the outlier.** Abdul's activity comparison uses Rein-Chipman,
+  Baird-Taylor, and Kay-Taylor - not Stolyarova - and its calorimetry-fit liquid reproduces
+  those. A Gibbs-Duhem check on Stolyarova's own two columns shows ~2x interior scatter
+  (only roughly self-consistent). So Stolyarova is down-weighted; Kay-Taylor a(SiO2) is the
+  trusted activity constraint.
+- **Independent MLIP confirmation.** MD with two foundation potentials (MatterSim, ORB) via
+  the melt-mixing method gives the liquid enthalpy of mixing at x_SiO2 = 0.5 as -42 and -55
+  kJ/mol-oxide-unit - both DEEP, refuting the shallow (~-30) value the activities imply. A
+  formation-enthalpy spot-check (dHf of CaSiO3 vs the measured -82 kJ) showed the MLIP
+  under-binds by ~9 kJ; bias-correcting the liquid deepens it to ~-55..-60, coinciding with
+  the value the compound melting requires (~-60). v0.3 anchors dH_mix(x=0.5) = -58 kJ, where
+  the bias-corrected MLIP, the calorimetry, and the melting all agree.
+
+### Fitted values
+
+Two Q-code cation-mixing terms on (Ca,Si,O,O), with an excess ENTROPY term on g00 so one
+excess reproduces both the ~1900 K mixing and the 1817/2403 K melting:
+
+    Delta_g(Ca,Si)/O = (-189763.5 + 15.706*T) + 57170.8 * chi_Ca      J/mol
+
+| term | code | (p,q) | coefficients (a + b*T), J/mol |
+|---|---|---|---|
+| g00 | Q | (0,0) | -189763.5 + 15.706*T |
+| g10 | Q | (1,0) | +57170.8 |
+
+Reproduce with `v03_fit.py` (which also writes the .dat); it is the v0.3 fit + validation.
+
+### Results (reproduce with v03_fit.py)
+
+- implied liquid dH_mix(x=0.5, 1900 K) = -58.8 kJ/mol-oxide-unit, matching the anchor.
+- Kay-Taylor a(SiO2) RMS ln(a) = 0.21 (trusted activity data reproduced).
+- Stolyarova reproduced poorly (the documented outlier).
+- Stable across the whole join (no spurious miscibility gap); a(CaO), a(SiO2) monotonic and
+  below 1 in the single-phase melt.
+- MLIP phonon spot-check: solid S298 for pseudowollastonite = 94 J/mol/K (vs Haas
+  wollastonite 81, our estimate 85) - the estimated solid entropies are confirmed reasonable
+  (~within 10 J/K), so they are NOT the source of the phase-diagram error.
+
+### Honest limitations (what v0.3 is NOT)
+
+- **v0.3 is a validated LIQUID, not a quantitative phase diagram.** With the corrected CaO
+  endmember and the deep liquid, the compounds now melt, but the computed congruent-melting
+  and eutectic temperatures are still ~200-400 K off. This is the SOLID model, not the
+  liquid: gamma-C2S data is used at the alpha-C2S melting point (polymorph transitions not
+  resolved), the compound Cp is Neumann-Kopp, and rankinite (C3S2) melts peritectically. A
+  quantitative diagram (proper solid Cp/S, polymorphs, the silica-rich gap) is v0.4.
+- **Silica-rich miscibility gap not modelled.** The MLIP composition scan shows dH_mix
+  turning convex toward silica (x_SiO2 > 0.6) - the real liquid-liquid immiscibility, a
+  positive deviation a cation-mixing excess structurally cannot produce.
+- **CaO dHfus** remains the JANAF/MgO-analog estimate.
+
 ## Statement on sources
 
 This database was built only from published, open, or public-domain sources: endmembers
-from Robie & Hemingway 1995 and NIST-JANAF; the v0.2 excess fit from the open measured
-activities of Stolyarova et al. 1991 and Kay & Taylor 1960. No FactSage/FToxid parameters,
+from Robie & Hemingway 1995, NIST-JANAF, and CRC (CaO Tm); the excess from the open
+measured activities of Stolyarova et al. 1991 and Kay & Taylor 1960, the open compound
+calorimetry (Abdul et al. 2023, CC-BY; Adamkovicova fusion), and our own MD with open
+foundation MLIPs (MatterSim, ORB) plus MLIP phonons - all our own computation, no
+proprietary content. Crystal structures for the MLIP checks are open COD entries. No FactSage/FToxid parameters,
 no proprietary fitted TDB parameters, and none of the assessment workspace's own-derived or
 ESPEI-fit liquid interaction parameters were used - the excess coefficients are our own
 least-squares result against the measured activities. The independent H - T*S derivation in

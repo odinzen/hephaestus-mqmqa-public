@@ -13,6 +13,16 @@ quantities are computed. All primary sources are open or public domain.
 - **NIST-JANAF (Chase 1998)**, M. W. Chase, "NIST-JANAF Thermochemical Tables, 4th ed.,"
   J. Phys. Chem. Ref. Data, Monograph 9; NIST SRD 13. Open.
   URL: https://janaf.nist.gov/
+- **Stolyarova, Shornikov, Ivanov & Shultz (1991)**, "High Temperature Mass Spectrometric
+  Study of Thermodynamic Properties of the CaO-SiO2 System," J. Electrochem. Soc. 138(12)
+  3710-3714. DOI 10.1149/1.2085485 (verified on Crossref: authors, title, volume, issue,
+  page all exact). KEMS a(CaO), a(SiO2), and delta-G_mix across the binary at 1933 K; the
+  primary excess-fit constraint. Digitized from Tables IIa (a(CaO), Eq [2]) and IIb (a(SiO2),
+  Eq [3]) of the PDF.
+- **Kay & Taylor (1960)**, "Activities of silica in the lime + alumina + silica system,"
+  Trans. Faraday Soc. 56, 1372. DOI 10.1039/tf9605601372 (verified on Crossref). a(SiO2) by
+  CO/SiC gas-slag equilibrium at ~1821 K, silica-rich near-binary slag (0.6% Al2O3);
+  digitized Table 3. Anchors the silica-rich half of the join.
 - Cross-check only, not a primary: Barin & Platzki (1995), "Thermochemical Data of Pure
   Substances," 3rd ed., VCH. Copyrighted compilation; used only to confirm the open
   values agree (they do, to <0.2 percent), never transcribed as a parameter.
@@ -78,17 +88,100 @@ points, dG_fus = G_liq - G_solid = 0 at Tm(SiO2)=1996 K and Tm(CaO)=3200 K.
   modified quasi-chemical model: Part II. Multicomponent solutions," Metall. Mater. Trans.
   A 32 (2001) 1355-1360, DOI 10.1007/s11661-001-0226-3.
 - **Pair zeta:** 1.3774438 (the divalent-oxygen base value) for both pairs.
-- **Excess (MQMX) parameters:** none. The interior mixing is ideal in v0.1. The ordering
-  energy that produces the eutectics and the negative-deviation activities is intentionally
-  absent because no open source publishes it in SUBQ form; it is neither fabricated nor
-  taken from any proprietary source.
+- **Excess (MQMX) parameters:** two Q-code cation-mixing terms on the (Ca,Si,O,O)
+  quadruplet, FITTED to open activity data (see the v0.2 section below). NOT taken from any
+  external or proprietary TDB.
+
+## v0.2 excess parameters (fitted from open activity data)
+
+v0.2 adds the liquid-mixing (ordering) energy that v0.1 left ideal. The engine itself is
+the optimizer: for trial excess coefficients the C engine computes a(CaO), a(SiO2) and
+delta-G_mix, and `fit_excess.py` least-squares matches them (in ln a) to the open data.
+No TDB parameters are used - the numbers are our own fit to measured activities.
+
+### Model and fitted values
+
+Two Q-code cation-mixing terms on the (Ca+2, Si+4 / O, O) quadruplet, giving the
+composition-dependent ordering energy
+
+    Delta_g(Ca,Si)/O = -84989.5 + 58720.7 * chi_Ca      J/mol
+
+where chi_Ca is the coordination-equivalent fraction of Ca among the two mixing cations.
+As MQMX entries (term basis 1,T,TlnT,T^2,T^3,1/T; only the constant term is non-zero):
+
+| term | code | quadruplet | exponents (p,q) | L (J/mol) |
+|---|---|---|---|---|
+| g00 | Q | (Ca,Si,O,O) | (0,0) | -84989.5 |
+| g10 | Q | (Ca,Si,O,O) | (1,0) | +58720.7 |
+
+The parameters are temperature-independent (constant L); this is justified below by the
+cross-temperature check. Two terms are what the single-phase data support - a third
+(curvature) term only fits the scatter in a(SiO2) and drives a spurious CaO-rich
+miscibility gap, so it is excluded.
+
+### Method and data selection
+
+- **Activity from the engine:** a(i) = exp((mu_i - G_i_pure_liquid)/(R T)), R = 8.3145, with
+  mu_i the partial molar Gibbs of oxide i by central finite difference of the total Gibbs
+  energy. The single-phase quadruplet equilibrium is solved exactly in 1-D (the binary has
+  one internal degree of freedom), avoiding the SLSQP noise that otherwise wrecks the finite
+  difference. Reference = pure liquid oxide (a -> 1 at the pure component), matching the
+  engine's liquid-only endmembers. Ideal v0.1 returns a(i) = x(i) exactly, so the excess is
+  wholly responsible for the deviation.
+- **Stolyarova 1991 (1933 K):** fitted to the genuinely single-phase points x_SiO2 = 0.41,
+  0.44, 0.49, 0.50. Stolyarova state the 1933 K liquidus at x_SiO2 = 0.41 (p.3711); points
+  below that are sub-liquidus (solid Ca-silicate + liquid), where a(CaO) rises to 0.96-1.00
+  (saturation) - two-phase data the single-liquid model must not be fit to. Those points
+  (x_SiO2 = 0.25, 0.33, 0.38, 0.39, 0.40) are excluded.
+- **Kay & Taylor 1960 (~1821 K):** a(SiO2) converted from the pure-SOLID-SiO2 reference to
+  the pure-LIQUID reference by a(liq) = a(solid)/exp(dG_fus,SiO2/RT) (a 5-6% shift; dG_fus is
+  small this close to Tm). Mass-percent compositions renormalized to CaO+SiO2 mole fraction
+  (0.6% Al2O3 dropped). Central points x_SiO2 = 0.42, 0.47, 0.51 are used; the silica-rich
+  points (x_SiO2 = 0.55, 0.60) approach the silica-rich miscibility gap and are excluded
+  (see limitations).
+
+### Fit residuals (reproduce with `validate_v02.py`)
+
+- Overall RMS of ln(a_engine/a_measured) = 0.32 (typical activity factor 1.38).
+- By dataset: a(CaO) 0.30, a(SiO2) Stolyarova 0.42, a(SiO2) Kay-Taylor 0.17. The larger
+  a(SiO2)-Stolyarova residual is data-limited: the KEMS a(SiO2) (minor SiO+ ion) scatters by
+  ~2x between adjacent compositions (e.g. 0.09 at x=0.49 vs 0.20 at x=0.50), which no smooth
+  model can follow.
+- delta-G_mix at 1933 K: engine -30.5 to -30.9 kJ/mol across x_SiO2 = 0.41-0.50 vs measured
+  -28 to -37 kJ/mol (the -37 at x=0.49 is a scatter point); the model reproduces the broad
+  ~-31 kJ/mol minimum.
+- **Cross-temperature consistency:** the single temperature-independent excess reproduces
+  a(SiO2) at BOTH 1821 K (Kay-Taylor, RMS 0.17) and 1933 K (Stolyarova, RMS 0.42) - it is
+  not tuned to one isotherm.
+- **Stability:** d2 Gmix/dx2 > 0 across the whole join (no spurious miscibility gap); a(CaO)
+  and a(SiO2) are monotonic and stay below 1 in the single-phase melt.
+
+### Honest limitations
+
+- **Silica-rich miscibility gap not modelled.** The real CaO-SiO2 liquid has a two-liquid
+  gap at high silica (x_SiO2 > ~0.65), i.e. positive deviations that a cation-mixing Q
+  excess centred on ordering cannot produce. v0.2 targets the ordered central melt; the
+  silica-rich gap is a v0.3 item (needs an additional positive term or richer structure).
+- **No absolute eutectic / liquidus temperature is claimed.** The .dat carries no solid
+  phases, and the CaO-rich absolute thermochemistry rests on the v0.1 CaO liquid endmember,
+  whose Tm = 3200 K and dHfus = 79500 J/mol are flagged (JANAF estimate, high vs modern
+  ~2845 K). A congruent-melting or eutectic temperature computed from this would be dominated
+  by that flagged endmember, not by the excess, so it is deliberately not reported. Adding
+  open solid-silicate Gibbs functions and a primary CaO melting source (to compute liquidus
+  and eutectic temperatures) is a v0.3 task. The v0.2 validation is therefore isothermal:
+  activities and delta-G_mix at the measurement temperatures, which is exactly what the
+  excess governs.
+- **Activity accuracy is ~30-40%**, limited by the scatter in the open KEMS data, not by the
+  optimizer. This is stated rather than polished away.
 
 ## Statement on sources
 
-This database was built only from published, open, or public-domain sources (Robie &
-Hemingway 1995; NIST-JANAF). No FactSage/FToxid parameters, no proprietary fitted TDB
-parameters, and none of the assessment workspace's own-derived or ESPEI-fit liquid
-interaction parameters were used. The independent H - T*S derivation in `build_dat.py`
-happens to reproduce the workspace's separately built endmember functions to full
-precision, which cross-validates both; the shared inputs are the open R&H/JANAF data, not
-any fitted result.
+This database was built only from published, open, or public-domain sources: endmembers
+from Robie & Hemingway 1995 and NIST-JANAF; the v0.2 excess fit from the open measured
+activities of Stolyarova et al. 1991 and Kay & Taylor 1960. No FactSage/FToxid parameters,
+no proprietary fitted TDB parameters, and none of the assessment workspace's own-derived or
+ESPEI-fit liquid interaction parameters were used - the excess coefficients are our own
+least-squares result against the measured activities. The independent H - T*S derivation in
+`build_dat.py` happens to reproduce the workspace's separately built endmember functions to
+full precision, which cross-validates both; the shared inputs are the open R&H/JANAF data,
+not any fitted result.

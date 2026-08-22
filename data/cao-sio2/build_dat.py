@@ -76,11 +76,40 @@ def _coeff_line(tmax, coeffs):
     return "  " + f"{tmax:.4f}" + "   " + "   ".join(_fmt(c) for c in coeffs)
 
 
-def build():
+def _mqmx_block(excess):
+    """Serialize MQMX excess parameters in the ChemSage layout the reader parses.
+
+    excess is a list of dicts, each:
+        code   'Q' or 'G'
+        li     the four 1-based quadruplet species indices [A, B, X, Y]
+               (cations 1..n_cat, anions n_cat+1..; for Ca+2/Si+4 cation mixing
+                on O this is [1, 2, 3, 3])
+        exp    the four integer exponents [p, q, 0, 0]
+        coeffs the six excess coefficients on the term basis (1,T,TlnT,T^2,T^3,1/T);
+               usually [L0, 0, 0, 0, 0, 0] for a constant, or [a, b, 0, 0, 0, 0]
+               for L = a + b*T.
+    Each parameter is preceded by a nonzero mixing-type flag; a trailing 0 ends the
+    block. Twelve zero metadata doubles and two zero mixing-constituent ints sit
+    between the exponents and the coefficients, matching FactSage's format.
+    """
+    out = []
+    for ex in excess:
+        out.append("   1")  # nonzero mixing-type flag (per-parameter)
+        out.append(" " + ex["code"] + "   " + "   ".join(str(i) for i in ex["li"])
+                   + "   " + "   ".join(str(e) for e in ex["exp"]))
+        out.append("  " + "   ".join("0.00000000" for _ in range(6)))
+        out.append("  " + "   ".join("0.00000000" for _ in range(6)))
+        out.append("   0   0   " + "   ".join(_fmt(c) for c in ex["coeffs"]))
+    out.append("   0")  # terminate the excess block
+    return out
+
+
+def build(excess=None):
     L = []
     ap = L.append
 
-    ap(" System CaO-SiO2  open oxide-slag database v0.1"
+    ver = "v0.2" if excess else "v0.1"
+    ap(f" System CaO-SiO2  open oxide-slag database {ver}"
        "  (provenance: data/cao-sio2/PROVENANCE.md)")
     # header: n_el, n_soln, [soln species-count per phase], n_stoich
     ap(f"    {len(ELEMENTS)}    1    2    0")
@@ -131,8 +160,11 @@ def build():
     ap(f"   1   1   3   3   {z_ca:.7f}   {z_ca:.7f}   {z_o:.7f}   {z_o:.7f}")
     ap(f"   2   2   3   3   {z_si:.7f}   {z_si:.7f}   {z_o:.7f}   {z_o:.7f}")
 
-    # --- excess (MQMX): none in v0.1 (ideal). 0 terminates the block. ---
-    ap("   0")
+    # --- excess (MQMX): none in v0.1 (ideal), fitted Q terms in v0.2. ---
+    if excess:
+        L.extend(_mqmx_block(excess))
+    else:
+        ap("   0")
 
     return "\n".join(L) + "\n"
 

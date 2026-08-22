@@ -12,9 +12,9 @@ Checks, all reporting real numbers:
   4. The single-phase solver runs on a mixed CaO-SiO2 melt and the pure-oxide limits
      return the endmember energies (a sanity check that the phase is well-formed).
 
-This is a v0.1 endmember-only (ideal) liquid; it does NOT reproduce the interior
-eutectics or the measured negative-deviation activities. That needs excess MQMQA
-parameters from an open-data optimization (see README.md, "Roadmap").
+This checks the ENDMEMBERS and structure only; it stays valid for both v0.1 (ideal)
+and v0.2 (with fitted excess). The interior mixing (negative-deviation activities,
+delta-G_mix) is validated separately in `validate_v02.py`.
 """
 
 import math
@@ -119,8 +119,8 @@ def main():
         comp = {"CA": (1 - xSiO2), "SI": xSiO2, "O": (1 - xSiO2) + 2 * xSiO2}
         r = eq.equilibrate(inp, comp)
         print(f"  x(SiO2)={xSiO2:.2f}  GM={r['GM']:12.2f} J/mol-atom  converged={r['success']}")
-    print("  (v0.1 is ideal: the mixing curve is convex with no eutectic; the "
-          "measured\n   eutectics/activities need excess terms - see README Roadmap.)")
+    print("  (endmember/structure check; interior mixing is validated in "
+          "validate_v02.py.)")
 
 
 if __name__ == "__main__":

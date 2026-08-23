@@ -329,13 +329,27 @@ that reproduces the measured mixing enthalpy. Worst-case invariant error drops f
 
 - **The two-liquid monotectic still runs too hot.** The gap COMPOSITION matches Greig (left
   conjugate 0.59, right ~0.99), but the isolated-liquid dome does not close until a consolute
-  ~3000+ K, and in the full diagram cristobalite preempts the silica-rich liquid at ~2600 K vs
-  the measured 1968 K monotectic. This is unchanged by the shallower v0.5 liquid, and directly
-  verified NOT fixable with the fixed-Z coordination lever (raising the mixed-quadruplet Z does
-  not lower the consolute). Per the published method the silica-rich CLUSTERING region needs a
-  higher coordination (Z ~ 6) than the ordering region (Z ~ 2) - i.e. COMPOSITION-DEPENDENT
-  coordination numbers (Pelton Part I Eqs 19-20), which our fixed-Z SUBQ engine cannot yet
-  express. This is the identified next model-form step (an engine feature), not a tuning miss.
+  ~3000+ K, so cristobalite preempts the silica-rich liquid at ~2600 K vs the measured 1968 K
+  monotectic. What actually sets the monotectic was pinned down by direct experiment (see the
+  monotectic study below): it is the excess MAGNITUDE, not the coordination. Two candidate
+  fixes were tested:
+    1. *Coordination (composition-dependent Z)* - REFUTED. Neither fixed per-quadruplet Z nor
+       a decoupled pure-vs-mixed quad Z (pure Si2O2 Z ~ 6 for the silica-clustering region,
+       mixed MgSiO2 Z pinned at the ordering ratio) lowers the consolute at all - it only
+       shifts the gap edge. So the "silica clustering needs Z ~ 6" reading of Pelton, applied
+       as a coordination number, does NOT lower the dome here; an engine change to make Z
+       composition-dependent would not have helped. (This corrects an earlier hypothesis.)
+    2. *A temperature-dependent silica excess* L_si = a_si + b_si*T (b_si < 0), which weakens
+       the silica-rich immiscibility as T rises - DOES lower the dome (monotectic ~2600 -> ~2180
+       K, v0.6, `v06_fit.py`). But it plateaus ~200 K above the measured 1968 K, and pushing it
+       degrades the physically-anchored quantities: the measured dH_mix match worsens
+       (dH_mix(x=1/2) -22.4 -> -14.1) and the periclase-forsterite eutectic drifts to +55 K.
+       Trading the measured enthalpy for the diagram is the same move rejected for the v0.5
+       liquid, so v0.6 is NOT shipped; v0.5 (invariants + calorimetry matched) is retained.
+  The genuine remaining limit is the single-oxygen-anion model form: one liquid cannot match the
+  invariants, the measured mixing enthalpy, AND the monotectic at once. The real fix is anion
+  speciation (a second anion / associate species, e.g. a silicate-network anion), the FToxid-style
+  richer liquid - a substantial engine extension, kept as the next model-form step.
 - **The MgO-rich side is ~30 K off and slightly inverted** (periclase-forsterite eutectic 2152
   computed above forsterite congruent 2130), the refractory-MgO-endmember limit carried from
   v0.2 (MgO Tm 3098 K is too high for the shallow ~40 K eutectic valley to resolve cleanly).

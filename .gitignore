@@ -27,3 +27,5 @@ data/*/_*.log
 data/*/_mlip/cif/
 data/*/_mlip/*.log
 data/*/*.png
+cef/_*.tdb
+cef/__pycache__/

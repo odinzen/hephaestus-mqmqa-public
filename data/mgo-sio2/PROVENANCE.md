@@ -348,13 +348,22 @@ that reproduces the measured mixing enthalpy. Worst-case invariant error drops f
        physical anchors (dH_mix(x=1/2) -22 -> ~-15, gap left conjugate drifts 0.59 -> 0.66).
        Trading measured enthalpy for the diagram is the move rejected for the v0.5 liquid, so
        v0.6 is NOT shipped; v0.5 (invariants + calorimetry matched) is retained.
-  The remaining gap to the published result is the excess VARIABLE: the 1993 MgO-SiO2 optimization
-  expands omega and eta in the EQUIVALENT FRACTION Y_SiO2 (Si weighted 2x, so max ordering sits at
-  the orthosilicate), with the positive term on a high power of Y_SiO2 localized at the silica
-  corner; our engine expands in chi (the quadruplet-pair fraction), which does not localize the
-  silica term as cleanly. The identified next step is therefore a SMALL parametrization refinement
-  - add the Y_SiO2 equivalent-fraction expansion as an excess-variable option - NOT the
-  anion-speciation engine build, which the primary source shows is unnecessary.
+  What the monotectic needs was then run to ground, and it is NOT an engine change of any kind.
+  Our Q-code (0,q) excess variable was verified to EQUAL the equivalent fraction Y_SiO2 = 2x/(1+x)
+  to machine precision at every composition (`v07_fit.py`): so we already use the exact variable
+  the 1993 paper uses, and a Q-code (0,q) term already equals L*Y_SiO2^q. The remaining gap is
+  purely the fitted COEFFICIENTS. Our open-data fits reproduce the gap composition and improve the
+  understanding but cannot thread a WIDE gap (0.59-0.99) onto a LOW monotectic (1968 K)
+  simultaneously: with a single common-anion liquid, a wide gap needs a strong positive silica
+  excess, and near pure silica (where the ideal entropy vanishes) that excess is stable to very
+  high T, so the whole two-liquid region floats at ~2425-3175 K. Adding the silica entropy term
+  (eta) narrows/collapses the gap rather than sliding it down, and higher powers push the right
+  conjugate to 0.999 without lowering the monotectic. The published optimization threads this
+  needle only with its specific expert-fitted omega(Y)/eta(Y) polynomials (a negative const +
+  negative linear + positive high-power omega, plus a large eta) - the curated-data + fitted-
+  parameter "moat", which we deliberately do not copy. So the monotectic here is an
+  assessment-grade FITTING limit, not a model-form or code limit; the honest v0.5 model retains
+  the gap at the right composition with the temperature documented as high.
 - **The MgO-rich side is ~30 K off and slightly inverted** (periclase-forsterite eutectic 2152
   computed above forsterite congruent 2130), the refractory-MgO-endmember limit carried from
   v0.2 (MgO Tm 3098 K is too high for the shallow ~40 K eutectic valley to resolve cleanly).

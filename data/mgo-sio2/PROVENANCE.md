@@ -212,10 +212,14 @@ not a FactSage parameter.
 
 ### Results (reproduce with v04_fit.py / phase_hull.py)
 
-- **Silica-rich miscibility gap (binodal) at 1968 K = 0.588-0.982** - matching Greig's
-  conjugate liquids 0.59 / 0.99 essentially exactly. It forms a proper dome: widening as T
-  drops (0.571-0.986 at 1800 K), narrowing as T rises, consolute above 2450 K.
-- The ONLY instability is this silica gap (spinodal ~0.70-0.92); no spurious MgO-rich gap.
+- **A silica-rich two-liquid miscibility gap forms** - the v0.4 feature. The *isolated*-liquid
+  binodal (delta_g_mix hull, no solids) at 1968 K is 0.588-0.982, matching Greig's conjugate
+  liquids 0.59/0.99 - that is what the fit anchored. In the FULL diagram cristobalite preempts
+  the silica-rich liquid, so the actual model monotectic (gap meeting the cristobalite
+  liquidus) sits at ~2365 K, conjugates ~0.64/0.96, dome closing at a consolute ~3115 K - too
+  hot (see Honest limitations). So the gap is at roughly the right COMPOSITION but the wrong
+  TEMPERATURE.
+- The only liquid instability is this silica gap; no spurious MgO-rich gap.
 - **forsterite Mg2SiO4 CONGRUENT melting = 2159-2163 K** (target 2163); the silica term even
   resolves the v0.2 hull near-coincidence, so forsterite now classifies cleanly congruent.
 - **enstatite MgSiO3 INCONGRUENT / peritectic (-> liquid + forsterite)** at ~1946 K (measured
@@ -225,14 +229,59 @@ not a FactSage parameter.
 
 ### Honest limitations
 
-- The **monotectic and consolute temperatures are not independently fit** - only the gap
-  conjugate compositions at 1968 K are anchored. The gap dome and the monotectic invariant
-  (gap meeting the cristobalite liquidus) follow from the model; their exact temperatures
-  are solid-model-limited (cristobalite endmember, Neumann-Kopp), as are the enstatite
-  peritectic (~1946 vs 1830 K) and the silica-side eutectic.
+- **The gap runs too HOT.** Only the *isolated-liquid* binodal compositions (0.59/0.99) were
+  anchored, at 1968 K. In the full diagram cristobalite preempts the silica-rich liquid, so
+  the actual model monotectic (gap meeting the cristobalite liquidus) is at ~2365 K with
+  conjugates ~0.64/0.96, and the two-liquid dome closes at a consolute ~3115 K - both far
+  above the measured monotectic (Greig, 1968 K). Adding an excess ENTROPY term (b*T) to the
+  silica excess lowers the consolute but NOT the monotectic: our left conjugate liquid is
+  MgO-rich (~0.64), so the long tie-line to pure cristobalite preempts the silica liquid up
+  to ~2300 K regardless. A quantitatively correct monotectic is a genuine model-form limit of
+  this minimal two-cation / single-anion binary, not a tuning miss.
 - The **periclase-forsterite eutectic** remains near-coincident with forsterite melting (the
-  refractory-MgO limit carried from v0.2), not 40 K below.
+  refractory-MgO limit carried from v0.2), and the **enstatite peritectic (~1946 K) and
+  enstatite-cristobalite eutectic (~1935 K) are squeezed into a ~10 K band** (measured 1830 /
+  1816 K, ~14 K apart) - so the silica-intermediate region shows no clean eutectic valley;
+  the two invariants overlap. Solid-model-limited (Neumann-Kopp Cp, no polymorphs).
 - q = 5 is an empirical network order; a physically-derived silica-network treatment (or a
   richer structural model) is a further refinement.
 - Built only from open data (Greig 1927 gap; the v0.2 sources); the silica term is our own
   fit, no FactSage/FToxid parameters.
+
+## Scope: condensed phases only (no gas phase)
+
+The database and every diagram computed from it are **condensed-only**: one liquid solution
+phase plus the crystalline solids, no gas species. This is the standard convention for a
+binary oxide phase diagram, but it is a real scope boundary, not a detail:
+
+- **At high T the system vaporises.** Above ~2000-2200 K silica volatilises (mainly
+  SiO2 -> SiO(g) + 1/2 O2, plus SiO2(g)), and MgO loses Mg(g) further up. A gas phase would
+  cap how hot the condensed field persists and change the bulk composition by mass loss - the
+  KEMS activity work these databases lean on literally measures that vapour. This is a second,
+  independent reason the modelled two-liquid dome (consolute ~3115 K) is unphysical: at those
+  temperatures the condensed phases would be substantially boiled off, so the dome could never
+  reach them. It reinforces (does not replace) the missing-entropy limitation above.
+- **Simplifications can mis-rank stability.** Like the omitted gas, the Neumann-Kopp solid Cp,
+  the unresolved polymorphs, and the refractory-MgO endmember each shift invariants and can
+  render a truly stable phase metastable in the model (and vice versa). The article should
+  present the model diagram beside the measured one so these documented gaps are visible, not
+  implied away.
+- **FactSage does track the gas.** FactSage draws oxide slag equilibria from FToxid (oxide
+  solutions) together with FactPS (pure substances, which supplies the gas species), and its
+  Equilib module minimises Gibbs energy over all selected phases - gas included - at fixed T
+  and P (1 atm). So a FactSage high-T oxide calculation carries SiO(g), Mg(g), O2, etc. as an
+  ideal-gas mixture phase. Matching that means adding a gas phase to Hephaestus, below.
+
+### Adding a gas phase (deferred, its own step)
+
+What it takes, scoped:
+1. **Data.** Open Gibbs functions for the gas species - SiO, SiO2, Mg, MgO, O, O2 (and O3) -
+   from NIST-JANAF (open), as stoichiometric G(T) on the same term basis as the endmembers.
+2. **Model.** One extra solution phase = an ideal-gas mixture (G = sum n_i[G_i(T) + RT ln(p_i)],
+   p_i = partial pressure), at fixed total P = 1 atm. No excess needed for an ideal gas.
+3. **Engine.** The reader already parses non-SUBQ/SUBG stoichiometric phases; the multiphase
+   hull/equilibrium must admit a gas phase whose amount is set by the 1 atm constraint (the
+   current single-phase solver and the binary hull are condensed-only). This is the real work.
+4. **Result.** Vaporisation (fuming) boundaries, a realistic high-T ceiling on the condensed
+   field, and vapour-pressure / activity output to compare against the KEMS data. It belongs
+   to the steel-slag gas+liquid+solid goal, kept separate from the liquid-slag database steps.

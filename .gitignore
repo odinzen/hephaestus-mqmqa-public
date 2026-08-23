@@ -25,3 +25,4 @@ web/*.png
 data/*/_*.dat
 data/*/_mlip/cif/
 data/*/_mlip/*.log
+data/*/*.png

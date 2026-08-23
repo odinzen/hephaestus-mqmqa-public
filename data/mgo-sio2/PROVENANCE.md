@@ -248,6 +248,102 @@ not a FactSage parameter.
 - Built only from open data (Greig 1927 gap; the v0.2 sources); the silica term is our own
   fit, no FactSage/FToxid parameters.
 
+## v0.5 excess (CALPHAD-style fit to the invariants AND the measured liquid enthalpy)
+
+v0.4 placed the gap composition and classified the melting types correctly, but its invariant
+TEMPERATURES were off (enstatite peritectic +116 K, enstatite-cristobalite eutectic +124 K,
+periclase-forsterite eutectic +43 K), because its liquid was anchored to a single point
+(forsterite melting) rather than fit to the whole invariant set. v0.5 fits the liquid excess
+SIMULTANEOUSLY to the four condensed invariants, following the published method (a CALPHAD
+assessment IS a parameter optimization to the whole dataset - the reason FactSage reproduces
+the measured diagram is fitting, not secret physics; the MQM method itself is published, our
+clean-room basis: Pelton, Degterov, Eriksson et al., Metall. Mater. Trans. B 31 (2000) 651 and
+Metall. Mater. Trans. A 32 (2001) 1355/1409; the specific MgO-SiO2 optimization is Wu, Eriksson
+& Pelton, J. Eur. Ceram. Soc. 2004, and Decterov & Pelton, J. Am. Ceram. Soc. 2002 - method
+only, none of their fitted parameters are used here).
+
+### Model and fitted values
+
+Same charge-proportional Z and same Pelton-structured excess as v0.2/v0.4 (a (0,0) constant, a
+(1,0) MgO-side term, and a (0,5) silica-side term on the (Mg,Si,O,O) quadruplet). Our engine's
+excess variable chi = X_ii / (X_ii + X_ij + X_jj) is built from the quasichemical QUADRUPLET
+fractions, so it IS Pelton's pair-fraction expansion (Part I Eq 17): the (1,0) term acts only on
+the MgO-rich side (where X_SiSi -> 0) and the (0,5) term only on the silica side (where
+X_MgMg -> 0), so the two halves are fit almost independently.
+
+| term | code | (p,q) | coefficients (a + b*T), J/mol |
+|---|---|---|---|
+| g00 | Q | (0,0) | -110881.5 - 3.78*T |
+| g10 | Q | (1,0) | +88436.1 |
+| g_si | Q | (0,5) | +138675.2 |
+
+Reproduce with `v05_reconcile.py` (fit + write); `--fit` re-runs the optimization.
+
+### Method: fit to the invariants AND the measured mixing enthalpy
+
+The key modelling point (the arbitration behind v0.5): fitting ONLY the invariants lets the
+optimizer deepen the symmetric g00 without limit, producing a liquid ~2x deeper than the
+independently-measured mixing enthalpy (dH_mix(x=1/3) ~ -47 to -54 vs the MLIP+calorimetry
+-24.5 kJ/mol-oxide) - it matches the diagram by distorting the liquid, which is not physical.
+v0.5 therefore adds dH_mix(x=1/3) = -24.5 and dH_mix(x=1/2) = -22.4 (the v0.2 MLIP anchors) as
+FIT TARGETS alongside the invariants. The model reproduces BOTH: this works because the
+quasichemical CONFIGURATIONAL (short-range-order) entropy carries the stabilization, so a
+SHALLOW enthalpy is enough to melt the compounds at the observed temperatures - exactly the
+mechanism Pelton reports (Part I: a strongly ordered binary fits the phase diagram + activities
++ dH_mix with a few temperature-independent terms, because the SRO entropy is structural, not a
+fitted polynomial). Charge-proportional Z already places maximum SRO at the orthosilicate:
+X_SiO2(max SRO) = Z_Mg/(Z_Mg+Z_Si) = 1/3 when Z_Si = 2*Z_Mg (Part I), which is our default.
+
+### Solid model: measured compound Cp tested and REJECTED (kept Neumann-Kopp)
+
+The brief hypothesised that Neumann-Kopp compounds (dCp_ox = 0) melt ~115 K too high and that
+using each compound's own measured Cp(T) would pull the invariants down. Tested directly with
+the real Robie-Hemingway 1995 coefficients (USGS Bull. 2131, public domain, pp.60-61; form
+Cp = A1 + A2*T + A3*T^-2 + A4*T^-0.5 + A5*T^2; reproduces the R&H Cp(298) exactly - forsterite
+118.60, enstatite 83.10) and it is BACKWARDS: dCp_ox is POSITIVE for these silicates (~+3 to
++7 J/mol/K), so measured Cp makes the compounds melt HIGHER (forsterite +141 K), not lower, and
+degrades the achievable fit (max invariant residual 41 K with measured Cp vs 21 K with
+Neumann-Kopp) while forcing an even deeper liquid. Neumann-Kopp's small errors partly cancel
+against the liquid fit. So v0.5 keeps Neumann-Kopp; the measured-Cp path is implemented
+(`phase_diagram.USE_COMPOUND_CP`, default off, and `v05_probe.py`) and documented as tested and
+rejected, not a defect. (Enstatite R&H Cp is fit only to 1000 K; above it dCp_ox = 0 resumes -
+the standard assessment convention once calorimetry runs out.)
+
+### Results (reproduce with v05_reconcile.py; invariants by phase_hull / v05_fit)
+
+| invariant | measured (K) | v0.4 | v0.5 |
+|---|---|---|---|
+| forsterite congruent | 2163 | 2163 | 2130 (-33) |
+| periclase-forsterite eutectic | 2123 | 2166 (+43) | 2152 (+29) |
+| enstatite peritectic | 1830 | 1946 (+116) | 1830 (0) |
+| enstatite-cristobalite eutectic | 1816 | 1940 (+124) | 1820 (+4) |
+| silica gap @1968 K (mole frac) | 0.59/0.99 | 0.591/0.981 | 0.591/0.990 |
+| dH_mix(x=1/3) kJ/mol-oxide | -24.5 (MLIP) | -24.5 | -25.2 |
+| dH_mix(x=1/2) kJ/mol-oxide | -22.4 (MLIP) | -18.7 | -21.4 |
+
+The silica-intermediate invariants that were +116/+124 K off are now within ~5 K, WITH a liquid
+that reproduces the measured mixing enthalpy. Worst-case invariant error drops from 124 K to
+33 K.
+
+### Honest limitations
+
+- **The two-liquid monotectic still runs too hot.** The gap COMPOSITION matches Greig (left
+  conjugate 0.59, right ~0.99), but the isolated-liquid dome does not close until a consolute
+  ~3000+ K, and in the full diagram cristobalite preempts the silica-rich liquid at ~2600 K vs
+  the measured 1968 K monotectic. This is unchanged by the shallower v0.5 liquid, and directly
+  verified NOT fixable with the fixed-Z coordination lever (raising the mixed-quadruplet Z does
+  not lower the consolute). Per the published method the silica-rich CLUSTERING region needs a
+  higher coordination (Z ~ 6) than the ordering region (Z ~ 2) - i.e. COMPOSITION-DEPENDENT
+  coordination numbers (Pelton Part I Eqs 19-20), which our fixed-Z SUBQ engine cannot yet
+  express. This is the identified next model-form step (an engine feature), not a tuning miss.
+- **The MgO-rich side is ~30 K off and slightly inverted** (periclase-forsterite eutectic 2152
+  computed above forsterite congruent 2130), the refractory-MgO-endmember limit carried from
+  v0.2 (MgO Tm 3098 K is too high for the shallow ~40 K eutectic valley to resolve cleanly).
+- Built only from open data and our own fit to it (invariants from Bowen-Andersen 1914 and Greig
+  1927; dH_mix from the open MatterSim MLIP + Charlu-Newton-Kleppa calorimetry; compound Cp from
+  Robie-Hemingway 1995). The MQM method is from the published Pelton papers; NO FactSage/FToxid
+  or other optimized-TDB parameters are used.
+
 ## Scope: condensed phases only (no gas phase)
 
 The database and every diagram computed from it are **condensed-only**: one liquid solution

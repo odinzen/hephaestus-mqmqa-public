@@ -108,7 +108,8 @@ def _mqmx_block(excess):
     return out
 
 
-def build(excess=None, version=None, z_si=None, z_o_si=None, zeta_si=None):
+def build(excess=None, version=None, z_si=None, z_o_si=None, zeta_si=None,
+          z_mixed=None):
     """SiO2 pure-quadruplet coordination overrides (the v0.4 lever). Defaults (None)
     give the charge-proportional base (Z_Si=2.7549, Z_O=1.3774, zeta=1.3774) used in
     v0.1-v0.2. Setting z_si / z_o_si / zeta_si independently makes SiO2 non-charge-
@@ -120,6 +121,9 @@ def build(excess=None, version=None, z_si=None, z_o_si=None, zeta_si=None):
     ver = version or ("v0.2" if excess else "v0.1")
     ap(f" System MgO-SiO2  open oxide-slag database {ver}"
        "  (provenance: data/mgo-sio2/PROVENANCE.md)")
+    # number of MQMZ coordination rows: 2 pure quads, +1 if the mixed (Mg,Si)/O
+    # quadruplet coordination is given explicitly (the Pelton short-range-order lever).
+    n_mqmz = 3 if z_mixed is not None else 2
     # header: n_el, n_soln, [soln species-count per phase], n_stoich
     ap(f"    {len(ELEMENTS)}    1    2    0")
     ap(" " + "                       ".join(e[0] for e in ELEMENTS))
@@ -131,7 +135,7 @@ def build(excess=None, version=None, z_si=None, z_o_si=None, zeta_si=None):
     # --- the single solution phase ---
     ap(" MgO-SiO2-liquid")
     ap(" SUBQ")
-    ap("   2   2")  # n_pairs, n_quads
+    ap(f"   2   {n_mqmz}")  # n_pairs, n_quads (MQMZ rows)
 
     order = ["MgO", "SiO2"]
     for name in order:
@@ -172,6 +176,12 @@ def build(excess=None, version=None, z_si=None, z_o_si=None, zeta_si=None):
     zosi = 2 * Z_PER_CHARGE if z_o_si is None else z_o_si
     ap(f"   1   1   3   3   {z_mg:.7f}   {z_mg:.7f}   {z_o:.7f}   {z_o:.7f}")
     ap(f"   2   2   3   3   {zsi:.7f}   {zsi:.7f}   {zosi:.7f}   {zosi:.7f}")
+    # explicit mixed-cation quadruplet (Mg,Si / O,O): z_mixed = (zMg, zSi, zO_A, zO_B).
+    # This overrides the value the engine would otherwise derive from the pure pairs,
+    # and is the Pelton lever that sets the composition of maximum short-range ordering.
+    if z_mixed is not None:
+        zmg_x, zsi_x, zoa_x, zob_x = z_mixed
+        ap(f"   1   2   3   3   {zmg_x:.7f}   {zsi_x:.7f}   {zoa_x:.7f}   {zob_x:.7f}")
 
     # --- excess (MQMX): none in v0.1 (ideal), fitted Q terms in v0.2. ---
     if excess:

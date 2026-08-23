@@ -109,7 +109,7 @@ def _mqmx_block(excess):
 
 
 def build(excess=None, version=None, z_si=None, z_o_si=None, zeta_si=None,
-          z_mixed=None):
+          z_mixed=None, dcp_fus_sio2=None):
     """SiO2 pure-quadruplet coordination overrides (the v0.4 lever). Defaults (None)
     give the charge-proportional base (Z_Si=2.7549, Z_O=1.3774, zeta=1.3774) used in
     v0.1-v0.2. Setting z_si / z_o_si / zeta_si independently makes SiO2 non-charge-
@@ -143,6 +143,17 @@ def build(excess=None, version=None, z_si=None, z_o_si=None, zeta_si=None,
         se = ox["stoich_el"]
         stoich_el = [se.get(el, 0.0) for el, _ in ELEMENTS]
         coeffs = liquid_gibbs_coeffs(ox)
+        # optional heat-capacity of fusion for SiO2 (v0.1-v0.9 used dCp_fus = 0). Liquid
+        # silica has a higher Cp than cristobalite (~86 vs ~74 J/mol/K), so a positive
+        # dCp_fus makes the silica-rich liquid more stable above Tm - lowering where
+        # cristobalite preempts the silica-rich immiscible liquid. Constant dCp_fus adds
+        # dCp*[(T-Tm) - T*ln(T/Tm)] to G_liq: A += -dCp*Tm, B += dCp*(1+ln Tm), C += -dCp.
+        if name == "SiO2" and dcp_fus_sio2:
+            Tm = ox["Tm"]
+            coeffs = list(coeffs)
+            coeffs[0] += -dcp_fus_sio2 * Tm
+            coeffs[1] += dcp_fus_sio2 * (1.0 + math.log(Tm))
+            coeffs[2] += -dcp_fus_sio2
         ap(f" {name}")
         # eq_type=1 (plain Gibbs, no additional terms), n_intervals=1, then n_el stoich
         ap("   1   1   " + "   ".join(f"{s:.1f}" for s in stoich_el))

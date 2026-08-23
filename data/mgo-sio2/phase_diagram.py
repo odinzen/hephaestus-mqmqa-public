@@ -145,10 +145,16 @@ SOLIDS = {
 }
 
 
+# Assessment overrides: compound dHf_ox (vs quartz) can be relaxed within the measured
+# Charlu-Newton-Kleppa uncertainty (~+-2 kJ). {name: dHf_ox_quartz_J} set by assess.py.
+DHF_OX_OVERRIDE = {}
+
+
 def solid_gibbs_per_formula_unit(name, T):
     """Solid Gibbs per mole of OXIDE FORMULA UNIT (so it plots on the same x-G axes
     as the liquid), and its x_SiO2."""
     n_mgo, n_sio2, dHf_ox_qz, S298, _ = SOLIDS[name]
+    dHf_ox_qz = DHF_OX_OVERRIDE.get(name, dHf_ox_qz)
     nunits = n_mgo + n_sio2
     x = n_sio2 / nunits
     dHf_ox = dHf_ox_qz + DHF_QZ_TO_CRIST * n_sio2  # to cristobalite reference

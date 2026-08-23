@@ -372,6 +372,37 @@ that reproduces the measured mixing enthalpy. Worst-case invariant error drops f
   Robie-Hemingway 1995). The MQM method is from the published Pelton papers; NO FactSage/FToxid
   or other optimized-TDB parameters are used.
 
+## Assessed liquid (shipped) and the immiscibility model-form limit
+
+The shipped `MgO-SiO2-liquid.dat` is now the CALPHAD-ASSESSED liquid: fit by weighted
+least-squares to the WHOLE experimental dataset at once (assessment/assess.py +
+assessment/dataset.py) - the four invariants, the two-liquid immiscibility binodal from
+FIVE studies (Greig 1927; Ol'shanskii 1951; Hageman & Oonk 1986; Warshaw; Toropov & Bondar),
+the experimental consolute (2240 K, Hageman & Oonk rapid-quench; Belmonte 2017), and the
+MLIP/calorimetry mixing enthalpy - not point-fit to a few landmarks. Liquid excess in the
+verified equivalent-fraction basis (Q-code (0,q) term = L*Y_SiO2^q, q = 0,1,3,5,7, each with
+an enthalpy and a temperature/entropy coefficient, mirroring the Wu/Eriksson/Pelton form).
+Result: all four invariants within ~40 K, calorimetry matched, the isolated immiscibility
+dome pulled from v0.5's ~3175 K to ~2410 K (measured consolute 2240), RMS residual ~1.8 sigma.
+
+**Definitive immiscibility limit (established by the assessment, not just point-fitting).**
+The STABLE two-liquid field (with cristobalite in the hull) still comes out ~2310-2390 K, not
+the measured 1968-2240 K: cristobalite preempts the silica-rich liquid ~340 K too high. This
+was run to ground by co-assessing the SOLIDS with the liquid - relaxing the SiO2 dCp_fus (to its
+physical bound) and the compound formation enthalpies (within the Charlu-Newton-Kleppa
+uncertainty), with the cristobalite liquidus at high silica as an explicit target. It barely
+moved (cristobalite liquidus 2418 -> 2318 K). Root cause: the deep, ordered MgO-rich liquid that
+the invariants and calorimetry REQUIRE makes the cristobalite tie-line preempt, and cristobalite
+is pinned by the SiO2 melting point (1996 K) + the enstatite-cristobalite eutectic, so it cannot
+be destabilised to stop it. This binary's phases are line compounds (no solid solutions), so
+richer solid-solution modelling does not apply here; the wall is the single-common-anion liquid's
+intrinsic wide-gap-vs-low-dome tension. The published FActoxid assessment reproduces the stable
+field only with its full expert-optimised parameter set (the moat). So the immiscibility
+COMPOSITION is captured and the dome height is now close, but the immiscibility TEMPERATURE is a
+documented model-form limit. Immiscibility data DOIs: Hudon-Jung-Baker 2004 (10.1029/2003JB002659),
+2005 (10.1093/petrology/egi037); Hudon-Baker 2002 (10.1016/S0022-3093(02)01043-8); Belmonte 2017
+(10.1016/j.chemgeo.2016.11.011); Greig 1927 / Hageman-Oonk 1986 (no DOI).
+
 ## Scope: condensed phases only (no gas phase)
 
 The database and every diagram computed from it are **condensed-only**: one liquid solution

@@ -33,8 +33,15 @@ pdg.USE_COMPOUND_CP = False
 COMP = pdg.COMPONENTS
 
 # excess term powers q (each carries a + b*T). Index maps to the parameter vector as
-# [a_q0, b_q0, a_q1, b_q1, ...].
+# [a_q0, b_q0, a_q1, b_q1, ...]. Then 3 SOLID parameters (co-assessed, bounded):
+#   [-3] SiO2 dCp_fus (J/mol/K, 0..20; liquid silica Cp above cristobalite)
+#   [-2] forsterite dHf_ox vs quartz (J/mol; Charlu-Newton-Kleppa -60250 +- 2000)
+#   [-1] enstatite  dHf_ox vs quartz (J/mol; -36860 +- 2000)
 QPOW = [0, 1, 3, 5, 7]
+NLIQ = 2 * len(QPOW)
+# bounds: liquid params free; solid params within measured uncertainty
+LOWER = [-np.inf] * NLIQ + [0.0, -62250.0, -38860.0]
+UPPER = [np.inf] * NLIQ + [20.0, -58250.0, -34860.0]
 
 
 def build_db(pp):
@@ -43,11 +50,36 @@ def build_db(pp):
         a, b = pp[2 * i], pp[2 * i + 1]
         excess.append(dict(code="Q", li=[1, 2, 3, 3], exp=[0, q, 0, 0],
                            coeffs=[a, b, 0, 0, 0, 0]))
+    dcp_fus, dHf_forst, dHf_enst = pp[-3], pp[-2], pp[-1]
+    pdg.DHF_OX_OVERRIDE = {"M2S(forsterite)": dHf_forst, "MS(enstatite)": dHf_enst}
     import os
     path = HERE / f"_assess_{os.getpid()}.dat"
-    path.write_text(bd.build(excess, version="assess"), encoding="ascii")
+    path.write_text(bd.build(excess, version="assess", dcp_fus_sio2=dcp_fus), encoding="ascii")
     db = mqmqa.Database.read(str(path))
     return db, db.phase_index("MGO-SIO2-LIQUID"), excess
+
+
+def cristobalite_liquidus_T(db, p, xL, lo=1750.0, hi=2600.0):
+    """T at which cristobalite (x=1) sits on the common tangent to the liquid at xL -
+    i.e. the cristobalite liquidus at composition xL. Targeting this at high silica
+    (~0.98 -> ~1970 K) directly fights the too-high cristobalite preemption."""
+    h = 3e-4
+    def f(T):
+        inp = eq.build_inputs(db, p, float(T), components=COMP)
+        gL = pdg.liquid_gibbs_per_formula_unit(inp, xL, float(T))
+        gLp = pdg.liquid_gibbs_per_formula_unit(inp, xL + h, float(T))
+        gLm = pdg.liquid_gibbs_per_formula_unit(inp, xL - h, float(T))
+        slope = (gLp - gLm) / (2 * h)
+        tangent_at_1 = gL + (1.0 - xL) * slope           # extrapolate tangent to x=1
+        gC = pdg.solid_gibbs_per_formula_unit("SiO2(cristobalite)", float(T))[0]
+        return gC - tangent_at_1                           # <0: cristobalite below -> stable
+    flo, fhi = f(lo), f(hi)
+    if flo * fhi > 0:
+        return None
+    for _ in range(45):
+        m = 0.5 * (lo + hi)
+        lo, hi = (m, hi) if f(lo) * f(m) > 0 else (lo, m)
+    return 0.5 * (lo + hi)
 
 
 def dh_mix(db, p, x, T=2100.0, dT=40.0):
@@ -104,6 +136,14 @@ def residuals(pp, detail=False):
         add("consolute_x", ((xc - d["x_c"]) / d["sigx"]) if (Tc and xc) else 0.0,
             f"{xc:.2f}/{d['x_c']:.2f}" if xc else "-")
 
+    # cristobalite liquidus at high silica = the preemption constraint. At the monotectic
+    # cristobalite coexists with the silica-rich liquid (~0.985) at ~1968 K; our models put
+    # this ~340 K too high (dome preempts). Target it directly.
+    for xL, Ttgt, sig in [(0.985, 1975.0, 40.0), (0.90, 1955.0, 60.0)]:
+        Tc = cristobalite_liquidus_T(db, p, xL)
+        add(f"crist_liq@x{xL:.2f}", ((Tc - Ttgt) / sig) if Tc else vf.PENALTY,
+            f"{Tc:.0f}/{Ttgt:.0f}" if Tc else "none")
+
     # mixing enthalpy
     for d in ds.DH_MIX:
         add(f"dHmix@x{d['x']:.2f}", (dh_mix(db, p, d["x"]) - d["value"]) / d["sig"],
@@ -123,7 +163,9 @@ def fit(p0):
     xs = []
     for _ in QPOW:
         xs += [3e5, 1e2]
-    sol = least_squares(fun, p0, diff_step=0.03, max_nfev=300, x_scale=xs)
+    xs += [10.0, 2000.0, 2000.0]              # solid-param scales
+    sol = least_squares(fun, p0, diff_step=0.03, max_nfev=400, x_scale=xs,
+                        bounds=(LOWER, UPPER))
     return sol.x
 
 
@@ -142,9 +184,10 @@ def report(pp, write=False):
 
 
 if __name__ == "__main__":
-    # start from the v0.5 liquid rewritten across the Y-power basis: v0.5 = (0,0):-22445-3.78T
-    # + (0,1):-88436 + (0,5):+138675, others zero.
-    p0 = [-22445.0, -3.78, -88436.0, 0.0, 0.0, 0.0, 138675.0, -10.0, 0.0, 0.0]
+    # start from the first-pass liquid result + solids at their measured values
+    # (dCp_fus=0, forsterite -60250, enstatite -36860).
+    p0 = [-44468.8, -1.6, -50864.2, -0.3, 1448.2, -0.7, 116056.4, -10.8, -1177.5, -0.3,
+          0.0, -60250.0, -36860.0]
     pp = fit(p0) if "--fit" in sys.argv else p0
     report(pp, write=("--write" in sys.argv))
     print("\n  params:", [round(float(x), 1) for x in pp])

@@ -330,26 +330,31 @@ that reproduces the measured mixing enthalpy. Worst-case invariant error drops f
 - **The two-liquid monotectic still runs too hot.** The gap COMPOSITION matches Greig (left
   conjugate 0.59, right ~0.99), but the isolated-liquid dome does not close until a consolute
   ~3000+ K, so cristobalite preempts the silica-rich liquid at ~2600 K vs the measured 1968 K
-  monotectic. What actually sets the monotectic was pinned down by direct experiment (see the
-  monotectic study below): it is the excess MAGNITUDE, not the coordination. Two candidate
-  fixes were tested:
-    1. *Coordination (composition-dependent Z)* - REFUTED. Neither fixed per-quadruplet Z nor
-       a decoupled pure-vs-mixed quad Z (pure Si2O2 Z ~ 6 for the silica-clustering region,
-       mixed MgSiO2 Z pinned at the ordering ratio) lowers the consolute at all - it only
-       shifts the gap edge. So the "silica clustering needs Z ~ 6" reading of Pelton, applied
-       as a coordination number, does NOT lower the dome here; an engine change to make Z
-       composition-dependent would not have helped. (This corrects an earlier hypothesis.)
-    2. *A temperature-dependent silica excess* L_si = a_si + b_si*T (b_si < 0), which weakens
-       the silica-rich immiscibility as T rises - DOES lower the dome (monotectic ~2600 -> ~2180
-       K, v0.6, `v06_fit.py`). But it plateaus ~200 K above the measured 1968 K, and pushing it
-       degrades the physically-anchored quantities: the measured dH_mix match worsens
-       (dH_mix(x=1/2) -22.4 -> -14.1) and the periclase-forsterite eutectic drifts to +55 K.
-       Trading the measured enthalpy for the diagram is the same move rejected for the v0.5
-       liquid, so v0.6 is NOT shipped; v0.5 (invariants + calorimetry matched) is retained.
-  The genuine remaining limit is the single-oxygen-anion model form: one liquid cannot match the
-  invariants, the measured mixing enthalpy, AND the monotectic at once. The real fix is anion
-  speciation (a second anion / associate species, e.g. a silicate-network anion), the FToxid-style
-  richer liquid - a substantial engine extension, kept as the next model-form step.
+  monotectic (proper convex-hull tie-line: the v0.5 two-liquid -> cristobalite transition is at
+  ~2450 K). The mechanism was pinned down against the primary source (Wu, Eriksson, Pelton &
+  Blander, ISIJ Int. 33 (1993) 26; Pelton et al., MMT B 31 (2000) 651): FactSage's MgO-SiO2
+  liquid is ALSO single-anion (cations Mg,Si + one O), so NO anion speciation / associate species
+  is needed - the same architecture as ours. The published device for a low dome is to split each
+  silica-side excess term into an enthalpy part (omega) and an INDEPENDENT temperature/entropy
+  part (eta, the b*T coefficient), with a large positive eta on the silica side that pulls the
+  dome temperature down without changing the enthalpy (which depends only on omega). Our too-hot
+  dome is the classic symptom of an omega-only (T-independent) positive silica term. Tested here:
+    1. *Coordination (composition-dependent Z)* - REFUTED. Neither fixed per-quadruplet Z nor a
+       decoupled pure-vs-mixed quad Z lowers the consolute; it only shifts the gap edge. An
+       engine change to make Z composition-dependent would not have helped.
+    2. *omega/eta split (T-dependent silica excess)* - the correct lever, and it DOES lower the
+       dome (~2450 -> ~2300 K; `v06_fit.py`, `v06_rich.py`). But in our excess variable (the
+       quadruplet-pair fraction chi) it plateaus ~300 K above 1968 K, and pushing it degrades the
+       physical anchors (dH_mix(x=1/2) -22 -> ~-15, gap left conjugate drifts 0.59 -> 0.66).
+       Trading measured enthalpy for the diagram is the move rejected for the v0.5 liquid, so
+       v0.6 is NOT shipped; v0.5 (invariants + calorimetry matched) is retained.
+  The remaining gap to the published result is the excess VARIABLE: the 1993 MgO-SiO2 optimization
+  expands omega and eta in the EQUIVALENT FRACTION Y_SiO2 (Si weighted 2x, so max ordering sits at
+  the orthosilicate), with the positive term on a high power of Y_SiO2 localized at the silica
+  corner; our engine expands in chi (the quadruplet-pair fraction), which does not localize the
+  silica term as cleanly. The identified next step is therefore a SMALL parametrization refinement
+  - add the Y_SiO2 equivalent-fraction expansion as an excess-variable option - NOT the
+  anion-speciation engine build, which the primary source shows is unnecessary.
 - **The MgO-rich side is ~30 K off and slightly inverted** (periclase-forsterite eutectic 2152
   computed above forsterite congruent 2130), the refractory-MgO-endmember limit carried from
   v0.2 (MgO Tm 3098 K is too high for the shallow ~40 K eutectic valley to resolve cleanly).

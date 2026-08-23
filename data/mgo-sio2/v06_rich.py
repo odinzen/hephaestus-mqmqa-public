@@ -36,10 +36,12 @@ T_DOME = 2100.0
 
 def build_db(pp):
     a00, b00, a10, a2, b2, a5, b5 = pp
+    # published method (Wu/Eriksson/Pelton/Blander 1993): omega (enthalpy) + eta (entropy)
+    # on the silica side, a broad (0,3) + a sharp (0,7) power to localise at the corner.
     excess = [dict(code="Q", li=[1, 2, 3, 3], exp=[0, 0, 0, 0], coeffs=[a00, b00, 0, 0, 0, 0]),
               dict(code="Q", li=[1, 2, 3, 3], exp=[1, 0, 0, 0], coeffs=[a10, 0, 0, 0, 0, 0]),
-              dict(code="Q", li=[1, 2, 3, 3], exp=[0, 2, 0, 0], coeffs=[a2, b2, 0, 0, 0, 0]),
-              dict(code="Q", li=[1, 2, 3, 3], exp=[0, 5, 0, 0], coeffs=[a5, b5, 0, 0, 0, 0])]
+              dict(code="Q", li=[1, 2, 3, 3], exp=[0, 3, 0, 0], coeffs=[a2, b2, 0, 0, 0, 0]),
+              dict(code="Q", li=[1, 2, 3, 3], exp=[0, 7, 0, 0], coeffs=[a5, b5, 0, 0, 0, 0])]
     import os
     path = HERE / f"_v06r_{os.getpid()}.dat"
     path.write_text(bd.build(excess, version="v0.6r"), encoding="ascii")
@@ -65,8 +67,8 @@ def residuals(pp):
         out.append((gp[1] - 0.99) / 0.04)
     else:
         out += [vf.PENALTY, vf.PENALTY]
-    out.append((dh_mix(db, p, 1 / 3.) - DH13) / 8.0)
-    out.append((dh_mix(db, p, 0.5) - DH12) / 8.0)
+    out.append((dh_mix(db, p, 1 / 3.) - DH13) / 5.0)     # strong: calorimetry is the anchor
+    out.append((dh_mix(db, p, 0.5) - DH12) / 6.0)
     gd = vf.gap(db, p, T_DOME)                           # dome should be closed by 2100 K
     out.append((gd[1] - gd[0]) / 0.08 if gd else 0.0)
     return np.asarray(out, float)
@@ -127,7 +129,7 @@ def report(pp):
 
 
 if __name__ == "__main__":
-    p0 = [-110881.0, -3.78, 88436.0, 40000.0, -20.0, 400000.0, -150.0]
+    p0 = [-110881.0, -3.78, 88436.0, 60000.0, -25.0, 800000.0, -300.0]
     pp = fit(p0) if "--fit" in sys.argv else p0
     report(pp)
     print("\n  params:", [round(float(x), 1) for x in pp])

@@ -25,6 +25,9 @@ system's `PROVENANCE.md`.
   - `PROVENANCE.md` - the per-number source for everything in the `.dat`.
 - `mgo-sio2/` - MgO-SiO2 liquid slag, MQMQA (ChemSage SUBQ). Assessed liquid; see its
   `PROVENANCE.md`.
+- `feo-sio2/` - FeO-SiO2 liquid slag, MQMQA (ChemSage SUBQ), v0.1 (ideal endmembers).
+  Iron-saturated (Fe2+ only); FeO endmember from NIST-JANAF. The Fe-side binary for the
+  FeO-MgO-SiO2 ternary slag. Excess fit is the next increment. See `feo-sio2/PROVENANCE.md`.
 - `olivine/` - olivine (Mg,Fe)2SiO4 solid solution, the first **compound-energy-formalism
   (CEF)** system. A CEF model on the shared `cef/cef.py` kernel and a ChemSage SUBL `.dat`
   the C reader parses, validated against pycalphad to machine precision and against open

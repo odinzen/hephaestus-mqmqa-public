@@ -872,7 +872,11 @@ void mqmqa_ph_mqmx_L(const mqmqa_db *db, int p, double T, double *L)
 /* ------------------------------------------------------------------ *
  * CEF (SUBL) phase accessors
  * ------------------------------------------------------------------ */
-int mqmqa_db_phase_kind(const mqmqa_db *db, int p) { return ((const Db *)db)->phases[p].kind; }
+int mqmqa_db_phase_kind(const mqmqa_db *db, int p)
+{
+    const Db *d = (const Db *)db;
+    return (p < 0 || p >= d->n_phases) ? -1 : d->phases[p].kind;
+}
 
 int mqmqa_ph_cef_num_subl(const mqmqa_db *db, int p)
 {
@@ -912,6 +916,7 @@ double mqmqa_ph_cef_gibbs(const mqmqa_db *db, int p, const double *Y, double T,
                           int per_mole_atoms)
 {
     const Db *d = (const Db *)db;
+    if (p < 0 || p >= d->n_phases) return NAN;
     const Phase *ph = &d->phases[p];
     if (!ph->cef) return NAN;
     const SublPhase *cf = ph->cef;

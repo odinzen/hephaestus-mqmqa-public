@@ -37,10 +37,18 @@ DAT = HERE / "Olivine-Opx-CEF.dat"
 
 
 def _load():
-    import build_dat
+    # load THIS directory's build_dat by explicit path: several data folders have a
+    # module named build_dat, so a bare import can pick up the wrong one when they
+    # share a process (e.g. the test suite).
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("olivine_opx_build_dat", HERE / "build_dat.py")
+    build_dat = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(build_dat)
     DAT.write_text(build_dat.build(), encoding="ascii")
     cdb = mqmqa.Database.read(str(DAT))
-    return cdb, cdb.phase_index("OLIVINE"), cdb.phase_index("ORTHOPYROXENE")
+    p_ol, p_opx = cdb.phase_index("OLIVINE"), cdb.phase_index("ORTHOPYROXENE")
+    assert p_ol >= 0 and p_opx >= 0, "combined .dat missing OLIVINE/ORTHOPYROXENE phase"
+    return cdb, p_ol, p_opx
 
 
 def dG_dXfe(cdb, p, x_fe, T, h=1e-5):

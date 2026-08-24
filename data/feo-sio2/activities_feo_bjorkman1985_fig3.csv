@@ -1,0 +1,35 @@
+# Iron-saturated a(FeO) in the FeO-SiO2 liquid, digitized from MEASURED SYMBOLS
+# (not model curves) in Bjorkman 1985, Calphad 9:271, Fig. 3.
+#   DOI 10.1016/0364-5916(85)90012-4. Standard state: stoichiometric FeO(liquid).
+#   a(FeO) plotted vs bulk mole fraction X(FeO) of the FetO-SiO2 melt in equilibrium
+#   with metallic iron. Fig. 3 replots three primary measurements (legend symbols):
+#     triangle  Bodsworth 1959 (JISI 193:13),          1578 K   H2/H2O method
+#     circle    Schuhmann & Ensio 1951 (JOM 3:401),    1590 K   CO/CO2 method
+#     square    Distin, Whiteway & Masson 1971,        2153 K
+# Digitized by pixel-calibrated read of the figure axes (X tick 0.4..0.9, a tick 0.2..1.0);
+# point scatter/overlap gives an estimated read uncertainty ~0.01-0.02 in each coordinate.
+# x_SiO2 = 1 - X_FeO. IP: measured points only; the model/ideal curves were NOT digitized.
+X_FeO,a_FeO,source,T_K,symbol
+0.550,0.375,schuhmann_ensio1951,1590,circle
+0.565,0.395,schuhmann_ensio1951,1590,circle
+0.585,0.405,bodsworth1959,1578,triangle
+0.600,0.415,bodsworth1959,1578,triangle
+0.620,0.445,schuhmann_ensio1951,1590,circle
+0.635,0.495,schuhmann_ensio1951,1590,circle
+0.650,0.505,bodsworth1959,1578,triangle
+0.670,0.578,schuhmann_ensio1951,1590,circle
+0.686,0.581,bodsworth1959,1578,triangle
+0.710,0.642,bodsworth1959,1578,triangle
+0.726,0.673,schuhmann_ensio1951,1590,circle
+0.754,0.740,bodsworth1959,1578,triangle
+0.770,0.777,schuhmann_ensio1951,1590,circle
+0.800,0.847,schuhmann_ensio1951,1590,circle
+0.820,0.868,schuhmann_ensio1951,1590,circle
+0.835,0.883,schuhmann_ensio1951,1590,circle
+0.500,0.460,distin1971,2153,square
+0.580,0.530,distin1971,2153,square
+0.648,0.616,distin1971,2153,square
+0.680,0.660,distin1971,2153,square
+0.760,0.775,distin1971,2153,square
+0.870,0.900,distin1971,2153,square
+0.930,0.945,distin1971,2153,square

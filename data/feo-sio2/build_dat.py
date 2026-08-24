@@ -72,7 +72,30 @@ def _mqmx_block(excess):
     return out
 
 
-def build(excess=None, version=None):
+FEO_TM = 1650.0  # FeO melting point (K); the liquid correction applies only below it
+
+
+def _feo_liquid_intervals(ox, feo_liq_beta):
+    """Gibbs intervals for the FeO liquid endmember.
+
+    With no correction, a single interval (298-6000 K) = the JANAF-fusion liquid.
+    With feo_liq_beta != 0, a phase-diagram calibration of the *supercooled* FeO
+    liquid below its own melting point (Bjorkman 1985's method: dfG(FeO,l) below
+    ~1644 K is fixed by the iron-silicate liquidus, not by fusion extrapolation).
+    The correction dG = alpha + beta*T is added below FEO_TM and forced continuous
+    there (alpha = -FEO_TM*beta), leaving FeO(l) at and above 1650 K untouched.
+    Returns a list of (t_max, coeffs)."""
+    base = liquid_gibbs_coeffs(ox)
+    if not feo_liq_beta:
+        return [(6000.0, base)]
+    alpha = -FEO_TM * feo_liq_beta
+    corr = list(base)
+    corr[0] += alpha
+    corr[1] += feo_liq_beta
+    return [(FEO_TM, corr), (6000.0, base)]
+
+
+def build(excess=None, version=None, feo_liq_beta=0.0):
     L = []
     ap = L.append
     ver = version or ("v0.2" if excess else "v0.1")
@@ -90,9 +113,12 @@ def build(excess=None, version=None):
         ox = OXIDES[name]
         se = ox["stoich_el"]
         stoich_el = [se.get(el, 0.0) for el, _ in ELEMENTS]
+        intervals = (_feo_liquid_intervals(ox, feo_liq_beta) if name == "FeO"
+                     else [(6000.0, liquid_gibbs_coeffs(ox))])
         ap(f" {name}")
-        ap("   1   1   " + "   ".join(f"{s:.1f}" for s in stoich_el))
-        ap("  6000.0000   " + "   ".join(_fmt(v) for v in liquid_gibbs_coeffs(ox)))
+        ap(f"   1   {len(intervals)}   " + "   ".join(f"{s:.1f}" for s in stoich_el))
+        for t_max, coeffs in intervals:
+            ap(f"  {t_max:.4f}   " + "   ".join(_fmt(v) for v in coeffs))
         ap("  " + "   ".join(f"{v:.5f}" for v in [ox["quad"][0], ox["quad"][1], 0.0, 0.0, 0.0]))
         ap("  1.3774438")                                # anion-coordination base (divalent O)
 

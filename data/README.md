@@ -23,6 +23,12 @@ system's `PROVENANCE.md`.
   - `build_dat.py` - the build script (computes every coefficient from open data).
   - `validate.py` - loads the `.dat` in the engine and checks it against published data.
   - `PROVENANCE.md` - the per-number source for everything in the `.dat`.
+- `mgo-sio2/` - MgO-SiO2 liquid slag, MQMQA (ChemSage SUBQ). Assessed liquid; see its
+  `PROVENANCE.md`.
+- `olivine/` - olivine (Mg,Fe)2SiO4 solid solution, the first **compound-energy-formalism
+  (CEF)** system. Not a ChemSage `.dat` (the engine does not yet read SUBL blocks); a
+  Python CEF model on the shared `cef/cef.py` kernel, validated against pycalphad to
+  machine precision and against open olivine calorimetry. See `olivine/PROVENANCE.md`.
 - `INVENTORY.md` - the digitized open data available for this system and its sources.
 
 ### What v0.1 is

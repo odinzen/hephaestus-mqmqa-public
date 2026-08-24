@@ -14,7 +14,10 @@ A Python prototype first (get the physics right), then ported to C alongside the
 energy and wired into the ChemSage-.dat reader (SUBL blocks).
 
 Parameter Gibbs coefficients use the SGTE/TDB term basis a + b*T + c*T*lnT + d*T^2 +
-e*T^3 + f*T^-1 (extend as databases require).
+e*T^3 + f*T^-1 + g*T^0.5 (extend as databases require). The T^0.5 term appears when a
+mineral heat capacity carries a T^-0.5 term (the Robie-Hemingway / Berman-Brown silicate
+Cp form), as forsterite does. An endmember value may also be given as a callable G(T)
+for a Gibbs function that does not fit the fixed term basis.
 """
 import math
 
@@ -22,10 +25,13 @@ R = 8.3145  # CALPHAD gas constant (matches pycalphad v.R and the MQMQA engine)
 
 
 def eval_gibbs(coeffs, T):
-    """Gibbs polynomial a + b*T + c*T*lnT + d*T^2 + e*T^3 + f/T (missing terms = 0)."""
-    c = list(coeffs) + [0.0] * (6 - len(coeffs))
+    """Gibbs energy from term-basis coefficients a + b*T + c*T*lnT + d*T^2 + e*T^3 +
+    f/T + g*T^0.5 (missing trailing terms = 0), or from a callable evaluated at T."""
+    if callable(coeffs):
+        return coeffs(T)
+    c = list(coeffs) + [0.0] * (7 - len(coeffs))
     return (c[0] + c[1] * T + c[2] * T * math.log(T)
-            + c[3] * T * T + c[4] * T ** 3 + c[5] / T)
+            + c[3] * T * T + c[4] * T ** 3 + c[5] / T + c[6] * math.sqrt(T))
 
 
 class CEFPhase:

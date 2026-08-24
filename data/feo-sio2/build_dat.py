@@ -56,10 +56,27 @@ def _fmt(x):
     return f"{x:.12E}"
 
 
-def build():
+def _mqmx_block(excess):
+    """Serialize MQMX excess parameters (ChemSage layout the reader parses). Each dict:
+    code 'Q'/'G', li the four 1-based quadruplet species [A,B,X,Y] (cation-mixing Fe+Si on
+    O = [1,2,3,3]), exp the four exponents [p,q,0,0], coeffs the six term-basis coefficients."""
+    out = []
+    for ex in excess:
+        out.append("   1")  # per-parameter nonzero mixing-type flag
+        out.append(" " + ex["code"] + "   " + "   ".join(str(i) for i in ex["li"])
+                   + "   " + "   ".join(str(e) for e in ex["exp"]))
+        out.append("  " + "   ".join("0.00000000" for _ in range(6)))
+        out.append("  " + "   ".join("0.00000000" for _ in range(6)))
+        out.append("   0   0   " + "   ".join(_fmt(c) for c in ex["coeffs"]))
+    out.append("   0")  # terminate the excess block
+    return out
+
+
+def build(excess=None, version=None):
     L = []
     ap = L.append
-    ap(" System FeO-SiO2  open iron-silicate slag database v0.1 (provenance: data/feo-sio2/PROVENANCE.md)")
+    ver = version or ("v0.2" if excess else "v0.1")
+    ap(f" System FeO-SiO2  open iron-silicate slag database {ver} (provenance: data/feo-sio2/PROVENANCE.md)")
     ap(f"    {len(ELEMENTS)}    1    2    0")            # n_el, n_soln, count, n_stoich
     ap(" " + "                       ".join(e[0] for e in ELEMENTS))
     ap("   " + "              ".join(f"{m:.9f}" for _, m in ELEMENTS))
@@ -93,7 +110,10 @@ def build():
     z_si = 4 * Z_PER_CHARGE
     ap(f"   1   1   3   3   {z_fe:.7f}   {z_fe:.7f}   {z_o:.7f}   {z_o:.7f}")
     ap(f"   2   2   3   3   {z_si:.7f}   {z_si:.7f}   {z_o:.7f}   {z_o:.7f}")
-    ap("   0")                                           # no excess (ideal v0.1)
+    if excess:
+        L.extend(_mqmx_block(excess))
+    else:
+        ap("   0")                                       # ideal v0.1 (no excess)
     return "\n".join(L) + "\n"
 
 

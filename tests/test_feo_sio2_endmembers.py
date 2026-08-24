@@ -1,27 +1,35 @@
-"""Validate the FeO-SiO2 v0.1 liquid endmembers and structure.
+"""Validate the FeO-SiO2 liquid: v0.1 endmembers (structure) and the v0.2 excess.
 
-The .dat must load in the C engine, its pure-oxide endmember Gibbs energies must match a
-direct H - T*S evaluation of the open JANAF/R&H data, and the fusion points must reproduce.
-Endmembers/structure only (v0.1 mixing is ideal).
+Endmembers: the .dat loads in the C engine, its pure-oxide Gibbs energies match a direct
+H - T*S of the open JANAF/R&H data, and the fusion points reproduce. v0.2: the shipped
+.dat carries the fitted excess and reproduces fayalite congruent melting with a
+single-welled (gap-free) mixing free energy.
 """
 import math
 import sys
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "python"))
+sys.path.insert(0, str(ROOT / "data" / "feo-sio2"))
 
 import mqmqa
 
-# load feo-sio2's build_dat by explicit path (several data dirs share the name build_dat)
+# load feo-sio2 modules by explicit path (several data dirs share module names)
 import importlib.util
-_spec = importlib.util.spec_from_file_location(
-    "feo_sio2_build_dat", ROOT / "data" / "feo-sio2" / "build_dat.py")
-bd = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(bd)
 
+
+def _load(name, rel):
+    spec = importlib.util.spec_from_file_location(name, ROOT / "data" / "feo-sio2" / rel)
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+
+bd = _load("feo_sio2_build_dat", "build_dat.py")
 T0 = 298.15
 
 
@@ -37,8 +45,9 @@ def _liquid(ox, T):
     return _solid(ox, T) + ox["dHfus"] * (1.0 - T / ox["Tm"])
 
 
-def test_feo_sio2_endmembers_and_fusion():
-    dat = ROOT / "data" / "feo-sio2" / "FeO-SiO2-liquid.dat"
+def test_endmembers_and_fusion():
+    # write the v0.1 (ideal) form to a scratch path - do NOT clobber the shipped v0.2 .dat
+    dat = ROOT / "data" / "feo-sio2" / "_test_v01.dat"
     dat.write_text(bd.build(), encoding="ascii")
     db = mqmqa.Database.read(str(dat))
     p = db.phase_index("FEO-SIO2-LIQUID")
@@ -51,7 +60,28 @@ def test_feo_sio2_endmembers_and_fusion():
         for i, name in enumerate(bd.ORDER):
             worst = max(worst, abs(pr["G"][i] - _liquid(bd.OXIDES[name], T)))
     assert worst < 1e-4, f"endmember Gibbs vs direct H-T*S worst |d| = {worst}"
-
     for name in bd.ORDER:
         ox = bd.OXIDES[name]
         assert abs(_liquid(ox, ox["Tm"]) - _solid(ox, ox["Tm"])) < 1e-6
+    dat.unlink(missing_ok=True)
+
+
+@pytest.mark.skipif(not (ROOT / "data" / "feo-sio2" / "FeO-SiO2-liquid.dat").exists(),
+                    reason="shipped v0.2 .dat not present")
+def test_v02_excess_is_present_and_gap_free():
+    """The shipped v0.2 .dat carries the fitted excess, and its mixing free energy is
+    negative and single-welled (no spurious FeO-SiO2 miscibility gap)."""
+    from mqmqa import equilibrium as eq
+    act = _load("feo_sio2_activity", "_activity.py")
+
+    db = mqmqa.Database.read(str(ROOT / "data" / "feo-sio2" / "FeO-SiO2-liquid.dat"))
+    p = db.phase_index("FEO-SIO2-LIQUID")
+    assert len(db.mqmx(p, 1700.0)["A"]) >= 1, "shipped v0.2 .dat has no excess parameters"
+
+    inp = eq.build_inputs(db, p, 1700.0, components=["FE", "SI", "O"])
+    xf = np.linspace(0.1, 0.9, 33)
+    gf = np.array([act.delta_g_mix(inp, float(x)) for x in xf])
+    assert gf.max() < 0.0, "delta_g_mix should be negative (favorable mixing)"
+    h = xf[1] - xf[0]
+    d2 = (gf[2:] - 2 * gf[1:-1] + gf[:-2]) / h ** 2
+    assert d2.min() > -50.0, f"spurious gap: min d2(dGmix) = {d2.min():.0f}"

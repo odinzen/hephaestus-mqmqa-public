@@ -77,7 +77,8 @@ def test_three_phase_triangle_and_opx_appear():
     assert phases == {"LIQUID", "OLIVINE", "PERICLASE"}, phases
     assert abs(sum(amt for _, amt, _, _ in asm) - 1.0) < 1e-6  # lever rule
 
-    # a silica-rich interior bulk should bring in orthopyroxene
-    asm2 = tern.assemblage(pts, facets, 0.30, 0.55)
+    # a Mg-rich composition near the enstatite point (below its ~1830 K peritectic) brings
+    # in orthopyroxene
+    asm2 = tern.assemblage(pts, facets, 0.06, 0.50)
     phases2 = {ph for ph, amt, xf, xs in asm2 if amt > 1e-3}
     assert "ORTHOPYROXENE" in phases2, phases2

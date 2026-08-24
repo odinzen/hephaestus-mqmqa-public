@@ -132,15 +132,18 @@ def _liquid_g_at(inp, x_fe, x_si, warm):
 
 
 # --------------------------------------------------------------------------- CEF lines
-def cef_line_points(cdb, phase, T, x_si_line, n_cations, n=61):
+def cef_line_points(cdb, phase, T, x_si_line, n_cations, n=61, mg_endmember_shift=None):
     """Sample a CEF (Mg,Fe) solid solution along its fixed-silica line. `x_si_line` is its
     cation silica fraction (olivine 1/3, opx 1/2); `n_cations` the cations per formula the
-    cef_gibbs per-formula value divides by."""
+    cef_gibbs per-formula value divides by. `mg_endmember_shift`, if given, is a callable
+    shift(T) added to the Mg endmember reference (contributes shift*y_Mg to the formula
+    Gibbs) - used for the enstatite high-T entropy calibration."""
     p = cdb.phase_index(phase) if isinstance(phase, str) else phase
+    dmg = mg_endmember_shift(T) if mg_endmember_shift else 0.0
     pts = []
     for xFe in np.linspace(1e-4, 1 - 1e-4, n):
         y = [xFe, 1.0 - xFe, 1.0, 1.0]  # reader order [Fe, Mg], Si, O
-        g_formula = cdb.cef_gibbs(p, y, T, per_mole_atoms=False)
+        g_formula = cdb.cef_gibbs(p, y, T, per_mole_atoms=False) + dmg * (1.0 - xFe)
         g_cat = g_formula / n_cations
         # cation fractions: metals total (n_cations - n_si), Si = n_si
         n_si = x_si_line * n_cations

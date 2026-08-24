@@ -34,6 +34,19 @@ OPX = HERE.parents[0] / "olivine-opx" / "Olivine-Opx-CEF.dat"
 
 T0 = 298.15
 
+# Enstatite (Mg2Si2O6) high-temperature entropy correction. The Robie-Hemingway opx Cp is
+# fitted only to ~1000 K and extrapolated flat (dCp=0) above it; that extrapolation leaves
+# enstatite too stable near 1830-2000 K, putting the forsterite+liquid->enstatite peritectic
+# ~236 K high. dG = ENSTATITE_B*(T-1000) above 1000 K, fit so the peritectic lands at its
+# measured 1830 K (fit_enstatite_b), reconciles the R&H extrapolation with the measured
+# MgO-SiO2 diagram. Applied only to the ternary opx sampling; forsterite/fayalite/olivine
+# are untouched. A full enstatite Cp re-assessment is the rigorous version.
+ENSTATITE_B = 18.014
+
+
+def _enstatite_shift(T):
+    return ENSTATITE_B * max(T - 1000.0, 0.0)
+
 
 def _solid_oxide_g(ox, T):
     """Solid oxide Gibbs per formula (= per cation for a mono-cation oxide) from the
@@ -55,7 +68,8 @@ def build(T, nsamp=12000, n_cef=81, refine=True):
 
     liq, inp = tern.liquid_points(ldb, lp, T, nsamp=nsamp)
     solids = tern.cef_line_points(cdb, "OLIVINE", T, x_si_line=1.0 / 3.0, n_cations=3, n=n_cef)
-    solids += tern.cef_line_points(odb, "ORTHOPYROXENE", T, x_si_line=1.0 / 2.0, n_cations=4, n=n_cef)
+    solids += tern.cef_line_points(odb, "ORTHOPYROXENE", T, x_si_line=1.0 / 2.0, n_cations=4,
+                                   n=n_cef, mg_endmember_shift=_enstatite_shift)
     solids.append(tern.stoich_point("CRISTOBALITE", 0.0, 1.0, _solid_oxide_g(_feo.OXIDES["SiO2"], T)))
     solids.append(tern.stoich_point("PERICLASE", 0.0, 0.0, _solid_oxide_g(_mgo.OXIDES["MgO"], T)))
     solids.append(tern.stoich_point("WUSTITE", 1.0, 0.0, _solid_oxide_g(_feo.OXIDES["FeO"], T)))
@@ -66,6 +80,31 @@ def build(T, nsamp=12000, n_cef=81, refine=True):
         pts = tern.refine_liquid(inp, pts, facets, "LIQUID")
         facets = tern.lower_hull(pts)
     return pts, facets
+
+
+def fit_enstatite_b(T_peritectic=1830.0):
+    """The ENSTATITE_B above: the enstatite high-T entropy correction that puts the
+    forsterite + liquid -> enstatite peritectic at its measured 1830 K on the MgO edge.
+    Common-tangent solve, per mole cation; forsterite/liquid are untouched."""
+    from scipy.optimize import brentq
+    from mqmqa import equilibrium as eqm
+    actM = _load("mgo_act_en", "mgo-sio2/_activity.py")
+    ldb = mqmqa.Database.read(str(LIQ)); lp = ldb.phase_index("FEO-MGO-SIO2-LIQUID")
+    cdb = mqmqa.Database.read(str(OLV)); pol = cdb.phase_index("OLIVINE")
+    odb = mqmqa.Database.read(str(OPX)); pox = odb.phase_index("ORTHOPYROXENE")
+    import numpy as np
+    G_fo = lambda T: cdb.cef_gibbs(pol, [0., 1., 1., 1.], T, per_mole_atoms=False) / 3.
+    G_en = lambda T, b: (odb.cef_gibbs(pox, [0., 1., 1., 1.], T, per_mole_atoms=False)
+                         + b * max(T - 1000., 0.)) / 4.
+    liqG = lambda xSi, T: actM.gm(eqm.build_inputs(ldb, lp, T, components=["MG", "SI", "O"]), xSi) * (2. + xSi)
+
+    def perit(b):
+        def resid(T):
+            xs = np.linspace(0.34, 0.85, 400); g = np.array([liqG(x, T) for x in xs]); gfo = G_fo(T)
+            sl = (g - gfo) / (xs - 1 / 3.); k = int(np.argmin(sl))
+            return (gfo + sl[k] * (0.5 - 1 / 3.)) - G_en(T, b)
+        return brentq(resid, 1400, 2200, xtol=0.3)
+    return brentq(lambda b: perit(b) - T_peritectic, 5.0, 30.0, xtol=1e-3)
 
 
 def equilibrium(T, x_fe, x_si, **kw):

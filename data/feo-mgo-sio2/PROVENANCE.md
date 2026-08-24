@@ -74,10 +74,30 @@ validated 1-D olivine loop - the 2-D liquid<->olivine tie-line on the x_Si=1/3 s
 it to ~0.01-0.03 in X_Fe - plus a lever-rule-consistent three-phase tie-triangle and
 orthopyroxene appearing in the silica-rich field (`tests/test_ternary_minimizer.py`). A full
 end-to-end check against pycalphad `equilibrium` on a combined liquid+solids .dat is the next
-validation step (it needs that .dat assembled). NOTE: orthopyroxene phase boundaries inherit
-the enstatite solid-reference gap (below), so opx fields are not yet quantitative.
+validation step (it needs that .dat assembled).
 
-## Honest limits (v0.2 / next targets)
+## Liquidus projection + enstatite reconciliation (`ternary_diagram.py`)
+
+`liquidus_projection` sweeps temperature with the 2-D minimizer, records each bulk
+composition's liquidus temperature and primary crystallizing phase, and draws the
+primary-phase fields with liquidus isotherms on the cation ternary (Bowen-Schairer
+orientation: SiO2 apex, MgO left, FeO right). It reproduces the topology of Bowen & Schairer
+1935 Fig. 6 - olivine, orthopyroxene, cristobalite, periclase and wustite primary fields with
+fusion surfaces sloping toward the FeO-SiO2 side.
+
+**Enstatite high-T entropy correction (`ENSTATITE_B = 18.014 J/mol/K`).** The Robie-Hemingway
+opx Cp is fitted only to ~1000 K and extrapolated flat (dCp = 0) above it, which leaves
+enstatite too stable near 1830-2000 K and put the forsterite + liquid -> enstatite peritectic
+~236 K high (2066 vs measured 1830 K). A high-T entropy correction dG = ENSTATITE_B*(T - 1000)
+on the enstatite (Mg2Si2O6) endmember, fit so the peritectic lands at 1830 K
+(`fit_enstatite_b`), reconciles that extrapolation with the measured MgO-SiO2 diagram; it is
+applied only to the ternary opx sampling and leaves olivine/forsterite/fayalite untouched.
+This is a first-order correction to an acknowledged Cp extrapolation, NOT a full enstatite Cp
+re-assessment (the rigorous version, fitting the opx Cp/S to multiple constraints, remains a
+target). Ours is cation mole fraction while Bowen-Schairer is weight percent, so a direct
+overlay needs a weight-percent conversion.
+
+## Honest limits (next targets)
 
 - **FeO-MgO ideal** is a first approximation (see above).
 - **Olivine melting loop (`olivine_join.py`).** The Mg2SiO4-Fe2SiO4 join (liquid <-> olivine

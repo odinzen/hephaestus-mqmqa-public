@@ -134,6 +134,83 @@ def plot_isotherm(T, nsamp=15000, ngrid=160, out=None):
     return out
 
 
+def liquidus_projection(T_hi=2220.0, T_lo=1440.0, dT=40.0, ngrid=90, nsamp=9000, out=None):
+    """Primary-phase-field / liquidus-projection diagram (the Bowen & Schairer 1935 view).
+    Sweep temperature downward; the first T at which a bulk composition leaves the
+    single-phase liquid field is its liquidus, and the solid it meets there is the primary
+    crystallizing phase. Shades each primary-phase field on the cation ternary and draws
+    liquidus isotherms."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    comps = []
+    for i in range(ngrid + 1):
+        for j in range(ngrid + 1 - i):
+            xfe, xsi = i / ngrid, j / ngrid
+            if xfe + xsi < 1.0:
+                comps.append((xfe, xsi))
+    liqT = {c: None for c in comps}
+    prim = {c: None for c in comps}
+
+    for T in np.arange(T_hi, T_lo - 1e-6, -dT):
+        pts, facets = build(T, nsamp=nsamp)
+        for c in comps:
+            if liqT[c] is not None:
+                continue
+            a = tern.assemblage(pts, facets, c[0], c[1])
+            if a is None:
+                continue
+            solids = [(ph, amt) for ph, amt, xf, xs in a if ph != "LIQUID" and amt > 1e-3]
+            has_liq = any(ph == "LIQUID" and amt > 1e-3 for ph, amt, xf, xs in a)
+            if solids:
+                liqT[c] = T
+                prim[c] = max(solids, key=lambda s: s[1])[0] if not has_liq else solids[0][0]
+        print(f"  swept T={T:.0f} K  ({sum(v is not None for v in liqT.values())}/{len(comps)} assigned)")
+
+    # cache the raw fields so the figure can be re-styled without recomputing
+    np.savez(HERE / "_liquidus_projection.npz",
+             comps=np.array(comps),
+             liqT=np.array([liqT[c] if liqT[c] else np.nan for c in comps]),
+             prim=np.array([prim[c] or "" for c in comps]))
+
+    def to_xy(xfe, xsi):  # Bowen-Schairer orientation: SiO2 apex, MgO left, FeO right
+        return 0.5 * (2 * xfe + xsi), (np.sqrt(3) / 2) * xsi
+
+    prim_phases = sorted({p for p in prim.values() if p})
+    shades = {p: 0.88 - 0.6 * k / max(1, len(prim_phases) - 1) for k, p in enumerate(prim_phases)}
+    fig, ax = plt.subplots(figsize=(6.4, 5.8))
+    for p in prim_phases:
+        P = np.array([to_xy(*c) for c in comps if prim[c] == p])
+        if len(P):
+            ax.scatter(P[:, 0], P[:, 1], s=9, marker="s", color=str(shades[p]),
+                       edgecolors="none", label=p.title())
+    # liquidus isotherms (contour of liqT over the triangle)
+    xs = np.array([to_xy(*c)[0] for c in comps if liqT[c]])
+    ys = np.array([to_xy(*c)[1] for c in comps if liqT[c]])
+    zs = np.array([liqT[c] for c in comps if liqT[c]])
+    try:
+        cs = ax.tricontour(xs, ys, zs, levels=np.arange(1500, 2200, 100),
+                           colors="0.15", linewidths=0.6)
+        ax.clabel(cs, fmt="%.0f", fontsize=6)
+    except Exception:
+        pass
+    for a, b in [((0, 0), (1, 0)), ((1, 0), (0.5, np.sqrt(3) / 2)), ((0.5, np.sqrt(3) / 2), (0, 0))]:
+        ax.plot([a[0], b[0]], [a[1], b[1]], color="0.1", lw=1.2)
+    ax.text(-0.02, -0.04, "MgO", ha="right", fontsize=10)
+    ax.text(1.02, -0.04, "FeO", ha="left", fontsize=10)
+    ax.text(0.5, np.sqrt(3) / 2 + 0.03, "SiO$_2$", ha="center", fontsize=10)
+    ax.set_title("FeO-MgO-SiO$_2$ Liquidus Projection (primary phase + isotherms/K)")
+    ax.set_aspect("equal"); ax.axis("off")
+    ax.legend(loc="upper right", fontsize=7, frameon=False, markerscale=1.6)
+    fig.tight_layout()
+    out = out or (HERE / "ternary_liquidus_projection.png")
+    fig.savefig(out, dpi=150)
+    print(f"wrote {out}")
+    return out
+
+
 if __name__ == "__main__":
     T = 1800.0
     pts, facets = build(T)

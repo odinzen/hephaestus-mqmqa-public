@@ -73,6 +73,67 @@ def equilibrium(T, x_fe, x_si, **kw):
     return tern.assemblage(pts, facets, x_fe, x_si)
 
 
+def plot_isotherm(T, nsamp=15000, ngrid=160, out=None):
+    """Isothermal section of the FeO-MgO-SiO2 diagram at T: classify every bulk cation
+    composition by its stable phase assemblage (from the 2-D hull) and shade the fields on
+    the cation ternary (corners FeO, MgO, SiO2)."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    pts, facets = build(T, nsamp=nsamp)
+
+    # classify grid points by assemblage; count phases for a greyscale by variance
+    keys, xy = [], []
+    for i in range(ngrid + 1):
+        for j in range(ngrid + 1 - i):
+            x_fe = i / ngrid
+            x_si = j / ngrid
+            if x_fe + x_si > 1.0:
+                continue
+            a = tern.assemblage(pts, facets, x_fe, x_si)
+            if a is None:
+                continue
+            phases = frozenset(ph for ph, amt, xf, xs in a if amt > 1e-3)
+            keys.append(phases)
+            xy.append((x_fe, x_si))
+    xy = np.array(xy)
+
+    uniq = sorted(set(keys), key=lambda s: (len(s), sorted(s)))
+    # greyscale: single-phase light, multi-phase darker; distinct hatch per assemblage label
+    shade = {k: 0.92 - 0.5 * (len(k) - 1) / 2 for k in uniq}
+
+    def to_xy(x_fe, x_si):  # cation ternary: SiO2 apex top, FeO left, MgO right
+        x_mg = 1 - x_fe - x_si
+        X = 0.5 * (2 * x_mg + x_si)
+        Y = (np.sqrt(3) / 2) * x_si
+        return X, Y
+
+    fig, ax = plt.subplots(figsize=(6.2, 5.6))
+    for k in uniq:
+        m = np.array([kk == k for kk in keys])
+        P = np.array([to_xy(*xy[i]) for i in range(len(xy)) if m[i]])
+        if len(P):
+            ax.scatter(P[:, 0], P[:, 1], s=8, marker="s",
+                       color=str(shade[k]), edgecolors="none",
+                       label=" + ".join(sorted(x.title() for x in k)))
+    # triangle frame + corner labels
+    for a, b in [((0, 0), (1, 0)), ((1, 0), (0.5, np.sqrt(3) / 2)), ((0.5, np.sqrt(3) / 2), (0, 0))]:
+        ax.plot([a[0], b[0]], [a[1], b[1]], color="0.1", lw=1.2)
+    ax.text(-0.02, -0.04, "FeO", ha="right", fontsize=10)
+    ax.text(1.02, -0.04, "MgO", ha="left", fontsize=10)
+    ax.text(0.5, np.sqrt(3) / 2 + 0.03, "SiO$_2$", ha="center", fontsize=10)
+    ax.set_title(f"FeO-MgO-SiO$_2$ Isothermal Section, {T:.0f} K")
+    ax.set_aspect("equal"); ax.axis("off")
+    ax.legend(loc="upper right", fontsize=6.5, frameon=False, markerscale=1.5)
+    fig.tight_layout()
+    out = out or (HERE / f"ternary_isotherm_{int(T)}K.png")
+    fig.savefig(out, dpi=150)
+    print(f"wrote {out}  ({len(uniq)} distinct assemblages)")
+    return out
+
+
 if __name__ == "__main__":
     T = 1800.0
     pts, facets = build(T)

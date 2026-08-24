@@ -56,6 +56,27 @@ independent of any equilibrium solver):
    2e-4 J (that binary stores its endmember coefficients at 8 significant figures; the ternary
    is full precision). A mis-typed excess coefficient would be hundreds of J, far above this.
 
+## 2-D ternary global minimizer (`ternary_diagram.py`, `python/mqmqa/ternary.py`)
+
+The full FeO-MgO-SiO2 equilibrium (liquid + olivine + orthopyroxene + the stoichiometric
+oxide solids cristobalite/periclase/wustite) is computed by grid-sampling each phase's Gibbs
+energy across the cation simplex and taking the lower convex hull - the standard global
+method. Basis: Gibbs per mole of CATIONS with composition = cation fractions (x_Fe, x_Si),
+valid because every phase here is fixed-valence and iron-saturated so oxygen is charge-slaved
+identically. Each lower-hull facet is a tie-triangle/edge; the assemblage at any bulk
+composition is read off the covering facet by barycentric amounts (lever rule).
+
+The liquid surface is sampled directly in quadruplet space (fast, no per-composition
+minimization); the liquid hull vertices are then locally minimized to tighten the envelope.
+VALIDATION: every phase Gibbs energy is validated separately (liquid vs pycalphad ~1e-10; the
+CEF solids in their own tests), and the hull logic is checked against the independently
+validated 1-D olivine loop - the 2-D liquid<->olivine tie-line on the x_Si=1/3 section matches
+it to ~0.01-0.03 in X_Fe - plus a lever-rule-consistent three-phase tie-triangle and
+orthopyroxene appearing in the silica-rich field (`tests/test_ternary_minimizer.py`). A full
+end-to-end check against pycalphad `equilibrium` on a combined liquid+solids .dat is the next
+validation step (it needs that .dat assembled). NOTE: orthopyroxene phase boundaries inherit
+the enstatite solid-reference gap (below), so opx fields are not yet quantitative.
+
 ## Honest limits (v0.2 / next targets)
 
 - **FeO-MgO ideal** is a first approximation (see above).

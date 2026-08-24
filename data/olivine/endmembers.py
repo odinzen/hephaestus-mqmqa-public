@@ -40,6 +40,17 @@ ENDMEMBERS = {
         A1=176.02, A2=-8.808e-3, A3=-3.889e6, A4=0.0, A5=2.471e-5,
         Tmax=1490.0,  # fayalite melts incongruently at 1490 K
     ),
+    # Orthopyroxene endmembers (per MgSiO3 / FeSiO3 formula unit), same bulletin.
+    "enstatite": dict(  # MgSiO3, USGS Bull. 2131 p.61 (Cp) / p.334 (phase table)
+        dHf=-1545600.0, S298=66.27,
+        A1=350.7, A2=-1.472e-1, A3=1.769e6, A4=-4296.0, A5=5.826e-5,
+        Tmax=1000.0,  # R&H fit to 1000 K; smoothly extrapolated in the subsolidus range
+    ),
+    "ferrosilite": dict(  # FeSiO3, USGS Bull. 2131 p.60 (Cp) / p.332 (phase table)
+        dHf=-1195200.0, S298=94.60,
+        A1=124.3, A2=1.454e-2, A3=-3.378e6, A4=0.0, A5=0.0,
+        Tmax=800.0,  # orthoferrosilite (metastable at 1 atm); R&H fit to 800 K
+    ),
 }
 
 
@@ -96,7 +107,8 @@ def _gibbs_direct(name, T):
 if __name__ == "__main__":
     # 1) Cp(298) must reproduce the Robie-Hemingway tabulated values.
     print("Cp(298.15) check (Robie-Hemingway table value in parentheses):")
-    for name, ref in (("forsterite", 118.61), ("fayalite", 131.84)):
+    for name, ref in (("forsterite", 118.61), ("fayalite", 131.84),
+                      ("enstatite", 83.09), ("ferrosilite", 90.63)):
         print(f"  {name:11s} Cp298 = {cp(name, T0):8.3f}  ({ref})")
     # 2) the term-basis coefficients must match the direct H - T*S integration.
     print("\nGibbs coefficient derivation vs direct H-T*S integration:")

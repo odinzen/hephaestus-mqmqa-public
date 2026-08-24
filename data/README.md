@@ -26,9 +26,14 @@ system's `PROVENANCE.md`.
 - `mgo-sio2/` - MgO-SiO2 liquid slag, MQMQA (ChemSage SUBQ). Assessed liquid; see its
   `PROVENANCE.md`.
 - `olivine/` - olivine (Mg,Fe)2SiO4 solid solution, the first **compound-energy-formalism
-  (CEF)** system. Not a ChemSage `.dat` (the engine does not yet read SUBL blocks); a
-  Python CEF model on the shared `cef/cef.py` kernel, validated against pycalphad to
-  machine precision and against open olivine calorimetry. See `olivine/PROVENANCE.md`.
+  (CEF)** system. A CEF model on the shared `cef/cef.py` kernel and a ChemSage SUBL `.dat`
+  the C reader parses, validated against pycalphad to machine precision and against open
+  olivine calorimetry (incl. the metastable solvus by the multiphase solver). See
+  `olivine/PROVENANCE.md`.
+- `olivine-opx/` - olivine + orthopyroxene (Mg,Fe) Fe-Mg **exchange equilibrium**: two CEF
+  solid solutions in one SUBL `.dat`, their partitioning (K_D) computed through the C kernel
+  and validated against pycalphad's two-phase equilibrium (~1e-9) and the measured K_D of
+  von Seckendorff & O'Neill 1993. See `olivine-opx/PROVENANCE.md`.
 - `INVENTORY.md` - the digitized open data available for this system and its sources.
 
 ### What v0.1 is

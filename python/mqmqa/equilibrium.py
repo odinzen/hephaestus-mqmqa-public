@@ -169,6 +169,68 @@ def _lower_hull(points):
     return hull
 
 
+def _edge_is_tieline(all_x, xl, xr, eps=1e-9):
+    """A lower-hull edge from xl to xr is a genuine two-phase tie-line iff it skips over
+    sampled compositions between its endpoints (those interior points lie above the
+    chord, so they are metastable). If no sample lies strictly between, the edge simply
+    follows a continuous solution-phase curve and the state is single-phase."""
+    lo, hi = min(xl, xr), max(xl, xr)
+    return any(lo + eps < x < hi - eps for x in all_x)
+
+
+def binary_hull_equilibrium(phase_points, x_overall, tie_tol=1e-6):
+    """General binary multiphase equilibrium by lower convex hull + lever rule.
+
+    phase_points is an iterable of (x, G, phase, comp): x the shared composition
+    coordinate (mole fraction of one component, on a consistent extensive basis, e.g.
+    per formula unit), G the molar Gibbs energy on that same basis, phase the phase
+    name, and comp any tag describing the internal composition (reported back). A
+    SOLUTION phase contributes many points (a sampled G(x) curve, whether an MQMQA
+    liquid or a CEF solid solution); a STOICHIOMETRIC phase contributes one point.
+
+    The stable state at x_overall is the lower convex hull of all points. Returns the
+    assemblage: a single phase, or a two-phase tie-line with each endpoint's phase and
+    composition, plus the equilibrium GM (same basis) and the lever-rule fractions.
+    A solution phase in a two-phase field reports its equilibrium composition (the tie
+    point on its curve); a solution phase unmixing (both endpoints the same phase name,
+    different comp) is a miscibility gap / solvus.
+    """
+    pts = [(float(x), float(g), (phase, comp)) for x, g, phase, comp in phase_points]
+    all_x = sorted(p[0] for p in pts)
+    hull = _lower_hull(pts)
+    hx = [h[0] for h in hull]
+    j = int(np.searchsorted(hx, x_overall))
+    j = min(max(j, 1), len(hull) - 1)
+    left, right = hull[j - 1], hull[j]
+    g_at = left[1] + (right[1] - left[1]) * (x_overall - left[0]) / (right[0] - left[0])
+
+    if abs(right[0] - left[0]) < tie_tol or not _edge_is_tieline(all_x, left[0], right[0]):
+        # bracketing hull vertices are consecutive samples of one solution phase (or a
+        # single point): the stable state is that one phase at the overall composition.
+        return {"phases": [left[2][0]], "compositions": [x_overall],
+                "fractions": [1.0], "endpoints": [x_overall], "GM": g_at}
+    fr = (x_overall - left[0]) / (right[0] - left[0])
+    return {"phases": [left[2][0], right[2][0]],
+            "compositions": [left[2][1], right[2][1]],
+            "fractions": [1 - fr, fr], "endpoints": [left[0], right[0]], "GM": g_at}
+
+
+def miscibility_conjugates(phase_points, min_span=1e-3):
+    """Conjugate compositions of every tie-line on the lower hull (hull edges that span
+    a finite composition range). For a single solution phase's G(x) curve this returns
+    the solvus binodal - the pair of coexisting compositions - as (x_left, comp_left,
+    x_right, comp_right). Empty when the curve is convex (one stable phase everywhere).
+    """
+    pts = [(float(x), float(g), (phase, comp)) for x, g, phase, comp in phase_points]
+    all_x = sorted(p[0] for p in pts)
+    hull = _lower_hull(pts)
+    out = []
+    for a, b in zip(hull, hull[1:]):
+        if b[0] - a[0] > min_span and _edge_is_tieline(all_x, a[0], b[0]):
+            out.append((a[0], a[2][1], b[0], b[2][1]))
+    return out
+
+
 def multiphase_binary(inp, end0, end1, solids, xi, ngrid=400):
     """Stable phase assemblage along a binary join between two salt endmembers.
 

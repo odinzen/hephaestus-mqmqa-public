@@ -132,6 +132,23 @@ real-world SUBL database (Viitala Pb-Zn-Cu-Fe-Cl) in `tests/test_cef_vs_pycalpha
 exercises multi-interval endmembers, log(T) terms, charged species, and vacancies (the
 per-mole-of-atoms normalization excludes vacancies, matching pycalphad).
 
+## CEF phases in the multiphase equilibrium solver
+
+`solvus.py` wires the CEF phase into the engine's binary multiphase solver. The generic
+hull solver (`equilibrium.binary_hull_equilibrium` / `miscibility_conjugates`) pools the
+Gibbs-vs-composition curves of every candidate phase - an MQMQA liquid, a CEF solid
+solution, or a stoichiometric compound (a single point) - and takes the lower convex hull;
+tie-lines are identified as hull edges that skip over sampled compositions (so a continuous
+solution curve reads as single-phase, a real gap as two-phase).
+
+The test target is the olivine metastable solvus: below the consolute the calorimetric
+excess makes olivine's G(x) non-convex, so it unmixes into two coexisting olivines. The
+olivine curve is evaluated by the C CEF kernel (`mqmqa.Database.cef_gibbs`), and the solver's
+conjugate compositions match pycalphad's own `equilibrium()` on the same `.dat` to ~0.001
+mole fraction (grid-limited on both sides), for T from 300-430 K. Regression-tested in
+`tests/test_multiphase_cef_vs_pycalphad.py`. Coexistence of a CEF solid with the MQMQA
+liquid in a real multicomponent oxide system is the next step (a new open target system).
+
 ## What is deliberately excluded
 
 No FactSage/FToxid parameters and no proprietary or optimized-TDB interaction parameters.

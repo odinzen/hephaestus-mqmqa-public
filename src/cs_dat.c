@@ -1,4 +1,5 @@
 #include "cs_dat.h"
+#include "cef.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -69,8 +70,33 @@ typedef struct {
     double *coeff;              /* n_excess coefficients */
 } Mqmx;
 
+/* --- compound-energy-formalism (SUBL) phase --- */
+typedef struct {
+    int subl;                   /* mixing sublattice (local) */
+    int i, j;                   /* mixing constituents (local, name-sorted) */
+    int order;                  /* Redlich-Kister order */
+    double *coeff;              /* n_excess coefficients -> L(T) */
+    int *other;                 /* [n_subl] pinned constituent on every other sublattice */
+} CefExcess;
+
+typedef struct {
+    int n_subl;
+    double *site_ratio;         /* [n_subl] site multiplicity a_s */
+    int *subl_ncon;             /* [n_subl] constituents per sublattice */
+    int *subl_off;              /* [n_subl] offset of each sublattice into the flat arrays */
+    int n_con;                  /* total constituents = sum(subl_ncon) */
+    char (*con_name)[NAME_MAX]; /* [n_con] constituent names, flattened by sublattice */
+    double *con_atoms;          /* [n_con] real atoms per constituent (0 for VA) */
+    int n_em;
+    Endmember *em;              /* [n_em] endmember Gibbs energies */
+    int *em_con;                /* [n_em*n_subl] constituent index of each endmember per sublattice */
+    int n_ex;
+    CefExcess *ex;              /* [n_ex] Redlich-Kister interactions */
+} SublPhase;
+
 typedef struct {
     char name[NAME_MAX];
+    int kind;                   /* 0 MQMQA (SUBQ/SUBG), 1 CEF (SUBL) */
     int soln_type;              /* 1 SUBQ, 0 SUBG, -1 other */
     double subg_zeta;           /* single global zeta for SUBG */
     int n_cat, n_an, n_pairs, n_quads;
@@ -82,6 +108,7 @@ typedef struct {
     Mqmz *mqmz;
     int n_mqmx;
     Mqmx *mqmx;
+    SublPhase *cef;             /* non-NULL when kind == 1 */
 } Phase;
 
 typedef struct {
@@ -427,6 +454,154 @@ static void parse_subq_phase(Lexer *lx, Db *db, Phase *ph, const char *type)
 }
 
 /* ------------------------------------------------------------------ *
+ * SUBL (compound-energy-formalism) phase
+ *
+ * Grammar (clean-room from the ChemApp format and cross-checked against
+ * pycalphad's open ChemSage reader):
+ *   num_const endmembers (parse_endmember)
+ *   num_subl
+ *   site fraction of each sublattice          [num_subl floats]
+ *   constituent count of each sublattice      [num_subl ints]
+ *   constituent names, sublattice by sublattice
+ *   endmember constituent index, sublattice by sublattice (num_em each, 1-based)
+ *   Redlich-Kister excess block, 0-terminated
+ * The number of endmembers is not in the phase block; it is the phase's species
+ * count from the header (num_const), exactly as for the SUBQ pair count semantics.
+ * ------------------------------------------------------------------ */
+static void parse_subl_phase(Lexer *lx, Db *db, Phase *ph, int num_const)
+{
+    ph->kind = 1;
+    ph->soln_type = -1;
+    SublPhase *cf = xalloc(lx, sizeof(SublPhase));
+    ph->cef = cf;
+
+    /* number of atoms per formula unit, from an optional ":N" suffix on the phase
+     * name (e.g. SIGMA:30); default 1. Site ratios = num_atoms * site fraction. */
+    double num_atoms = 1.0;
+    const char *colon = strchr(ph->name, ':');
+    if (colon && colon[1]) num_atoms = strtod(colon + 1, NULL);
+
+    cf->n_em = num_const;
+    cf->em = xalloc(lx, (size_t)num_const * sizeof(Endmember));
+    for (int e = 0; e < num_const; ++e)
+        parse_endmember(lx, &cf->em[e], db->n_el, db->n_gibbs);
+
+    cf->n_subl = tok_int(lx);
+    if (cf->n_subl < 1) lex_fail(lx, "SUBL phase with no sublattices");
+    cf->site_ratio = xalloc(lx, (size_t)cf->n_subl * sizeof(double));
+    cf->subl_ncon = xalloc(lx, (size_t)cf->n_subl * sizeof(int));
+    cf->subl_off = xalloc(lx, (size_t)cf->n_subl * sizeof(int));
+    for (int s = 0; s < cf->n_subl; ++s) cf->site_ratio[s] = num_atoms * tok_dbl(lx);
+    for (int s = 0; s < cf->n_subl; ++s) {
+        cf->subl_ncon[s] = tok_int(lx);
+        if (cf->subl_ncon[s] < 1) lex_fail(lx, "sublattice with no constituents");
+    }
+    cf->n_con = 0;
+    for (int s = 0; s < cf->n_subl; ++s) {
+        cf->subl_off[s] = cf->n_con;
+        cf->n_con += cf->subl_ncon[s];
+    }
+    cf->con_name = xalloc(lx, (size_t)cf->n_con * sizeof(*cf->con_name));
+    cf->con_atoms = xalloc(lx, (size_t)cf->n_con * sizeof(double));
+    for (int s = 0; s < cf->n_subl; ++s)
+        for (int i = 0; i < cf->subl_ncon[s]; ++i) {
+            char *nm = cf->con_name[cf->subl_off[s] + i];
+            tok_name(lx, nm);
+            /* monatomic constituents (elements / single ions) contribute one atom;
+             * the vacancy VA contributes none. This is the standard ionic/metallic
+             * sublattice convention and matches pycalphad's per-atom GM. */
+            cf->con_atoms[cf->subl_off[s] + i] = (strcmp(nm, "VA") == 0) ? 0.0 : 1.0;
+        }
+
+    /* endmember constituent indices: num_subl rows, each num_em 1-based indices */
+    int n_em = cf->n_em;
+    cf->em_con = xalloc(lx, (size_t)n_em * cf->n_subl * sizeof(int));
+    for (int s = 0; s < cf->n_subl; ++s)
+        for (int e = 0; e < n_em; ++e)
+            cf->em_con[e * cf->n_subl + s] = tok_int(lx) - 1;
+
+    /* cumulative constituent counts, for decoding the excess linear indices */
+    int cum[64];
+    if (cf->n_subl > 64) lex_fail(lx, "too many sublattices");
+    int run = 0;
+    for (int s = 0; s < cf->n_subl; ++s) { run += cf->subl_ncon[s]; cum[s] = run; }
+
+    /* Redlich-Kister excess parameters, 0-terminated. Each entry lists the
+     * interacting constituents as linear 1-based indices across all sublattices
+     * (the mixing sublattice contributes two, every other sublattice one), then a
+     * count of RK orders and that many coefficient rows. */
+    int cap = 8;
+    cf->n_ex = 0;
+    cf->ex = xalloc(lx, (size_t)cap * sizeof(CefExcess));
+    for (;;) {
+        int n_int = tok_int(lx);
+        if (n_int == 0) break;
+        if (n_int < 0) lex_fail(lx, "unsupported excess mixing type in SUBL phase");
+
+        /* decode linear indices into per-sublattice local constituent lists */
+        int listed[64];             /* local constituent listed on each sublattice, or -1 */
+        int mix_a[64], mix_b[64];   /* the (up to two) mixing constituents per sublattice */
+        int listed_count[64];
+        for (int s = 0; s < cf->n_subl; ++s) { listed[s] = -1; listed_count[s] = 0; }
+        for (int t = 0; t < n_int; ++t) {
+            int lin = tok_int(lx);
+            int s = 0;
+            while (s < cf->n_subl && cum[s] < lin) s++;
+            if (s >= cf->n_subl) lex_fail(lx, "excess constituent index out of range");
+            int base = (s == 0) ? 0 : cum[s - 1];
+            int local = lin - base - 1;
+            if (local < 0 || local >= cf->subl_ncon[s])
+                lex_fail(lx, "excess constituent index out of range");
+            if (listed_count[s] == 0) { mix_a[s] = local; listed[s] = local; }
+            else if (listed_count[s] == 1) { mix_b[s] = local; }
+            else lex_fail(lx, "more than binary mixing on one sublattice not supported");
+            listed_count[s]++;
+        }
+        /* exactly one sublattice mixes (two constituents); the rest are pinned */
+        int mix_s = -1;
+        for (int s = 0; s < cf->n_subl; ++s) {
+            if (listed_count[s] == 2) {
+                if (mix_s >= 0) lex_fail(lx, "reciprocal excess (two mixing sublattices) not supported");
+                mix_s = s;
+            } else if (listed_count[s] != 1) {
+                lex_fail(lx, "every sublattice must appear once in an excess parameter");
+            }
+        }
+        if (mix_s < 0) lex_fail(lx, "excess parameter with no mixing sublattice");
+
+        /* order the mixing pair by constituent name, matching pycalphad's sorted
+         * constituent order so the (y_i - y_j)^order sign is consistent */
+        int ci = mix_a[mix_s], cj = mix_b[mix_s];
+        if (strcmp(cf->con_name[cf->subl_off[mix_s] + ci],
+                   cf->con_name[cf->subl_off[mix_s] + cj]) > 0) {
+            int t = ci; ci = cj; cj = t;
+        }
+
+        int n_terms = tok_int(lx);
+        if (n_terms < 0) lex_fail(lx, "negative RK order count");
+        for (int o = 0; o < n_terms; ++o) {
+            if (cf->n_ex == cap) {
+                cap *= 2;
+                CefExcess *grown = xalloc(lx, (size_t)cap * sizeof(CefExcess));
+                memcpy(grown, cf->ex, (size_t)cf->n_ex * sizeof(CefExcess));
+                free(cf->ex);
+                cf->ex = grown;
+            }
+            CefExcess *xe = &cf->ex[cf->n_ex++];
+            memset(xe, 0, sizeof *xe);
+            xe->subl = mix_s;
+            xe->i = ci;
+            xe->j = cj;
+            xe->order = o;
+            xe->other = xalloc(lx, (size_t)cf->n_subl * sizeof(int));
+            for (int s = 0; s < cf->n_subl; ++s) xe->other[s] = (s == mix_s) ? 0 : listed[s];
+            xe->coeff = xalloc(lx, (size_t)db->n_excess * sizeof(double));
+            for (int i = 0; i < db->n_excess; ++i) xe->coeff[i] = tok_dbl(lx);
+        }
+    }
+}
+
+/* ------------------------------------------------------------------ *
  * Top-level file grammar
  * ------------------------------------------------------------------ */
 static void parse_header(Lexer *lx, Db *db, int *soln_counts, int *n_soln_out)
@@ -473,9 +648,13 @@ static Db *parse_db(Lexer *lx)
         tok_name(lx, type);
         if (strcmp(type, "SUBQ") == 0 || strcmp(type, "SUBG") == 0) {
             parse_subq_phase(lx, db, ph, type);
+        } else if (strncmp(type, "SUBL", 4) == 0) {
+            /* SUBL (and the magnetic SUBLM, whose two magnetic factors we skip) */
+            if (strcmp(type, "SUBLM") == 0) { (void)tok_dbl(lx); (void)tok_dbl(lx); }
+            parse_subl_phase(lx, db, ph, soln_counts[s]);
         } else {
             snprintf(lx->err, sizeof lx->err,
-                     "phase type %s is not supported (only SUBQ/SUBG)", type);
+                     "phase type %s is not supported (only SUBQ/SUBG/SUBL)", type);
             longjmp(lx->jb, 1);
         }
         db->n_phases++;
@@ -518,6 +697,16 @@ static void free_db(Db *db)
         free(ph->mqmz);
         for (int k = 0; k < ph->n_mqmx; ++k) free(ph->mqmx[k].coeff);
         free(ph->mqmx);
+        if (ph->cef) {
+            SublPhase *cf = ph->cef;
+            for (int e = 0; e < cf->n_em; ++e) free_endmember(&cf->em[e]);
+            free(cf->em);
+            free(cf->site_ratio); free(cf->subl_ncon); free(cf->subl_off);
+            free(cf->con_name); free(cf->con_atoms); free(cf->em_con);
+            for (int k = 0; k < cf->n_ex; ++k) { free(cf->ex[k].coeff); free(cf->ex[k].other); }
+            free(cf->ex);
+            free(cf);
+        }
     }
     free(db->phases);
     for (int i = 0; i < db->n_stoich; ++i) free_endmember(&db->stoich[i]);
@@ -678,6 +867,90 @@ void mqmqa_ph_mqmx_L(const mqmqa_db *db, int p, double T, double *L)
     const Db *d = (const Db *)db;
     const Phase *ph = &d->phases[p];
     for (int k = 0; k < ph->n_mqmx; ++k) L[k] = excess_coeff_gibbs(d, ph->mqmx[k].coeff, T);
+}
+
+/* ------------------------------------------------------------------ *
+ * CEF (SUBL) phase accessors
+ * ------------------------------------------------------------------ */
+int mqmqa_db_phase_kind(const mqmqa_db *db, int p) { return ((const Db *)db)->phases[p].kind; }
+
+int mqmqa_ph_cef_num_subl(const mqmqa_db *db, int p)
+{
+    const Phase *ph = &((const Db *)db)->phases[p];
+    return ph->cef ? ph->cef->n_subl : -1;
+}
+
+void mqmqa_ph_cef_subl_ncon(const mqmqa_db *db, int p, int *out)
+{
+    const SublPhase *cf = ((const Db *)db)->phases[p].cef;
+    for (int s = 0; s < cf->n_subl; ++s) out[s] = cf->subl_ncon[s];
+}
+
+void mqmqa_ph_cef_site_ratio(const mqmqa_db *db, int p, double *out)
+{
+    const SublPhase *cf = ((const Db *)db)->phases[p].cef;
+    for (int s = 0; s < cf->n_subl; ++s) out[s] = cf->site_ratio[s];
+}
+
+int mqmqa_ph_cef_num_constituents(const mqmqa_db *db, int p)
+{
+    const SublPhase *cf = ((const Db *)db)->phases[p].cef;
+    return cf ? cf->n_con : -1;
+}
+
+const char *mqmqa_ph_cef_constituent(const mqmqa_db *db, int p, int s, int i)
+{
+    const SublPhase *cf = ((const Db *)db)->phases[p].cef;
+    return cf->con_name[cf->subl_off[s] + i];
+}
+
+/* Molar Gibbs energy of a CEF phase at site fractions Y (flattened by sublattice,
+ * in the reader's constituent order) and temperature T. Assembles the per-parameter
+ * arrays the kernel needs (endmember Gibbs at T, excess L at T) and calls
+ * mqmqa_cef_gibbs. Returns NaN if the phase is not CEF or on allocation failure. */
+double mqmqa_ph_cef_gibbs(const mqmqa_db *db, int p, const double *Y, double T,
+                          int per_mole_atoms)
+{
+    const Db *d = (const Db *)db;
+    const Phase *ph = &d->phases[p];
+    if (!ph->cef) return NAN;
+    const SublPhase *cf = ph->cef;
+
+    double *em_G = malloc((size_t)cf->n_em * sizeof(double));
+    int n_ex = cf->n_ex;
+    int *ex_subl = malloc((size_t)(n_ex ? n_ex : 1) * sizeof(int));
+    int *ex_i = malloc((size_t)(n_ex ? n_ex : 1) * sizeof(int));
+    int *ex_j = malloc((size_t)(n_ex ? n_ex : 1) * sizeof(int));
+    int *ex_order = malloc((size_t)(n_ex ? n_ex : 1) * sizeof(int));
+    double *ex_L = malloc((size_t)(n_ex ? n_ex : 1) * sizeof(double));
+    int *ex_other = malloc((size_t)(n_ex ? n_ex : 1) * cf->n_subl * sizeof(int));
+    if (!em_G || !ex_subl || !ex_i || !ex_j || !ex_order || !ex_L || !ex_other) {
+        free(em_G); free(ex_subl); free(ex_i); free(ex_j);
+        free(ex_order); free(ex_L); free(ex_other);
+        return NAN;
+    }
+
+    for (int e = 0; e < cf->n_em; ++e)
+        em_G[e] = endmember_gibbs(d, &cf->em[e], T);
+    for (int k = 0; k < n_ex; ++k) {
+        const CefExcess *xe = &cf->ex[k];
+        ex_subl[k] = xe->subl;
+        ex_i[k] = xe->i;
+        ex_j[k] = xe->j;
+        ex_order[k] = xe->order;
+        ex_L[k] = excess_coeff_gibbs(d, xe->coeff, T);
+        for (int s = 0; s < cf->n_subl; ++s) ex_other[k * cf->n_subl + s] = xe->other[s];
+    }
+
+    double g = mqmqa_cef_gibbs(
+        T, cf->n_subl, cf->site_ratio, cf->subl_ncon, cf->subl_off, Y, cf->con_atoms,
+        cf->n_em, cf->em_con, em_G,
+        n_ex, ex_subl, ex_i, ex_j, ex_order, ex_L, ex_other,
+        per_mole_atoms);
+
+    free(em_G); free(ex_subl); free(ex_i); free(ex_j);
+    free(ex_order); free(ex_L); free(ex_other);
+    return g;
 }
 
 int mqmqa_db_num_stoich(const mqmqa_db *db) { return ((const Db *)db)->n_stoich; }

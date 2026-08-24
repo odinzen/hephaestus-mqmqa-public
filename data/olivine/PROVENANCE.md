@@ -116,6 +116,22 @@ positive, the signature of a near-ideal solution.
    (This is well below the ~600 C sometimes quoted; the value here is the one the open
    Wood & Kleppa / Dachs calorimetry actually implies, not an assessed or assumed solvus.)
 
+## Engine-readable SUBL database and the C/WASM kernel
+
+`build_subl_dat.py` writes the same model as a ChemSage **SUBL** (compound-energy) `.dat`
+file, `Olivine-CEF.dat`, which the engine's C ChemSage reader now parses (the reader gained
+SUBL-block support alongside the existing SUBQ/SUBG). The forsterite T^0.5 term rides in the
+file's "additional terms" slot as a (coefficient, exponent) pair, which both the reader and
+pycalphad evaluate as c6*T^0.5. The CEF Gibbs kernel is ported to C (`src/cef.c`,
+`mqmqa_cef_gibbs`) and compiles into the native library and the in-browser WASM build.
+
+`validate_cef_c.py` reads `Olivine-CEF.dat` with the C reader, computes GM with the C kernel,
+and compares to pycalphad's Model.GM on the same file: agreement to ~1e-10 J/mol-atom across
+composition and temperature. The reader and kernel are further regression-tested against a
+real-world SUBL database (Viitala Pb-Zn-Cu-Fe-Cl) in `tests/test_cef_vs_pycalphad.py`, which
+exercises multi-interval endmembers, log(T) terms, charged species, and vacancies (the
+per-mole-of-atoms normalization excludes vacancies, matching pycalphad).
+
 ## What is deliberately excluded
 
 No FactSage/FToxid parameters and no proprietary or optimized-TDB interaction parameters.

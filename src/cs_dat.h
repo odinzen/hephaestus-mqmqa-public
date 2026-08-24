@@ -88,6 +88,20 @@ MQMQA_API void mqmqa_ph_mqmx(const mqmqa_db *db, int p,
                              int *p_exp, int *q_exp);
 MQMQA_API void mqmqa_ph_mqmx_L(const mqmqa_db *db, int p, double T, double *L);
 
+/* --- CEF (SUBL / compound-energy-formalism) solution phases ---
+ * kind is 0 for MQMQA (SUBQ/SUBG) phases and 1 for CEF (SUBL). The accessors below
+ * apply only to CEF phases. Constituents are flattened by sublattice; site fractions
+ * passed to mqmqa_ph_cef_gibbs follow that same order (query it with the accessors).
+ * The excess Redlich-Kister mixing pair is name-sorted to match pycalphad. */
+MQMQA_API int mqmqa_db_phase_kind(const mqmqa_db *db, int p);
+MQMQA_API int mqmqa_ph_cef_num_subl(const mqmqa_db *db, int p);
+MQMQA_API void mqmqa_ph_cef_subl_ncon(const mqmqa_db *db, int p, int *out);
+MQMQA_API void mqmqa_ph_cef_site_ratio(const mqmqa_db *db, int p, double *out);
+MQMQA_API int mqmqa_ph_cef_num_constituents(const mqmqa_db *db, int p);
+MQMQA_API const char *mqmqa_ph_cef_constituent(const mqmqa_db *db, int p, int s, int i);
+MQMQA_API double mqmqa_ph_cef_gibbs(const mqmqa_db *db, int p, const double *Y,
+                                    double T, int per_mole_atoms);
+
 /* --- Stoichiometric compounds (solid oxides etc., for later equilibrium) --- */
 MQMQA_API int mqmqa_db_num_stoich(const mqmqa_db *db);
 MQMQA_API const char *mqmqa_db_stoich_name(const mqmqa_db *db, int i);

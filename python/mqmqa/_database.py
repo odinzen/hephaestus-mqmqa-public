@@ -103,6 +103,32 @@ class Database:
         _lib.mqmqa_ph_mqmx_L(self._db, p, T, L)
         return {k: list(v) for k, v in arrs.items()} | {"L": list(L)}
 
+    # --- CEF (SUBL) solution phases ---
+    def phase_kind(self, p):
+        """0 for MQMQA (SUBQ/SUBG), 1 for CEF (SUBL)."""
+        return _lib.mqmqa_db_phase_kind(self._db, p)
+
+    def cef_sublattices(self, p):
+        """The CEF sublattice model: a list of dicts, one per sublattice, each with
+        the site multiplicity and its constituent names (in the reader's order, which
+        is the order site fractions are supplied to cef_gibbs)."""
+        n_subl = _lib.mqmqa_ph_cef_num_subl(self._db, p)
+        ncon = _ffi.new("int[]", n_subl)
+        site = _ffi.new("double[]", n_subl)
+        _lib.mqmqa_ph_cef_subl_ncon(self._db, p, ncon)
+        _lib.mqmqa_ph_cef_site_ratio(self._db, p, site)
+        return [dict(site_ratio=site[s],
+                     constituents=[_s(_lib.mqmqa_ph_cef_constituent(self._db, p, s, i))
+                                   for i in range(ncon[s])])
+                for s in range(n_subl)]
+
+    def cef_gibbs(self, p, Y, T, per_mole_atoms=True):
+        """Molar Gibbs energy of a CEF phase at site fractions Y (flattened by
+        sublattice, in the order cef_sublattices reports) and temperature T."""
+        flat = [float(v) for v in Y]
+        Yc = _ffi.new("double[]", flat)
+        return _lib.mqmqa_ph_cef_gibbs(self._db, p, Yc, float(T), 1 if per_mole_atoms else 0)
+
     @property
     def stoich(self):
         return [_s(_lib.mqmqa_db_stoich_name(self._db, i))

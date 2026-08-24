@@ -110,6 +110,24 @@ _ffi.cdef(
                        int *p_exp, int *q_exp);
     void mqmqa_ph_mqmx_L(const void *db, int p, double T, double *L);
 
+    int mqmqa_db_phase_kind(const void *db, int p);
+    int mqmqa_ph_cef_num_subl(const void *db, int p);
+    void mqmqa_ph_cef_subl_ncon(const void *db, int p, int *out);
+    void mqmqa_ph_cef_site_ratio(const void *db, int p, double *out);
+    int mqmqa_ph_cef_num_constituents(const void *db, int p);
+    const char *mqmqa_ph_cef_constituent(const void *db, int p, int s, int i);
+    double mqmqa_ph_cef_gibbs(const void *db, int p, const double *Y,
+                              double T, int per_mole_atoms);
+
+    double mqmqa_cef_gibbs(
+        double T, int n_subl,
+        const double *site_ratio, const int *subl_ncon, const int *subl_off,
+        const double *Y, const double *atoms,
+        int n_em, const int *em_con, const double *em_G,
+        int n_ex, const int *ex_subl, const int *ex_i, const int *ex_j,
+        const int *ex_order, const double *ex_L, const int *ex_other,
+        int per_mole_atoms);
+
     int mqmqa_db_num_stoich(const void *db);
     const char *mqmqa_db_stoich_name(const void *db, int i);
     double mqmqa_db_stoich_gibbs(const void *db, int i, double T);

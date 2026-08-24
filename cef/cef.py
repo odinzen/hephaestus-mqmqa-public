@@ -52,9 +52,11 @@ class CEFPhase:
 
     def gibbs(self, Y, T, per_mole_atoms=True):
         """Molar Gibbs energy at site fractions Y (Y[s] = list of site fractions on
-        sublattice s, summing to 1) and temperature T. By default per mole of atoms
-        (G_formula / sum of site multiplicities), matching pycalphad's GM and the MQMQA
-        engine; set per_mole_atoms=False for per formula unit."""
+        sublattice s, summing to 1) and temperature T. By default per mole of atoms,
+        G_formula / (sum_s a_s sum_i y_i atoms_i), matching pycalphad's GM and the MQMQA
+        engine: vacancy constituents (named VA) count as zero atoms, so the divisor
+        follows composition. With no vacancies this is the constant sum of site
+        multiplicities. Set per_mole_atoms=False for per formula unit."""
         G = 0.0
         # reference: sum over endmembers of (product of site fractions) * G_endmember
         for idx, coeffs in self.endmembers.items():
@@ -79,5 +81,10 @@ class CEFPhase:
                      for v, Lv in enumerate(it["L"]))
             G += other * yi * yj * rk
         if per_mole_atoms:
-            G /= sum(a_s for a_s, _ in self.subl)
+            divisor = 0.0
+            for s, (a_s, names) in enumerate(self.subl):
+                atoms = sum(Y[s][i] * (0.0 if names[i] == "VA" else 1.0)
+                            for i in range(len(names)))
+                divisor += a_s * atoms
+            G /= divisor
         return G

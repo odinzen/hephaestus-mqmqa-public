@@ -29,6 +29,15 @@ by the binary-reduction guard below):
 - The **FeO(l) below-1650 K phase-diagram recalibration** from FeO-SiO2 v0.3 (a second
   temperature interval on the FeO endmember, `beta = -69.84 J/mol/K`) carries over unchanged -
   it is a property of the FeO liquid endmember, so it applies ternary-wide.
+- An **MgO(l) below-3098 K liquidus calibration** (`MGO_LIQ_BETA = +2.975 J/mol/K`, a second
+  temperature interval on the MgO endmember) is applied here so the liquid melts the measured
+  (Robie-Hemingway) forsterite - the olivine CEF endmember, `data/olivine` - congruently at
+  2163 K. It is orthogonal to the MgO-SiO2 activities (a pure MgO endmember shift), and is the
+  Mg analogue of the FeO(l) treatment: both put the liquid on the same measured olivine
+  endmembers the solid solution uses. The shipped MgO-SiO2 *binary* keeps its own assessment
+  (its forsterite melts ~2130 K against its co-optimized solid); unifying MgO(l) across the
+  binary and the ternary is a documented cleanup. `fit_mgo_beta` in `olivine_join.py`
+  reproduces the value.
 - Endmembers: FeO (JANAF, with the v0.3 correction), MgO (CODATA/JANAF, `data/mgo-sio2`),
   SiO2 (Robie-Hemingway solid + JANAF fusion, identical in both binaries). Cation indexing in
   the .dat is Fe=1, Mg=2, Si=3; the single anion O=4.
@@ -50,15 +59,14 @@ independent of any equilibrium solver):
 ## Honest limits (v0.2 / next targets)
 
 - **FeO-MgO ideal** is a first approximation (see above).
-- **Olivine melting loop (preliminary, `olivine_join.py`).** The Mg2SiO4-Fe2SiO4 join
-  (liquid <-> olivine CEF, common tangent along x_SiO2 = 1/3) is computed with our own stack.
-  The topology is correct and the fayalite end is essentially exact (1476 K vs 1478 K
-  measured), but the forsterite end is ~91 K high: the MgO-SiO2 liquid was assessed against a
-  co-optimized forsterite solid that differs from the olivine CEF (Robie-Hemingway) forsterite
-  endmember by ~4.7 kJ/formula, and on this join the liquid meets the R&H forsterite.
-  Reconciling the two forsterite representations, and a smoother ternary liquid minimizer, are
-  the v0.2 targets. The full olivine + orthopyroxene + liquid diagram (adding
-  `data/olivine-opx`) follows from the same machinery.
+- **Olivine melting loop (`olivine_join.py`).** The Mg2SiO4-Fe2SiO4 join (liquid <-> olivine
+  CEF, common tangent along x_SiO2 = 1/3) computed with our own stack now reproduces BOTH
+  congruent endpoints - forsterite 2163 K and fayalite 1476 K (measured 2163 / 1478) - after
+  the MgO(l) reconciliation above, and its lens shape/width matches Bowen & Schairer. The
+  interior liquidus still carries small facets from the few-J ternary liquid-minimizer noise
+  (warm-started, polynomial-smoothed multi-start); an exact ternary minimizer / the C
+  multiphase hull is the fix. The olivine solid side is exact. The full olivine +
+  orthopyroxene + liquid diagram (adding `data/olivine-opx`) follows from the same machinery.
 - The engine's general multi-cation **equilibrium solver** (SLSQP) is not accurate enough for
   a phase diagram (the binary work uses an exact 1-D solve for the same reason); an accurate
   ternary minimizer / the C-port of the multiphase hull is an engine-roadmap item. Diagram

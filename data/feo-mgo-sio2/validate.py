@@ -90,15 +90,35 @@ def check_vs_pycalphad(n=5, tol=1e-6):
     return worst
 
 
+def _beta_matched_mgo_reference():
+    """Build a MgO-SiO2 binary .dat with the assessed excess AND the ternary's MgO(l)
+    forsterite-liquidus beta, so the ternary's MgO edge reduces to it exactly (up to the
+    binary builder's 8-figure endmember rounding)."""
+    mgo_bd = _load("mgo_bd_ref", "mgo-sio2/build_dat.py")
+    # the assessed excess, in binary (Mg=1,Si=2,O=3) indexing (matches the shipped .dat)
+    excess = [dict(code="Q", li=[1, 2, 3, 3], exp=ex["exp"], coeffs=list(ex["coeffs"]))
+              for ex in bd.EX_MGO_SIO2]
+    txt = mgo_bd.build(excess=excess, version="beta-ref", mgo_liq_beta=bd.MGO_LIQ_BETA)
+    ref = HERE / "_mgo_beta_ref.dat"
+    ref.write_text(txt, encoding="ascii")
+    return ref
+
+
 def check_binary_reduction(tol=1e-2):
     """Ternary at a binary edge == the shipped binary .dat.
 
-    Tolerance is 1e-2 J, not machine precision: the shipped MgO-SiO2 .dat stores its
-    endmember Gibbs coefficients at 8 significant figures (%.8E) while the ternary writes
-    full precision (%.12E), a ~2e-4 J rounding on the MgO edge. The FeO-SiO2 edge is exact
-    (that binary already uses %.12E). A real excess-coefficient typo would be hundreds of J,
-    far above this floor - the guard still catches it."""
+    The ternary MgO(l) carries the forsterite-liquidus recalibration (MGO_LIQ_BETA), which
+    the shipped MgO-SiO2 binary does not, so the edge is compared against a beta-matched
+    MgO-SiO2 reference (same assessed excess, same beta) built on the fly - isolating the
+    excess transcription from the deliberate endmember calibration.
+
+    Tolerance is 1e-2 J, not machine precision: the MgO-SiO2 builder stores endmember
+    coefficients at 8 significant figures (%.8E) while the ternary writes full precision
+    (%.12E), a ~2e-4 J rounding on the MgO edge. The FeO-SiO2 edge is exact (that binary
+    already uses %.12E). A real excess-coefficient typo would be hundreds of J, far above
+    this floor - the guard still catches it."""
     _, _, inpT, keysT = _engine_setup(DAT)
+    mgo_ref = _beta_matched_mgo_reference()
 
     def reduce(binary_dat, present):
         _, _, inpB, keysB = _engine_setup(binary_dat)
@@ -116,7 +136,7 @@ def check_binary_reduction(tol=1e-2):
         return gmB, gmT
 
     gmB1, gmT1 = reduce(FEO_DAT, "FE")
-    gmB2, gmT2 = reduce(MGO_DAT, "MG")
+    gmB2, gmT2 = reduce(mgo_ref, "MG")
     d1, d2 = abs(gmB1 - gmT1), abs(gmB2 - gmT2)
     print(f"2) reduction to shipped binaries (transcription guard):")
     print(f"   FeO-SiO2 edge: binary={gmB1:.4f} ternary={gmT1:.4f}  |diff|={d1:.2e}  "

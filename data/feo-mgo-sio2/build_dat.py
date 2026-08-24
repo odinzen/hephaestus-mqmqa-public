@@ -40,6 +40,12 @@ _mgo = _load("bd_mgo_sio2", "mgo-sio2/build_dat.py")
 
 # FeO(l) v0.3 below-melting correction (from data/feo-sio2/v03_fit.py)
 FEO_LIQ_BETA = -69.84464900364951
+# MgO(l) below-melting correction, fit so the MgO-SiO2 liquid melts the measured (Robie-
+# Hemingway) forsterite - the olivine CEF endmember, data/olivine - congruently at 2163 K
+# (Bowen & Schairer 1935). Analytic single-point fit, verified to reproduce 2163 K exactly;
+# see olivine_join.py::fit_mgo_beta. Orthogonal to the MgO-SiO2 activities (a pure MgO
+# endmember shift), so it moves only the absolute stability / forsterite liquidus.
+MGO_LIQ_BETA = 2.9753836245721774
 
 Z_PER_CHARGE = _feo.Z_PER_CHARGE  # 1.3774438 / 2, identical in both binaries
 assert Z_PER_CHARGE == _mgo.Z_PER_CHARGE
@@ -79,12 +85,26 @@ def _fmt(x):
     return f"{x:.12E}"
 
 
+def _below_tm_intervals(base, Tm, beta):
+    """Two Gibbs intervals: base + beta*(T-Tm) below Tm (continuous, zero at/above Tm)."""
+    if not beta:
+        return [(6000.0, base)]
+    corr = list(base)
+    corr[0] += -Tm * beta
+    corr[1] += beta
+    return [(Tm, corr), (6000.0, base)]
+
+
 def _intervals(name):
-    """Endmember Gibbs intervals; FeO carries the v0.3 below-1650 K correction."""
+    """Endmember Gibbs intervals. FeO carries the v0.3 below-1650 K activity/liquidus
+    calibration; MgO carries the below-3098 K forsterite-liquidus calibration."""
     d = OXIDES[name]
+    base = d["src"].liquid_gibbs_coeffs(d["ox"])
     if name == "FeO":
-        return _feo._feo_liquid_intervals(d["ox"], FEO_LIQ_BETA)
-    return [(6000.0, d["src"].liquid_gibbs_coeffs(d["ox"]))]
+        return _below_tm_intervals(base, _feo.FEO_TM, FEO_LIQ_BETA)
+    if name == "MgO":
+        return _below_tm_intervals(base, _mgo.MGO_TM, MGO_LIQ_BETA)
+    return [(6000.0, base)]
 
 
 def _mqmx_block(excess):

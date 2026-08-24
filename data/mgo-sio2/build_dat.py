@@ -108,8 +108,11 @@ def _mqmx_block(excess):
     return out
 
 
+MGO_TM = 3098.0  # MgO melting point (K); the liquid correction applies only below it
+
+
 def build(excess=None, version=None, z_si=None, z_o_si=None, zeta_si=None,
-          z_mixed=None, dcp_fus_sio2=None):
+          z_mixed=None, dcp_fus_sio2=None, mgo_liq_beta=0.0):
     """SiO2 pure-quadruplet coordination overrides (the v0.4 lever). Defaults (None)
     give the charge-proportional base (Z_Si=2.7549, Z_O=1.3774, zeta=1.3774) used in
     v0.1-v0.2. Setting z_si / z_o_si / zeta_si independently makes SiO2 non-charge-
@@ -154,10 +157,21 @@ def build(excess=None, version=None, z_si=None, z_o_si=None, zeta_si=None,
             coeffs[0] += -dcp_fus_sio2 * Tm
             coeffs[1] += dcp_fus_sio2 * (1.0 + math.log(Tm))
             coeffs[2] += -dcp_fus_sio2
+        # optional MgO(l) below-melting recalibration dG = beta*(T - MGO_TM), continuous at
+        # MgO's 1650... 3098 K melting point and zero above it (mirrors the FeO-SiO2 v0.3
+        # FeO(l) treatment). Fixes forsterite congruent melting against the measured (R&H)
+        # forsterite; orthogonal to the MgO-SiO2 activities. Two temperature intervals.
+        intervals = [(6000.0, coeffs)]
+        if name == "MgO" and mgo_liq_beta:
+            corr = list(coeffs)
+            corr[0] += -MGO_TM * mgo_liq_beta
+            corr[1] += mgo_liq_beta
+            intervals = [(MGO_TM, corr), (6000.0, coeffs)]
         ap(f" {name}")
-        # eq_type=1 (plain Gibbs, no additional terms), n_intervals=1, then n_el stoich
-        ap("   1   1   " + "   ".join(f"{s:.1f}" for s in stoich_el))
-        ap(_coeff_line(6000.0, coeffs))
+        # eq_type=1 (plain Gibbs, no additional terms), n_intervals, then n_el stoich
+        ap(f"   1   {len(intervals)}   " + "   ".join(f"{s:.1f}" for s in stoich_el))
+        for tmax, cf in intervals:
+            ap(_coeff_line(tmax, cf))
         # five quadruplet-stoichiometry values: [n_cation, n_anion, 0, 0, 0]
         ap("  " + "   ".join(f"{v:.5f}" for v in
                              [se.get(ox["cation"], 0.0), se.get(ox["anion"], 0.0), 0.0, 0.0, 0.0]))

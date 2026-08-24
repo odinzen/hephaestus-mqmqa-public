@@ -50,10 +50,15 @@ independent of any equilibrium solver):
 ## Honest limits (v0.2 / next targets)
 
 - **FeO-MgO ideal** is a first approximation (see above).
-- **No ternary phase equilibrium is computed here.** This file is the validated liquid only.
-  The olivine + orthopyroxene + liquid diagram vs Bowen & Schairer 1935 is the next step and
-  needs the CEF solids (`data/olivine`, `data/olivine-opx`) combined with this liquid in one
-  equilibrium calculation.
+- **Olivine melting loop (preliminary, `olivine_join.py`).** The Mg2SiO4-Fe2SiO4 join
+  (liquid <-> olivine CEF, common tangent along x_SiO2 = 1/3) is computed with our own stack.
+  The topology is correct and the fayalite end is essentially exact (1476 K vs 1478 K
+  measured), but the forsterite end is ~91 K high: the MgO-SiO2 liquid was assessed against a
+  co-optimized forsterite solid that differs from the olivine CEF (Robie-Hemingway) forsterite
+  endmember by ~4.7 kJ/formula, and on this join the liquid meets the R&H forsterite.
+  Reconciling the two forsterite representations, and a smoother ternary liquid minimizer, are
+  the v0.2 targets. The full olivine + orthopyroxene + liquid diagram (adding
+  `data/olivine-opx`) follows from the same machinery.
 - The engine's general multi-cation **equilibrium solver** (SLSQP) is not accurate enough for
   a phase diagram (the binary work uses an exact 1-D solve for the same reason); an accurate
   ternary minimizer / the C-port of the multiphase hull is an engine-roadmap item. Diagram

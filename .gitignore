@@ -30,3 +30,7 @@ data/*/_mlip/*.log
 data/*/*.png
 cef/_*.tdb
 cef/__pycache__/
+
+# feo-mgo-sio2 derived diagram artifacts
+data/feo-mgo-sio2/olivine_join_loop.png
+data/feo-mgo-sio2/_olivine_join_loop.npz

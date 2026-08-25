@@ -58,9 +58,13 @@ def _solid_oxide_g(ox, T):
     return H - T * S
 
 
-def build(T, nsamp=12000, n_cef=81, refine=True):
+def build(T, nsamp=12000, n_cef=81, refine=True, enstatite_shift=True):
     """Pool all candidate phases at T, build the lower hull, refine the liquid hull vertices,
-    and re-hull. Returns (points, facets) ready for `assemblage` queries."""
+    and re-hull. Returns (points, facets) ready for `assemblage` queries.
+
+    enstatite_shift toggles the high-T entropy correction on the opx Mg endmember; set it False
+    to match the UNCORRECTED opx written into the combined ChemSage .dat (used for the pycalphad
+    end-to-end solver validation, where both sides must carry identical energetics)."""
     ldb = mqmqa.Database.read(str(LIQ))
     lp = ldb.phase_index("FEO-MGO-SIO2-LIQUID")
     cdb = mqmqa.Database.read(str(OLV))
@@ -69,7 +73,8 @@ def build(T, nsamp=12000, n_cef=81, refine=True):
     liq, inp = tern.liquid_points(ldb, lp, T, nsamp=nsamp)
     solids = tern.cef_line_points(cdb, "OLIVINE", T, x_si_line=1.0 / 3.0, n_cations=3, n=n_cef)
     solids += tern.cef_line_points(odb, "ORTHOPYROXENE", T, x_si_line=1.0 / 2.0, n_cations=4,
-                                   n=n_cef, mg_endmember_shift=_enstatite_shift)
+                                   n=n_cef,
+                                   mg_endmember_shift=_enstatite_shift if enstatite_shift else None)
     solids.append(tern.stoich_point("CRISTOBALITE", 0.0, 1.0, _solid_oxide_g(_feo.OXIDES["SiO2"], T)))
     solids.append(tern.stoich_point("PERICLASE", 0.0, 0.0, _solid_oxide_g(_mgo.OXIDES["MgO"], T)))
     solids.append(tern.stoich_point("WUSTITE", 1.0, 0.0, _solid_oxide_g(_feo.OXIDES["FeO"], T)))

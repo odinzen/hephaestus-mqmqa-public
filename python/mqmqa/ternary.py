@@ -182,6 +182,20 @@ def _bary(P, tri, q):
     return np.array([l1, l2, 1.0 - l1 - l2])
 
 
+def hull_g(points, facets, x_fe, x_si, tol=1e-9):
+    """Lower-hull Gibbs energy (per mole cation) at bulk (x_fe, x_si): the covering facet's
+    plane evaluated there. This is the equilibrium G the minimizer delivers - well conditioned
+    even where the tie-line endpoints themselves are (a flat liquid surface makes the endpoint
+    lateral position soft, but the energy is not). Returns nan if outside the sampled domain."""
+    P = np.array([[p.x_fe, p.x_si, p.g] for p in points])
+    q = np.array([x_fe, x_si])
+    for tri in facets:
+        w = _bary(P, tri, q)
+        if w is not None and (w >= -tol).all():
+            return float(sum(wi * P[idx, 2] for wi, idx in zip(w, tri)))
+    return float("nan")
+
+
 def assemblage(points, facets, x_fe, x_si, tol=1e-9):
     """Stable phase assemblage at bulk cation composition (x_fe, x_si): the lower-hull facet
     covering it. Returns [(phase, amount, x_fe_phase, x_si_phase), ...] (amounts = mole

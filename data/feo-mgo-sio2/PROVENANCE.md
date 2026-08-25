@@ -72,9 +72,26 @@ VALIDATION: every phase Gibbs energy is validated separately (liquid vs pycalpha
 CEF solids in their own tests), and the hull logic is checked against the independently
 validated 1-D olivine loop - the 2-D liquid<->olivine tie-line on the x_Si=1/3 section matches
 it to ~0.01-0.03 in X_Fe - plus a lever-rule-consistent three-phase tie-triangle and
-orthopyroxene appearing in the silica-rich field (`tests/test_ternary_minimizer.py`). A full
-end-to-end check against pycalphad `equilibrium` on a combined liquid+solids .dat is the next
-validation step (it needs that .dat assembled).
+orthopyroxene appearing in the silica-rich field (`tests/test_ternary_minimizer.py`).
+
+**End-to-end validation vs pycalphad (`build_combined_dat.py`, `validate_combined.py`,
+`tests/test_ternary_combined_vs_pycalphad.py`).** `build_combined_dat.py` assembles ONE
+ChemSage .dat holding every phase - the liquid SUBQ and the olivine/opx SUBL blocks spliced
+verbatim from the shipped .dat files, plus three stoichiometric oxide blocks (cristobalite,
+periclase, wustite) generated from the same solid Gibbs coefficients the minimizer uses (Gibbs
+eq. type 1; they reproduce our `_solid_oxide_g` to ~1e-7 J/formula). pycalphad runs a full
+multi-phase `equilibrium` on that file and the minimizer runs on the same model (with
+`enstatite_shift=False`, since the opx enstatite correction is a Python-only post-hoc
+adjustment absent from the .dat). Across bulk compositions at 1600/1700 K the stable phase SET
+agrees 15/16 and the equilibrium Gibbs energy GM to 0-10 J/mol-atom at almost every point
+(worst 73 J at one liquidus-boundary sliver); solid-solution and stoichiometric-phase cation
+compositions agree to ~0.001-0.01. The soft liquid tie-line endpoints (a nearly flat liquid
+surface) match to ~0.03-0.04, the 2-D minimizer's documented sampling-resolution limit - the
+energy GM is well conditioned there, the lateral endpoint is not. The one phase-set miss is a
+thin spurious opx at a liquid/liquid+opx boundary (our sampled hull sits 73 J above the true
+minimum there); it is a boundary-resolution artifact, not a solver error. This closes the
+end-to-end validation gap: our hull equilibrium reproduces pycalphad's independent global
+minimization on the same model.
 
 ## Liquidus projection + enstatite reconciliation (`ternary_diagram.py`)
 

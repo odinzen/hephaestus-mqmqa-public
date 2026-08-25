@@ -179,23 +179,71 @@ def _isotherm_segments(level_frac_contour=0.9995):
 # isotherm colours (degC): a distinct cool -> warm progression, readable on the grey scan
 PALETTE = {1200: "#5b2c9e", 1300: "#1f6fb2", 1400: "#0f9bd7",
            1500: "#2ca030", 1600: "#e2661f", 1700: "#c81e2c"}
+# greyscale of each primary-phase field (light silica -> dark iron oxide)
+PRIMARY_GREY = [("CRISTOBALITE", 0.93), ("OLIVINE", 0.80), ("ORTHOPYROXENE", 0.60),
+                ("PERICLASE", 0.40), ("WUSTITE", 0.18)]
 
 
-def _draw_isos(ax, isos, to_cart, lw=1.5, label=True, label_dx=0.01, fs=7):
-    """Draw each isotherm's polylines, mapping cation (x_fe,x_si) through `to_cart`; label the
-    longest segment of each level at its silica-ward end (where the isotherms fan apart, rather
-    than the FeO corner where they all converge)."""
+def _primary_field_raster(ax, comps, prim, res=520):
+    """Fill the primary-phase fields as solid greyscale regions in the weight-percent triangle.
+    Nearest-neighbour rasterization avoids the white gaps that square markers leave when the
+    cation grid is stretched non-uniformly into weight fractions."""
+    from scipy.interpolate import griddata
+    grey = dict(PRIMARY_GREY)
+    m = np.array([p in grey for p in prim])
+    wf, wm, ws = to_weight(comps[m, 0], comps[m, 1])
+    X, Y = _tri_xy(wf, wm, ws)
+    vals = np.array([grey[p] for p in prim[m]])
+    h = np.sqrt(3) / 2
+    gx, gy = np.meshgrid(np.linspace(0, 1, res), np.linspace(0, h, int(res * h)))
+    gz = griddata(np.column_stack([X, Y]), vals, (gx, gy), method="nearest")
+    # antialias the blocky nearest-neighbour field boundaries (the projection grid is coarse)
+    from scipy.ndimage import uniform_filter
+    gz = uniform_filter(gz, size=7, mode="nearest")
+    w_sio2 = gy / h
+    w_feo = gx - 0.5 * w_sio2
+    w_mgo = 1.0 - w_feo - w_sio2
+    inside = (w_sio2 >= 0) & (w_feo >= 0) & (w_mgo >= 0)
+    gz = np.where(inside, gz, np.nan)
+    ax.imshow(gz, extent=[0, 1, 0, h], origin="lower", cmap="gray", vmin=0, vmax=1,
+              interpolation="nearest", zorder=0)
+
+
+def _draw_isos(ax, isos, to_cart, lw=1.5, label=True, fs=7):
+    """Draw each isotherm's polylines, mapping cation (x_fe,x_si) through `to_cart`. Labels are
+    placed greedily: each level's label goes to the point (among candidate along-arc fractions)
+    farthest from all already-placed labels, so they never pile up regardless of panel geometry.
+    A white halo keeps them legible over the scan."""
     for c in LEVELS_C:
         col = PALETTE[c]
         for seg in isos.get(c, []):
             X, Y = to_cart(seg[:, 0], seg[:, 1])
-            ax.plot(X, Y, color=col, lw=lw, solid_capstyle="round")
-        if label and isos.get(c):
-            seg = max(isos[c], key=len)
-            k = int(np.argmin(seg[:, 0]))  # smallest x_Fe = silica/MgO-ward, spread-apart end
-            X, Y = to_cart(seg[:, 0], seg[:, 1])
-            ax.text(X[k] - label_dx, Y[k], f"{c}", color=col, fontsize=fs, va="center",
-                    ha="right", fontweight="bold", clip_on=True)
+            ax.plot(X, Y, color=col, lw=lw, solid_capstyle="round", zorder=3)
+
+    if not label:
+        return
+    placed = []
+    fracs = np.linspace(0.2, 0.8, 13)
+    for c in LEVELS_C:
+        if not isos.get(c):
+            continue
+        seg = max(isos[c], key=len)
+        s = seg if seg[0, 1] >= seg[-1, 1] else seg[::-1]
+        d = np.r_[0, np.cumsum(np.hypot(np.diff(s[:, 0]), np.diff(s[:, 1])))]
+        cand_xy = []
+        for f in fracs:
+            p = s[int(np.searchsorted(d, f * d[-1]))]
+            X, Y = to_cart(np.array([p[0]]), np.array([p[1]]))
+            cand_xy.append((X[0], Y[0]))
+        if placed:
+            dists = [min((cx - px) ** 2 + (cy - py) ** 2 for px, py in placed) for cx, cy in cand_xy]
+            cx, cy = cand_xy[int(np.argmax(dists))]
+        else:
+            cx, cy = cand_xy[len(cand_xy) // 2]
+        placed.append((cx, cy))
+        ax.text(cx, cy, f"{c}", color=PALETTE[c], fontsize=fs, va="center", ha="center",
+                fontweight="bold", clip_on=True, zorder=4,
+                bbox=dict(facecolor="white", edgecolor="none", alpha=0.75, pad=0.6))
 
 
 def main(bs_fig=None):
@@ -214,24 +262,21 @@ def main(bs_fig=None):
 
     # left panel: primary-phase fields (weight %) + our isotherms
     if PROJ_NPZ.exists():
+        from matplotlib.patches import Patch
         d = np.load(PROJ_NPZ, allow_pickle=True)
         comps = d["comps"]; prim = d["prim"].astype(str)
-        greys = [("CRISTOBALITE", 0.93), ("OLIVINE", 0.80), ("ORTHOPYROXENE", 0.60),
-                 ("PERICLASE", 0.40), ("WUSTITE", 0.18)]
-        for name, gv in greys:
-            sel = prim == name
-            if sel.any():
-                X, Y = cart_wt(comps[sel, 0], comps[sel, 1])
-                axL.scatter(X, Y, s=42, marker="s", color=str(gv), edgecolors="none",
-                            label=name.title())
-    _draw_isos(axL, isos, cart_wt, label_dx=0.012, fs=7)
+        _primary_field_raster(axL, comps, prim)
+        handles = [Patch(facecolor=str(gv), edgecolor="none", label=name.title())
+                   for name, gv in PRIMARY_GREY if (prim == name).any()]
+        axL.legend(handles=handles, loc="upper left", fontsize=7, frameon=False,
+                   title="Primary phase")
+    _draw_isos(axL, isos, cart_wt, fs=7)
     for a, b in [((0, 0), (1, 0)), ((1, 0), (0.5, np.sqrt(3) / 2)), ((0.5, np.sqrt(3) / 2), (0, 0))]:
         axL.plot([a[0], b[0]], [a[1], b[1]], color="0.1", lw=1.2)
     axL.text(-0.02, -0.045, "MgO", ha="right"); axL.text(1.02, -0.045, "FeO", ha="left")
     axL.text(0.5, np.sqrt(3) / 2 + 0.03, "SiO$_2$", ha="center")
     axL.set_title("Ours: primary-phase fields + liquidus isotherms (degC)", fontsize=10)
     axL.set_aspect("equal"); axL.axis("off")
-    axL.legend(loc="upper left", fontsize=7, frameon=False, title="Primary phase")
 
     if bs_fig:
         import matplotlib.image as mpimg
@@ -243,7 +288,7 @@ def main(bs_fig=None):
             px = _to_px(*to_weight(x_fe, x_si))
             return px[:, 0], px[:, 1]
 
-        _draw_isos(axR, isos, cart_px, lw=1.4, label_dx=9, fs=7.5)
+        _draw_isos(axR, isos, cart_px, lw=1.4, fs=7.5)
         axR.set_xlim(300, 1620); axR.set_ylim(1780, 600)
         axR.set_title("Our isotherms (coloured, degC) on Bowen-Schairer Fig. 6 (black)",
                       fontsize=10)

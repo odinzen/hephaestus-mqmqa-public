@@ -6,14 +6,19 @@
 <!-- Defence in depth for a privacy-first tool: the app is same-origin only, so connect-src 'self'
      means even a residual injection cannot exfiltrate a user's uploaded compositions to another host.
      'wasm-unsafe-eval' lets the engine instantiate; inline script/style are the app's own one-file
-     build. Fonts are the only third-party origin (self-host them to close that privacy leak too). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+     build. Fonts are self-hosted (fonts/, OFL) so no third-party origin ever sees a visitor. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>hephaestus-mqmqa</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Fira+Code:wght@500;600&display=swap" rel="stylesheet">
 <script>document.documentElement.dataset.theme = localStorage.getItem("hephaestus-theme") || "dark";</script>
 <style>
+  /* Self-hosted fonts (latin subsets, SIL OFL 1.1): Chakra Petch static 600/700,
+     Fira Code one variable file spanning 500-600. Missing glyphs fall back. */
+  @font-face { font-family:"Chakra Petch"; font-style:normal; font-weight:600; font-display:swap;
+               src:url(fonts/ChakraPetch-600-latin.woff2) format("woff2"); }
+  @font-face { font-family:"Chakra Petch"; font-style:normal; font-weight:700; font-display:swap;
+               src:url(fonts/ChakraPetch-700-latin.woff2) format("woff2"); }
+  @font-face { font-family:"Fira Code"; font-style:normal; font-weight:500 600; font-display:swap;
+               src:url(fonts/FiraCode-latin.woff2) format("woff2"); }
   :root {
     --radius: 10px;
     --font-ui: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;

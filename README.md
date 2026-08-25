@@ -41,12 +41,35 @@ salt from the 2023 pycalphad paper). Nothing is claimed working until it matches
 
 ## Status
 
-The C energy path is complete and validated to machine precision against pycalphad:
-reference, ideal-mixing, and excess energies, plus recursive coordination numbers. A
-ChemSage `.dat` reader loads the pair, coordination, and excess parameters and the
-SUBQ/SUBG phase structure with no pycalphad at runtime (pycalphad stays the oracle).
-Next up: the excess-model cases the reader unlocks, then the equilibrium solver, then
-the WebAssembly build and browser calculator. See `docs/DESIGN.md`.
+The C core is complete and validated to machine precision against pycalphad: the full
+MQMQA energy path (reference, ideal mixing, excess, recursive coordination numbers), a
+ChemSage `.dat` reader (SUBQ/SUBG liquids, SUBL solid solutions, stoichiometric
+compounds), a compound-energy-formalism Gibbs kernel, and equilibrium solving up to
+full ternary isothermal sections by grid sampling plus lower convex hull. An open,
+literature-only slag database family lives in `data/` (CaO-SiO2, MgO-SiO2, FeO-SiO2,
+and the FeO-MgO-SiO2 ternary with olivine and orthopyroxene solid solutions), every
+parameter traced to published measurements in the per-system provenance notes.
+`python/mqmqa/dbbuild.py` turns a user's own measured data into a loadable `.dat`
+(free up to four components). See `docs/DESIGN.md`.
+
+## The browser app
+
+`web/index.html` is the zero-install face of the engine: the C core compiled to
+WebAssembly (`scripts/build_wasm.sh`, committed as `web/hephaestus.js`) with a live
+melt calculator, the assessed FeO-MgO-SiO2 phase-diagram viewer, a live
+isothermal-section solver, and a multicomponent eutectic builder. Everything runs in
+the page: a loaded database never leaves the visitor's machine, the CSP blocks every
+third-party request, and the fonts are self-hosted. Serve it from any static host, or
+locally:
+
+    cd web && python -m http.server 8123
+
+The hosted site is the `gh-pages` branch: the tracked contents of `web/` at the branch
+root, no CI and no build step. GitHub Pages serves it once enabled (Settings -> Pages ->
+Deploy from a branch -> `gh-pages`, `/ (root)`). After changing `web/` on `main`,
+refresh the branch with:
+
+    git push origin "$(git subtree split --prefix web main)":gh-pages
 
 ## Publication
 

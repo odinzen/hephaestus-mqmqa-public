@@ -13,8 +13,11 @@ _cffi_*.c
 # Reference oracle dumps that are regenerated
 reference/*.raw.json
 
-# WASM build output (regenerated from src by scripts/build_wasm.sh)
-web/hephaestus.js
+# WASM build output. hephaestus.js IS committed (single-file build, ~300 KB): the hosted
+# site is just the tracked web/ tree served as-is (gh-pages branch, no CI, no build
+# step), so what deploys is byte-for-byte what was verified locally. Rebuild with
+# scripts/build_wasm.sh and re-commit whenever src/ changes; the split .wasm variant
+# stays ignored.
 web/hephaestus.wasm
 
 # Local demo data (not committed)

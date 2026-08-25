@@ -274,8 +274,8 @@ def main(bs_fig=None):
     for a, b in [((0, 0), (1, 0)), ((1, 0), (0.5, np.sqrt(3) / 2)), ((0.5, np.sqrt(3) / 2), (0, 0))]:
         axL.plot([a[0], b[0]], [a[1], b[1]], color="0.1", lw=1.2)
     axL.text(-0.02, -0.045, "MgO", ha="right"); axL.text(1.02, -0.045, "FeO", ha="left")
-    axL.text(0.5, np.sqrt(3) / 2 + 0.03, "SiO$_2$", ha="center")
-    axL.set_title("Ours: primary-phase fields + liquidus isotherms (degC)", fontsize=10)
+    axL.text(0.5, np.sqrt(3) / 2 + 0.02, "SiO$_2$", ha="center", va="bottom", fontsize=10)
+    axL.set_title("Ours: primary-phase fields + isotherms (°C)", fontsize=10, pad=34)
     axL.set_aspect("equal"); axL.axis("off")
 
     if bs_fig:
@@ -290,11 +290,11 @@ def main(bs_fig=None):
 
         _draw_isos(axR, isos, cart_px, lw=1.4, fs=7.5)
         axR.set_xlim(300, 1620); axR.set_ylim(1780, 600)
-        axR.set_title("Our isotherms (coloured, degC) on Bowen-Schairer Fig. 6 (black)",
-                      fontsize=10)
+        axR.set_title("Our isotherms (coloured, °C) on Bowen-Schairer Fig. 6 (black)",
+                      fontsize=10, pad=12)
         axR.axis("off")
 
-    fig.tight_layout()
+    fig.tight_layout(rect=[0, 0, 1, 0.93])
     out = HERE / "bs_comparison.png"
     fig.savefig(out, dpi=170)
     print(f"wrote {out}")

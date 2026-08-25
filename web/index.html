@@ -1293,6 +1293,7 @@ document.getElementById('theme').addEventListener('click', () => {
   const W=cv.width,H=cv.height,PAD=46,S=W-2*PAD,HT=Math.sqrt(3)/2, yBase=H-PAD, apexY=yBase-S*HT;
   const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   const cap=s=>s.charAt(0)+s.slice(1).toLowerCase();
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const asmLabel=ph=>ph.map(cap).join(' + ');
   const Mm={FeO:71.844,MgO:40.304,SiO2:60.083};
   // corners: MgO left (0,0), FeO right (1,0), SiO2 apex (0,1) - same as the precomputed viewer
@@ -1409,7 +1410,7 @@ document.getElementById('theme').addEventListener('click', () => {
     const keys=Object.keys(phByKey).sort((x,y)=>{ const A=phByKey[x],B=phByKey[y];
       return A.length-B.length || A.join().localeCompare(B.join()); });
     for(const k of keys){ const ph=phByKey[k],[r,g,b]=colByKey[k], sp=document.createElement('span');
-      sp.innerHTML='<span class="swatch" style="background:rgb('+r+','+g+','+b+')"></span>'+asmLabel(ph);
+      sp.innerHTML='<span class="swatch" style="background:rgb('+r+','+g+','+b+')"></span>'+esc(asmLabel(ph));
       leg.appendChild(sp); }
   }
 
@@ -1457,6 +1458,8 @@ document.getElementById('theme').addEventListener('click', () => {
   const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   const $=id=>document.getElementById(id);
   const COMPCOL=['#7ca24f','#e2711f','#6e83c0','#a75f49','#4f9a94','#b48ec4'];
+  // escape user-typed component names before they reach innerHTML (blocks HTML/script injection)
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const hex2rgb=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
   const COMPRGB=COMPCOL.map(hex2rgb);
   // preset: N + per-component [name, Tm(°C), dH(kJ/mol)] + Wa(kJ), Wb(J/mol·K). The ternary/quaternary
@@ -1629,7 +1632,7 @@ document.getElementById('theme').addEventListener('click', () => {
     if(!eut){ res.innerHTML='<div class="bld-prem"><h3>No eutectic found</h3>'
       +'<p>Check the melting points and heats of fusion.</p></div>'; $('bldread').textContent=''; setLegend([]); return; }
     const bars=C.map((c,k)=>{ const pct=(eut.x[k]*100);
-      return '<div class="bld-bar"><span class="nm">'+c.name+'</span>'
+      return '<div class="bld-bar"><span class="nm">'+esc(c.name)+'</span>'
         +'<span class="track"><span class="fill" style="width:'+pct.toFixed(1)+'%;background:'+COMPCOL[k]+'"></span></span>'
         +'<span class="amt">'+eut.x[k].toFixed(3)+'</span></div>'; }).join('');
     res.innerHTML='<h3>Four-component eutectic<span class="bld-feature">beyond FactSage free</span></h3>'
@@ -1655,7 +1658,7 @@ document.getElementById('theme').addEventListener('click', () => {
   function setLegend(C){ const el=$('bld-legend');
     if(!C.length){ el.innerHTML=''; return; }
     el.innerHTML=C.map((c,k)=>'<span><span class="swatch" style="background:'+COMPCOL[k]+'"></span>'
-      +c.name+' primary</span>').join('')
+      +esc(c.name)+' primary</span>').join('')
       +'<span><span class="swatch" style="background:var(--ink)"></span>eutectic</span>';
   }
 

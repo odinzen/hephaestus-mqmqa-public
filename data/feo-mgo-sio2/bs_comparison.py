@@ -294,7 +294,7 @@ def main(bs_fig=None):
                       fontsize=10, pad=12)
         axR.axis("off")
 
-    fig.tight_layout(rect=[0, 0, 1, 0.93])
+    fig.tight_layout(rect=[0, 0.03, 1, 0.94])
     out = HERE / "bs_comparison.png"
     fig.savefig(out, dpi=170)
     print(f"wrote {out}")

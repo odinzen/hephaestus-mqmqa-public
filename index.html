@@ -441,7 +441,11 @@ let api = null, db = 0, phase = 0, nPairs = 0, catNames = [], anNames = [];
 
 Hephaestus().then(M => {
   api = {
-    read:   M.cwrap('mqmqa_db_read_string','number',['string']),
+    // Marshal the .dat text through the HEAP, not cwrap's default 'string' (which copies onto the
+    // WASM stack). A large file as a stack copy overflows the small stack -> "memory access out of
+    // bounds" kills the whole module. The heap grows (ALLOW_MEMORY_GROWTH), so any size is safe.
+    read:   txt => { const n=M.lengthBytesUTF8(txt)+1, p=M._malloc(n); M.stringToUTF8(txt,p,n);
+              const db=M.ccall('mqmqa_db_read_string','number',['number'],[p]); M._free(p); return db; },
     error:  M.cwrap('mqmqa_db_error','string',[]),
     free:   M.cwrap('mqmqa_db_free',null,['number']),
     nEl:    M.cwrap('mqmqa_db_num_elements','number',['number']),
@@ -498,9 +502,16 @@ document.getElementById('example').addEventListener('click', async () => {
 
 function loadDatabase(text, name) {
   const M = api.M;
+  const msg = document.getElementById('loadmsg');
+  // Friendly guard: a real ChemSage database is well under a megabyte. If someone picks the wrong
+  // file (a photo, a spreadsheet, a PDF), say so plainly instead of trying to parse megabytes.
+  if (text.length > 8 * 1024 * 1024) {
+    msg.textContent = 'This file is too large to be a thermodynamic database (' +
+      (text.length / 1048576).toFixed(1) + ' MB). Please choose a ChemSage .dat file.';
+    return;
+  }
   if (db) { api.free(db); db = 0; }
   db = api.read(text);
-  const msg = document.getElementById('loadmsg');
   if (!db) { msg.textContent = 'Could not read this file: ' + api.error(); return; }
 
   phase = 0; // first solution phase

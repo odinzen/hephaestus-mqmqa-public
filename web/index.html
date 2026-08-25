@@ -135,6 +135,21 @@
   .tern-live b { color:var(--brand); }
   .tern-liveout { display:block; margin-top:.4rem; font-family:var(--font-mono);
                   color:var(--ink); min-height:1.2em; }
+  /* phase diagram builder */
+  .bld-ctl { margin-bottom:.7rem; }
+  .bld-ctl label, .bld-comp label { display:flex; flex-direction:column; gap:.2rem;
+        font-size:var(--fs-sm); color:var(--muted); }
+  .bld-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem 1.3rem;
+        margin-bottom:1rem; }
+  .bld-comp { display:flex; flex-direction:column; gap:.55rem; }
+  .bld-comp input[type=text], .bld-comp input[type=number] { font:inherit; padding:.35rem .5rem;
+        border:1px solid var(--line); border-radius:6px; background:var(--field); color:var(--ink); }
+  .bld-comp input[type=range] { accent-color:var(--brand); }
+  .bld-num { font-family:var(--font-mono); color:var(--ink); }
+  .bld-hint { font-size:var(--fs-xs); color:var(--muted); margin-top:.2rem; line-height:1.4; }
+  .bld-wrap { max-width:40rem; margin:.2rem auto 0; }
+  #bldcanvas { width:100%; height:auto; display:block; }
+  @media (max-width:640px){ .bld-grid { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -277,6 +292,50 @@
       section temperature. Reports the liquid Gibbs energy and dominant melt species.
       <span id="ternliveout" class="tern-liveout"></span>
     </div>
+  </div>
+
+  <div class="card" id="buildercard">
+    <h2>Phase diagram builder &middot; build &amp; tune your own<span class="tern-badge">your data</span></h2>
+    <p class="tern-note">Enter a two-component system's own data &mdash; each component's melting
+      point and heat of fusion, plus the liquid interaction energy W &mdash; and the engine computes
+      its phase diagram live from regular-solution thermodynamics. Change any value (the sliders are
+      quickest) and watch the liquidus and eutectic move. Load a preset to start, or clear it and
+      enter a brand-new system.</p>
+    <div class="bld-ctl">
+      <label>Preset
+        <select id="bld-preset">
+          <option value="eutectic">Simple eutectic</option>
+          <option value="ideal">Ideal solution (W = 0)</option>
+          <option value="oxide">Oxide-like (deep eutectic)</option>
+        </select>
+      </label>
+    </div>
+    <div class="bld-grid">
+      <div class="bld-comp">
+        <label>Component A name<input type="text" id="bA-name" value="A"></label>
+        <label>Melting point A (°C)<input type="number" id="bA-Tm" value="1427" step="10"></label>
+        <label>Heat of fusion A (kJ/mol)<input type="number" id="bA-dH" value="30" step="1"></label>
+      </div>
+      <div class="bld-comp">
+        <label>Component B name<input type="text" id="bB-name" value="B"></label>
+        <label>Melting point B (°C)<input type="number" id="bB-Tm" value="1127" step="10"></label>
+        <label>Heat of fusion B (kJ/mol)<input type="number" id="bB-dH" value="25" step="1"></label>
+      </div>
+      <div class="bld-comp">
+        <label>Liquid interaction W (kJ/mol)
+          <input type="range" id="bW-a" min="-40" max="60" step="1" value="10">
+          <b id="bW-a-val" class="bld-num"></b></label>
+        <label>W temperature term (J/mol·K)
+          <input type="range" id="bW-b" min="-20" max="20" step="0.5" value="0">
+          <b id="bW-b-val" class="bld-num"></b></label>
+        <div class="bld-hint">W &lt; 0 (components attract): a deeper eutectic &mdash; the
+          deep-eutectic-solvent regime; strongly negative &rarr; compound formation.
+          W &gt; 0 (components repel): a shallower eutectic that rises toward liquid immiscibility
+          (a monotectic) as W grows.</div>
+      </div>
+    </div>
+    <div class="bld-wrap"><canvas id="bldcanvas" width="640" height="460"></canvas></div>
+    <div class="tern-read" id="bldread">&nbsp;</div>
   </div>
 
   <footer>
@@ -1136,6 +1195,117 @@ document.getElementById('theme').addEventListener('click', () => {
         +' J/mol-atom' + (L.top.length?'   ·   melt: '+L.top.join(', '):'');
     }, 20);
   });
+})();
+</script>
+<script>
+/* Phase diagram builder: a regular-solution binary computed live from the user's own inputs.
+   x = mole fraction of B. Solid A + liquid liquidus solves dHA(1-T/TA)+R T ln(1-x)+W(T) x^2 = 0;
+   solid B + liquid the mirror; the eutectic is where the two liquidus branches meet. Fully
+   analytical - no engine needed - so a scientist can enter a new system or tune an existing one
+   and watch the diagram respond. Validated against a Python reference (eutectic 977 °C, x=0.715). */
+(function(){
+  const cv=document.getElementById('bldcanvas'); if(!cv) return;
+  const ctx=cv.getContext('2d'), R=8.3145, W=cv.width, H=cv.height;
+  const ML=58,MR=22,MT=26,MB=46, PW=W-ML-MR, PH=H-MT-MB;
+  const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const $=id=>document.getElementById(id);
+  const PRESETS={
+    eutectic:{A:['A',1427,30],B:['B',1127,25],Wa:10,Wb:0},
+    ideal:   {A:['A',1427,30],B:['B',1127,25],Wa:0, Wb:0},
+    oxide:   {A:['SiO2',1723,9.6],B:['CaSiO3',1544,56],Wa:26,Wb:0},
+  };
+
+  function inputs(){
+    return { nA:$('bA-name').value||'A', TA:(+$('bA-Tm').value)+273.15, dHA:(+$('bA-dH').value)*1000,
+             nB:$('bB-name').value||'B', TB:(+$('bB-Tm').value)+273.15, dHB:(+$('bB-dH').value)*1000,
+             Wa:(+$('bW-a').value)*1000, Wb:(+$('bW-b').value) }; }
+  function bisect(f,lo,hi){ let flo=f(lo),fhi=f(hi); if(!(flo*fhi<0)) return NaN;
+    for(let i=0;i<80;i++){ const m=(lo+hi)/2, fm=f(m); if(flo*fm<=0){hi=m;fhi=fm;}else{lo=m;flo=fm;} }
+    return (lo+hi)/2; }
+  function branchA(x,p){ x=Math.min(Math.max(x,1e-6),1-1e-6);
+    return bisect(T=>p.dHA*(1-T/p.TA)+R*T*Math.log(1-x)+(p.Wa+p.Wb*T)*x*x, 50, 8000); }
+  function branchB(x,p){ x=Math.min(Math.max(x,1e-6),1-1e-6);
+    return bisect(T=>p.dHB*(1-T/p.TB)+R*T*Math.log(x)+(p.Wa+p.Wb*T)*(1-x)*(1-x), 50, 8000); }
+  function eutectic(p){
+    // the two liquidus branches meet where branchA - branchB changes sign; scan only where BOTH
+    // are defined (a branch is undefined near a pure edge when that solid cannot be in equilibrium
+    // with the near-pure-other-component liquid), so an asymmetric system still resolves.
+    const d=x=>{const a=branchA(x,p),b=branchB(x,p); return (isFinite(a)&&isFinite(b))?a-b:NaN;};
+    let prev=NaN, px=NaN;
+    for(let k=1;k<300;k++){ const x=k/300, v=d(x);
+      if(isFinite(v)){
+        if(isFinite(prev) && prev*v<0){ const xe=bisect(d,px,x);
+          if(isFinite(xe)) return {x:xe,T:branchA(xe,p)}; }
+        prev=v; px=x;
+      } else { prev=NaN; px=NaN; }
+    }
+    return null;
+  }
+
+  function draw(){
+    const p=inputs(); $('bW-a-val').textContent=(+$('bW-a').value)+' kJ/mol';
+    $('bW-b-val').textContent=(+$('bW-b').value)+' J/mol·K';
+    const eut=eutectic(p);
+    const TmaxC=Math.max(p.TA,p.TB)-273.15+110;
+    const TminC=(eut?eut.T-273.15:Math.min(p.TA,p.TB)-273.15)-140;
+    const X=xB=>ML+xB*PW, Y=TC=>MT+(TmaxC-TC)/(TmaxC-TminC)*PH;
+    ctx.clearRect(0,0,W,H);
+    const ink=css('--ink'), line=css('--line'), muted=css('--muted'), brand=css('--brand'), card=css('--card');
+    // region shading (liquid light, two-phase mid, solid dark) via simple bands is skipped for clarity;
+    // axes
+    ctx.strokeStyle=line; ctx.lineWidth=1; ctx.strokeRect(ML,MT,PW,PH);
+    ctx.fillStyle=muted; ctx.font='11px '+css('--font-ui'); ctx.textAlign='center';
+    for(let k=0;k<=5;k++){ const xb=k/5, x=X(xb); ctx.beginPath();ctx.moveTo(x,MT+PH);ctx.lineTo(x,MT+PH+4);ctx.stroke();
+      ctx.textBaseline='top'; ctx.fillText(xb.toFixed(1), x, MT+PH+6); }
+    ctx.textAlign='right'; ctx.textBaseline='middle';
+    const tstep=Math.ceil((TmaxC-TminC)/6/50)*50;
+    for(let T=Math.ceil(TminC/tstep)*tstep;T<=TmaxC;T+=tstep){ const y=Y(T); if(y<MT-1||y>MT+PH+1)continue;
+      ctx.strokeStyle=line;ctx.beginPath();ctx.moveTo(ML-4,y);ctx.lineTo(ML,y);ctx.stroke();
+      ctx.fillStyle=muted;ctx.fillText(T.toFixed(0),ML-7,y); }
+    ctx.save(); ctx.translate(14,MT+PH/2); ctx.rotate(-Math.PI/2); ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle=ink; ctx.font='12px '+css('--font-ui'); ctx.fillText('Temperature (°C)',0,0); ctx.restore();
+    ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillStyle=ink;
+    ctx.fillText('mole fraction '+p.nB+'  →', ML+PW/2, MT+PH+24);
+    // component labels at axis ends
+    ctx.textAlign='left'; ctx.fillStyle=muted; ctx.fillText(p.nA, ML-2, MT+PH+24);
+    ctx.textAlign='right'; ctx.fillText(p.nB, ML+PW, MT+PH+24);
+    // liquidus curves
+    const xeu = eut? eut.x : 0.5;
+    ctx.lineWidth=2.4; ctx.strokeStyle=brand; ctx.lineJoin='round';
+    ctx.beginPath(); let started=false;
+    for(let k=0;k<=120;k++){ const xb=xeu*k/120, T=branchA(xb,p); if(!isFinite(T))continue;
+      const x=X(xb),y=Y(T-273.15); started?ctx.lineTo(x,y):(ctx.moveTo(x,y),started=true); } ctx.stroke();
+    ctx.beginPath(); started=false;
+    for(let k=0;k<=120;k++){ const xb=xeu+(1-xeu)*k/120, T=branchB(xb,p); if(!isFinite(T))continue;
+      const x=X(xb),y=Y(T-273.15); started?ctx.lineTo(x,y):(ctx.moveTo(x,y),started=true); } ctx.stroke();
+    if(eut){
+      // eutectic horizontal tie-line + point
+      ctx.strokeStyle=muted; ctx.lineWidth=1.2; ctx.setLineDash([5,4]);
+      ctx.beginPath(); ctx.moveTo(X(0),Y(eut.T-273.15)); ctx.lineTo(X(1),Y(eut.T-273.15)); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle=brand; ctx.beginPath(); ctx.arc(X(eut.x),Y(eut.T-273.15),4,0,2*Math.PI); ctx.fill();
+      // region labels
+      ctx.fillStyle=muted; ctx.font='12px '+css('--font-ui'); ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('Liquid', ML+PW/2, Y(TmaxC-25));
+      ctx.fillText(p.nA+' + Liquid', X(xeu*0.4), Y((p.TA-273.15+eut.T-273.15)/2));
+      ctx.fillText(p.nB+' + Liquid', X(xeu+(1-xeu)*0.6), Y((p.TB-273.15+eut.T-273.15)/2));
+      ctx.fillText(p.nA+' + '+p.nB, ML+PW/2, Y(eut.T-273.15-(eut.T-273.15-TminC)*0.5));
+    }
+    $('bldread').textContent = eut
+      ? 'Eutectic:  '+p.nB+' mole fraction '+eut.x.toFixed(3)+',  '+(eut.T-273.15).toFixed(0)+' °C'
+        +'   ·   melting points '+p.nA+' '+(p.TA-273.15).toFixed(0)+' °C, '+p.nB+' '+(p.TB-273.15).toFixed(0)+' °C'
+      : 'No eutectic in range — the two liquidus branches do not meet (try a larger W or check the inputs).';
+  }
+
+  function loadPreset(k){ const s=PRESETS[k]; if(!s) return;
+    $('bA-name').value=s.A[0]; $('bA-Tm').value=s.A[1]; $('bA-dH').value=s.A[2];
+    $('bB-name').value=s.B[0]; $('bB-Tm').value=s.B[1]; $('bB-dH').value=s.B[2];
+    $('bW-a').value=s.Wa; $('bW-b').value=s.Wb; draw(); }
+  ['bA-name','bA-Tm','bA-dH','bB-name','bB-Tm','bB-dH','bW-a','bW-b'].forEach(id=>{
+    $(id).addEventListener('input',draw); });
+  $('bld-preset').addEventListener('change',e=>loadPreset(e.target.value));
+  new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  draw();
 })();
 </script>
 </body>

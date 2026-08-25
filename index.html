@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Defence in depth for a privacy-first tool: the app is same-origin only, so connect-src 'self'
+     means even a residual injection cannot exfiltrate a user's uploaded compositions to another host.
+     'wasm-unsafe-eval' lets the engine instantiate; inline script/style are the app's own one-file
+     build. Fonts are the only third-party origin (self-host them to close that privacy leak too). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>hephaestus-mqmqa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

@@ -149,6 +149,11 @@
   .bld-hint { font-size:var(--fs-xs); color:var(--muted); margin-top:.2rem; line-height:1.4; }
   .bld-wrap { max-width:40rem; margin:.2rem auto 0; }
   #bldcanvas { width:100%; height:auto; display:block; }
+  .bld-caution { margin-top:1rem; padding:.7rem .85rem; border:1px solid var(--brand);
+        border-radius:8px; background:color-mix(in srgb, var(--brand) 8%, transparent);
+        font-size:var(--fs-sm); color:var(--ink); line-height:1.5; max-width:44rem; }
+  .bld-caution b { color:var(--brand); }
+  .bld-caution a { color:var(--brand); }
   @media (max-width:640px){ .bld-grid { grid-template-columns:1fr; } }
 </style>
 </head>
@@ -336,15 +341,27 @@
     </div>
     <div class="bld-wrap"><canvas id="bldcanvas" width="640" height="460"></canvas></div>
     <div class="tern-read" id="bldread">&nbsp;</div>
+    <div class="bld-caution">
+      <b>If you build with your own data, read this.</b> This is a regular-solution model: it turns
+      your melting points, heats of fusion, and interaction W into a diagram, but it is an
+      approximation and the result is only as good as the numbers you enter. Treat a diagram you
+      built as a starting hypothesis to check against your own data and judgment &mdash; it does not
+      replace a proper thermodynamic assessment, and for more than three components the eutectic is
+      an estimate. An unexpected diagram is usually the input data (or a typo), not the engine.
+      Stuck, or think something is off? Email us at
+      <a href="mailto:info@odinzen.io">info@odinzen.io</a> and we will help you sort it out.
+    </div>
   </div>
 
   <footer>
     <div class="madeby">
       <span class="oz-word"><span class="oz-odin">odin</span><span class="oz-zen">zen</span></span>
     </div>
-    <p style="margin:0">Engine MIT. An open Modified Quasichemical Model for slags and
+    <p style="margin:0 0 .5rem">Engine MIT. An open Modified Quasichemical Model for slags and
       salts, running fully in your browser. Single-phase equilibrium and binary phase
       diagrams are solved client-side; larger multicomponent systems are on the roadmap.</p>
+    <p style="margin:0">Questions, errors, or help with your own data? Email
+      <a href="mailto:info@odinzen.io" style="color:var(--brand)">info@odinzen.io</a>.</p>
   </footer>
 
 </div>

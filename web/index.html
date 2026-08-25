@@ -324,6 +324,38 @@
     </div>
   </div>
 
+  <div class="card" id="livecard">
+    <h2>Live ternary phase diagram &middot; FeO&ndash;MgO&ndash;SiO<sub>2</sub><span class="tern-badge">live engine</span></h2>
+    <p class="tern-note">The full phase assemblage, solved live in your browser at the temperature you
+      choose &mdash; not a precomputed picture. The engine computes the equilibrium liquid across the
+      whole composition field (the WASM MQMQA solver), pools it with the olivine and orthopyroxene
+      solid solutions and the oxide solids, and takes the lower convex hull to find which phases
+      coexist. Press <b>Compute</b>, then hover to read a composition and its stable phases. This
+      reproduces the assessed section above (validated against pycalphad); a live section is a touch
+      coarser at the field boundaries because it is sampled on the fly.</p>
+    <div class="tern-ctl">
+      <label class="tern-tlab">Temperature
+        <input type="range" id="live-t" min="1300" max="1800" step="20" value="1600">
+        <b id="live-tval">1600 °C</b>
+      </label>
+      <button id="live-go" class="seg-btn on" type="button" style="border-radius:8px">Compute at this temperature</button>
+    </div>
+    <div class="tern-wrap">
+      <canvas id="livecanvas" width="620" height="560"></canvas>
+    </div>
+    <div class="tern-read" id="liveread">Press Compute to solve the diagram at the chosen temperature.</div>
+    <div class="legend" id="livelegend"></div>
+    <div class="bld-caution">
+      <b>Reading this diagram.</b> Every phase boundary here is solved live by the open engine, not
+      looked up &mdash; the liquid by the MQMQA solver, the solids by their compound-energy models,
+      combined on a lower convex hull. It reproduces the assessed FeO&ndash;MgO&ndash;SiO<sub>2</sub>
+      section (checked against pycalphad); exact boundary positions depend on the sampling grid, so a
+      live section is slightly coarser than the precomputed one above. This system is assessed from
+      published data. For other systems, or if a result looks off, email
+      <a href="mailto:info@odinzen.io">info@odinzen.io</a>.
+    </div>
+  </div>
+
   <div class="card" id="buildercard">
     <h2>Phase diagram builder &middot; build &amp; tune your own<span class="tern-badge">your data</span></h2>
     <p class="tern-note">Enter each component's own data &mdash; melting point and heat of fusion,
@@ -1244,6 +1276,170 @@ document.getElementById('theme').addEventListener('click', () => {
         +' J/mol-atom' + (L.top.length?'   ·   melt: '+L.top.join(', '):'');
     }, 20);
   });
+})();
+</script>
+<script>
+/* Live ternary phase diagram: the FULL FeO-MgO-SiO2 assemblage solved live in the browser. Samples
+   the equilibrium liquid across the cation simplex (mqmqa_equilibrate, per-composition GM), pools it
+   with the olivine and orthopyroxene CEF solid solutions (api.cefG along their fixed-silica lines)
+   and the three oxide solids (api.stG), then takes the 2-D lower convex hull (Gibbs per mole cation,
+   GM_atom*(2+x_Si)). Each lower facet is an equilibrium tie-facet; the assemblage at a bulk
+   composition is the covering facet. Ported from python/mqmqa/ternary.py; the in-browser lower hull
+   was validated vs scipy to machine precision, and the whole pipeline reproduces the precomputed,
+   pycalphad-validated section (all fields correct; boundaries sharpen with a finer sampling grid). */
+(function(){
+  const cv=document.getElementById('livecanvas'); if(!cv) return;
+  const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height,PAD=46,S=W-2*PAD,HT=Math.sqrt(3)/2, yBase=H-PAD, apexY=yBase-S*HT;
+  const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const cap=s=>s.charAt(0)+s.slice(1).toLowerCase();
+  const asmLabel=ph=>ph.map(cap).join(' + ');
+  const Mm={FeO:71.844,MgO:40.304,SiO2:60.083};
+  // corners: MgO left (0,0), FeO right (1,0), SiO2 apex (0,1) - same as the precomputed viewer
+  const triXY=(xfe,xsi)=>[PAD+(xfe+0.5*xsi)*S, yBase-xsi*HT*S];
+  function pxToComp(px,py){ const X=(px-PAD)/S,Y=(yBase-py)/S,xsi=Y/HT,xfe=X-0.5*xsi,xmg=1-xfe-xsi;
+    if(xfe<-1e-9||xsi<-1e-9||xmg<-1e-9) return null; return [xfe,xsi,xmg]; }
+  function hsl2rgb(h,s,l){ s/=100; l/=100; const k=n=>(n+h/30)%12, a=s*Math.min(l,1-l),
+    f=n=>l-a*Math.max(-1,Math.min(k(n)-3,9-k(n),1));
+    return [Math.round(255*f(0)),Math.round(255*f(8)),Math.round(255*f(4))]; }
+  const asmRGB=ph=>hsl2rgb(ph.includes('LIQUID')?36:205, ph.includes('LIQUID')?44:13, 76-(ph.length-1)*15);
+
+  // ---- lower convex hull (validated vs scipy to machine precision, incl. degenerate grid data) ----
+  const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],
+        dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2], vlen=a=>Math.hypot(a[0],a[1],a[2]);
+  function lowerHull(P,eps=1e-9){ const n=P.length; let i0=0,i1=-1;
+    for(let i=1;i<n;i++){ if(vlen(sub(P[i],P[i0]))>eps){i1=i;break;} }
+    let i2=-1,bA=eps; for(let i=0;i<n;i++){ const a=vlen(cross(sub(P[i],P[i0]),sub(P[i],P[i1]))); if(a>bA){bA=a;i2=i;} }
+    const n012=cross(sub(P[i1],P[i0]),sub(P[i2],P[i0])); let i3=-1,bV=eps;
+    for(let i=0;i<n;i++){ const v=Math.abs(dot(n012,sub(P[i],P[i0]))); if(v>bV){bV=v;i3=i;} }
+    const IN=[0,1,2].map(k=>(P[i0][k]+P[i1][k]+P[i2][k]+P[i3][k])/4);
+    const mk=(a,b,c)=>{ let nr=cross(sub(P[b],P[a]),sub(P[c],P[a])),of=dot(nr,P[a]);
+      if(dot(nr,IN)-of>0){ nr=[-nr[0],-nr[1],-nr[2]]; of=-of; const t=b;b=c;c=t; } return {v:[a,b,c],n:nr,off:of,outside:[]}; };
+    const dist=(f,p)=>dot(f.n,P[p])-f.off;
+    let faces=[mk(i0,i1,i2),mk(i0,i1,i3),mk(i0,i2,i3),mk(i1,i2,i3)]; const asg=new Array(n).fill(false); [i0,i1,i2,i3].forEach(i=>asg[i]=true);
+    for(let p=0;p<n;p++){ if(asg[p]) continue; for(const f of faces){ if(dist(f,p)>eps*vlen(f.n)){ f.outside.push(p); break; } } }
+    const ek=(a,b)=>a<b?a+','+b:b+','+a; let guard=0;
+    while(true){ if(++guard>800000) break; let fi=-1;
+      for(let k=0;k<faces.length;k++){ if(faces[k].outside.length){ fi=k; break; } } if(fi<0) break;
+      const f=faces[fi]; let far=f.outside[0],fd=dist(f,far)/vlen(f.n);
+      for(const p of f.outside){ const d=dist(f,p)/vlen(f.n); if(d>fd){fd=d;far=p;} }
+      const vis=new Set(); for(let k=0;k<faces.length;k++){ if(dist(faces[k],far)>eps*vlen(faces[k].n)) vis.add(k); }
+      const em=new Map(); for(const k of vis){ const [a,b,c]=faces[k].v;
+        for(const [x,y] of [[a,b],[b,c],[c,a]]){ const key=ek(x,y); if(!em.has(key)) em.set(key,{a:x,b:y,cnt:0}); em.get(key).cnt++; } }
+      const hor=[]; for(const e of em.values()){ if(e.cnt===1) hor.push([e.a,e.b]); }
+      const orph=[]; for(const k of vis) for(const p of faces[k].outside) if(p!==far) orph.push(p);
+      faces=faces.filter((_,k)=>!vis.has(k)); const nf=[]; for(const [a,b] of hor) nf.push(mk(a,b,far));
+      for(const p of orph){ if(asg[p]) continue; for(const F of nf){ if(dist(F,p)>eps*vlen(F.n)){ F.outside.push(p); break; } } }
+      asg[far]=true; faces=faces.concat(nf); }
+    const low=[]; for(const f of faces){ if(f.n[2]<-eps*vlen(f.n)) low.push(f.v); } return low; }
+  function facetBoxes(P,facets){ return facets.map(tri=>{
+    const x0=P[tri[0]][0],x1=P[tri[1]][0],x2=P[tri[2]][0],y0=P[tri[0]][1],y1=P[tri[1]][1],y2=P[tri[2]][1];
+    return [Math.min(x0,x1,x2),Math.max(x0,x1,x2),Math.min(y0,y1,y2),Math.max(y0,y1,y2)]; }); }
+  function assemblageAt(P,facets,boxes,phName,q,tol=1e-9){
+    for(let fi=0;fi<facets.length;fi++){ const bb=boxes[fi];
+      if(q[0]<bb[0]-tol||q[0]>bb[1]+tol||q[1]<bb[2]-tol||q[1]>bb[3]+tol) continue;   // bbox cull
+      const tri=facets[fi], a=P[tri[0]],b=P[tri[1]],c=P[tri[2]];
+      const det=(a[0]-c[0])*(b[1]-c[1])-(b[0]-c[0])*(a[1]-c[1]); if(Math.abs(det)<1e-15) continue;
+      const l1=((b[1]-c[1])*(q[0]-c[0])+(c[0]-b[0])*(q[1]-c[1]))/det,
+            l2=((c[1]-a[1])*(q[0]-c[0])+(a[0]-c[0])*(q[1]-c[1]))/det, l3=1-l1-l2;
+      if(l1>=-tol&&l2>=-tol&&l3>=-tol){ const w=[l1,l2,l3],set=new Set();
+        for(let k=0;k<3;k++) if(w[k]>1e-6) set.add(phName[tri[k]]); return [...set].sort(); } }
+    return null; }
+
+  // ---- engine: own db pointer for the combined .dat, sample + hull ----
+  const LIQ_G=40, ENS_B=18.014;   // liquid cation grid (~3 s/section; validated vs precomputed, phaseWrong=0); enstatite high-T entropy
+  let TDB=0, LIQ=-1, OLV=-1, OPX=-1, STOI={}, loaded=false; const inpCache={};
+  function ensure(){ if(loaded) return Promise.resolve();
+    return fetch('./FeO-MgO-SiO2-combined.dat').then(r=>r.text()).then(txt=>{
+      TDB=api.read(txt); if(api.error()) throw new Error(api.error());
+      for(let p=0;p<api.nPh(TDB);p++){ const nm=api.phName(TDB,p);
+        if(nm==='FEO-MGO-SIO2-LIQUID')LIQ=p; if(nm==='OLIVINE')OLV=p; if(nm==='ORTHOPYROXENE')OPX=p; }
+      for(let s=0;s<api.nStoich(TDB);s++) STOI[api.stName(TDB,s)]=s;
+      loaded=true; }); }
+
+  function sample(T){
+    const M=api.M, pts=[], phName=[];
+    const sd=db,sp=phase; db=TDB; phase=LIQ;
+    if(!inpCache[T]) inpCache[T]=buildInputs(['FE','MG','SI','O'],T);
+    const inp=inpCache[T];
+    for(let i=0;i<=LIQ_G;i++) for(let j=0;j<=LIQ_G-i;j++){ const xfe=i/LIQ_G,xsi=j/LIQ_G,xmg=1-xfe-xsi;
+      if((xfe<1e-9&&xmg<1e-9)||(xmg<1e-9&&xsi<1e-9)||(xfe<1e-9&&xsi<1e-9)) continue;
+      const r=solveEquilibrium(inp,{FE:xfe,MG:xmg,SI:xsi,O:xfe+xmg+2*xsi});
+      if(isFinite(r.GM)){ pts.push([xfe,xsi,r.GM*(2+xsi)]); phName.push('LIQUID'); } }
+    db=sd; phase=sp;
+    const Yp=M._malloc(32), shift=ENS_B*Math.max(T-1000,0);
+    for(let k=0;k<=80;k++){ const xFe=1e-4+(1-2e-4)*k/80;
+      M.setValue(Yp,xFe,'double');M.setValue(Yp+8,1-xFe,'double');M.setValue(Yp+16,1,'double');M.setValue(Yp+24,1,'double');
+      pts.push([2*xFe/3,1/3, api.cefG(TDB,OLV,Yp,T,0)/3]); phName.push('OLIVINE');
+      pts.push([xFe/2,1/2, (api.cefG(TDB,OPX,Yp,T,0)+shift*(1-xFe))/4]); phName.push('ORTHOPYROXENE'); }
+    M._free(Yp);
+    pts.push([0,1,api.stG(TDB,STOI['CRISTOBALITE'],T)]); phName.push('CRISTOBALITE');
+    pts.push([0,0,api.stG(TDB,STOI['PERICLASE'],T)]); phName.push('PERICLASE');
+    pts.push([1,0,api.stG(TDB,STOI['WUSTITE'],T)]); phName.push('WUSTITE');
+    return {pts,phName};
+  }
+
+  let model=null;   // {pts,phName,facets,T}
+  function frame(){
+    ctx.strokeStyle=css('--ink'); ctx.lineWidth=1.4; ctx.beginPath();
+    const A=triXY(0,0),B=triXY(1,0),C=triXY(0,1);
+    ctx.moveTo(...A);ctx.lineTo(...B);ctx.lineTo(...C);ctx.closePath();ctx.stroke();
+    ctx.fillStyle=css('--ink'); ctx.font='600 14px '+css('--font-ui');
+    ctx.textBaseline='top'; ctx.textAlign='right'; ctx.fillText('MgO',A[0]-4,A[1]+6);
+    ctx.textAlign='left'; ctx.fillText('FeO',B[0]+4,B[1]+6);
+    ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText('SiO₂',C[0],C[1]-8);
+  }
+  function render(){
+    ctx.clearRect(0,0,W,H); if(!model){ frame(); return; }
+    const {pts,facets,boxes,phName}=model, gA=150, row=gA+1;
+    const keyCell=new Array(row*row).fill(null), colByKey={}, phByKey={};
+    for(let i=0;i<=gA;i++) for(let j=0;j<=gA-i;j++){
+      const a=assemblageAt(pts,facets,boxes,phName,[i/gA,j/gA]); if(!a) continue;
+      const key=a.join('+'); keyCell[i*row+j]=key;
+      if(!colByKey[key]){ colByKey[key]=asmRGB(a); phByKey[key]=a; } }
+    const img=ctx.createImageData(W,H), d=img.data;
+    for(let py=Math.floor(apexY);py<=yBase;py++) for(let px=PAD;px<=PAD+S;px++){
+      const c=pxToComp(px,py); if(!c) continue;
+      const i=Math.round(c[0]*gA), j=Math.round(c[1]*gA); if(i<0||j<0||i+j>gA) continue;
+      const key=keyCell[i*row+j]; if(!key) continue; const col=colByKey[key];
+      const o=(py*W+px)*4; d[o]=col[0]; d[o+1]=col[1]; d[o+2]=col[2]; d[o+3]=240; }
+    ctx.putImageData(img,0,0); frame();
+    // legend (distinct assemblages, single-phase first)
+    const leg=document.getElementById('livelegend'); leg.innerHTML='';
+    const keys=Object.keys(phByKey).sort((x,y)=>{ const A=phByKey[x],B=phByKey[y];
+      return A.length-B.length || A.join().localeCompare(B.join()); });
+    for(const k of keys){ const ph=phByKey[k],[r,g,b]=colByKey[k], sp=document.createElement('span');
+      sp.innerHTML='<span class="swatch" style="background:rgb('+r+','+g+','+b+')"></span>'+asmLabel(ph);
+      leg.appendChild(sp); }
+  }
+
+  const tsl=document.getElementById('live-t'), tval=document.getElementById('live-tval'),
+        go=document.getElementById('live-go'), read=document.getElementById('liveread');
+  tsl.addEventListener('input',()=>{ tval.textContent=tsl.value+' °C'; });
+  go.addEventListener('click',()=>{
+    if(!api||!api.M){ read.textContent='Engine still loading, try again in a moment.'; return; }
+    const degC=+tsl.value; read.textContent='Solving the diagram at '+degC+' °C (a second or two)…';
+    go.disabled=true;
+    setTimeout(async()=>{
+      try{ await ensure(); }catch(e){ read.textContent='Could not load the database: '+e.message; go.disabled=false; return; }
+      const T=degC+273.15, t0=performance.now();
+      const {pts,phName}=sample(T); const facets=lowerHull(pts), boxes=facetBoxes(pts,facets);
+      model={pts,phName,facets,boxes,T}; render();
+      const ms=Math.round(performance.now()-t0);
+      read.textContent='Solved at '+degC+' °C in '+ms+' ms — '+pts.length+' phase samples, '+facets.length
+        +' tie-facets. Hover to read a composition and its stable phases.';
+      go.disabled=false;
+    }, 30);
+  });
+  function hover(ev){ if(!model){ return; } const r=cv.getBoundingClientRect();
+    const c=pxToComp((ev.clientX-r.left)*W/r.width,(ev.clientY-r.top)*H/r.height); if(!c){ return; }
+    const [xfe,xsi,xmg]=c, a=assemblageAt(model.pts,model.facets,model.boxes,model.phName,[xfe,xsi]);
+    const mFe=xfe*Mm.FeO,mMg=xmg*Mm.MgO,mSi=xsi*Mm.SiO2,tot=mFe+mMg+mSi, w=x=>(100*x/tot).toFixed(0);
+    read.textContent='FeO '+w(mFe)+'  MgO '+w(mMg)+'  SiO₂ '+w(mSi)+' wt%  @ '+(model.T-273.15).toFixed(0)
+      +' °C'+(a?'   ·   '+asmLabel(a):'   ·   outside the sampled field'); }
+  cv.addEventListener('mousemove',hover);
+  new MutationObserver(render).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  frame();
 })();
 </script>
 <script>

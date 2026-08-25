@@ -130,6 +130,11 @@
   .tern-tlab { display:flex; gap:.55rem; align-items:center; color:var(--muted);
                font-size:var(--fs-sm); }
   .tern-tlab b { font-family:var(--font-mono); color:var(--ink); min-width:4.2rem; }
+  .tern-live { margin-top:.8rem; padding-top:.7rem; border-top:1px dashed var(--line);
+               font-size:var(--fs-sm); color:var(--muted); max-width:44rem; }
+  .tern-live b { color:var(--brand); }
+  .tern-liveout { display:block; margin-top:.4rem; font-family:var(--font-mono);
+                  color:var(--ink); min-height:1.2em; }
 </style>
 </head>
 <body>
@@ -266,6 +271,12 @@
     </div>
     <div class="tern-read" id="ternread">&nbsp;</div>
     <div class="legend" id="ternlegend"></div>
+    <div class="tern-live" id="ternlive">
+      <b>Live melt calculator</b> &mdash; click anywhere in the triangle to solve the equilibrium
+      liquid there in your browser (the WASM engine, not the precomputed data above), at the
+      section temperature. Reports the liquid Gibbs energy and dominant melt species.
+      <span id="ternliveout" class="tern-liveout"></span>
+    </div>
   </div>
 
   <footer>
@@ -316,6 +327,8 @@ Hephaestus().then(M => {
     enumQ:  M.cwrap('mqmqa_enumerate_quadruplets',null,Array(6).fill('number')),
     coord:  M.cwrap('mqmqa_coordination','number',Array(15).fill('number')),
     equil:  M.cwrap('mqmqa_equilibrate','number',Array(36).fill('number')),
+    phaseKind: M.cwrap('mqmqa_db_phase_kind','number',['number','number']),
+    cefG:   M.cwrap('mqmqa_ph_cef_gibbs','number',['number','number','number','number','number']),
   };
   api.M = M;
 });
@@ -1064,6 +1077,65 @@ document.getElementById('theme').addEventListener('click', () => {
   fetch('./ternary_isothermal_feo_mgo_sio2.json').then(r=>r.json()).then(j=>{ iso=j;
     tsl.max=j.sections.length-1; si=Math.min(si,j.sections.length-1); tval.textContent=sec().degC+' °C'; })
     .catch(()=>{});
+})();
+</script>
+<script>
+/* Live melt calculator: on a click, compute the equilibrium LIQUID at that composition IN THE
+   BROWSER with the WASM engine (mqmqa_equilibrate, validated to pycalphad to machine precision) -
+   its molar Gibbs energy and the dominant melt quadruplets (the short-range-order structure) - at
+   the temperature set by the section slider. This is the real engine solving live, distinct from
+   the precomputed diagram above. (Which solid crystallizes needs an in-browser global minimiser -
+   the roadmap next step; here the liquid itself is computed exactly.) */
+(function(){
+  const cv=document.getElementById('terncanvas'); if(!cv) return;
+  const ctx=cv.getContext('2d'), out=document.getElementById('ternliveout');
+  const W=cv.width,H=cv.height,PAD=46,S=W-2*PAD,HT=Math.sqrt(3)/2,yBase=H-PAD;
+  const Mm={FeO:71.844,MgO:40.304,SiO2:60.083};
+  const triXY=(xfe,xsi)=>[PAD+(xfe+0.5*xsi)*S, yBase-xsi*HT*S];
+  function pxToComp(px,py){const X=(px-PAD)/S,Y=(yBase-py)/S,xsi=Y/HT,xfe=X-0.5*xsi,xmg=1-xfe-xsi;
+    if(xfe<1e-4||xsi<1e-4||xmg<1e-4) return null; return [xfe,xsi];}
+  const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+  let TDB=null, ready=false, LIQ=0; const inpCache={};
+  function init(){ return fetch('./FeO-MgO-SiO2-combined.dat').then(r=>r.text()).then(txt=>{
+    TDB=api.read(txt); if(api.error()) throw new Error(api.error());
+    for(let p=0;p<api.nPh(TDB);p++) if(api.phName(TDB,p)==='FEO-MGO-SIO2-LIQUID') LIQ=p;
+    ready=true; }); }
+  function currentT(){ const s=(document.getElementById('iso-tval').textContent||'').match(/(\d+)/);
+    return s ? (+s[1]+273.15) : 1873.15; }
+  function liquidAt(xfe,xsi,t){ const xmg=1-xfe-xsi;
+    const sd=db,sp=phase; db=TDB; phase=LIQ;
+    if(!inpCache[t]) inpCache[t]=buildInputs(['FE','MG','SI','O'],t);
+    const inp=inpCache[t];
+    const r=solveEquilibrium(inp,{FE:xfe,MG:xmg,SI:xsi,O:xfe+xmg+2*xsi});
+    db=sd; phase=sp;
+    if(!isFinite(r.GM)) return null;
+    const top=r.X.map((v,q)=>[v,q]).sort((a,b)=>b[0]-a[0]).slice(0,2)
+      .filter(e=>e[0]>0.02).map(e=>inp.quadLabel(e[1])+' '+(100*e[0]).toFixed(0)+'%');
+    return {GM:r.GM, top};
+  }
+  function marker(px,py){ ctx.save(); ctx.strokeStyle=css('--brand'); ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(px,py,6,0,2*Math.PI); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(px-10,py); ctx.lineTo(px+10,py); ctx.moveTo(px,py-10); ctx.lineTo(px,py+10); ctx.stroke();
+    ctx.restore(); }
+
+  cv.addEventListener('click', async ev=>{
+    const r=cv.getBoundingClientRect();
+    const c=pxToComp((ev.clientX-r.left)*W/r.width,(ev.clientY-r.top)*H/r.height);
+    if(!c){ out.textContent=''; return; }
+    out.textContent='computing…';
+    if(!ready){ try{ await init(); }catch(e){ out.textContent='engine load failed: '+e.message; return; } }
+    setTimeout(()=>{
+      const [xfe,xsi]=c, xmg=1-xfe-xsi, t=currentT();
+      const mFe=xfe*Mm.FeO,mMg=xmg*Mm.MgO,mSi=xsi*Mm.SiO2,tot=mFe+mMg+mSi, w=x=>(100*x/tot).toFixed(0);
+      const L=liquidAt(xfe,xsi,t);
+      const [px,py]=triXY(xfe,xsi); marker(px,py);
+      if(!L){ out.textContent='liquid did not converge at this composition.'; return; }
+      out.textContent='FeO '+w(mFe)+'  MgO '+w(mMg)+'  SiO₂ '+w(mSi)+' wt%  @ '+(t-273.15).toFixed(0)
+        +' °C   →   liquid G = '+L.GM.toLocaleString(undefined,{maximumFractionDigits:0})
+        +' J/mol-atom' + (L.top.length?'   ·   melt: '+L.top.join(', '):'');
+    }, 20);
+  });
 })();
 </script>
 </body>

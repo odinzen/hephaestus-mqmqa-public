@@ -38,3 +38,4 @@ data/feo-mgo-sio2/_olivine_join_loop.npz
 data/feo-mgo-sio2/ternary_isotherm_*.png
 data/feo-mgo-sio2/ternary_liquidus_projection.png
 data/feo-mgo-sio2/_liquidus_projection.npz
+data/feo-mgo-sio2/bs_comparison.png

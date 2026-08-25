@@ -94,8 +94,43 @@ on the enstatite (Mg2Si2O6) endmember, fit so the peritectic lands at 1830 K
 applied only to the ternary opx sampling and leaves olivine/forsterite/fayalite untouched.
 This is a first-order correction to an acknowledged Cp extrapolation, NOT a full enstatite Cp
 re-assessment (the rigorous version, fitting the opx Cp/S to multiple constraints, remains a
-target). Ours is cation mole fraction while Bowen-Schairer is weight percent, so a direct
-overlay needs a weight-percent conversion.
+target).
+
+## Bowen-Schairer Fig. 6 registered overlay (`bs_comparison.py`)
+
+A direct, registered comparison of our liquidus isotherms with Bowen & Schairer's Fig. 6
+(their multicomponent headline figure). Two panels: our primary-phase fields plus isotherms in
+weight percent (their axis and orientation), and our isotherms drawn on top of the scanned
+figure.
+
+- **Units matched.** Bowen & Schairer's isotherms are in degC; ours are computed in K and
+  overlaid at the SAME levels (1400-1700 degC = 1673-1973 K), so a coloured contour reads
+  directly against the black contour of the same value. The 1200-1300 degC contours are
+  essentially absent in our model because our liquid barely exists below fayalite melting
+  (1478 K = 1205 degC), so nothing is fully liquid at 1200 degC.
+- **Isotherms computed directly, one temperature at a time.** At fixed T the liquidus isotherm
+  is the boundary of the single-phase-liquid field, i.e. the contour where the equilibrium
+  liquid phase-fraction (from the 2-D hull) drops below one. This is exact - no temperature
+  quantization, unlike contouring a coarse temperature-descent field - and inherently smooth.
+  Each contour is clipped to its INTERIOR arc (the parts running along the composition-triangle
+  edges, where the liquid field merely reaches a binary join, are not isotherms) and lightly
+  spline-smoothed to remove the grid-scale staircase.
+- **Registration.** The scan triangle vertices were detected from the dpi=300 render as
+  corner-dot centroids: SiO2 = (962.7, 665.5), MgO = (372.9, 1715.0), FeO = (1538.6, 1711.9)
+  px. The earlier equilateral-apex estimate was ~40 px low; the true triangle is slightly
+  taller than equilateral. The registration was validated by mapping the three marked
+  compounds - Fe2SiO4, Mg2SiO4, MgSiO3 - through the weight-fraction barycentric transform and
+  confirming they land on their labelled points in the scan.
+- **What the comparison shows.** Our model reproduces the QUALITATIVE topology - the isotherm
+  fan sloping toward the FeO-SiO2 side, the olivine central primary field, orthopyroxene on its
+  silica side, cristobalite/periclase/wustite at the corners. The absolute isotherm POSITIONS
+  are displaced from Bowen & Schairer's, consistent with the documented liquidus running high
+  in places (solid-reference reconciliations, the opx offset) and with the fact that Bowen &
+  Schairer measured only below ~1520 degC in the central band while ours spans the full field.
+  This is the first open-model overlay of the system, not a quantitative assessment-grade match.
+
+Ours is drawn in weight percent to match their axis; the conversion assumes one cation per
+oxide (oxide moles equal cation moles).
 
 ## Honest limits (next targets)
 

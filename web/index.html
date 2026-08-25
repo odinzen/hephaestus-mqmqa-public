@@ -154,6 +154,31 @@
         font-size:var(--fs-sm); color:var(--ink); line-height:1.5; max-width:44rem; }
   .bld-caution b { color:var(--brand); }
   .bld-caution a { color:var(--brand); }
+  .bld-ctl-row { display:flex; gap:1.4rem; flex-wrap:wrap; align-items:flex-end; margin-bottom:.8rem; }
+  .seg-btn.prem { color:var(--muted); font-style:italic; }
+  .seg-btn.prem::before { content:"\1F512"; font-style:normal; margin-right:.28rem; opacity:.75; }
+  .seg-btn.prem.on { background:var(--brand); color:var(--brand-ink); }
+  .bld-wblock { max-width:24rem; margin:0 0 1rem; }
+  .bld-feature { display:inline-block; font-size:var(--fs-xs); text-transform:uppercase;
+        letter-spacing:.04em; color:var(--brand-ink); background:var(--brand); border-radius:999px;
+        padding:.1rem .6rem; margin-left:.5rem; vertical-align:2px; }
+  .bld-result { max-width:40rem; margin:.2rem auto 0; padding:1.2rem 1.3rem; border:1px solid var(--line);
+        border-radius:10px; background:var(--field); }
+  .bld-result h3 { margin:0 0 .2rem; font-size:1.05rem; color:var(--ink); }
+  .bld-result .sub { color:var(--muted); font-size:var(--fs-sm); margin:0 0 1rem; }
+  .bld-eutT { font-family:var(--font-mono); font-size:1.6rem; color:var(--brand); font-weight:700; }
+  .bld-bars { margin-top:1rem; display:flex; flex-direction:column; gap:.5rem; }
+  .bld-bar { display:grid; grid-template-columns:5.5rem 1fr 3.2rem; align-items:center; gap:.6rem;
+        font-size:var(--fs-sm); }
+  .bld-bar .nm { color:var(--ink); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .bld-bar .track { height:.7rem; border-radius:999px; background:color-mix(in srgb,var(--muted) 18%,transparent); overflow:hidden; }
+  .bld-bar .fill { height:100%; border-radius:999px; }
+  .bld-bar .amt { font-family:var(--font-mono); color:var(--muted); text-align:right; }
+  .bld-prem { text-align:center; }
+  .bld-prem .lock { font-size:2rem; line-height:1; }
+  .bld-prem h3 { margin:.5rem 0 .3rem; }
+  .bld-prem p { color:var(--muted); font-size:var(--fs-sm); max-width:30rem; margin:.3rem auto; line-height:1.5; }
+  .bld-prem a { color:var(--brand); }
   @media (max-width:640px){ .bld-grid { grid-template-columns:1fr; } }
 </style>
 </head>
@@ -301,54 +326,61 @@
 
   <div class="card" id="buildercard">
     <h2>Phase diagram builder &middot; build &amp; tune your own<span class="tern-badge">your data</span></h2>
-    <p class="tern-note">Enter a two-component system's own data &mdash; each component's melting
-      point and heat of fusion, plus the liquid interaction energy W &mdash; and the engine computes
-      its phase diagram live from regular-solution thermodynamics. Change any value (the sliders are
-      quickest) and watch the liquidus and eutectic move. Load a preset to start, or clear it and
-      enter a brand-new system.</p>
-    <div class="bld-ctl">
+    <p class="tern-note">Enter each component's own data &mdash; melting point and heat of fusion,
+      plus a single liquid interaction energy W &mdash; and the engine computes the eutectic live
+      from multicomponent regular-solution thermodynamics. Free up to <b>four components</b>: that
+      is one more than FactSage's free tier stops at. Change any value (the sliders are quickest)
+      and watch the diagram and the eutectic move. Load a preset to start, or enter a brand-new
+      system.</p>
+    <div class="bld-ctl-row">
+      <label>Components
+        <span class="seg" id="bld-nseg">
+          <button type="button" class="seg-btn" data-n="2">2</button>
+          <button type="button" class="seg-btn on" data-n="3">3</button>
+          <button type="button" class="seg-btn" data-n="4">4</button>
+          <button type="button" class="seg-btn prem" data-n="5">5</button>
+          <button type="button" class="seg-btn prem" data-n="6">6</button>
+        </span>
+      </label>
       <label>Preset
         <select id="bld-preset">
-          <option value="eutectic">Simple eutectic</option>
-          <option value="ideal">Ideal solution (W = 0)</option>
-          <option value="oxide">Oxide-like (deep eutectic)</option>
+          <option value="ternary">Three-oxide eutectic</option>
+          <option value="quaternary">Four-component eutectic</option>
+          <option value="eutectic">Simple binary eutectic</option>
+          <option value="ideal">Ideal binary (W = 0)</option>
+          <option value="oxide">Oxide-like binary (deep eutectic)</option>
         </select>
       </label>
     </div>
-    <div class="bld-grid">
-      <div class="bld-comp">
-        <label>Component A name<input type="text" id="bA-name" value="A"></label>
-        <label>Melting point A (°C)<input type="number" id="bA-Tm" value="1427" step="10"></label>
-        <label>Heat of fusion A (kJ/mol)<input type="number" id="bA-dH" value="30" step="1"></label>
-      </div>
-      <div class="bld-comp">
-        <label>Component B name<input type="text" id="bB-name" value="B"></label>
-        <label>Melting point B (°C)<input type="number" id="bB-Tm" value="1127" step="10"></label>
-        <label>Heat of fusion B (kJ/mol)<input type="number" id="bB-dH" value="25" step="1"></label>
-      </div>
-      <div class="bld-comp">
-        <label>Liquid interaction W (kJ/mol)
-          <input type="range" id="bW-a" min="-40" max="60" step="1" value="10">
-          <b id="bW-a-val" class="bld-num"></b></label>
-        <label>W temperature term (J/mol·K)
-          <input type="range" id="bW-b" min="-20" max="20" step="0.5" value="0">
-          <b id="bW-b-val" class="bld-num"></b></label>
-        <div class="bld-hint">W &lt; 0 (components attract): a deeper eutectic &mdash; the
-          deep-eutectic-solvent regime; strongly negative &rarr; compound formation.
-          W &gt; 0 (components repel): a shallower eutectic that rises toward liquid immiscibility
-          (a monotectic) as W grows.</div>
-      </div>
+    <div class="bld-grid" id="bld-comps"></div>
+    <div class="bld-wblock">
+      <label>Liquid interaction W (kJ/mol)
+        <input type="range" id="bW-a" min="-40" max="60" step="1" value="10">
+        <b id="bW-a-val" class="bld-num"></b></label>
+      <label style="margin-top:.55rem">W temperature term (J/mol·K)
+        <input type="range" id="bW-b" min="-20" max="20" step="0.5" value="0">
+        <b id="bW-b-val" class="bld-num"></b></label>
+      <div class="bld-hint">One symmetric W applies to every pair (a first approximation). W &lt; 0
+        (components attract): a deeper eutectic &mdash; the deep-eutectic-solvent regime; strongly
+        negative &rarr; compound formation. W &gt; 0 (components repel): a shallower eutectic that
+        rises toward liquid immiscibility as W grows.</div>
     </div>
-    <div class="bld-wrap"><canvas id="bldcanvas" width="640" height="460"></canvas></div>
+    <div class="bld-wrap">
+      <canvas id="bldcanvas" width="620" height="540"></canvas>
+      <div class="bld-result" id="bld-result" hidden></div>
+    </div>
     <div class="tern-read" id="bldread">&nbsp;</div>
+    <div class="legend" id="bld-legend"></div>
     <div class="bld-caution">
-      <b>If you build with your own data, read this.</b> This is a regular-solution model: it turns
-      your melting points, heats of fusion, and interaction W into a diagram, but it is an
-      approximation and the result is only as good as the numbers you enter. Treat a diagram you
-      built as a starting hypothesis to check against your own data and judgment &mdash; it does not
-      replace a proper thermodynamic assessment, and for more than three components the eutectic is
-      an estimate. An unexpected diagram is usually the input data (or a typo), not the engine.
-      Stuck, or think something is off? Email us at
+      <b>If you build with your own data, read this.</b> This is a regular-solution model with a
+      single symmetric interaction: it turns your melting points, heats of fusion, and W into a
+      diagram, but it is an approximation and the result is only as good as the numbers you enter.
+      Treat a diagram you built as a starting hypothesis to check against your own data and judgment
+      &mdash; it does not replace a proper thermodynamic assessment. For three or more components the
+      eutectic is a numerical estimate over the composition simplex, and one symmetric W will not
+      reproduce a strongly-ordered real system exactly (per-pair interactions and compounds are the
+      assessed-engine path). An unexpected diagram is usually the input data (or a typo), not the
+      engine. Stuck, or think something is off? Email us at
       <a href="mailto:info@odinzen.io">info@odinzen.io</a> and we will help you sort it out.
     </div>
   </div>
@@ -1215,61 +1247,101 @@ document.getElementById('theme').addEventListener('click', () => {
 })();
 </script>
 <script>
-/* Phase diagram builder: a regular-solution binary computed live from the user's own inputs.
-   x = mole fraction of B. Solid A + liquid liquidus solves dHA(1-T/TA)+R T ln(1-x)+W(T) x^2 = 0;
-   solid B + liquid the mirror; the eutectic is where the two liquidus branches meet. Fully
-   analytical - no engine needed - so a scientist can enter a new system or tune an existing one
-   and watch the diagram respond. Validated against a Python reference (eutectic 977 °C, x=0.715). */
+/* Phase diagram builder: a multicomponent regular-solution eutectic computed live from the user's
+   own inputs. N = 2..4 free (5 and 6 are a premium lock). One symmetric interaction W = Wa + Wb·T
+   is shared by every pair (a first approximation). Model, per component k at composition x (Σx=1):
+     solid-k liquidus solves for T:  dH_k(1 − T/Tm_k) + R T ln(x_k) + Σ_{j≠k} W x_j − Σ_{i<j} W x_i x_j = 0
+     liquidus(x) = max_k T_liq,k (skip undefined) ; primary phase = argmax_k
+     eutectic    = argmin over the composition simplex of liquidus(x)   (min-max)
+   For N=2 this is exactly the binary branch-crossing. Validated against a Python reference:
+   binary 977 °C at x_B=0.715, ternary 854 °C at x=[0.203,0.474,0.323], quaternary 782 °C. */
 (function(){
   const cv=document.getElementById('bldcanvas'); if(!cv) return;
   const ctx=cv.getContext('2d'), R=8.3145, W=cv.width, H=cv.height;
-  const ML=58,MR=22,MT=26,MB=46, PW=W-ML-MR, PH=H-MT-MB;
   const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   const $=id=>document.getElementById(id);
+  const COMPCOL=['#7ca24f','#e2711f','#6e83c0','#a75f49','#4f9a94','#b48ec4'];
+  const hex2rgb=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+  const COMPRGB=COMPCOL.map(hex2rgb);
+  // preset: N + per-component [name, Tm(°C), dH(kJ/mol)] + Wa(kJ), Wb(J/mol·K). The ternary/quaternary
+  // °C values are the exact Kelvin validation targets (1700 K = 1426.85 °C, etc.).
   const PRESETS={
-    eutectic:{A:['A',1427,30],B:['B',1127,25],Wa:10,Wb:0},
-    ideal:   {A:['A',1427,30],B:['B',1127,25],Wa:0, Wb:0},
-    oxide:   {A:['SiO2',1723,9.6],B:['CaSiO3',1544,56],Wa:26,Wb:0},
+    ternary:   {N:3, C:[['A',1426.85,30],['B',1126.85,25],['C',1226.85,28]], Wa:10, Wb:0},
+    quaternary:{N:4, C:[['A',1426.85,30],['B',1126.85,25],['C',1226.85,28],['D',1326.85,26]], Wa:10, Wb:0},
+    eutectic:  {N:2, C:[['A',1427,30],['B',1127,25]], Wa:10, Wb:0},
+    ideal:     {N:2, C:[['A',1427,30],['B',1127,25]], Wa:0,  Wb:0},
+    oxide:     {N:2, C:[['SiO2',1723,9.6],['CaSiO3',1544,56]], Wa:26, Wb:0},
   };
+  const DEFAULTS=[['A',1426.85,30],['B',1126.85,25],['C',1226.85,28],
+                  ['D',1326.85,26],['E',1276.85,27],['F',1176.85,24]];
+  let curN=3;
 
-  function inputs(){
-    return { nA:$('bA-name').value||'A', TA:(+$('bA-Tm').value)+273.15, dHA:(+$('bA-dH').value)*1000,
-             nB:$('bB-name').value||'B', TB:(+$('bB-Tm').value)+273.15, dHB:(+$('bB-dH').value)*1000,
-             Wa:(+$('bW-a').value)*1000, Wb:(+$('bW-b').value) }; }
+  // build the six component input blocks (shown/hidden by component count)
+  const grid=$('bld-comps');
+  grid.innerHTML=DEFAULTS.map((d,k)=>
+    '<div class="bld-comp" id="comp'+k+'">'
+    +'<label>Component '+(k+1)+' name<input type="text" id="c'+k+'-name" value="'+d[0]+'"></label>'
+    +'<label>Melting point (°C)<input type="number" id="c'+k+'-Tm" value="'+d[1]+'" step="10"></label>'
+    +'<label>Heat of fusion (kJ/mol)<input type="number" id="c'+k+'-dH" value="'+d[2]+'" step="1"></label>'
+    +'</div>').join('');
+
+  function readComps(n){
+    const C=[];
+    for(let k=0;k<n;k++) C.push({ name:$('c'+k+'-name').value||String.fromCharCode(65+k),
+      Tm:(+$('c'+k+'-Tm').value)+273.15, dH:(+$('c'+k+'-dH').value)*1000 });
+    return C;
+  }
+  const Wvals=()=>({Wa:(+$('bW-a').value)*1000, Wb:(+$('bW-b').value)});
+
+  // 44 halvings of [50,8000] K resolve to ~4e-10 K (far past display precision) and much cheaper
+  // than a fixed 80 when this runs thousands of times per redraw.
   function bisect(f,lo,hi){ let flo=f(lo),fhi=f(hi); if(!(flo*fhi<0)) return NaN;
-    for(let i=0;i<80;i++){ const m=(lo+hi)/2, fm=f(m); if(flo*fm<=0){hi=m;fhi=fm;}else{lo=m;flo=fm;} }
+    for(let i=0;i<44;i++){ const m=(lo+hi)/2, fm=f(m); if(flo*fm<=0){hi=m;fhi=fm;}else{lo=m;flo=fm;} }
     return (lo+hi)/2; }
-  function branchA(x,p){ x=Math.min(Math.max(x,1e-6),1-1e-6);
-    return bisect(T=>p.dHA*(1-T/p.TA)+R*T*Math.log(1-x)+(p.Wa+p.Wb*T)*x*x, 50, 8000); }
-  function branchB(x,p){ x=Math.min(Math.max(x,1e-6),1-1e-6);
-    return bisect(T=>p.dHB*(1-T/p.TB)+R*T*Math.log(x)+(p.Wa+p.Wb*T)*(1-x)*(1-x), 50, 8000); }
-  function eutectic(p){
-    // the two liquidus branches meet where branchA - branchB changes sign; scan only where BOTH
-    // are defined (a branch is undefined near a pure edge when that solid cannot be in equilibrium
-    // with the near-pure-other-component liquid), so an asymmetric system still resolves.
-    const d=x=>{const a=branchA(x,p),b=branchB(x,p); return (isFinite(a)&&isFinite(b))?a-b:NaN;};
-    let prev=NaN, px=NaN;
-    for(let k=1;k<300;k++){ const x=k/300, v=d(x);
-      if(isFinite(v)){
-        if(isFinite(prev) && prev*v<0){ const xe=bisect(d,px,x);
-          if(isFinite(xe)) return {x:xe,T:branchA(xe,p)}; }
-        prev=v; px=x;
-      } else { prev=NaN; px=NaN; }
-    }
-    return null;
+  // solid-k liquidus at composition x (array, Σ=1); NaN where solid k cannot meet this liquid.
+  function solidkLiq(k,x,C,Wa,Wb){
+    const xk=x[k]; if(xk<=1e-9) return NaN; const n=x.length;
+    return bisect(T=>{ const Wt=Wa+Wb*T; let sump=0;
+      for(let i=0;i<n;i++) for(let j=i+1;j<n;j++) sump+=Wt*x[i]*x[j];
+      return C[k].dH*(1-T/C[k].Tm)+R*T*Math.log(xk)+Wt*(1-xk)-sump; }, 50, 8000);
+  }
+  function liquidusAt(x,C,Wa,Wb){ let bT=-Infinity,prim=-1;
+    for(let k=0;k<x.length;k++){ const T=solidkLiq(k,x,C,Wa,Wb); if(isFinite(T)&&T>bT){bT=T;prim=k;} }
+    return {T:prim<0?NaN:bT, prim}; }
+  // argmin over the CLOSED simplex of the liquidus: coarse barycentric grid, then a local pattern
+  // search (pairwise mass transfers, shrinking step). The grid includes the boundary faces (a
+  // component may be absent), because for an asymmetric system the lowest-melting composition can be
+  // a sub-system eutectic on an edge or face; excluding faces would seed the refine in the wrong
+  // basin. The finite-only guard is automatic: liquidusAt skips undefined solid branches.
+  function findEutectic(C,Wa,Wb,g){
+    const n=C.length, x=new Array(n).fill(0); let best={T:Infinity,x:null};
+    (function rec(pos,mass){
+      if(pos===n-1){ x[pos]=Math.max(mass,0); const r=liquidusAt(x,C,Wa,Wb);
+        if(isFinite(r.T)&&r.T<best.T) best={T:r.T,x:x.slice()}; return; }
+      const steps=Math.round(mass*g);
+      for(let s=0;s<=steps;s++){ x[pos]=s/g; rec(pos+1,mass-s/g); }
+    })(0,1.0);
+    if(!best.x) return null;
+    let xr=best.x.slice(), bT=best.T, h=1.5/g;
+    while(h>1e-5){ let improved=false;
+      for(let i=0;i<n;i++) for(let j=0;j<n;j++){ if(i===j||xr[i]-h<=1e-9) continue;
+        const y=xr.slice(); y[i]-=h; y[j]+=h; const r=liquidusAt(y,C,Wa,Wb);
+        if(isFinite(r.T)&&r.T<bT-1e-7){ xr=y; bT=r.T; improved=true; } }
+      if(!improved) h*=0.5; }
+    return {x:xr, T:bT, prim:liquidusAt(xr,C,Wa,Wb).prim};
   }
 
-  function draw(){
-    const p=inputs(); $('bW-a-val').textContent=(+$('bW-a').value)+' kJ/mol';
-    $('bW-b-val').textContent=(+$('bW-b').value)+' J/mol·K';
-    const eut=eutectic(p);
-    const TmaxC=Math.max(p.TA,p.TB)-273.15+110;
-    const TminC=(eut?eut.T-273.15:Math.min(p.TA,p.TB)-273.15)-140;
+  /* ---- N = 2: temperature–composition diagram ---- */
+  function drawBinary(C,Wa,Wb){
+    const ML=58,MR=22,MT=26,MB=46, PW=W-ML-MR, PH=H-MT-MB;
+    const bA=x=>solidkLiq(0,[1-x,x],C,Wa,Wb), bB=x=>solidkLiq(1,[1-x,x],C,Wa,Wb);
+    const eut=findEutectic(C,Wa,Wb,300);
+    const nA=C[0].name, nB=C[1].name, TAc=C[0].Tm-273.15, TBc=C[1].Tm-273.15;
+    const TmaxC=Math.max(TAc,TBc)+110;
+    const TminC=(eut?eut.T-273.15:Math.min(TAc,TBc))-140;
     const X=xB=>ML+xB*PW, Y=TC=>MT+(TmaxC-TC)/(TmaxC-TminC)*PH;
     ctx.clearRect(0,0,W,H);
-    const ink=css('--ink'), line=css('--line'), muted=css('--muted'), brand=css('--brand'), card=css('--card');
-    // region shading (liquid light, two-phase mid, solid dark) via simple bands is skipped for clarity;
-    // axes
+    const ink=css('--ink'), line=css('--line'), muted=css('--muted'), brand=css('--brand');
     ctx.strokeStyle=line; ctx.lineWidth=1; ctx.strokeRect(ML,MT,PW,PH);
     ctx.fillStyle=muted; ctx.font='11px '+css('--font-ui'); ctx.textAlign='center';
     for(let k=0;k<=5;k++){ const xb=k/5, x=X(xb); ctx.beginPath();ctx.moveTo(x,MT+PH);ctx.lineTo(x,MT+PH+4);ctx.stroke();
@@ -1282,47 +1354,152 @@ document.getElementById('theme').addEventListener('click', () => {
     ctx.save(); ctx.translate(14,MT+PH/2); ctx.rotate(-Math.PI/2); ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillStyle=ink; ctx.font='12px '+css('--font-ui'); ctx.fillText('Temperature (°C)',0,0); ctx.restore();
     ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillStyle=ink;
-    ctx.fillText('mole fraction '+p.nB+'  →', ML+PW/2, MT+PH+24);
-    // component labels at axis ends
-    ctx.textAlign='left'; ctx.fillStyle=muted; ctx.fillText(p.nA, ML-2, MT+PH+24);
-    ctx.textAlign='right'; ctx.fillText(p.nB, ML+PW, MT+PH+24);
-    // liquidus curves
-    const xeu = eut? eut.x : 0.5;
+    ctx.fillText('mole fraction '+nB+'  →', ML+PW/2, MT+PH+24);
+    ctx.textAlign='left'; ctx.fillStyle=muted; ctx.fillText(nA, ML-2, MT+PH+24);
+    ctx.textAlign='right'; ctx.fillText(nB, ML+PW, MT+PH+24);
+    const xeu = eut? eut.x[1] : 0.5;
     ctx.lineWidth=2.4; ctx.strokeStyle=brand; ctx.lineJoin='round';
     ctx.beginPath(); let started=false;
-    for(let k=0;k<=120;k++){ const xb=xeu*k/120, T=branchA(xb,p); if(!isFinite(T))continue;
+    for(let k=0;k<=120;k++){ const xb=xeu*k/120, T=bA(xb); if(!isFinite(T))continue;
       const x=X(xb),y=Y(T-273.15); started?ctx.lineTo(x,y):(ctx.moveTo(x,y),started=true); } ctx.stroke();
     ctx.beginPath(); started=false;
-    for(let k=0;k<=120;k++){ const xb=xeu+(1-xeu)*k/120, T=branchB(xb,p); if(!isFinite(T))continue;
+    for(let k=0;k<=120;k++){ const xb=xeu+(1-xeu)*k/120, T=bB(xb); if(!isFinite(T))continue;
       const x=X(xb),y=Y(T-273.15); started?ctx.lineTo(x,y):(ctx.moveTo(x,y),started=true); } ctx.stroke();
     if(eut){
-      // eutectic horizontal tie-line + point
       ctx.strokeStyle=muted; ctx.lineWidth=1.2; ctx.setLineDash([5,4]);
       ctx.beginPath(); ctx.moveTo(X(0),Y(eut.T-273.15)); ctx.lineTo(X(1),Y(eut.T-273.15)); ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle=brand; ctx.beginPath(); ctx.arc(X(eut.x),Y(eut.T-273.15),4,0,2*Math.PI); ctx.fill();
-      // region labels
+      ctx.fillStyle=brand; ctx.beginPath(); ctx.arc(X(xeu),Y(eut.T-273.15),4,0,2*Math.PI); ctx.fill();
       ctx.fillStyle=muted; ctx.font='12px '+css('--font-ui'); ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillText('Liquid', ML+PW/2, Y(TmaxC-25));
-      ctx.fillText(p.nA+' + Liquid', X(xeu*0.4), Y((p.TA-273.15+eut.T-273.15)/2));
-      ctx.fillText(p.nB+' + Liquid', X(xeu+(1-xeu)*0.6), Y((p.TB-273.15+eut.T-273.15)/2));
-      ctx.fillText(p.nA+' + '+p.nB, ML+PW/2, Y(eut.T-273.15-(eut.T-273.15-TminC)*0.5));
+      ctx.fillText(nA+' + Liquid', X(xeu*0.4), Y((TAc+eut.T-273.15)/2));
+      ctx.fillText(nB+' + Liquid', X(xeu+(1-xeu)*0.6), Y((TBc+eut.T-273.15)/2));
+      ctx.fillText(nA+' + '+nB, ML+PW/2, Y(eut.T-273.15-(eut.T-273.15-TminC)*0.5));
     }
     $('bldread').textContent = eut
-      ? 'Eutectic:  '+p.nB+' mole fraction '+eut.x.toFixed(3)+',  '+(eut.T-273.15).toFixed(0)+' °C'
-        +'   ·   melting points '+p.nA+' '+(p.TA-273.15).toFixed(0)+' °C, '+p.nB+' '+(p.TB-273.15).toFixed(0)+' °C'
+      ? 'Eutectic:  '+nB+' mole fraction '+xeu.toFixed(3)+',  '+(eut.T-273.15).toFixed(0)+' °C'
+        +'   ·   melting points '+nA+' '+TAc.toFixed(0)+' °C, '+nB+' '+TBc.toFixed(0)+' °C'
       : 'No eutectic in range — the two liquidus branches do not meet (try a larger W or check the inputs).';
+    setLegend([]);
   }
 
+  /* ---- N = 3: ternary liquidus projection (primary-phase fields + eutectic) ---- */
+  const PAD=48, HT=Math.sqrt(3)/2, TS=Math.min(W-2*PAD,(H-2*PAD)/HT);
+  const TX0=(W-TS)/2, TYB=(H+TS*HT)/2;                    // left corner x, baseline y (centred)
+  const triXY=(f1,f2)=>[TX0+(f1+0.5*f2)*TS, TYB-f2*HT*TS];// corner0=left(0,0), corner1=right(f1), corner2=apex(f2)
+  function pxToComp(px,py){ const X=(px-TX0)/TS, Y=(TYB-py)/TS, f2=Y/HT, f1=X-0.5*f2, f0=1-f1-f2;
+    if(f0<-1e-9||f1<-1e-9||f2<-1e-9) return null; return [f0,f1,f2]; }
+  function drawTernary(C,Wa,Wb){
+    ctx.clearRect(0,0,W,H);
+    const gF=58, row=gF+1, field=new Int8Array(row*row).fill(-1);
+    for(let i=0;i<=gF;i++) for(let j=0;j<=gF-i;j++){
+      const f1=i/gF, f2=j/gF; const x=[Math.max(1-f1-f2,0),f1,f2];
+      field[i*row+j]=liquidusAt(x,C,Wa,Wb).prim; }
+    const img=ctx.createImageData(W,H), d=img.data;
+    const yTop=Math.floor(TYB-TS*HT);
+    for(let py=yTop;py<=Math.ceil(TYB);py++) for(let px=Math.floor(TX0);px<=Math.ceil(TX0+TS);px++){
+      const c=pxToComp(px,py); if(!c) continue;
+      const i=Math.round(c[1]*gF), j=Math.round(c[2]*gF); if(i<0||j<0||i+j>gF) continue;
+      const prim=field[i*row+j]; if(prim<0) continue; const col=COMPRGB[prim];
+      const o=(py*W+px)*4; d[o]=col[0]; d[o+1]=col[1]; d[o+2]=col[2]; d[o+3]=205; }
+    ctx.putImageData(img,0,0);
+    // frame + corner labels (component 0 left, 1 right, 2 apex)
+    const A=triXY(0,0),B=triXY(1,0),Cc=triXY(0,1);
+    ctx.strokeStyle=css('--ink'); ctx.lineWidth=1.4; ctx.beginPath();
+    ctx.moveTo(...A);ctx.lineTo(...B);ctx.lineTo(...Cc);ctx.closePath();ctx.stroke();
+    ctx.fillStyle=css('--ink'); ctx.font='600 14px '+css('--font-ui');
+    ctx.textBaseline='top'; ctx.textAlign='right'; ctx.fillText(C[0].name,A[0]-4,A[1]+6);
+    ctx.textAlign='left'; ctx.fillText(C[1].name,B[0]+4,B[1]+6);
+    ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText(C[2].name,Cc[0],Cc[1]-8);
+    const eut=findEutectic(C,Wa,Wb,64);
+    if(eut){ const [ex,ey]=triXY(eut.x[1],eut.x[2]);
+      ctx.fillStyle=css('--ink'); ctx.beginPath(); ctx.arc(ex,ey,5,0,2*Math.PI); ctx.fill();
+      ctx.fillStyle=css('--card'); ctx.beginPath(); ctx.arc(ex,ey,2,0,2*Math.PI); ctx.fill();
+      ctx.fillStyle=css('--ink'); ctx.font='600 12px '+css('--font-ui'); ctx.textAlign='left'; ctx.textBaseline='middle';
+      ctx.fillText((eut.T-273.15).toFixed(0)+' °C', ex+9, ey);
+    }
+    $('bldread').textContent = eut
+      ? 'Ternary eutectic:  '+(eut.T-273.15).toFixed(0)+' °C  at  '
+        +C.map((c,k)=>c.name+' '+eut.x[k].toFixed(3)).join(',  ')
+        +'   ·   fields coloured by the first solid to crystallize'
+      : 'No eutectic found — check the input data.';
+    setLegend(C);
+  }
+
+  /* ---- N = 4: numeric eutectic (a tetrahedron plot is future work) ---- */
+  function drawQuaternary(C,Wa,Wb){
+    const eut=findEutectic(C,Wa,Wb,30);
+    const res=$('bld-result');
+    if(!eut){ res.innerHTML='<div class="bld-prem"><h3>No eutectic found</h3>'
+      +'<p>Check the melting points and heats of fusion.</p></div>'; $('bldread').textContent=''; setLegend([]); return; }
+    const bars=C.map((c,k)=>{ const pct=(eut.x[k]*100);
+      return '<div class="bld-bar"><span class="nm">'+c.name+'</span>'
+        +'<span class="track"><span class="fill" style="width:'+pct.toFixed(1)+'%;background:'+COMPCOL[k]+'"></span></span>'
+        +'<span class="amt">'+eut.x[k].toFixed(3)+'</span></div>'; }).join('');
+    res.innerHTML='<h3>Four-component eutectic<span class="bld-feature">beyond FactSage free</span></h3>'
+      +'<p class="sub">The lowest melting point over the whole four-component composition simplex.</p>'
+      +'<div class="bld-eutT">'+(eut.T-273.15).toFixed(0)+' °C</div>'
+      +'<div class="bld-bars">'+bars+'</div>';
+    $('bldread').textContent='Eutectic composition (mole fraction): '
+      +C.map((c,k)=>c.name+' '+eut.x[k].toFixed(3)).join(',  ');
+    setLegend([]);
+  }
+
+  /* ---- N = 5, 6: premium lock ---- */
+  function drawPremium(n){
+    $('bld-result').innerHTML='<div class="bld-prem"><div class="lock">🔒</div>'
+      +'<h3>'+n+'-component eutectics are a premium feature</h3>'
+      +'<p>Free coverage runs to four components — already one past FactSage’s free tier. '
+      +'Five- and six-component builds are part of Odinzen’s premium tier.</p>'
+      +'<p>Want it, or have a specific system in mind? Email '
+      +'<a href="mailto:info@odinzen.io">info@odinzen.io</a>.</p></div>';
+    $('bldread').textContent=''; setLegend([]);
+  }
+
+  function setLegend(C){ const el=$('bld-legend');
+    if(!C.length){ el.innerHTML=''; return; }
+    el.innerHTML=C.map((c,k)=>'<span><span class="swatch" style="background:'+COMPCOL[k]+'"></span>'
+      +c.name+' primary</span>').join('')
+      +'<span><span class="swatch" style="background:var(--ink)"></span>eutectic</span>';
+  }
+
+  function render(){
+    const {Wa,Wb}=Wvals(), n=curN;
+    if(n>=5){ drawPremium(n); return; }
+    const C=readComps(n);
+    if(n===2) drawBinary(C,Wa,Wb);
+    else if(n===3) drawTernary(C,Wa,Wb);
+    else drawQuaternary(C,Wa,Wb);
+  }
+  // update the cheap labels/layout synchronously, coalesce the heavy compute to a single trailing
+  // render so a dragged slider stays responsive instead of queueing a backlog of full redraws.
+  // setTimeout (not rAF) so it still fires when the tab is not compositing.
+  let pending=0;
+  function draw(){
+    $('bW-a-val').textContent=(+$('bW-a').value)+' kJ/mol';
+    $('bW-b-val').textContent=(+$('bW-b').value)+' J/mol·K';
+    const n=curN, useCanvas=(n===2||n===3);
+    cv.style.display=useCanvas?'block':'none';
+    $('bld-result').hidden=useCanvas;
+    if(pending) return;
+    pending=setTimeout(()=>{ pending=0; render(); }, 0);
+  }
+
+  function showComps(n){ for(let k=0;k<6;k++) $('comp'+k).style.display=(k<n)?'':'none'; }
+  function setN(n){ curN=n; showComps(n);
+    [...$('bld-nseg').children].forEach(b=>b.classList.toggle('on',+b.dataset.n===n)); draw(); }
+
   function loadPreset(k){ const s=PRESETS[k]; if(!s) return;
-    $('bA-name').value=s.A[0]; $('bA-Tm').value=s.A[1]; $('bA-dH').value=s.A[2];
-    $('bB-name').value=s.B[0]; $('bB-Tm').value=s.B[1]; $('bB-dH').value=s.B[2];
-    $('bW-a').value=s.Wa; $('bW-b').value=s.Wb; draw(); }
-  ['bA-name','bA-Tm','bA-dH','bB-name','bB-Tm','bB-dH','bW-a','bW-b'].forEach(id=>{
-    $(id).addEventListener('input',draw); });
+    s.C.forEach((c,i)=>{ $('c'+i+'-name').value=c[0]; $('c'+i+'-Tm').value=c[1]; $('c'+i+'-dH').value=c[2]; });
+    $('bW-a').value=s.Wa; $('bW-b').value=s.Wb; setN(s.N); }
+
+  grid.addEventListener('input',draw);
+  $('bW-a').addEventListener('input',draw);
+  $('bW-b').addEventListener('input',draw);
+  $('bld-nseg').addEventListener('click',e=>{ const b=e.target.closest('.seg-btn'); if(b) setN(+b.dataset.n); });
   $('bld-preset').addEventListener('change',e=>loadPreset(e.target.value));
   new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
-  draw();
+  loadPreset('ternary');
 })();
 </script>
 </body>

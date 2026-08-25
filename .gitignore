@@ -42,3 +42,6 @@ data/feo-mgo-sio2/ternary_liquidus_projection.png
 data/feo-mgo-sio2/_liquidus_projection.npz
 data/feo-mgo-sio2/_isotherm_fields.npz
 data/feo-mgo-sio2/bs_comparison.png
+
+# packaging build artifacts (pip install -e)
+python/*.egg-info/

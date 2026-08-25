@@ -1,0 +1,25 @@
+# Packaging for the mqmqa Python package (the Hephaestus engine's Python layer).
+# Exists so consumers can `pip install -e python/` and share one copy of the code
+# instead of vendoring; the prebuilt shared library (scripts/build.sh) ships as
+# package data and is resolved relative to the package at import time.
+
+[build-system]
+requires = ["setuptools>=65"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mqmqa"
+version = "0.1.0"
+description = "Standalone Modified Quasichemical Model in the Quadruplet Approximation (C core, cffi ABI)"
+requires-python = ">=3.11"
+dependencies = [
+    "cffi>=1.15",
+    "numpy>=1.24",
+    "scipy>=1.10",
+]
+
+[tool.setuptools]
+packages = ["mqmqa"]
+
+[tool.setuptools.package-data]
+mqmqa = ["*.dll", "*.so", "*.dylib"]

@@ -349,12 +349,14 @@ def _binary_activity_solver(inp, atoms_first, atoms_second):
 
 
 def fit_binary_excess(first: Component, second: Component, points, powers=((0, 0),),
-                      fit_entropy=True, x0=None, source="") -> BinaryExcess:
+                      fit_entropy=True, x0=None, source="", scratch_dir=None) -> BinaryExcess:
     """Fit the binary liquid excess to measured activities (engine as optimizer).
 
     `powers` are the (p, q) exponents of the excess terms to fit (default one symmetric term).
     Each term contributes an enthalpy `a` and, if `fit_entropy`, a temperature part `b*T`. Returns
     the fitted BinaryExcess. Reproduces the published assessment path (e.g. FeO-SiO2 v0.3).
+    `scratch_dir` relocates the fit's inner rebuild files for callers that must keep scratch
+    in-tree; default is the OS temp dir.
     """
     import numpy as np
     from scipy.optimize import least_squares
@@ -365,7 +367,7 @@ def fit_binary_excess(first: Component, second: Component, points, powers=((0, 0
     nfit = len(powers) * (2 if fit_entropy else 1)
     atoms1 = first.n_cation + first.n_oxygen
     atoms2 = second.n_cation + second.n_oxygen
-    tmp = _scratch_path(f"{first.cation}{second.cation}_fit")
+    tmp = _scratch_path(f"{first.cation}{second.cation}_fit", scratch_dir)
 
     def terms_from(vec):
         terms = []
@@ -405,8 +407,41 @@ def fit_binary_excess(first: Component, second: Component, points, powers=((0, 0
     return be
 
 
-def _scratch_path(tag):
-    """A temp .dat path for the fit's inner rebuilds (in the OS temp dir, not the repo)."""
+def evaluate_binary_activities(spec: SystemSpec, points, dat_path=None, scratch_dir=None):
+    """Model activities (pure-liquid reference) of a two-component spec at each point.
+
+    Evaluates through the same write -> read -> solve path a user runs; passing the emitted
+    file via `dat_path` therefore validates the artifact on disk, not the in-memory fit.
+    Returns [(a_first, a_second), ...] ordered like `points` (only x_second and T are read).
+    """
+    import mqmqa
+
+    from mqmqa import equilibrium as eq
+
+    if len(spec.components) != 2:
+        raise ValueError("activity evaluation needs a two-component spec")
+    first, second = spec.components
+    if dat_path is None:
+        dat_path = _scratch_path(f"{first.cation}{second.cation}_eval", scratch_dir)
+        Path(dat_path).write_text(write_dat(spec), encoding="ascii")
+    d = mqmqa.Database.read(str(dat_path))
+    p = d.phase_index(f"{spec.name.upper()}-LIQUID")
+    if p < 0:
+        raise ValueError(f"phase {spec.name.upper()}-LIQUID not found in {dat_path}")
+    atoms1 = first.n_cation + first.n_oxygen
+    atoms2 = second.n_cation + second.n_oxygen
+    out = []
+    for pt in points:
+        inp = eq.build_inputs(d, p, pt.T, components=[first.cation, second.cation, "O"])
+        _, activities = _binary_activity_solver(inp, atoms1, atoms2)
+        out.append(activities(pt.x_second, pt.T))
+    return out
+
+
+def _scratch_path(tag, scratch_dir=None):
+    """A temp .dat path for the fit's inner rebuilds. OS temp dir unless the caller
+    supplies one (some consumers must keep every scratch file in their own tree)."""
     import os
     import tempfile
-    return Path(tempfile.gettempdir()) / f"_dbbuild_{tag}_{os.getpid()}.dat"
+    base = Path(scratch_dir) if scratch_dir else Path(tempfile.gettempdir())
+    return base / f"_dbbuild_{tag}_{os.getpid()}.dat"

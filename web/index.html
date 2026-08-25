@@ -10,7 +10,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>hephaestus-mqmqa</title>
 <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="%231a170f"/><text x="16" y="24" font-family="monospace" font-size="21" font-weight="700" text-anchor="middle" fill="%23eec35e">H</text></svg>'>
-<script>document.documentElement.dataset.theme = localStorage.getItem("hephaestus-theme") || "dark";</script>
+<script>document.documentElement.dataset.theme = localStorage.getItem("hephaestus-theme") || "light";</script>
 <style>
   /* Self-hosted fonts (latin subsets, SIL OFL 1.1): Chakra Petch static 600/700,
      Fira Code one variable file spanning 500-600. Missing glyphs fall back. */
@@ -1103,11 +1103,15 @@ function renderLegend(){
 document.getElementById('pdgen').addEventListener('click', generateDiagram);
 window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
 
-// theme toggle (dark default; choice persists in localStorage)
-document.getElementById('theme').addEventListener('click', () => {
+// theme toggle (light default; choice persists in localStorage)
+const themeBtn = document.getElementById('theme');
+const themeIcon = () => { themeBtn.innerHTML = document.documentElement.dataset.theme === 'dark' ? '&#9728;' : '&#9790;'; };
+themeIcon();
+themeBtn.addEventListener('click', () => {
   const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
   document.documentElement.dataset.theme = next;
   localStorage.setItem('hephaestus-theme', next);
+  themeIcon();
   if(pdResult){ drawDiagram(); renderLegend(); }
 });
 </script>

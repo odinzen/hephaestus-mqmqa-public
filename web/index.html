@@ -218,6 +218,7 @@
         <input type="file" id="file" accept=".dat,.DAT,text/plain">
       </label>
       <button class="filebtn ghost" id="example" type="button">Load the open slag database</button>
+      <button class="filebtn ghost" id="example-salt" type="button">Load the open salt database</button>
       <span id="loadmsg" class="muted">No database loaded yet.</span>
     </div>
   </div>
@@ -518,18 +519,19 @@ document.getElementById('file').addEventListener('change', async e => {
   loadDatabase(text, f.name);
 });
 
-document.getElementById('example').addEventListener('click', async () => {
+// Our own literature-only open databases - shipped next to the page, no third-party data.
+async function loadShipped(file) {
   if (!api) return;
   document.getElementById('loadmsg').textContent = 'Loading the open database…';
   try {
-    // Our own literature-only open slag database - the same file the ternary card uses,
-    // so the hosted page ships no third-party data.
-    const text = await (await fetch('./FeO-MgO-SiO2-combined.dat')).text();
-    loadDatabase(text, 'FeO-MgO-SiO2-combined.dat');
+    const text = await (await fetch('./' + file)).text();
+    loadDatabase(text, file);
   } catch (err) {
     document.getElementById('loadmsg').textContent = 'Database not found next to this page.';
   }
-});
+}
+document.getElementById('example').addEventListener('click', () => loadShipped('FeO-MgO-SiO2-combined.dat'));
+document.getElementById('example-salt').addEventListener('click', () => loadShipped('LiCl-KCl.dat'));
 
 function loadDatabase(text, name) {
   const M = api.M;

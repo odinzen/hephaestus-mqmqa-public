@@ -35,6 +35,7 @@ MAX_FREE_COMPONENTS = 4          # free self-assessment cap; 5+ is premium
 ATOMIC_MASS = {
     "O": 15.9994, "Mg": 24.305, "Al": 26.982, "Si": 28.085, "Ca": 40.078,
     "Ti": 47.867, "Cr": 51.996, "Mn": 54.938, "Fe": 55.845, "Na": 22.990, "K": 39.098,
+    "Li": 6.94, "Cl": 35.453,
 }
 
 SUPPORT_EMAIL = "info@odinzen.io"
@@ -169,12 +170,19 @@ def _fmt(x):
     return f"{x:.12E}"
 
 
-def write_dat(spec: SystemSpec) -> str:
-    """Serialize the system to a ChemSage SUBQ .dat string (single anion O, liquid only)."""
+def write_dat(spec: SystemSpec, anion_sym="O", anion_charge=2.0, z_per_charge=None) -> str:
+    """Serialize the system to a ChemSage SUBQ .dat string (single anion, liquid only).
+
+    The anion defaults to oxide (O, charge 2); pass e.g. anion_sym="Cl", anion_charge=1.0
+    for a common-anion chloride salt. Component.n_oxygen then counts anions per formula.
+    z_per_charge sets the coordination convention: the module default (charge-proportional,
+    the oxide-slag convention validated against pycalphad) unless overridden - monovalent
+    salts use z_per_charge=6.0, the published MQM salt convention.
+    """
     comps = spec.components
     n_cat = len(comps)
     cations = [c.cation for c in comps]
-    elements = cations + ["O"]
+    elements = cations + [anion_sym]
     masses = [ATOMIC_MASS[e] for e in elements]
 
     L = []
@@ -192,7 +200,7 @@ def write_dat(spec: SystemSpec) -> str:
     ap(" SUBQ")
     ap(f"   {n_cat}   {n_cat}")                               # n_pairs, n_quads (MQMZ rows)
     for c in comps:
-        stoich_el = [(c.n_cation if el == c.cation else (c.n_oxygen if el == "O" else 0.0))
+        stoich_el = [(c.n_cation if el == c.cation else (c.n_oxygen if el == anion_sym else 0.0))
                      for el in elements]
         base = liquid_gibbs_coeffs(c)
         intervals = _below_tm_intervals(base, c.Tm, c.liq_beta)
@@ -203,21 +211,22 @@ def write_dat(spec: SystemSpec) -> str:
         ap("  " + "   ".join(f"{v:.5f}" for v in [c.n_cation, c.n_oxygen, 0.0, 0.0, 0.0]))
         ap("  1.3774438")
 
-    an_idx = n_cat + 1                                        # O numbered after the cations
+    an_idx = n_cat + 1                                        # anion numbered after the cations
     ap(f"   {n_cat}   1")                                     # n_cat, n_an
     ap(" " + "                     ".join(f"{c.cation}+{int(c.charge)}" for c in comps))
-    ap(" O")
+    ap(f" {anion_sym}")
     ap("  " + "      ".join(f"{c.charge:.5f}" for c in comps))   # cation charges
     ap("   " + "   ".join("1" for _ in comps))                  # cation groups
-    ap("  2.00000")                                            # anion (O) charge magnitude
+    ap(f"  {anion_charge:.5f}")                                # anion charge magnitude
     ap("   1")                                                 # anion group
     ap("   " + "   ".join(str(i) for i in range(1, n_cat + 1)))  # pair cation indices
     ap("   " + "   ".join("1" for _ in comps))                  # pair anion indices
+    zpc = Z_PER_CHARGE if z_per_charge is None else z_per_charge
     for i, c in enumerate(comps, start=1):
-        z_cat = c.charge * Z_PER_CHARGE
-        z_o = 2 * Z_PER_CHARGE
+        z_cat = c.charge * zpc
+        z_an = anion_charge * zpc
         ap(f"   {i}   {i}   {an_idx}   {an_idx}   "
-           f"{z_cat:.7f}   {z_cat:.7f}   {z_o:.7f}   {z_o:.7f}")
+           f"{z_cat:.7f}   {z_cat:.7f}   {z_an:.7f}   {z_an:.7f}")
 
     # excess (Muggianu from the binaries); a ternary/higher term is zero unless supplied.
     idx = {c.name: i for i, c in enumerate(comps, start=1)}

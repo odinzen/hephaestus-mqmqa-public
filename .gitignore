@@ -34,6 +34,8 @@ data/*/_*.tdb
 data/*/_*.log
 data/*/_mlip/cif/
 data/*/_mlip/*.log
+data/*/_mlip/*.json
+data/*/_mlip/*.png
 data/*/*.png
 cef/_*.tdb
 cef/__pycache__/

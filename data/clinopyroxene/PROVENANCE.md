@@ -1,4 +1,4 @@
-# Clinopyroxene (diopside-hedenbergite) v0.1 provenance and limits
+# Clinopyroxene (diopside-hedenbergite) v0.2 provenance and limits
 
 The third CEF solid solution in the open slag database, after olivine and orthopyroxene,
 and the first Ca-bearing pyroxene. Clinopyroxene dominates the pyroxene field of
@@ -24,12 +24,27 @@ conditioned, so this is a faithful reproduction of the published Cp, not a re-de
 Independent anchor (not used, cross-check only): Navrotsky & Coons 1976 oxide-melt
 calorimetry gives diopside dHf consistent with the Bull. 2131 value.
 
-## Mixing
+## Mixing (v0.2, MLIP-triangulated)
 
-**Ideal on the M1 sublattice (Redlich-Kister L0 = 0).** No open diopside-hedenbergite
-mixing calorimetry exists (the workspace holds only endmember and formation data for the
-pyroxenes), so the configurational entropy of Fe-Mg mixing is the only non-endmember
-contribution in v0.1. Activities are therefore ideal (a_di = x_di).
+No open diopside-hedenbergite mixing calorimetry exists, and the standard activity model
+(Davidson & Lindsley 1985) is a paywalled phase-equilibrium assessment, not ingestible
+measured data. So the (Fe,Mg) M1 excess is **computed from a foundation MLIP** (MatterSim
+v1.0.0-5M), the same triangulation used for the CaO-SiO2 / MgO-SiO2 liquids and now
+extended to a CEF solid solution. Because the enthalpy of mixing is a *difference* between
+the alloy and its endmembers, the MLIP's systematic per-atom error largely cancels.
+
+Method (data/clinopyroxene/_mlip): the diopside C2/c cell (COD 1000007) is the common
+framework; for each Fe/Mg ordering on the M1 sublattice, the cell and positions are
+relaxed at 0 GPa. A doubled cell (8 M1 sites, up to 8 orderings per composition) gives the
+configurational-average H_mix(x). A Redlich-Kister excess is fit, uncertainty-weighted:
+
+    G_xs = y_Fe*y_Mg*[L0 + L1*(y_Fe - y_Mg)],  L0 = -576, L1 = +3442 J/mol formula
+
+**The result is a small, asymmetric, near-ideal excess** (|H_mix| < 0.5 kJ/mol across the
+join; slightly ordering-favorable on the Mg-rich side, slightly positive on the Fe-rich
+side). It is everywhere too small to open a miscibility gap, consistent with di-hed being
+a complete solid solution at all temperatures. The .dat excess reproduces the fitted RK to
+< 0.05 J/mol. T-independent (no excess-entropy evidence).
 
 ## Validation
 
@@ -38,14 +53,17 @@ contribution in v0.1. Activities are therefore ideal (a_di = x_di).
   written .dat. The four-sublattice phase (with the diopside T^0.5 Cp term) round-trips
   exactly through the reader and the CEF kernel.
 - The endmembers reproduce the Robie-Hemingway Cp(298), dHf and S298.
+- The written .dat excess reproduces the MLIP-fitted Redlich-Kister to < 0.05 J/mol.
 
-## Known limits and the v0.2 path
+## Known limits
 
-- **Ideal mixing.** The real diopside-hedenbergite join has small positive deviations and
-  a low-temperature miscibility gap; neither is captured by L0 = 0. A measured subregular
-  excess, converted to Redlich-Kister (the Wood-Kleppa -> RK move used for olivine), is
-  the v0.2 refinement, from a targeted open-data pull (candidate primaries: Wood 1987-type
-  di-hed solution calorimetry, or Davidson-Lindsley activities). Not FactSage-assessed W.
+- **The excess is small and MLIP-derived.** |H_mix| < 0.5 kJ/mol, so di-hed is near-ideal
+  either way; the MLIP resolves the *sign and asymmetry* (clean at the symmetry-locked
+  x = 0.125 / 0.875 endpoints) but the mid-composition points carry ~0.1 kJ/mol scatter.
+  A direct solution-calorimetry H_mix (if one is ever located, open) would tighten it, but
+  would not change the phase behaviour (no gap). MatterSim over-expands both endmember
+  cells by ~4 %, a systematic offset that cancels in the mixing energy.
+- **T-independent excess.** No excess-entropy evidence, so the RK terms carry no b*T.
 - **Standalone.** Clinopyroxene lives in CaO-FeO-MgO-SiO2 and slots into neither shipped
   ternary yet (FeO-MgO-SiO2 has no Ca; CaO-Al2O3-SiO2 has no Fe), so it ships as its own
   validated .dat, exactly as olivine was introduced before entering a multicomponent
@@ -60,6 +78,10 @@ contribution in v0.1. Activities are therefore ideal (a_di = x_di).
 - Navrotsky & Coons, *Thermochemistry of some pyroxenes and related compounds*, Geochim.
   Cosmochim. Acta 40 (1976) 1281, DOI 10.1016/0016-7037(76)90162-9 (diopside formation
   enthalpy cross-check, not fitted).
+- Diopside structure COD 1000007 (Thompson & Downs 2008); hedenbergite is the all-Fe M1
+  substitution, relaxed. The mixing excess is computed (MatterSim), not from a citation.
 
 Repro: `endmembers.py` (diopside/hedenbergite Gibbs coefficients, with a self-test),
-`build_dat.py` (writes Clinopyroxene-CEF.dat), `validate_cpx.py` (engine vs pycalphad).
+`build_dat.py` (writes Clinopyroxene-CEF.dat), `validate_cpx.py` (engine vs pycalphad),
+`_mlip/` (mlip_mix.py, mlip_mix2.py, fit_excess.py: the MLIP mixing-enthalpy pass and the
+Redlich-Kister fit; README.md documents the method).

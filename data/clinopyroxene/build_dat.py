@@ -3,12 +3,11 @@
   CLINOPYROXENE  (Ca)1 (Mg,Fe)1 (Si)2 (O)6   endmembers diopside / hedenbergite
 
 The Ca, Si and O sublattices are fixed; only the M1 (Mg,Fe) sublattice mixes. Endmember
-Gibbs energies are Robie-Hemingway 1995 (data/clinopyroxene/endmembers.py). v0.1 is IDEAL
-mixing on the M1 sublattice (Redlich-Kister L0 = 0): no open diopside-hedenbergite mixing
-calorimetry exists, so the configurational entropy is the only non-endmember term. A
-measured excess (and the low-T di-hed solvus it implies) is the v0.2 refinement, from a
-targeted open-data pull. Constituents are listed [Fe, Mg] to match pycalphad's
-alphabetical sort. See PROVENANCE.md.
+Gibbs energies are Robie-Hemingway 1995 (data/clinopyroxene/endmembers.py). No open
+diopside-hedenbergite mixing calorimetry exists, so v0.2 takes the (Fe,Mg) M1 excess from
+MLIP triangulation (MatterSim, data/clinopyroxene/_mlip): a small, asymmetric, near-ideal
+Redlich-Kister excess (|H_mix| < 0.5 kJ/mol, no miscibility gap). Constituents are listed
+[Fe, Mg] to match pycalphad's alphabetical sort. See PROVENANCE.md.
 """
 import importlib.util
 import sys
@@ -23,7 +22,11 @@ em = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(em)
 
 ELEMENTS = [("CA", 40.078), ("FE", 55.845), ("MG", 24.305), ("SI", 28.085), ("O", 15.9994)]
-L0 = 0.0   # ideal (Fe,Mg) mixing; a measured excess is the v0.2 refinement
+# (Fe,Mg) M1 excess, Redlich-Kister on (y_Fe - y_Mg): G_xs = y_Fe*y_Mg*[L0 + L1*(y_Fe-y_Mg)].
+# v0.2, MLIP-triangulated (MatterSim, data/clinopyroxene/_mlip): a small asymmetric,
+# near-ideal excess (|H_mix| < 0.5 kJ/mol; no miscibility gap). T-independent.
+L0 = -576.0
+L1 = 3441.7
 
 
 def _fmt(x):
@@ -81,7 +84,7 @@ def build(out=None):
         [1.0, 1.0, 2.0, 6.0],
         [["CA"], ["FE", "MG"], ["SI"], ["O"]],
         [[1, 1], [1, 2], [1, 1], [1, 1]],
-        [L0])
+        [L0, L1])
     path = out or (HERE / "Clinopyroxene-CEF.dat")
     Path(path).write_text("\n".join(lines) + "\n", encoding="ascii")
     return path

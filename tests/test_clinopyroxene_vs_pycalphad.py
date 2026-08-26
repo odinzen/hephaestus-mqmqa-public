@@ -38,6 +38,16 @@ def test_endmembers_reproduce_robie_hemingway(model):
     assert em.ENDMEMBERS["hedenbergite"]["dHf"] == pytest.approx(-2839900.0)
 
 
+def test_mixing_excess_small_and_asymmetric(model):
+    """v0.2 carries the MLIP-triangulated (Fe,Mg) excess: small (near-ideal, no gap) and
+    asymmetric (negative Mg-rich, positive Fe-rich). Checked as the RK enthalpy."""
+    bd, _, _ = model
+    assert (bd.L0, bd.L1) == pytest.approx((-576.0, 3441.7))
+    hmix = lambda x: x * (1 - x) * (bd.L0 + bd.L1 * (2 * x - 1))   # J/mol formula
+    assert abs(hmix(0.5)) < 500                                    # near-ideal
+    assert hmix(0.125) < -200 and hmix(0.875) > 100               # asymmetric
+
+
 def test_cef_gibbs_matches_pycalphad(model):
     _, db, pdb = model
     p = db.phase_index("CLINOPYROXENE")

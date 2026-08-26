@@ -1,4 +1,4 @@
- System KCl-MgCl2  open oxide-slag database v0.1 (provenance: TKV endmembers + invariants (Perry&Fletcher 1993, Xu 2018); KMgCl3 dHf_ox own-fitted; see PROVENANCE.md)
+ System KCl-MgCl2  open molten-salt database v0.1 (provenance: TKV endmembers + invariants (Perry&Fletcher 1993, Xu 2018); KMgCl3 dHf_ox own-fitted; see PROVENANCE.md)
     3    1    2    3
  K                       Mg                       Cl
    39.098000000              24.305000000              35.453000000

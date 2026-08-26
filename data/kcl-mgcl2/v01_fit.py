@@ -9,6 +9,7 @@ Targets (three parameters, three targets):
 Validation (not fitted): Xu 2018 eutectic fusion enthalpy 207 J/g = 17.04 kJ/mol of
 mixture. Reported as prediction: the MgCl2-side eutectic.
 """
+import importlib.util
 import math
 import sys
 from pathlib import Path
@@ -16,10 +17,14 @@ from pathlib import Path
 import numpy as np
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parents[1] / "python"))
 
-import build_dat
+# Load build_dat by path under a unique name: a bare `import build_dat` collides
+# with the other systems' build_dat.py in the shared test process (sys.modules).
+_spec = importlib.util.spec_from_file_location("kcl_mgcl2_build_dat", HERE / "build_dat.py")
+build_dat = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(build_dat)
+
 import mqmqa
 from mqmqa import dbbuild
 from mqmqa import equilibrium as eq
@@ -132,7 +137,7 @@ def evaluate(vec, label):
 
 
 # Fitted 2026-08-26 (with KMC_DS_OX = +26.2 baked into build_dat); see PROVENANCE.md.
-STORED = [-2859.3, -15895.0, -88.5]
+STORED = [build_dat.KMC_DHF_OX, build_dat.LIQ_A00, build_dat.LIQ_A10]
 
 
 def residual(vec):

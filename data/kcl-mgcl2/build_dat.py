@@ -45,6 +45,16 @@ KMC_DS_OX = 26.2
 KMC_S298 = KCL.S298 + MGCL2.S298 + KMC_DS_OX
 KMC_CP = (KCL.a + MGCL2.a, KCL.b + MGCL2.b, KCL.c + MGCL2.c)
 
+# Fitted liquid excess (v01_fit.py --fit): Delta_g(K,Mg)/Cl = LIQ_A00 + LIQ_A10*chi_K.
+LIQ_A00 = -15895.0
+LIQ_A10 = -88.5
+
+
+def liquid_terms():
+    from mqmqa.dbbuild import ExcessTerm
+    return [ExcessTerm(a=LIQ_A00, b=0.0, p=0, q=0),
+            ExcessTerm(a=LIQ_A10, b=0.0, p=1, q=0)]
+
 
 def _stoich_block(name, dHf, S298, a, b, c, n_k, n_mg):
     A, B, C, D, E, F = solid_gibbs_coeffs(dHf, S298, a, b, c)
@@ -62,7 +72,7 @@ def build(dhf_ox_kmc=KMC_DHF_OX, liq_terms=(), out=None):
         provenance="TKV endmembers + invariants (Perry&Fletcher 1993, Xu 2018); KMgCl3 "
                    "dHf_ox own-fitted; see PROVENANCE.md")
     lines = dbbuild.write_dat(spec, anion_sym="Cl", anion_charge=1.0,
-                              z_per_charge=6.0).splitlines()
+                              z_per_charge=6.0, family="molten-salt").splitlines()
     lines[1] = "    3    1    2    3"
     lines += _stoich_block("KCl_solid", KCL.dHf, KCL.S298, KCL.a, KCL.b, KCL.c, 1, 0)
     lines += _stoich_block("MgCl2_solid", MGCL2.dHf, MGCL2.S298, MGCL2.a, MGCL2.b, MGCL2.c, 0, 1)
@@ -74,4 +84,4 @@ def build(dhf_ox_kmc=KMC_DHF_OX, liq_terms=(), out=None):
 
 
 if __name__ == "__main__":
-    print("wrote", build(-30000.0))
+    print("wrote", build(liq_terms=liquid_terms()))

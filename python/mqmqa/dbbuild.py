@@ -179,7 +179,8 @@ def _fmt(x):
     return f"{x:.12E}"
 
 
-def write_dat(spec: SystemSpec, anion_sym="O", anion_charge=2.0, z_per_charge=None) -> str:
+def write_dat(spec: SystemSpec, anion_sym="O", anion_charge=2.0, z_per_charge=None,
+              family="oxide-slag") -> str:
     """Serialize the system to a ChemSage SUBQ .dat string (single anion, liquid only).
 
     The anion defaults to oxide (O, charge 2); pass e.g. anion_sym="Cl", anion_charge=1.0
@@ -187,6 +188,8 @@ def write_dat(spec: SystemSpec, anion_sym="O", anion_charge=2.0, z_per_charge=No
     z_per_charge sets the coordination convention: the module default (charge-proportional,
     the oxide-slag convention validated against pycalphad) unless overridden - monovalent
     salts use z_per_charge=6.0, the published MQM salt convention.
+    family only labels the header comment ("open <family> database"); pass "molten-salt"
+    for the chloride systems.
     """
     comps = spec.components
     n_cat = len(comps)
@@ -197,7 +200,7 @@ def write_dat(spec: SystemSpec, anion_sym="O", anion_charge=2.0, z_per_charge=No
     L = []
     ap = L.append
     prov = spec.provenance or "user-supplied literature data"
-    ap(f" System {spec.name}  open oxide-slag database {spec.version} (provenance: {prov})")
+    ap(f" System {spec.name}  open {family} database {spec.version} (provenance: {prov})")
     ap(f"    {len(elements)}    1    {n_cat}    0")          # n_el, n_soln, n_cat, n_stoich
     ap(" " + "                       ".join(elements))
     ap("   " + "              ".join(f"{m:.9f}" for m in masses))

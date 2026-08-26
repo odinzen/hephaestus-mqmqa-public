@@ -73,4 +73,4 @@ both of which v0.1 pins.
 
 Repro: `build_dat.py` (writes NaCl-MgCl2.dat; `python build_dat.py` writes the fitted
 model), `v01_fit.py` (evaluates; `--fit` re-derives the two liquid terms from the
-eutectic).
+eutectic), `phase_diagram.py` (draws the liquidus/eutectic figure from the model).

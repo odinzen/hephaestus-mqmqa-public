@@ -870,7 +870,9 @@ function pdDiscretes(endA, endB){
     const n0=aA/dA, n1=aB/dB, units=n0+n1; if(units<=0) continue;
     const reqCommon=n0*endA.els[common]+n1*endB.els[common];
     if(Math.abs((c[common]||0)-reqCommon)>1e-9) continue;
-    out.push({xi:n1/units, units, name, idx:i, solid:/\(S\)/.test(name)});
+    // A stoichiometric compound is a solid unless its name marks it liquid: FactSage-style
+    // files write "(s)"/"(l)" suffixes, but plain names (CRISTOBALITE, Ca3Al2O6) are solids.
+    out.push({xi:n1/units, units, name, idx:i, solid:!/\(l\)|\(liq\)|liquid/i.test(name)});
   }
   return out;
 }

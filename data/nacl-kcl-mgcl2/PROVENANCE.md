@@ -1,11 +1,12 @@
-# NaCl-KCl-MgCl2 v0.2 provenance and limits
+# NaCl-KCl-MgCl2 v0.3 provenance and limits
 
 The molten-salt CSP ternary (concentrated-solar / molten-salt-reactor heat-transfer
 fluid), assembled from the three shipped binaries. Built 2026-08-26. v0.1 was the pure
-Muggianu combination of the binary excesses (nothing ternary fitted); **v0.2 adds one
-ternary MQMX term fitted to the single open experimental ternary datum, Mohan et al.
-2018's measured eutectic melting temperature**, which brings the predicted melting from
-+46 K to +6 K of measurement.
+Muggianu combination of the binary excesses; **v0.2 added one ternary MQMX term fitted to
+the single open experimental ternary datum (Mohan et al. 2018's measured eutectic
+melting), cutting the melting error from +46 K to +6 K; v0.3 adds the (Na,K)Cl halite
+solid solution** so the NaCl-KCl edge is a continuous solution with its solvus rather than
+two line compounds.
 
 ## Liquid (SUBQ, Na+1 / K+1 / Mg+2 / Cl-1)
 
@@ -29,11 +30,16 @@ combination was chosen because it is strongly active at the MgCl2-rich eutectic.
 
 ## Solids
 
-The binary endmembers NaCl, KCl, MgCl2 and the KCl-MgCl2 double salt KMgCl3, all
-stoichiometric (values identical to the binary databases). The (Na,K)Cl **halite solid
-solution** from NaCl-KCl v0.1 is not included here: the NaCl-KCl edge is represented by
-the two stoichiometric solids. Adding halite (and any MgCl2-rich double salts) is the
-v0.2 refinement.
+- **Halite (Na,K)Cl (CEF/SUBL, one mixing sublattice)** carries NaCl and KCl as its
+  endmembers, with the regular excess W = 2R*768.15 = 12773.6 J/mol from NaCl-KCl v0.1
+  (the evaluated solvus consolute). Below 768 K it unmixes into two halites, exactly the
+  NaCl-KCl v0.1 solvus, now inside the ternary.
+- **MgCl2 and the KCl-MgCl2 double salt KMgCl3**, stoichiometric (values identical to the
+  binary databases).
+
+The MgCl2-rich double salts that some assessments place on the KCl-MgCl2 / NaCl-MgCl2
+edges beyond KMgCl3 (K2MgCl4, K3Mg2Cl7, NaMgCl3, Na2MgCl4) are not included, matching the
+binary databases (their thermochemistry is not in open experimental data).
 
 ## Validation
 
@@ -55,16 +61,20 @@ v0.2 refinement.
   SUBQ liquid Cp is inherited from the endmembers (the excess is temperature-independent),
   so it carries no configurational Cp; the ~20 percent shortfall is expected and bounds
   what a T-independent excess can do. The ternary term does not change it.
+- **Halite solvus.** pycalphad equilibrium on the written file gives two coexisting
+  halites below the 768 K consolute on the NaCl-KCl edge, reproducing the NaCl-KCl v0.1
+  solvus, and the halite phase leaves the liquid and the MgCl2-rich eutectic untouched
+  (the liquid GM check above still holds to machine precision).
 
-## Known limits and the v0.3 path
+## Known limits and the next steps
 
 - **One ternary point.** Only Mohan's single melting temperature is available as open
   experimental ternary data, so exactly one ternary parameter is justified. If an open
   ternary liquidus surface is digitized, more terms (and their temperature dependence)
   could be fit; a b*T entropy on the ternary term would then also address the Cp shortfall.
-- **Stoichiometric solids only.** The halite (Na,K)Cl solid solution (NaCl-KCl v0.1) and
-  any MgCl2-rich double salts beyond KMgCl3 are deferred to v0.3; they matter most on the
-  NaCl-KCl edge, away from the MgCl2-rich CSP eutectic.
+- **MgCl2-rich double salts beyond KMgCl3** (K2MgCl4, K3Mg2Cl7, NaMgCl3, Na2MgCl4) are not
+  modeled, matching the binary databases: their formation thermochemistry is not in open
+  experimental data (the identities come only from FactSage assessments).
 - **The eutectic composition is not independently located** here (the open literature's
   eutectic composition is FactSage-derived); v0.2 fits and reports the model melting at
   the measured composition, not a from-scratch ternary invariant search.

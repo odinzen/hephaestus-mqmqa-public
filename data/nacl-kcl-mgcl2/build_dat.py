@@ -64,6 +64,10 @@ SOLIDS = {
 TERNARY = ("KCl", "MgCl2", "NaCl", -8500.0, 1)
 
 
+R = 8.3145
+W_HALITE = 2.0 * R * 768.15   # (Na,K)Cl regular excess, consolute 768.15 K (NaCl-KCl v0.1)
+
+
 def _stoich_block(name, cf, n_na, n_k, n_mg):
     A, B, C, D, E, F = solid_gibbs_coeffs(cf["dHf"], cf["S298"], cf["a"], cf["b"], cf["c"])
     n_cl = n_na + n_k + 2 * n_mg
@@ -71,6 +75,33 @@ def _stoich_block(name, cf, n_na, n_k, n_mg):
     return [f" {name}",
             "   1   1   " + "   ".join(f"{e:.6f}" for e in elems),
             "  6000.0000   " + "   ".join(f"{v:.12E}" for v in (A, B, C, D, E, F))]
+
+
+def _halite_block():
+    """SUBL (Na,K)1(Cl)1: the NaCl-KCl v0.1 halite, extended to the 4-element ternary.
+
+    Elements Na,K,Mg,Cl. Constituents name-sorted [K, NA] on the mixing sublattice to
+    match pycalphad's alphabetization; regular W on that sublattice."""
+    gk = solid_gibbs_coeffs(KCL.dHf, KCL.S298, KCL.a, KCL.b, KCL.c)
+    gn = solid_gibbs_coeffs(NACL.dHf, NACL.S298, NACL.a, NACL.b, NACL.c)
+    L = [" HALITE", " SUBL"]
+    for name, cf, stoich in (("KCL_S", gk, [0.0, 1.0, 0.0, 1.0]),     # Na,K,Mg,Cl
+                             ("NACL_S", gn, [1.0, 0.0, 0.0, 1.0])):
+        L.append(f" {name}")
+        L.append("   1   1   " + "   ".join(f"{s:.1f}" for s in stoich))
+        L.append("   6000.0000   " + "   ".join(f"{v:.12E}" for v in cf))
+    L += ["   2",                              # 2 sublattices
+          "   1.000000   1.000000",            # site ratios
+          "   2   1",                          # constituents per sublattice
+          "   K   NA",                         # subl 1 (mixing), name-sorted
+          "   CL",                             # subl 2
+          "   1   2",                          # endmember constituent, subl 1
+          "   1   1",                          # endmember constituent, subl 2
+          "   3   1   2   3",                  # excess: K,Na mix on subl 1, Cl pinned
+          "   1",
+          "   " + "   ".join(f"{v:.12E}" for v in (W_HALITE, 0, 0, 0, 0, 0)),
+          "   0"]
+    return L
 
 
 def _binaries_with(ternary):
@@ -87,17 +118,24 @@ def _binaries_with(ternary):
     raise ValueError(f"no binary {c1}-{c2} to carry the ternary term")
 
 
-def build(out=None, ternary=TERNARY):
+def build(out=None, ternary=TERNARY, include_halite=True):
     spec = SystemSpec(
         "NaCl-KCl-MgCl2", [NACL, KCL, MGCL2], _binaries_with(ternary),
-        version="v0.2",
-        provenance="three shipped binaries (Muggianu) + one ternary MQMX term fitted to "
-                   "the Mohan 2018 eutectic melting; NaCl/KCl/MgCl2/KMgCl3 solids; see "
+        version="v0.3",
+        provenance="three shipped binaries (Muggianu) + one fitted ternary MQMX term + "
+                   "the (Na,K)Cl halite solid solution; MgCl2/KMgCl3 solids; see "
                    "PROVENANCE.md")
     lines = dbbuild.write_dat(spec, anion_sym="Cl", anion_charge=1.0,
                               z_per_charge=6.0, family="molten-salt").splitlines()
-    lines[1] = f"    4    1    3    {len(SOLIDS)}"      # Na,K,Mg,Cl | 1 soln | 3 cations
-    for name, (n_na, n_k, n_mg, cf) in SOLIDS.items():
+    if include_halite:
+        # NaCl and KCl become the halite endmembers; MgCl2 and KMgCl3 stay stoichiometric.
+        stoich = {k: v for k, v in SOLIDS.items() if k in ("MgCl2_solid", "KMgCl3")}
+        lines[1] = f"    4    2    3    2    {len(stoich)}"   # 2 solutions: liquid(3 cat)+halite(2)
+        lines += _halite_block()
+    else:
+        stoich = SOLIDS
+        lines[1] = f"    4    1    3    {len(stoich)}"
+    for name, (n_na, n_k, n_mg, cf) in stoich.items():
         lines += _stoich_block(name, cf, n_na, n_k, n_mg)
     path = out or (HERE / "NaCl-KCl-MgCl2.dat")
     Path(path).write_text("\n".join(lines) + "\n", encoding="ascii")

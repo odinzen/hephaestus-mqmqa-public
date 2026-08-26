@@ -73,3 +73,13 @@ def test_eutectic_melting_bracket(dat):
     cold = equilibrium(pdb, ["NA", "K", "MG", "CL"], list(pdb.phases.keys()), cond(660.0))
     assert any(str(x) not in ("NACL-KCL-MGCL2-LIQUID", "") and str(x)
                for x in cold.Phase.values.ravel())
+
+
+def test_halite_solvus(dat):
+    """The (Na,K)Cl halite solid solution unmixes into two halites below the consolute,
+    reproducing the NaCl-KCl edge solvus inside the ternary."""
+    pdb = PDB(str(dat))
+    assert "HALITE" in pdb.phases and "NACL_SOLID" not in pdb.phases
+    r = equilibrium(pdb, ["NA", "K", "CL"], list(pdb.phases.keys()),
+                    {v.T: 600.0, v.P: 101325, v.N: 1, v.X("NA"): 0.25, v.X("K"): 0.25})
+    assert [str(x) for x in r.Phase.values.ravel() if x].count("HALITE") == 2

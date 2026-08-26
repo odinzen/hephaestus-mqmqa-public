@@ -51,10 +51,12 @@ def main():
         return gm(x) * ((1 - x) * A["MO"] + x * A["SiO2"])
 
     print("1) binary-limit reduction (quaternary vs shipped binary), max |diff| G/formula:")
-    for label, comps, (rdb, rp) in [("CaO-SiO2", ["CA", "SI", "O"], (cdb, cp)),
-                                    ("FeO-SiO2", ["FE", "SI", "O"], (fms, fp)),
-                                    ("MgO-SiO2", ["MG", "SI", "O"], (fms, fp))]:
-        worst = max(abs(gbin(qdb, qp, comps, x, 1800.0) - gbin(rdb, rp, comps, x, 1800.0))
+    # CaO-SiO2 checked above the CaO(l) melting-calibration interval (T > 2845 K), where the
+    # v0.2 CaO shift is off; FeO/MgO share their calibrations, so they match at any T.
+    for label, comps, (rdb, rp), T in [("CaO-SiO2 (>Tm)", ["CA", "SI", "O"], (cdb, cp), 2900.0),
+                                       ("FeO-SiO2", ["FE", "SI", "O"], (fms, fp), 1800.0),
+                                       ("MgO-SiO2", ["MG", "SI", "O"], (fms, fp), 1800.0)]:
+        worst = max(abs(gbin(qdb, qp, comps, x, T) - gbin(rdb, rp, comps, x, T))
                     for x in (0.3, 0.5, 0.7))
         print(f"   {label}: {worst:.4f} J/formula")
 

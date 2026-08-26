@@ -38,8 +38,18 @@ ELEMENTS = [("Ca", 40.078), ("Fe", 55.845), ("Mg", 24.305), ("Si", 28.085), ("O"
 CATIONS = ["Ca", "Fe", "Mg", "Si"]                    # Ca=1, Fe=2, Mg=3, Si=4; O=5
 ORDER = ["CaO", "FeO", "MgO", "SiO2"]
 
+# CaO(l) below-melting recalibration (v0.2): a Gibbs interval below CaO's Tm (2845 K) fit so
+# diopside CaMgSi2O6 melts congruently at 1670 K, i.e. it puts the liquid on the same absolute
+# reference as the Robie-Hemingway clinopyroxene the CEF solids use (the FeO(l)/MgO(l) technique
+# of the FeO-MgO-SiO2 melt, extended to the calcium endmember). A pure CaO endmember shift,
+# orthogonal to the CaO-SiO2 mixing excess. Analytic single-point solve; see
+# validate_combined.py / PROVENANCE.md.
+CAO_TM = _cao.OXIDES["CaO"]["Tm"]                     # 2845 K
+CAO_LIQ_BETA = 18.108466
+
 OXIDES = {
-    "CaO": dict(src=_cao, ox=_cao.OXIDES["CaO"], charge=2.0, quad=(1.0, 1.0), beta=None),
+    "CaO": dict(src=_cao, ox=_cao.OXIDES["CaO"], charge=2.0, quad=(1.0, 1.0),
+                beta=(CAO_TM, CAO_LIQ_BETA)),
     "FeO": dict(src=_fms._feo, ox=_fms._feo.OXIDES["FeO"], charge=2.0, quad=(1.0, 1.0),
                 beta=(_fms._feo.FEO_TM, _fms.FEO_LIQ_BETA)),
     "MgO": dict(src=_fms._mgo, ox=_fms._mgo.OXIDES["MgO"], charge=2.0, quad=(1.0, 1.0),
@@ -95,7 +105,7 @@ def _mqmx_block(excess):
     return out
 
 
-def build(excess=EXCESS, version="v0.1"):
+def build(excess=EXCESS, version="v0.2"):
     L = []
     ap = L.append
     ap(f" System CaO-FeO-MgO-SiO2  open calcium-iron-magnesium-silicate slag database "

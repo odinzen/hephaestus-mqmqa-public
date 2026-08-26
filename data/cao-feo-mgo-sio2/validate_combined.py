@@ -48,20 +48,26 @@ def main():
     gcs = s.cef_gibbs(s.phase_index("CLINOPYROXENE"), [1, 0.3, 0.7, 1, 1], 1800.0, per_mole_atoms=True)
     print(f"   combined cpx vs standalone solids db: {abs(gc - gcs):.2e} J/mol-atom")
 
-    # 3) multi-phase equilibrium runs and crystallizes a silicate from the melt
-    xo = {"CaO": 0.25, "FeO": 0.1, "MgO": 0.2, "SiO2": 0.45}
-    el = {"CA": xo["CaO"], "FE": xo["FeO"], "MG": xo["MgO"], "SI": xo["SiO2"],
-          "O": xo["CaO"] + xo["FeO"] + xo["MgO"] + 2 * xo["SiO2"]}
-    tot = sum(el.values())
-    print("3) crystallization of a CaO25/FeO10/MgO20/SiO2-45 slag (qualitative):")
-    for Tt in (2000.0, 1850.0, 1700.0):
-        r = equilibrium(pdb, ["CA", "FE", "MG", "SI", "O"], list(pdb.phases.keys()),
-                        {v.T: Tt, v.P: 101325, v.N: 1, v.X("CA"): el["CA"] / tot,
-                         v.X("FE"): el["FE"] / tot, v.X("MG"): el["MG"] / tot,
-                         v.X("SI"): el["SI"] / tot})
-        ph = sorted(set(str(x) for x in r.Phase.values.ravel() if x))
-        print(f"   {Tt:.0f} K: {ph}")
-    print("   (primary-phase fields are not calibrated; see PROVENANCE.md)")
+    # 3) after the CaO(l) melting calibration: physical primary-phase fields
+    def prim(ca, fe, mg, si, Tlo=1400, Thi=2200):
+        el = {"CA": ca, "FE": fe, "MG": mg, "SI": si, "O": ca + fe + mg + 2 * si}
+        tot = sum(el.values())
+        for Tt in np.arange(Thi, Tlo, -20.0):
+            r = equilibrium(pdb, ["CA", "FE", "MG", "SI", "O"], list(pdb.phases.keys()),
+                            {v.T: float(Tt), v.P: 101325, v.N: 1, v.X("CA"): el["CA"] / tot,
+                             v.X("FE"): el["FE"] / tot, v.X("MG"): el["MG"] / tot,
+                             v.X("SI"): el["SI"] / tot})
+            sol = sorted(set(str(x) for x in r.Phase.values.ravel()
+                             if x and str(x) != "CAO-FEO-MGO-SIO2-LIQUID"))
+            if sol:
+                return float(Tt), sol[0]
+        return None, None
+    print("3) crystallization (calibrated primary-phase fields):")
+    for name, (ca, fe, mg, si) in [("mafic (CaO10/FeO15/MgO35/SiO40)", (.10, .15, .35, .40)),
+                                   ("Ca-rich (CaO40/FeO5/MgO10/SiO45)", (.40, .05, .10, .45)),
+                                   ("Fe-rich (CaO10/FeO40/MgO10/SiO40)", (.10, .40, .10, .40))]:
+        T, ph = prim(ca, fe, mg, si)
+        print(f"   {name}: liquidus ~{T:.0f} K, primary {ph}")
 
 
 if __name__ == "__main__":

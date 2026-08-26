@@ -18,18 +18,26 @@ source of truth):
 | MgO-SiO2 | assessed 5-term silica-weighted set, (0,q) = chi_Si^q, q = 0,1,3,5,7 | MgO-SiO2 v0.5 |
 | CaO-FeO, CaO-MgO, FeO-MgO | **ideal** (no term) | see limits |
 
-Endmember Gibbs energies from the binary builders; FeO and MgO carry their below-melting
-liquid recalibrations (the v0.3 FeO(l) interval below 1650 K; the MgO(l) interval fit so
-MgO-SiO2 melts forsterite congruently at 2163 K). CaO (Tm 2845 K) and SiO2 (cristobalite,
-identical across all three binaries) are the plain fusion liquids.
+Endmember Gibbs energies from the binary builders. FeO, MgO and (v0.2) CaO carry
+below-melting liquid recalibrations that put the liquid on the same absolute reference as
+the Robie-Hemingway silicate solids: the v0.3 FeO(l) interval below 1650 K; the MgO(l)
+interval fit so forsterite melts congruently at 2163 K; and the **new CaO(l) interval below
+2845 K, fit so diopside CaMgSi2O6 melts congruently at 1670 K** (CAO_LIQ_BETA = 18.108
+J/mol/K, an analytic single-point solve, a pure CaO endmember shift orthogonal to the
+CaO-SiO2 mixing excess). SiO2 (cristobalite, identical across all three binaries) is the
+plain fusion liquid. These endmember calibrations are what make the combined liquid+solids
+file (build_combined_dat.py) crystallize the right silicate; see PROVENANCE_combined.md.
 
 ## Validation
 
-- **Exact binary-limit reduction.** In each two-oxide limit the quaternary liquid Gibbs
-  energy equals the shipped binary's, checked with the engine's exact 1-D binary solver:
-  CaO-SiO2 within 0.001 J/formula, FeO-SiO2 and MgO-SiO2 to 0.0000 J/formula, at
-  x_SiO2 = 0.3/0.5/0.7, 1800 K. The excess terms are the binaries' own, only re-indexed;
-  the basic edges carry no term, so they mix ideally by construction.
+- **Binary-limit reduction.** FeO-SiO2 and MgO-SiO2 equal the shipped ternary exactly at
+  any T (to 0.0000 J/formula, engine's exact 1-D binary solver), since those endmember
+  calibrations are shared. CaO-SiO2 equals the shipped binary EXCESS above the CaO(l)
+  calibration interval (T > 2845 K, where the v0.2 CaO shift is off, within 0.001
+  J/formula); below 2845 K the CaO endmember intentionally carries the diopside-melting
+  calibration, so the CaO-SiO2 liquidus is shifted there (a deliberate endmember shift, the
+  same relationship the MgO(l) forsterite calibration has to the shipped MgO-SiO2 binary).
+  The excess terms are the binaries' own, only re-indexed; the basic edges mix ideally.
 - **pycalphad reads the quaternary** (one liquid phase over Ca-Fe-Mg-Si-O).
 - The C engine's own 4-cation equilibrium minimizer is slightly looser than pycalphad's
   global solver at interior compositions (< ~10 J/mol-atom at 2000 K), so **pycalphad is

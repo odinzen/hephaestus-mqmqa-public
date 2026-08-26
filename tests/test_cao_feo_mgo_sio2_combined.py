@@ -53,18 +53,42 @@ def test_splice_is_faithful(combined):
         assert a == pytest.approx(b, abs=1e-6), ph
 
 
-def test_multiphase_crystallization_runs(combined):
-    """A slag melt crystallizes a silicate on cooling (fully liquid hot, solid+liquid cold)."""
-    _, _, pdb = combined
-    el = {"CA": 0.25, "FE": 0.1, "MG": 0.2, "SI": 0.45}
-    el["O"] = el["CA"] + el["FE"] + el["MG"] + 2 * el["SI"]
+def _prim(pdb, el, Tlo=1400, Thi=2200):
+    import numpy as np
     tot = sum(el.values())
-    cond = lambda T: {v.T: T, v.P: 101325, v.N: 1, v.X("CA"): el["CA"] / tot,
-                      v.X("FE"): el["FE"] / tot, v.X("MG"): el["MG"] / tot,
-                      v.X("SI"): el["SI"] / tot}
-    hot = equilibrium(pdb, ["CA", "FE", "MG", "SI", "O"], list(pdb.phases.keys()), cond(2000.0))
-    assert sorted(set(str(x) for x in hot.Phase.values.ravel() if x)) == \
-        ["CAO-FEO-MGO-SIO2-LIQUID"]
-    cold = equilibrium(pdb, ["CA", "FE", "MG", "SI", "O"], list(pdb.phases.keys()), cond(1700.0))
-    ph = set(str(x) for x in cold.Phase.values.ravel() if x)
-    assert "CAO-FEO-MGO-SIO2-LIQUID" in ph and len(ph) >= 2   # a solid crystallized
+    for T in np.arange(Thi, Tlo, -20.0):
+        r = equilibrium(pdb, ["CA", "FE", "MG", "SI", "O"], list(pdb.phases.keys()),
+                        {v.T: float(T), v.P: 101325, v.N: 1, v.X("CA"): el["CA"] / tot,
+                         v.X("FE"): el["FE"] / tot, v.X("MG"): el["MG"] / tot,
+                         v.X("SI"): el["SI"] / tot})
+        solids = sorted(set(str(x) for x in r.Phase.values.ravel()
+                            if x and str(x) != "CAO-FEO-MGO-SIO2-LIQUID"))
+        if solids:
+            return float(T), solids[0]
+    return None, None
+
+
+def test_primary_phase_fields_are_physical(combined):
+    """After the CaO(l) melting calibration: mafic melts crystallize olivine, Ca-rich melts
+    crystallize clinopyroxene (before calibration cpx was primary everywhere)."""
+    _, _, pdb = combined
+    def bulk(ca, fe, mg, si):
+        return {"CA": ca, "FE": fe, "MG": mg, "SI": si, "O": ca + fe + mg + 2 * si}
+    _, mafic = _prim(pdb, bulk(0.10, 0.15, 0.35, 0.40))
+    _, carich = _prim(pdb, bulk(0.40, 0.05, 0.10, 0.45))
+    assert mafic == "OLIVINE", mafic
+    assert carich == "CLINOPYROXENE", carich
+
+
+def test_diopside_melts_near_1670(combined):
+    """The CaO(l) calibration anchor: pure diopside CaMgSi2O6 melts congruently at ~1670 K."""
+    _, _, pdb = combined
+    cpxem = _load("clinopyroxene/endmembers.py", "cpxem_t")
+    el = {"CA": 1.0, "MG": 1.0, "SI": 2.0}
+    tot = el["CA"] + el["MG"] + el["SI"] + 6.0
+    def gap(T):
+        r = equilibrium(pdb, ["CA", "MG", "SI", "O"], ["CAO-FEO-MGO-SIO2-LIQUID"],
+                        {v.T: T, v.P: 101325, v.N: 1, v.X("CA"): el["CA"] / tot,
+                         v.X("MG"): el["MG"] / tot, v.X("SI"): el["SI"] / tot})
+        return float(r.GM.values.ravel()[0]) * 10.0 - cpxem.gibbs("diopside", T)
+    assert gap(1650.0) > 0 and gap(1690.0) < 0     # solid stable below, liquid above 1670

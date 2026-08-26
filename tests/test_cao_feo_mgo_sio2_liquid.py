@@ -52,14 +52,17 @@ def test_pycalphad_reads_quaternary(dbs):
 
 
 def test_binary_limit_reductions_are_exact(dbs):
+    """FeO-SiO2 and MgO-SiO2 reduce to the shipped ternary exactly at any T (shared
+    endmember calibrations). CaO-SiO2 reduces to the shipped binary EXCESS above the CaO(l)
+    melting-calibration interval (T > CaO Tm = 2845 K, where the v0.2 CaO shift is off);
+    below it the CaO endmember intentionally carries the diopside-melting calibration."""
     _, qdb, fms, cdb = dbs
     Q = "CAO-FEO-MGO-SIO2-LIQUID"
     csl = [n for n in cdb.phase_names if "LIQ" in n.upper()][0]
-    cases = [("FeO-SiO2", ["FE", "SI", "O"], fms, "FEO-MGO-SIO2-LIQUID"),
-             ("MgO-SiO2", ["MG", "SI", "O"], fms, "FEO-MGO-SIO2-LIQUID"),
-             ("CaO-SiO2", ["CA", "SI", "O"], cdb, csl)]
-    for _, comps, rdb, rph in cases:
+    for comps, rdb, rph, T in [(["FE", "SI", "O"], fms, "FEO-MGO-SIO2-LIQUID", 1800.0),
+                               (["MG", "SI", "O"], fms, "FEO-MGO-SIO2-LIQUID", 1800.0),
+                               (["CA", "SI", "O"], cdb, csl, 2900.0)]:
         for x in (0.3, 0.5, 0.7):
-            gq = _gbin(qdb, Q, comps, x, 1800.0)
-            gr = _gbin(rdb, rph, comps, x, 1800.0)
-            assert gq == pytest.approx(gr, abs=0.01), (comps, x, gq - gr)
+            gq = _gbin(qdb, Q, comps, x, T)
+            gr = _gbin(rdb, rph, comps, x, T)
+            assert gq == pytest.approx(gr, abs=0.01), (comps, x, T, gq - gr)

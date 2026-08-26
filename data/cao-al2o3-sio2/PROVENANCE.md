@@ -1,4 +1,25 @@
-# CaO-Al2O3-SiO2 v0.1 — provenance and limits
+# CaO-Al2O3-SiO2 — provenance and limits
+
+## v0.2 (2026-08-26): the ternary term
+
+v0.1's validation isolated a uniform +3.28 bias in ln a(SiO2) over the 21 Zaitsev
+CaO-rich points — the measured signature of the missing ternary interaction. v0.2 adds
+exactly one term: the CaO-SiO2 quadruplet gains an additional-constituent (AlO1.5)
+term, L = -110000 J/mol with r = 1 (Poschmann Eq. 25-26; the FactSage
+additional-mixing-constituent mechanism), fitted to those 21 points by scanning L on
+pycalphad-computed activities. Result over all 45 KEMS points:
+
+- Zaitsev (21, CaO-rich): RMS ln a 3.43 -> **0.48**, bias +3.28 -> **-0.10**
+- Kay & Taylor (24, silica-rich): RMS 0.38 -> 0.46, bias -0.11 -> +0.08
+
+The engine gained evaluation of this term (single chemical group, r = 1: the binary
+mixing term times the third cation's pair fraction Y_m; r >= 2 and multi-group return
+NaN loudly). Verified: engine equilibrium GM matches pycalphad to < 0.005 J/mol-atom
+on this file at Zaitsev-corner compositions, and to < 0.5 J on the dedicated
+regression test system; the WASM build reproduces the native value; the prior
+FeO-MgO-SiO2 oracle value (-321252.12 at 1700 K) is unchanged.
+
+## v0.1 (2026-08-26): assembly and validation
 
 The cement-and-slag flagship ternary, assembled 2026-08-26 from the three shipped
 binaries. No ternary parameter is fitted; the 45 independent KEMS silica activities in

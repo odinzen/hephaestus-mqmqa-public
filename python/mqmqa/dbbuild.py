@@ -80,12 +80,20 @@ class ExcessTerm:
 
     code is 'Q' (quadruplet-fraction basis, the usual choice) or 'G'. L = a + b*T (enthalpy a,
     entropy b). p acts on the first component of the binary, q on the second.
+
+    add_cat/r express a TERNARY dependence (Poschmann Eq. 25-26, the FactSage
+    additional-mixing-constituent mechanism): the term is further multiplied by the
+    third cation's pair-fraction factor with exponent r. pycalphad evaluates this;
+    the C engine's support status is checked at read time - do not ship a file
+    carrying add_cat until the engine evaluates it.
     """
     a: float                  # L enthalpy part (J/mol)
     b: float = 0.0            # L entropy/temperature part (J/mol/K)
     p: int = 0                # exponent on the first binary component
     q: int = 0                # exponent on the second binary component
     code: str = "Q"
+    add_cat: str = ""         # component NAME of the additional (ternary) cation, or ""
+    r: int = 0                # exponent of the additional constituent (exponents slot 3)
 
 
 @dataclass
@@ -234,12 +242,14 @@ def write_dat(spec: SystemSpec, anion_sym="O", anion_charge=2.0, z_per_charge=No
     for be in spec.binaries:
         ia, ib = idx[be.first], idx[be.second]
         for t in be.terms:
+            add_cat = idx[t.add_cat] if getattr(t, "add_cat", "") else 0
+            r = getattr(t, "r", 0)
             excess_lines.append("   1")
             excess_lines.append(f" {t.code}   {ia}   {ib}   {an_idx}   {an_idx}   "
-                                f"{t.p}   {t.q}   0   0")
+                                f"{t.p}   {t.q}   {r}   0")
             excess_lines.append("  " + "   ".join("0.00000000" for _ in range(6)))
             excess_lines.append("  " + "   ".join("0.00000000" for _ in range(6)))
-            excess_lines.append("   0   0   " + "   ".join(_fmt(v) for v in
+            excess_lines.append(f"   {add_cat}   0   " + "   ".join(_fmt(v) for v in
                                 [t.a, t.b, 0.0, 0.0, 0.0, 0.0]))
     excess_lines.append("   0")
     L.extend(excess_lines)

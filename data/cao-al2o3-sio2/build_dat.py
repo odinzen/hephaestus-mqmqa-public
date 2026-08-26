@@ -38,8 +38,13 @@ SIO2 = dbbuild.starter_component("SiO2")
 BINARIES = [
     BinaryExcess("CaO", "SiO2",
                  [ExcessTerm(a=-189763.512, b=15.7059847, p=0, q=0),
-                  ExcessTerm(a=57170.779, b=0.0, p=1, q=0)],
-                 source="CaO-SiO2 v0.3 (shipped .dat)"),
+                  ExcessTerm(a=57170.779, b=0.0, p=1, q=0),
+                  # v0.2 ternary term (Poschmann Eq 25-26, r=1): fitted to the 21
+                  # Zaitsev CaO-rich KEMS activities, which showed a uniform +3.28
+                  # bias in ln a(SiO2) under the pure binary assembly. Kay-Taylor
+                  # stays within scatter. See PROVENANCE.md.
+                  ExcessTerm(a=-110000.0, b=0.0, p=0, q=0, add_cat="AlO1.5", r=1)],
+                 source="CaO-SiO2 v0.3 (shipped .dat) + CAS v0.2 ternary term"),
     BinaryExcess("CaO", "AlO1.5",
                  [ExcessTerm(a=-156581.1, b=2.159, p=0, q=0),
                   ExcessTerm(a=133468.2, b=0.0, p=1, q=0)],
@@ -122,9 +127,9 @@ def _stoich_block(name, cf, n_ca, n_al, n_si):
 def build(out=None):
     spec = SystemSpec(
         "CaO-AlO1.5-SiO2", [CAO, ALO15, SIO2], BINARIES,
-        version="v0.1",
-        provenance="assembled from the three shipped binaries (Muggianu, no ternary "
-                   "term); KEMS activities are validation only; see PROVENANCE.md")
+        version="v0.2",
+        provenance="three shipped binaries (Muggianu) + one ternary term fitted to "
+                   "the Zaitsev KEMS activities; see PROVENANCE.md")
     lines = dbbuild.write_dat(spec).splitlines()
     lines[1] = f"    4    1    3    {len(SOLIDS)}"
     for name, (n_ca, n_al, n_si, cf) in SOLIDS.items():

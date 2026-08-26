@@ -94,7 +94,8 @@ MQMQA_API double mqmqa_excess_energy(
     int n_params,
     const int *par_mix, const int *par_code,
     const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
-    const double *par_p, const double *par_q, const double *par_L);
+    const double *par_p, const double *par_q, const double *par_L,
+    const double *par_r, const int *par_addcat);
 
 /* Coordination number Z of a species in a quadruplet (Pelton 2001 eqs 23-24).
  * sp_is_cation selects the sublattice; sp_idx, A, B, X, Y are cation/anion indices
@@ -147,6 +148,7 @@ MQMQA_API double mqmqa_equilibrate(
     const int *par_mix, const int *par_code,
     const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
     const double *par_p, const double *par_q, const double *par_L,
+    const double *par_r, const int *par_addcat,
     int n_elem,
     const int *cat_elem, const int *an_elem,
     const double *target,

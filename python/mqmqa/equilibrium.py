@@ -94,12 +94,17 @@ def build_inputs(db, phase, T, components=None):
 
     # excess (MQMX), restricted and reindexed
     mx = db.mqmx(phase, T)
-    ex = {k: [] for k in ("mix", "code", "A", "B", "X", "Y", "p", "q", "L")}
+    ex = {k: [] for k in ("mix", "code", "A", "B", "X", "Y", "p", "q", "L", "r", "addcat")}
     for i in range(len(mx["A"])):
         A, B, X, Y = mx["A"][i], mx["B"][i], mx["X"][i], mx["Y"][i]
         if A in cat_new and B in cat_new and X in an_new and Y in an_new:
+            m = mx.get("addcat", [-1] * len(mx["A"]))[i]
+            if m >= 0 and m not in cat_new:
+                continue    # ternary constituent absent -> its pair fraction is 0 -> term is 0
             ex["A"].append(cat_new[A]); ex["B"].append(cat_new[B])
             ex["X"].append(an_new[X]); ex["Y"].append(an_new[Y])
+            ex["addcat"].append(cat_new[m] if m >= 0 else -1)
+            ex["r"].append(mx.get("r", [0.0] * len(mx["A"]))[i])
             for k in ("mix", "code", "p", "q", "L"):
                 ex[k].append(mx[k][i])
 
@@ -128,7 +133,8 @@ def gibbs_per_quad(inp, X):
                               inp["qca"], inp["qcb"], inp["qax"], inp["qay"], Xl,
                               inp["Za"], inp["Zb"], inp["Zx"], inp["Zy"],
                               ex["mix"], ex["code"], ex["A"], ex["B"], ex["X"], ex["Y"],
-                              ex["p"], ex["q"], ex["L"])
+                              ex["p"], ex["q"], ex["L"],
+                              ex.get("r"), ex.get("addcat"))
     )
 
 

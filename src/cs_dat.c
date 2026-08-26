@@ -67,6 +67,7 @@ typedef struct {
     int mix;                    /* 0 cation, 1 anion, -1 other */
     int A, B, X, Y;             /* 0-based sublattice indices */
     int exp[4];
+    int add_cat;                /* additional (ternary) cation, 0-based; -1 none */
     double *coeff;              /* n_excess coefficients */
 } Mqmx;
 
@@ -438,8 +439,16 @@ static void parse_subq_phase(Lexer *lx, Db *db, Phase *ph, const char *type)
         for (int i = 0; i < 4; ++i) li[i] = tok_int(lx);
         for (int i = 0; i < 4; ++i) mx->exp[i] = tok_int(lx);
         for (int i = 0; i < 12; ++i) (void)tok_dbl(lx);   /* metadata, always zero here */
-        (void)tok_int(lx);   /* additional cation mixing constituent */
-        (void)tok_int(lx);   /* additional anion mixing constituent */
+        {
+            /* additional (ternary) mixing constituents: a cation index is stored and
+             * evaluated (Poschmann Eq 25-26); an anion one is not supported. */
+            int addc = tok_int(lx);
+            int adda = tok_int(lx);
+            if (adda != 0) lex_fail(lx, "additional anion mixing constituent not supported");
+            if (addc < 0 || addc > ph->n_cat)
+                lex_fail(lx, "additional cation mixing constituent out of range");
+            mx->add_cat = addc - 1;                       /* 0 -> -1 = none */
+        }
         mx->coeff = xalloc(lx, (size_t)db->n_excess * sizeof(double));
         for (int i = 0; i < db->n_excess; ++i) mx->coeff[i] = tok_dbl(lx);
 
@@ -867,6 +876,15 @@ void mqmqa_ph_mqmx_L(const mqmqa_db *db, int p, double T, double *L)
     const Db *d = (const Db *)db;
     const Phase *ph = &d->phases[p];
     for (int k = 0; k < ph->n_mqmx; ++k) L[k] = excess_coeff_gibbs(d, ph->mqmx[k].coeff, T);
+}
+
+void mqmqa_ph_mqmx_ternary(const mqmqa_db *db, int p, double *r_exp, int *add_cat)
+{
+    const Phase *ph = &((const Db *)db)->phases[p];
+    for (int k = 0; k < ph->n_mqmx; ++k) {
+        r_exp[k] = (double)ph->mqmx[k].exp[2];
+        add_cat[k] = ph->mqmx[k].add_cat;
+    }
 }
 
 /* ------------------------------------------------------------------ *

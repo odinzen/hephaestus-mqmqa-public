@@ -98,10 +98,14 @@ class Database:
         n = _lib.mqmqa_ph_num_mqmx(self._db, p)
         arrs = {k: _ffi.new("int[]", n) for k in ("mix", "code", "A", "B", "X", "Y", "p", "q")}
         L = _ffi.new("double[]", n)
+        r = _ffi.new("double[]", n)
+        addcat = _ffi.new("int[]", n)
         _lib.mqmqa_ph_mqmx(self._db, p, arrs["mix"], arrs["code"], arrs["A"], arrs["B"],
                            arrs["X"], arrs["Y"], arrs["p"], arrs["q"])
         _lib.mqmqa_ph_mqmx_L(self._db, p, T, L)
-        return {k: list(v) for k, v in arrs.items()} | {"L": list(L)}
+        _lib.mqmqa_ph_mqmx_ternary(self._db, p, r, addcat)
+        return ({k: list(v) for k, v in arrs.items()}
+                | {"L": list(L), "r": list(r), "addcat": list(addcat)})
 
     # --- CEF (SUBL) solution phases ---
     def phase_kind(self, p):

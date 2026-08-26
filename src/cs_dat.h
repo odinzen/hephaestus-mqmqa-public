@@ -87,6 +87,9 @@ MQMQA_API void mqmqa_ph_mqmx(const mqmqa_db *db, int p,
                              int *A, int *B, int *X, int *Y,
                              int *p_exp, int *q_exp);
 MQMQA_API void mqmqa_ph_mqmx_L(const mqmqa_db *db, int p, double T, double *L);
+/* Ternary additional-constituent data per MQMX term: exponent r (exponents slot 3)
+ * and the additional cation's 0-based index, -1 when none. */
+MQMQA_API void mqmqa_ph_mqmx_ternary(const mqmqa_db *db, int p, double *r_exp, int *add_cat);
 
 /* --- CEF (SUBL / compound-energy-formalism) solution phases ---
  * kind is 0 for MQMQA (SUBQ/SUBG) phases and 1 for CEF (SUBL). The accessors below

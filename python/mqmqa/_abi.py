@@ -41,7 +41,8 @@ _ffi.cdef(
         int n_params,
         const int *par_mix, const int *par_code,
         const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
-        const double *par_p, const double *par_q, const double *par_L);
+        const double *par_p, const double *par_q, const double *par_L,
+        const double *par_r, const int *par_addcat);
     double mqmqa_coordination(
         int sp_is_cation, int sp_idx,
         int A, int B, int X, int Y,
@@ -66,6 +67,7 @@ _ffi.cdef(
         const int *par_mix, const int *par_code,
         const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
         const double *par_p, const double *par_q, const double *par_L,
+        const double *par_r, const int *par_addcat,
         int n_elem,
         const int *cat_elem, const int *an_elem,
         const double *target,
@@ -109,6 +111,7 @@ _ffi.cdef(
                        int *mix, int *code, int *A, int *B, int *X, int *Y,
                        int *p_exp, int *q_exp);
     void mqmqa_ph_mqmx_L(const void *db, int p, double T, double *L);
+    void mqmqa_ph_mqmx_ternary(const void *db, int p, double *r_exp, int *add_cat);
 
     int mqmqa_db_phase_kind(const void *db, int p);
     int mqmqa_ph_cef_num_subl(const void *db, int p);
@@ -191,17 +194,21 @@ def ideal_mixing_energy(T, n_cat, n_an, quad_ca, quad_cb, quad_ax, quad_ay, X,
 
 def excess_energy(n_cat, n_an, quad_ca, quad_cb, quad_ax, quad_ay, X,
                   Za, Zb, Zx, Zy, par_mix, par_code,
-                  par_A, par_B, par_X, par_Y, par_p, par_q, par_L):
+                  par_A, par_B, par_X, par_Y, par_p, par_q, par_L,
+                  par_r=None, par_addcat=None):
     """Excess energy for MQMX parameters, J per mole of quadruplets."""
+    n = len(par_A)
     return _lib.mqmqa_excess_energy(
         int(n_cat), int(n_an), len(X),
         _ints(quad_ca), _ints(quad_cb), _ints(quad_ax), _ints(quad_ay),
         _dbls(X),
         _dbls(Za), _dbls(Zb), _dbls(Zx), _dbls(Zy),
-        len(par_A),
+        n,
         _ints(par_mix), _ints(par_code),
         _ints(par_A), _ints(par_B), _ints(par_X), _ints(par_Y),
         _dbls(par_p), _dbls(par_q), _dbls(par_L),
+        _dbls(par_r if par_r is not None else [0.0] * n),
+        _ints(par_addcat if par_addcat is not None else [-1] * n),
     )
 
 
@@ -255,6 +262,8 @@ def c_equilibrate(inp, x_target):
         _ints(ex["mix"]), _ints(ex["code"]),
         _ints(ex["A"]), _ints(ex["B"]), _ints(ex["X"]), _ints(ex["Y"]),
         _dbls(ex["p"]), _dbls(ex["q"]), _dbls(ex["L"]),
+        _dbls(ex.get("r", [0.0] * len(ex["A"]))),
+        _ints(ex.get("addcat", [-1] * len(ex["A"]))),
         len(elements),
         _ints(cat_elem), _ints(an_elem),
         _dbls(target),

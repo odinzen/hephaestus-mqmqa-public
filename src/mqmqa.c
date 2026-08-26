@@ -205,7 +205,8 @@ double mqmqa_excess_energy(
     int n_params,
     const int *par_mix, const int *par_code,
     const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
-    const double *par_p, const double *par_q, const double *par_L)
+    const double *par_p, const double *par_q, const double *par_L,
+    const double *par_r, const int *par_addcat)
 {
     double *nik = (double *)calloc((size_t)n_cat * (size_t)n_an, sizeof(double));
     for (int q = 0; q < n_quads; ++q) {
@@ -258,6 +259,18 @@ double mqmqa_excess_energy(
             const double mix = pow(Xi_i, p) * pow(Xi_j, qx)
                                / pow(Xi_i + Xi_j, p + qx);
             g = par_L[k] * mix;
+        }
+
+        /* Additional (ternary) cation constituent, Poschmann Eq 25-26. With a single
+         * chemical group (this engine's supported case) the nu/gamma sets are empty
+         * and the r=1 factor reduces to the third cation's pair fraction Y_m; higher
+         * r needs the Xi-normalized (1 - Xi_ij - Xi_ji)^(r-1) factor, not yet
+         * implemented, so it returns NaN rather than a wrong number. */
+        if (par_addcat && par_addcat[k] >= 0) {
+            if (par_mix[k] != 0) { free(nik); return NAN; }
+            const double r = par_r ? par_r[k] : 1.0;
+            if (r != 1.0) { free(nik); return NAN; }
+            g *= NIK(par_addcat[k], par_X[k]) / 4.0;
         }
 
         const int qbase = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay,
@@ -490,6 +503,8 @@ typedef struct {
     int n_params;
     const int *par_mix, *par_code, *par_A, *par_B, *par_X, *par_Y;
     const double *par_p, *par_q, *par_L;
+    const double *par_r;                             /* ternary additional-constituent */
+    const int *par_addcat;                           /* exponent r and cation (-1 none) */
     const double *x0, *N;                            /* affine subspace X = x0 + N t */
     int n_null;
     double *Xbuf;                                    /* scratch, length n_quads */
@@ -518,7 +533,8 @@ static double ctx_gibbs_per_quad(const eqctx *c, const double *X)
                                c->Za, c->Zb, c->Zx, c->Zy,
                                c->n_params, c->par_mix, c->par_code,
                                c->par_A, c->par_B, c->par_X, c->par_Y,
-                               c->par_p, c->par_q, c->par_L);
+                               c->par_p, c->par_q, c->par_L,
+                               c->par_r, c->par_addcat);
 }
 
 #define EQ_XMIN 1e-11
@@ -647,6 +663,7 @@ double mqmqa_equilibrate(
     const int *par_mix, const int *par_code,
     const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
     const double *par_p, const double *par_q, const double *par_L,
+    const double *par_r, const int *par_addcat,
     int n_elem,
     const int *cat_elem, const int *an_elem,
     const double *target,
@@ -695,7 +712,7 @@ double mqmqa_equilibrate(
         Za, Zb, Zx, Zy, zeta, soln_type,
         n_pairs, pair_c, pair_a, Gax, stoich, Zref,
         n_params, par_mix, par_code, par_A, par_B, par_X, par_Y,
-        par_p, par_q, par_L,
+        par_p, par_q, par_L, par_r, par_addcat,
         x0, N, n_null,
         (double *)malloc((size_t)n_quads * sizeof(double)),
     };

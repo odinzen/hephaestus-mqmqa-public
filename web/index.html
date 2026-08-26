@@ -428,6 +428,29 @@
     </div>
   </div>
 
+  <div class="card" id="litcard">
+    <h2>Request a database for your system<span class="tern-badge">concierge</span></h2>
+    <p class="tern-note">Have a stack of published papers on your system &mdash; phase diagram
+      studies, calorimetry, activity measurements? That is exactly what an assessed database is
+      built from, and it is how the open slag database above was made: measured values extracted
+      with provenance, an excess model fitted by this same engine, and a valid ChemSage file out
+      the other end. We build that file for you &mdash; quicker than doing it yourself, assessed
+      against the measurements, and it runs right here in your browser. Point this card at your
+      paper folder to start. <b>Your files are listed locally in your browser and never
+      uploaded</b> &mdash; there is no server behind this page.</p>
+    <div class="row">
+      <label class="filebtn">Select your PDF folder
+        <input type="file" id="lit-dir" webkitdirectory multiple>
+      </label>
+      <label class="filebtn ghost">or choose individual PDFs
+        <input type="file" id="lit-pdfs" accept=".pdf,.PDF,application/pdf" multiple>
+      </label>
+      <span id="lit-msg" class="muted">No papers selected yet.</span>
+    </div>
+    <div class="bld-hint" id="lit-list" hidden></div>
+    <div class="bld-caution" id="lit-next" hidden></div>
+  </div>
+
   <footer>
     <div class="madeby">
       <span class="oz-word"><span class="oz-odin">odin</span><span class="oz-zen">zen</span></span>
@@ -1727,6 +1750,46 @@ themeBtn.addEventListener('click', () => {
   $('bld-preset').addEventListener('change',e=>loadPreset(e.target.value));
   new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
   loadPreset('ternary');
+})();
+</script>
+<script>
+/* Bring-your-own-literature card: list a chosen PDF set locally (nothing is transmitted;
+   the page has no backend) and hand the visitor the concierge next step. */
+(function(){
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const msg = document.getElementById('lit-msg');
+  const list = document.getElementById('lit-list');
+  const next = document.getElementById('lit-next');
+  const fmt = b => b > 1048576 ? (b/1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b/1024)) + ' KB';
+
+  function show(files){
+    const pdfs = [...files].filter(f => /\.pdf$/i.test(f.name));
+    if (!pdfs.length){
+      msg.textContent = 'No PDF files in that selection.';
+      list.hidden = next.hidden = true;
+      return;
+    }
+    const total = pdfs.reduce((s, f) => s + f.size, 0);
+    msg.textContent = pdfs.length + ' paper' + (pdfs.length > 1 ? 's' : '') + ' selected (' + fmt(total) + '). Read locally; nothing was uploaded.';
+    list.innerHTML = pdfs.slice(0, 40).map(f => esc(f.name) + ' &middot; ' + fmt(f.size)).join('<br>')
+      + (pdfs.length > 40 ? '<br>&hellip; and ' + (pdfs.length - 40) + ' more' : '');
+    list.hidden = false;
+    const names = pdfs.slice(0, 30).map(f => '- ' + f.name).join('\n');
+    const body = 'System (fill in, e.g. CaO-Al2O3):\n\nPapers (attach these PDFs to this email):\n' + names + '\n';
+    const href = 'mailto:info@odinzen.io?subject=' + encodeURIComponent('Database request (' + pdfs.length + ' papers)') + '&body=' + encodeURIComponent(body);
+    next.innerHTML = '<b>Next step.</b> Assessing a literature set is expert work, and it is the '
+      + 'service behind this site: send this paper set to '
+      + '<a href="' + href + '">info@odinzen.io</a> (the link starts the email; attach the PDFs) '
+      + 'and you get back an assessed database file that loads in the calculator at the top of '
+      + 'this page and stays yours. Simple single-system requests start around $3,500, quoted '
+      + 'to the scope your papers support. If you can make your own &mdash; great: the same open pipeline (the '
+      + 'dbbuild module in the repository) is free for systems of two to four components; five '
+      + 'or more components is where our paid tier begins.';
+    next.hidden = false;
+  }
+
+  document.getElementById('lit-dir').addEventListener('change', e => show(e.target.files));
+  document.getElementById('lit-pdfs').addEventListener('change', e => show(e.target.files));
 })();
 </script>
 </body>

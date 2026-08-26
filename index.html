@@ -502,10 +502,11 @@ Hephaestus().then(M => {
     nMqmx:  M.cwrap('mqmqa_ph_num_mqmx','number',['number','number']),
     mqmx:   M.cwrap('mqmqa_ph_mqmx',null,Array(10).fill('number')),
     mqmxL:  M.cwrap('mqmqa_ph_mqmx_L',null,['number','number','number','number']),
+    mqmxTern: M.cwrap('mqmqa_ph_mqmx_ternary',null,['number','number','number','number']),
     nQuad:  M.cwrap('mqmqa_num_quadruplets','number',['number','number']),
     enumQ:  M.cwrap('mqmqa_enumerate_quadruplets',null,Array(6).fill('number')),
     coord:  M.cwrap('mqmqa_coordination','number',Array(15).fill('number')),
-    equil:  M.cwrap('mqmqa_equilibrate','number',Array(36).fill('number')),
+    equil:  M.cwrap('mqmqa_equilibrate','number',Array(38).fill('number')),
     phaseKind: M.cwrap('mqmqa_db_phase_kind','number',['number','number']),
     cefG:   M.cwrap('mqmqa_ph_cef_gibbs','number',['number','number','number','number','number']),
   };
@@ -733,18 +734,24 @@ function buildInputs(comp, T){
 
   const nxAll=api.nMqmx(db,phase);
   const xm=M._malloc(nxAll*4),xc=M._malloc(nxAll*4),xA=M._malloc(nxAll*4),xB=M._malloc(nxAll*4),
-        xX=M._malloc(nxAll*4),xY=M._malloc(nxAll*4),xp=M._malloc(nxAll*4),xq=M._malloc(nxAll*4),xL=M._malloc(nxAll*8);
+        xX=M._malloc(nxAll*4),xY=M._malloc(nxAll*4),xp=M._malloc(nxAll*4),xq=M._malloc(nxAll*4),xL=M._malloc(nxAll*8),
+        xr=M._malloc(nxAll*8),xac=M._malloc(nxAll*4);
   api.mqmx(db,phase,xm,xc,xA,xB,xX,xY,xp,xq); api.mqmxL(db,phase,T,xL);
+  api.mqmxTern(db,phase,xr,xac);
   const emix=readI(xm,nxAll),ecode=readI(xc,nxAll),eA=readI(xA,nxAll),eB=readI(xB,nxAll),
-        eX=readI(xX,nxAll),eY=readI(xY,nxAll),ep=readI(xp,nxAll),eq=readI(xq,nxAll),eL=readD(xL,nxAll);
-  [xm,xc,xA,xB,xX,xY,xp,xq,xL].forEach(p=>M._free(p));
-  const ex={mix:[],code:[],A:[],B:[],X:[],Y:[],p:[],q:[],L:[]};
+        eX=readI(xX,nxAll),eY=readI(xY,nxAll),ep=readI(xp,nxAll),eq=readI(xq,nxAll),eL=readD(xL,nxAll),
+        er=readD(xr,nxAll),eac=readI(xac,nxAll);
+  [xm,xc,xA,xB,xX,xY,xp,xq,xL,xr,xac].forEach(p=>M._free(p));
+  const ex={mix:[],code:[],A:[],B:[],X:[],Y:[],p:[],q:[],L:[],r:[],addcat:[]};
   for(let i=0;i<nxAll;i++){
     if(catNew.has(eA[i])&&catNew.has(eB[i])&&anNew.has(eX[i])&&anNew.has(eY[i])){
+      // a ternary additional constituent outside the subsystem zeroes the term
+      if(eac[i]>=0&&!catNew.has(eac[i])) continue;
       ex.mix.push(emix[i]); ex.code.push(ecode[i]);
       ex.A.push(catNew.get(eA[i])); ex.B.push(catNew.get(eB[i]));
       ex.X.push(anNew.get(eX[i])); ex.Y.push(anNew.get(eY[i]));
       ex.p.push(ep[i]); ex.q.push(eq[i]); ex.L.push(eL[i]);
+      ex.r.push(er[i]); ex.addcat.push(eac[i]>=0?catNew.get(eac[i]):-1);
     }
   }
 
@@ -769,13 +776,14 @@ function solveEquilibrium(inp, target){
     pc:iArr(inp.pcat),pa:iArr(inp.pan),G:dArr(inp.pG),st:dArr(inp.pstoich),Zref:dArr(inp.Ztab),
     xm:iArr(inp.ex.mix),xc:iArr(inp.ex.code),xA:iArr(inp.ex.A),xB:iArr(inp.ex.B),
     xX:iArr(inp.ex.X),xY:iArr(inp.ex.Y),xp:dArr(inp.ex.p),xq:dArr(inp.ex.q),xL:dArr(inp.ex.L),
+    xr:dArr(inp.ex.r||inp.ex.A.map(()=>0)),xac:iArr(inp.ex.addcat||inp.ex.A.map(()=>-1)),
     ce:iArr(catElem),ae:iArr(anElem),tg:dArr(tgt),Xout:M._malloc(inp.nq*8),cerr:M._malloc(8),
   };
   const gm=api.equil(
     inp.T, inp.ncat, inp.nan, inp.nq,
     p.qca,p.qcb,p.qax,p.qay, p.Za,p.Zb,p.Zx,p.Zy, p.zeta, inp.soln,
     inp.pcat.length, p.pc,p.pa,p.G,p.st,p.Zref,
-    inp.ex.A.length, p.xm,p.xc,p.xA,p.xB,p.xX,p.xY,p.xp,p.xq,p.xL,
+    inp.ex.A.length, p.xm,p.xc,p.xA,p.xB,p.xX,p.xY,p.xp,p.xq,p.xL,p.xr,p.xac,
     elements.length, p.ce,p.ae,p.tg, p.Xout,p.cerr);
   const X=readD(p.Xout,inp.nq), cerr=M.getValue(p.cerr,'double');
   Object.values(p).forEach(ptr=>M._free(ptr));

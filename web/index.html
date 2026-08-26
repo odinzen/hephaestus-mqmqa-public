@@ -518,6 +518,10 @@ Hephaestus().then(M => {
     equil:  M.cwrap('mqmqa_equilibrate','number',Array(38).fill('number')),
     phaseKind: M.cwrap('mqmqa_db_phase_kind','number',['number','number']),
     cefG:   M.cwrap('mqmqa_ph_cef_gibbs','number',['number','number','number','number','number']),
+    cefNumSubl: M.cwrap('mqmqa_ph_cef_num_subl','number',['number','number']),
+    cefSublNcon: M.cwrap('mqmqa_ph_cef_subl_ncon',null,['number','number','number']),
+    cefSiteRatio: M.cwrap('mqmqa_ph_cef_site_ratio',null,['number','number','number']),
+    cefCon: M.cwrap('mqmqa_ph_cef_constituent','string',['number','number','number','number']),
   };
   api.M = M;
 });
@@ -898,6 +902,55 @@ function pdDiscretes(endA, endB){
 
 const pdAtoms=(endA,endB,xi)=>(1-xi)*endA.atoms+xi*endB.atoms;
 
+// CEF solid solutions sitting exactly on the join: every constituent is one of the two
+// varying elements or the shared one, the varying pair mixes on a single sublattice,
+// and each pure end is (a multiple of) the corresponding end-member salt. Returns
+// descriptors the column solver samples per temperature.
+function pdCefOnJoin(endA,endB){
+  const out=[], varyA=endA.vary, varyB=endB.vary, common=endA.common;
+  for(let p=0;p<api.nPh(db);p++){
+    if(api.phaseKind(db,p)!==1) continue;
+    const ns=api.cefNumSubl(db,p);
+    const nb=api.M._malloc(ns*4); api.cefSublNcon(db,p,nb); const ncon=readI(nb,ns); api.M._free(nb);
+    const sb=api.M._malloc(ns*8); api.cefSiteRatio(db,p,sb); const ratio=readD(sb,ns); api.M._free(sb);
+    const cons=[]; let ok=true, mix=-1;
+    for(let s=0;s<ns;s++){ const row=[];
+      for(let i=0;i<ncon[s];i++) row.push(api.cefCon(db,p,s,i));
+      cons.push(row);
+      for(const c of row) if(c!==varyA&&c!==varyB&&c!==common) ok=false;
+      if(row.length===2&&row.includes(varyA)&&row.includes(varyB)) mix=s;
+      else if(row.length!==1) ok=false; }
+    if(!ok||mix<0) continue;
+    // pure-B end must be a multiple of the endB salt (and A likewise, by symmetry)
+    const elsAt=y=>{ const e={};
+      for(let s=0;s<ns;s++){ if(s===mix){ e[varyB]=(e[varyB]||0)+ratio[s]*y; e[varyA]=(e[varyA]||0)+ratio[s]*(1-y); }
+        else e[cons[s][0]]=(e[cons[s][0]]||0)+ratio[s]; } return e; };
+    const eB=elsAt(1), kB=eB[varyB]/endB.els[varyB];
+    if(!(kB>0)||Math.abs((eB[common]||0)-kB*endB.els[common])>1e-9) continue;
+    const iB=cons[mix].indexOf(varyB), nY=api.M._malloc((ns+1)*8);
+    out.push({name:api.phName(db,p), idx:p, ns, mix, iB, units:kB, Yp:nY});
+    // note: Yp is reused per sample; layout is constituents in file order across sublattices
+  }
+  return out;
+}
+
+function pdCefPoints(cefs,T,n){
+  const M=api.M, pts=[];
+  for(const c of cefs){
+    for(let k=0;k<n;k++){
+      const y=1e-4+(1-2e-4)*k/(n-1);
+      // fill Y in constituent order: mixing sublattice gets (y at iB, 1-y at the other), rest 1
+      let off=0;
+      for(let s=0;s<c.ns;s++){
+        if(s===c.mix){ M.setValue(c.Yp+8*(off+c.iB),y,'double'); M.setValue(c.Yp+8*(off+(1-c.iB)),1-y,'double'); off+=2; }
+        else { M.setValue(c.Yp+8*off,1,'double'); off+=1; }
+      }
+      pts.push([y, api.cefG(db,c.idx,c.Yp,T,0)/c.units, 'sol']);
+    }
+  }
+  return pts;
+}
+
 function pdLiquidG(comps,endA,endB,xi,T){
   const t={};
   for(const e of new Set([...Object.keys(endA.els),...Object.keys(endB.els)]))
@@ -946,10 +999,11 @@ function pdBuildHull(pts){
 // sharing an xi keep only the lower one, so a pure end member's solid and liquid do
 // not both survive at their melting crossover. Returns the region classification per
 // xi cell (0 liquid, 1 two-phase, 2 subsolidus) and the liquidus envelope xL, rL.
-function pdColumn(comps,endA,endB,disc,T,xiCells){
+function pdColumn(comps,endA,endB,disc,T,xiCells,cefs){
   const aps=xi=>pdAtoms(endA,endB,xi);
   const liqPt=xi=>[xi, pdLiquidG(comps,endA,endB,xi,T)*aps(xi), 'liq'];
-  const discPts=disc.map(d=>[d.xi, api.stG(db,d.idx,T)/d.units, d.solid?'sol':'liq']);
+  const discPts=disc.map(d=>[d.xi, api.stG(db,d.idx,T)/d.units, d.solid?'sol':'liq'])
+    .concat(cefs&&cefs.length?pdCefPoints(cefs,T,120):[]);
 
   const coarse=[]; const nC=64;
   for(let k=0;k<nC;k++){ const xi=PD_FLOOR+(1-2*PD_FLOOR)*k/(nC-1); coarse.push(liqPt(xi)); }
@@ -1021,6 +1075,7 @@ async function generateDiagram(){
   if(!(Tmax>Tmin)){ msg.textContent='Temperature max must exceed min.'; return; }
 
   const disc=pdDiscretes(endA,endB);
+  const cefs=pdCefOnJoin(endA,endB);
   const melts=pdMelts(disc);
   const xiCells=280, nT=120;
   const cols=[];
@@ -1031,12 +1086,13 @@ async function generateDiagram(){
   const yieldEvery=Math.max(1, Math.round(nT/12));
   for(let j=0;j<nT;j++){
     const T=Tmin+(Tmax-Tmin)*j/(nT-1);
-    cols.push(pdColumn(comps,endA,endB,disc,T,xiCells));
+    cols.push(pdColumn(comps,endA,endB,disc,T,xiCells,cefs));
     if(j%yieldEvery===0){
       msg.innerHTML='<span class="spinner"></span> Computing '+Math.round(100*(j+1)/nT)+'%';
       await new Promise(r=>setTimeout(r));
     }
   }
+  cefs.forEach(c=>api.M._free(c.Yp));
   document.getElementById('pdgen').disabled=false;
   msg.textContent='';
   pdResult={endA, endB, comps, Tmin, Tmax, cols, xiCells, disc, melts};

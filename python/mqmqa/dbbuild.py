@@ -72,6 +72,7 @@ class Component:
     dHfus: float              # enthalpy of fusion (J/mol)
     source: str               # provenance: citation + locator for every number above
     liq_beta: float = 0.0     # optional below-Tm liquid recalibration slope (J/mol/K)
+    z_cat: float = 0.0        # explicit cation coordination; 0 = charge * z_per_charge
 
 
 @dataclass
@@ -231,8 +232,9 @@ def write_dat(spec: SystemSpec, anion_sym="O", anion_charge=2.0, z_per_charge=No
     ap("   " + "   ".join("1" for _ in comps))                  # pair anion indices
     zpc = Z_PER_CHARGE if z_per_charge is None else z_per_charge
     for i, c in enumerate(comps, start=1):
-        z_cat = c.charge * zpc
-        z_an = anion_charge * zpc
+        z_cat = getattr(c, "z_cat", 0.0) or c.charge * zpc
+        # pure-pair charge neutrality (Pelton eq 23): q_cat/Z_cat = q_an/Z_an
+        z_an = z_cat * anion_charge / c.charge
         ap(f"   {i}   {i}   {an_idx}   {an_idx}   "
            f"{z_cat:.7f}   {z_cat:.7f}   {z_an:.7f}   {z_an:.7f}")
 

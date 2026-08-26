@@ -82,7 +82,7 @@ def main():
         ax.text(x, y + dy, lab, ha="center", fontsize=11, weight="bold")
     ax.plot([0, 1, 0.5, 0], [0, 0, np.sqrt(3) / 2, 0], "k-", lw=1)
     ax.set_aspect("equal"); ax.axis("off")
-    ax.set_title("NaCl-KCl-MgCl$_2$ Liquidus Projection (Hephaestus v0.1)", fontsize=11)
+    ax.set_title("NaCl-KCl-MgCl$_2$ Liquidus Projection (Hephaestus v0.2)", fontsize=11)
     fig.tight_layout()
     out = HERE / "nacl_kcl_mgcl2_liquidus.png"
     fig.savefig(out, dpi=160)

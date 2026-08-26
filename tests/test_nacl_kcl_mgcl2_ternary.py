@@ -51,22 +51,23 @@ def test_engine_matches_pycalphad_liquid(dat):
         assert ours == pytest.approx(float(r.GM.values.ravel()[0]), abs=1.0), T
 
 
-def test_no_ternary_term(dat):
-    """v0.1 carries only the five binary Muggianu terms (no ternary tag)."""
+def test_one_ternary_term(dat):
+    """v0.2 carries the five binary Muggianu terms plus one ternary MQMX term."""
     db = mqmqa.Database.read(str(dat))
     p = db.phase_index("NACL-KCL-MGCL2-LIQUID")
     mx = db.mqmx(p, 700.0)
-    assert len(mx["addcat"]) == 5
-    assert all(a == -1 for a in mx["addcat"])
+    assert len(mx["addcat"]) == 6
+    assert mx["addcat"].count(-1) == 5                    # five plain binary terms
+    assert sum(1 for a in mx["addcat"] if a != -1) == 1   # one ternary term
 
 
 def test_eutectic_melting_bracket(dat):
-    """Unfitted prediction: fully liquid by 720 K, solid still present at the measured
-    660 K (the no-ternary assembly melts ~46 K above Mohan 2018's 387 degC)."""
+    """The fitted ternary term brings the Mohan-composition liquidus to ~666 K (was 706):
+    fully liquid by 675 K, solid still present at the measured 660 K (a +6 K residual)."""
     pdb = PDB(str(dat))
     cond = lambda T: {v.T: T, v.P: 101325, v.N: 1, v.X("NA"): EL["NA"] / TOT,
                       v.X("K"): EL["K"] / TOT, v.X("MG"): EL["MG"] / TOT}
-    hot = equilibrium(pdb, ["NA", "K", "MG", "CL"], list(pdb.phases.keys()), cond(720.0))
+    hot = equilibrium(pdb, ["NA", "K", "MG", "CL"], list(pdb.phases.keys()), cond(675.0))
     assert sorted(set(str(x) for x in hot.Phase.values.ravel() if x)) == \
         ["NACL-KCL-MGCL2-LIQUID"]
     cold = equilibrium(pdb, ["NA", "K", "MG", "CL"], list(pdb.phases.keys()), cond(660.0))

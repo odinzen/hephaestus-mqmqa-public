@@ -58,6 +58,12 @@ SOLIDS = {
 }
 
 
+# Ternary MQMX term (Poschmann Eq. 25-26, single group, r=1), fitted to the Mohan 2018
+# melting point in v0.2: on the KCl-MgCl2 quad with Na as the additional cation. Zero on
+# every binary edge (Y_add = 0 there), so the three binaries are untouched.
+TERNARY = ("KCl", "MgCl2", "NaCl", -8500.0, 1)
+
+
 def _stoich_block(name, cf, n_na, n_k, n_mg):
     A, B, C, D, E, F = solid_gibbs_coeffs(cf["dHf"], cf["S298"], cf["a"], cf["b"], cf["c"])
     n_cl = n_na + n_k + 2 * n_mg
@@ -67,12 +73,27 @@ def _stoich_block(name, cf, n_na, n_k, n_mg):
             "  6000.0000   " + "   ".join(f"{v:.12E}" for v in (A, B, C, D, E, F))]
 
 
-def build(out=None):
+def _binaries_with(ternary):
+    """Copy BINARIES, splicing an optional ternary term (c1, c2, add_cat, a, r)."""
+    out = [BinaryExcess(b.first, b.second, list(b.terms), source=b.source)
+           for b in BINARIES]
+    if ternary is None:
+        return out
+    c1, c2, add, a, r = ternary
+    for b in out:
+        if {b.first, b.second} == {c1, c2}:
+            b.terms.append(ExcessTerm(a=a, b=0.0, p=0, q=0, add_cat=add, r=r))
+            return out
+    raise ValueError(f"no binary {c1}-{c2} to carry the ternary term")
+
+
+def build(out=None, ternary=TERNARY):
     spec = SystemSpec(
-        "NaCl-KCl-MgCl2", [NACL, KCL, MGCL2], BINARIES,
-        version="v0.1",
-        provenance="three shipped binaries (Muggianu, no ternary term) + NaCl/KCl/MgCl2/"
-                   "KMgCl3 solids; Mohan 2018 eutectic is validation; see PROVENANCE.md")
+        "NaCl-KCl-MgCl2", [NACL, KCL, MGCL2], _binaries_with(ternary),
+        version="v0.2",
+        provenance="three shipped binaries (Muggianu) + one ternary MQMX term fitted to "
+                   "the Mohan 2018 eutectic melting; NaCl/KCl/MgCl2/KMgCl3 solids; see "
+                   "PROVENANCE.md")
     lines = dbbuild.write_dat(spec, anion_sym="Cl", anion_charge=1.0,
                               z_per_charge=6.0, family="molten-salt").splitlines()
     lines[1] = f"    4    1    3    {len(SOLIDS)}"      # Na,K,Mg,Cl | 1 soln | 3 cations

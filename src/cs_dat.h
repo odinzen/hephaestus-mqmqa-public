@@ -109,6 +109,9 @@ MQMQA_API double mqmqa_ph_cef_gibbs(const mqmqa_db *db, int p, const double *Y,
 MQMQA_API int mqmqa_db_num_stoich(const mqmqa_db *db);
 MQMQA_API const char *mqmqa_db_stoich_name(const mqmqa_db *db, int i);
 MQMQA_API double mqmqa_db_stoich_gibbs(const mqmqa_db *db, int i, double T);
+/* Element stoichiometry of stoichiometric phase i, in database element order
+ * (length mqmqa_db_num_elements). */
+MQMQA_API void mqmqa_db_stoich_elems(const mqmqa_db *db, int i, double *out);
 
 /* --- Quadruplet enumeration (engine utility, no database needed) ---
  * The full quadruplet set is every unordered cation pair {i<=j} crossed with

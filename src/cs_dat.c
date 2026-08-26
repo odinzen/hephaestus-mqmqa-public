@@ -978,6 +978,11 @@ double mqmqa_ph_cef_gibbs(const mqmqa_db *db, int p, const double *Y, double T,
 
 int mqmqa_db_num_stoich(const mqmqa_db *db) { return ((const Db *)db)->n_stoich; }
 const char *mqmqa_db_stoich_name(const mqmqa_db *db, int i) { return ((const Db *)db)->stoich[i].name; }
+void mqmqa_db_stoich_elems(const mqmqa_db *db, int i, double *out)
+{
+    const Db *d = (const Db *)db;
+    for (int e = 0; e < d->n_el; ++e) out[e] = d->stoich[i].stoich_el[e];
+}
 double mqmqa_db_stoich_gibbs(const mqmqa_db *db, int i, double T)
 {
     const Db *d = (const Db *)db;

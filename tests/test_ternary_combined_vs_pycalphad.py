@@ -108,7 +108,7 @@ def test_minimizer_assemblages_match_pycalphad():
     bc.build()
     dbf = Database(str(DDIR / "FeO-MgO-SiO2-combined.dat"))
     T = 1600.0
-    pts, facets = td.build(T, nsamp=8000, n_cef=161, enstatite_shift=False)
+    pts, facets = td.build(T, nsamp=8000, n_cef=161)
     for x_fe, x_si, expected in INTERIOR:
         our_ph, our_gm = _our(pts, facets, x_fe, x_si)
         pyc_ph, pyc_gm = _pyc(dbf, x_fe, x_si, T)

@@ -6,9 +6,9 @@ solids), and our minimizer pools the same phases and takes the lower convex hull
 cation composition we compare the stable phase SET, the equilibrium Gibbs energy GM, and the
 per-phase cation compositions.
 
-The opx enstatite high-T entropy correction is a Python-only post-hoc adjustment, so the
-minimizer is run with `enstatite_shift=False` to match the uncorrected opx endmember in the
-.dat (this is a solver validation, not a re-derivation of the physical correction).
+The opx enstatite high-T entropy correction lives in the .dat as a second Gibbs interval on
+the Mg endmember, so both sides carry the FULL model - this validation now covers the
+corrected physics end to end.
 
 Bases: our GM is per mole cation; with one cation per oxide and charge-slaved O the atoms per
 cation are (2 + x_Si), so GM_atom = G_cation / (2 + x_Si) matches pycalphad's per-mole-atom GM.
@@ -84,7 +84,7 @@ def run(temps=(1700.0, 1600.0), nsamp=16000, n_cef=161, verbose=True):
     dbf = Database(str(DAT))
     rows = []
     for T in temps:
-        pts, facets = td.build(T, nsamp=nsamp, n_cef=n_cef, enstatite_shift=False)
+        pts, facets = td.build(T, nsamp=nsamp, n_cef=n_cef)
         for x_fe, x_si in POINTS:
             ours = our_equilibrium(pts, facets, x_fe, x_si)
             pyc = pycalphad_equilibrium(dbf, equilibrium, v, T, x_fe, x_si)

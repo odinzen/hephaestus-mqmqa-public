@@ -81,7 +81,7 @@ verbatim from the shipped .dat files, plus three stoichiometric oxide blocks (cr
 periclase, wustite) generated from the same solid Gibbs coefficients the minimizer uses (Gibbs
 eq. type 1; they reproduce our `_solid_oxide_g` to ~1e-7 J/formula). pycalphad runs a full
 multi-phase `equilibrium` on that file and the minimizer runs on the same model (with
-`enstatite_shift=False`, since the opx enstatite correction is a Python-only post-hoc
+the full model on both sides, since the opx enstatite correction is embedded in the .dat
 adjustment absent from the .dat). Across bulk compositions at 1600/1700 K the stable phase SET
 agrees 15/16 and the equilibrium Gibbs energy GM to 0-10 J/mol-atom at almost every point
 (worst 73 J at one liquidus-boundary sliver); solid-solution and stoichiometric-phase cation
@@ -102,7 +102,7 @@ orientation: SiO2 apex, MgO left, FeO right). It reproduces the topology of Bowe
 1935 Fig. 6 - olivine, orthopyroxene, cristobalite, periclase and wustite primary fields with
 fusion surfaces sloping toward the FeO-SiO2 side.
 
-**Enstatite high-T entropy correction (`ENSTATITE_B = 18.014 J/mol/K`).** The Robie-Hemingway
+**Enstatite high-T entropy correction (18.014 J/mol/K, now a second Gibbs interval in the opx database).** The Robie-Hemingway
 opx Cp is fitted only to ~1000 K and extrapolated flat (dCp = 0) above it, which leaves
 enstatite too stable near 1830-2000 K and put the forsterite + liquid -> enstatite peritectic
 ~236 K high (2066 vs measured 1830 K). A high-T entropy correction dG = ENSTATITE_B*(T - 1000)

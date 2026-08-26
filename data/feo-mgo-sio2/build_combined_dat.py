@@ -8,8 +8,8 @@ assemblages against an independent global solver.
 The liquid and CEF blocks are spliced verbatim from the shipped single-/two-phase .dat files
 (so the energetics are identical by construction); the stoichiometric blocks are generated from
 the same solid-oxide Gibbs coefficients the minimizer uses (`solid_gibbs_coeffs`). The opx block
-is the UNCORRECTED endmember - the minimizer's enstatite high-T entropy correction is applied in
-Python, so the validation runs the minimizer with `enstatite_shift=False` to match this file.
+carries the assessed enstatite high-T entropy correction as a second Gibbs interval (see
+data/olivine-opx/build_dat.py), so the file and the minimizer share identical full energetics.
 """
 import importlib.util
 from pathlib import Path

@@ -90,3 +90,16 @@ Both slopes come from the C CEF kernel (`cef_gibbs`, per formula unit) by finite
 No FactSage/FToxid or optimized-TDB parameters. The endmembers are R&H compilation values
 (single-substance, allowed as inputs); the excesses are primary calorimetric enthalpies
 (Wood-Kleppa, Chatillon-Colinet); von Seckendorff-O'Neill enters only as an agreement check.
+
+
+## Enstatite high-T entropy correction (assessed, 2026-08-26 moved into the database)
+
+The Mg2Si2O6 endmember carries a second Gibbs interval above 1000 K adding
+dG = 18.014*(T - 1000) J per formula (continuous at the break). It was fitted (common-tangent
+solve) so the forsterite + liquid -> enstatite peritectic lands at its measured 1830 K; the
+Robie-Hemingway opx Cp fit reaches only ~1000 K and its flat extrapolation leaves enstatite
+~236 K too stable. Tested and rejected as the explanation: capping the Cp fit at its 1000 K
+value supplies only ~40% of the required correction with the wrong temperature shape, so this
+is an own-derived assessment parameter (class own_derived_parameter), not an extrapolation
+repair. Formerly applied as a code-side shift in the ternary sampling and the browser; since
+2026-08-26 the database is the single source of truth and pycalphad reads the same physics.

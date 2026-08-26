@@ -27,30 +27,50 @@ ELEMENTS = [("FE", 55.845), ("MG", 24.305), ("SI", 28.085), ("O", 15.9994)]
 # orthopyroxene excess: Chatillon-Colinet 1983 W = 950 cal/MSiO3 -> per M2Si2O6 (2 cations)
 L_OPX = 2.0 * 950.0 * CAL  # 7949.6 J/mol, symmetric, T-independent
 
+# Assessed high-T entropy correction on the enstatite (Mg2Si2O6) endmember: a second
+# Gibbs interval above the break adding dG = ENSTATITE_HT_B*(T - T_BREAK) J per formula
+# (continuous at the break). Two measured constraints pin it: the forsterite+liquid ->
+# enstatite peritectic at 1830 K needs dG(1830) = 18.014*(1830-1000) = 14951.6 J (the
+# original calibration), and the measured near-ideal olivine/opx Fe-Mg exchange at
+# <= 1273 K needs NO correction there (a 1000 K onset broke K_D at 1273 K when the
+# term moved into the database). The break sits at the ortho -> proto-enstatite
+# transition, ~1360 K, the physical onset of the extra entropy; the slope follows.
+# NOT an extrapolation repair: capping the R&H Cp fit at its 1000 K value was tested
+# and supplies only ~40% of the correction with the wrong T-shape. own_derived
+# assessment parameter, documented in PROVENANCE.md.
+ENSTATITE_T_BREAK = 1360.0
+ENSTATITE_HT_B = 18.014 * (1830.0 - 1000.0) / (1830.0 - ENSTATITE_T_BREAK)
+
 
 def _fmt(x):
     return f"{x:.10E}"
 
 
-def _endmember_lines(name, coeffs, stoich):
-    """A SUBL endmember: name, eq_type/intervals/stoichiometry, one Gibbs interval, and
-    the T^0.5 term (if any) as an additional (coeff, exponent) pair."""
+def _endmember_lines(name, coeffs, stoich, ht_break=None, ht_dA=0.0, ht_dB=0.0):
+    """A SUBL endmember: name, eq_type/intervals/stoichiometry, Gibbs interval(s), and
+    the T^0.5 term (if any) as an additional (coeff, exponent) pair per interval.
+    ht_break splits the function at that temperature; the upper interval's constant and
+    linear coefficients are offset by ht_dA/ht_dB."""
     std, sqrt_c = coeffs[:6], coeffs[6]
     eq_type = 4 if sqrt_c != 0.0 else 1
+    intervals = ([(6000.0, std)] if ht_break is None else
+                 [(ht_break, std),
+                  (6000.0, [std[0] + ht_dA, std[1] + ht_dB] + list(std[2:]))])
     lines = [f" {name}",
-             f"   {eq_type}   1   " + "   ".join(f"{s:.1f}" for s in stoich),
-             "   6000.0000   " + "   ".join(_fmt(v) for v in std)]
-    if eq_type == 4:
-        lines.append(f"   1   {_fmt(sqrt_c)}   {_fmt(0.5)}")
+             f"   {eq_type}   {len(intervals)}   " + "   ".join(f"{s:.1f}" for s in stoich)]
+    for t_max, cf in intervals:
+        lines.append(f"   {t_max:.4f}   " + "   ".join(_fmt(v) for v in cf))
+        if eq_type == 4:
+            lines.append(f"   1   {_fmt(sqrt_c)}   {_fmt(0.5)}")
     return lines
 
 
 def _phase_block(name, endmembers, site_ratios, constituents, em_con_idx, excess_L):
-    """One SUBL solution phase. endmembers: list of (species_name, coeffs, stoich).
+    """One SUBL solution phase. endmembers: list of (species_name, coeffs, stoich[, kwargs]).
     excess_L: Redlich-Kister coefficient list on the (Fe,Mg) pair (Si,O pinned)."""
     L = [f" {name}", " SUBL"]
-    for sp, coeffs, stoich in endmembers:
-        L += _endmember_lines(sp, coeffs, stoich)
+    for sp, coeffs, stoich, *kw in endmembers:
+        L += _endmember_lines(sp, coeffs, stoich, **(kw[0] if kw else {}))
     L.append(f"   {len(site_ratios)}")
     L.append("   " + "   ".join(f"{r:.6f}" for r in site_ratios))
     L.append("   " + "   ".join(str(len(c)) for c in constituents))
@@ -93,7 +113,9 @@ def build():
     out += _phase_block(
         "ORTHOPYROXENE",
         [("FE2SI2O6", fs2, [2.0, 0.0, 2.0, 6.0]),
-         ("MG2SI2O6", en2, [0.0, 2.0, 2.0, 6.0])],
+         ("MG2SI2O6", en2, [0.0, 2.0, 2.0, 6.0],
+          dict(ht_break=ENSTATITE_T_BREAK,
+               ht_dA=-ENSTATITE_HT_B * ENSTATITE_T_BREAK, ht_dB=ENSTATITE_HT_B))],
         [2.0, 2.0, 6.0], [["FE", "MG"], ["SI"], ["O"]],
         [[1, 2], [1, 1], [1, 1]],
         [L_OPX])

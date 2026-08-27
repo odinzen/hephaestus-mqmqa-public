@@ -1402,9 +1402,9 @@ themeBtn.addEventListener('click', () => {
       s.innerHTML='<span class="swatch" style="background:'+FILL[p]+'"></span>'+cap(p); legEl.appendChild(s); } }
   cv.addEventListener('mousemove',ev=>{ if(!data) return; const r=cv.getBoundingClientRect();
     const px=(ev.clientX-r.left)*W/r.width,py=(ev.clientY-r.top)*H/r.height,c=pxToComp(px,py);
-    if(!c){ read.innerHTML='&nbsp;'; return; } const [xca,xsi,xmg]=c,f=x=>(90*x).toFixed(0);
+    if(!c){ read.innerHTML='&nbsp;'; return; } const [xca,xsi,xmg]=c,f=x=>(95*x).toFixed(0);
     const [p,tl]=cellAt(xca,xsi);
-    read.textContent='CaO '+f(xca)+'  MgO '+f(xmg)+'  SiO₂ '+f(xsi)+'  FeO 10 mol%'
+    read.textContent='CaO '+f(xca)+'  MgO '+f(xmg)+'  SiO₂ '+f(xsi)+'  FeO 5 mol%'
       +(p?'   ·   primary: '+cap(p):'')+(tl?'   ·   liquidus '+Math.round(tl)+' °C':''); });
   cv.addEventListener('mouseleave',()=>{ read.innerHTML='&nbsp;'; });
   new MutationObserver(render).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});

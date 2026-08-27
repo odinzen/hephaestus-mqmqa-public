@@ -7,6 +7,14 @@ Built 2026-08-26.
   liquid   CAO-FEO-MGO-SIO2-LIQUID (MQMQA SUBQ)
   solid solutions   OLIVINE, ORTHOPYROXENE, CLINOPYROXENE (CEF SUBL)
   oxide solids      CRISTOBALITE, LIME, PERICLASE, WUSTITE (stoichiometric)
+  calcium silicates WOLLASTONITE CaSiO3, LARNITE Ca2SiO4 (stoichiometric)
+
+The two congruently-melting calcium silicates carry a small dHf melting calibration
+(fit so wollastonite melts at 1817 K and larnite at 2403 K in this liquid): one CaO(l)
+anchor sets diopside but cannot also set the pure calcium silicates, so each gets its own
+melting anchor, the same discipline as the CaO(l)/diopside calibration. They crystallize
+on the calcium-rich side at low FeO (higher FeO fluxes the melt and the Fe-bearing olivine
+/ clinopyroxene take over). Rankinite and tricalcium silicate (incongruent) are a later step.
 
 ## Assembly
 

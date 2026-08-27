@@ -31,11 +31,11 @@ def combined():
     return str(path), mqmqa.Database.read(str(path)), Database(str(path))
 
 
-def test_eight_phases(combined):
+def test_all_phases(combined):
     _, _, pdb = combined
     assert sorted(pdb.phases.keys()) == [
-        "CAO-FEO-MGO-SIO2-LIQUID", "CLINOPYROXENE", "CRISTOBALITE", "LIME",
-        "OLIVINE", "ORTHOPYROXENE", "PERICLASE", "WUSTITE"]
+        "CAO-FEO-MGO-SIO2-LIQUID", "CLINOPYROXENE", "CRISTOBALITE", "LARNITE", "LIME",
+        "OLIVINE", "ORTHOPYROXENE", "PERICLASE", "WOLLASTONITE", "WUSTITE"]
 
 
 def test_splice_is_faithful(combined):
@@ -77,7 +77,19 @@ def test_primary_phase_fields_are_physical(combined):
     _, mafic = _prim(pdb, bulk(0.10, 0.15, 0.35, 0.40))
     _, carich = _prim(pdb, bulk(0.40, 0.05, 0.10, 0.45))
     assert mafic == "OLIVINE", mafic
-    assert carich == "CLINOPYROXENE", carich
+    assert carich in ("CLINOPYROXENE", "WOLLASTONITE", "LARNITE"), carich   # a calcium phase
+
+
+def test_calcium_silicates_crystallize(combined):
+    """The dHf-calibrated wollastonite and larnite crystallize on the calcium-rich side at
+    low FeO (they are flux-suppressed at higher FeO)."""
+    _, _, pdb = combined
+    def bulk(ca, fe, mg, si):
+        return {"CA": ca, "FE": fe, "MG": mg, "SI": si, "O": ca + fe + mg + 2 * si}
+    _, woll = _prim(pdb, bulk(0.48, 0.02, 0.02, 0.48))
+    _, larn = _prim(pdb, bulk(0.63, 0.02, 0.04, 0.31))
+    assert woll == "WOLLASTONITE", woll
+    assert larn == "LARNITE", larn
 
 
 def test_diopside_melts_near_1670(combined):

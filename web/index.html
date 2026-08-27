@@ -337,7 +337,7 @@
   </div>
 
   <div class="card" id="crystcard">
-    <h2>Steel-slag crystallization &middot; CaO&ndash;MgO&ndash;SiO<sub>2</sub> at FeO 10 mol%<span class="tern-badge">assessed</span></h2>
+    <h2>Steel-slag crystallization &middot; CaO&ndash;MgO&ndash;SiO<sub>2</sub> at FeO 5 mol%<span class="tern-badge">assessed</span></h2>
     <p class="tern-note">Which silicate crystallizes first from the calibrated CaO&ndash;FeO&ndash;MgO&ndash;SiO<sub>2</sub>
       slag melt, and at what temperature. The liquid, the olivine / orthopyroxene / clinopyroxene solid
       solutions and the oxide solids sit on one calibrated scale (diopside melts at 1670&nbsp;K,
@@ -1369,7 +1369,8 @@ themeBtn.addEventListener('click', () => {
   const ctx=cv.getContext('2d');
   const W=cv.width,H=cv.height,PAD=46,S=W-2*PAD,HT=Math.sqrt(3)/2,yBase=H-PAD,apexY=yBase-S*HT;
   const FILL={OLIVINE:'#7ca24f',ORTHOPYROXENE:'#4f9a94',CLINOPYROXENE:'#d98a3d',
-              CRISTOBALITE:'#c2a668',LIME:'#b06b8f',PERICLASE:'#6e83c0',WUSTITE:'#a75f49'};
+              WOLLASTONITE:'#c65b7c',LARNITE:'#8c6bb1',
+              CRISTOBALITE:'#c2a668',LIME:'#9aa0a6',PERICLASE:'#6e83c0',WUSTITE:'#a75f49'};
   const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   const cap=s=>s.charAt(0)+s.slice(1).toLowerCase();
   let data=null;

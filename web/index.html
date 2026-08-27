@@ -467,18 +467,23 @@
 
   <div class="card" id="litcard">
     <h2>Request a database for your system<span class="tern-badge">concierge</span></h2>
-    <p class="tern-note">Have a stack of published papers on a system with no open database yet
-      (phase-diagram studies, calorimetry, activity measurements)? That is what an assessed
-      database is built from, the way the open slag database above was made: measured values
-      extracted with provenance, an excess model fitted by this same engine, and a valid ChemSage
-      file out the other end.</p>
-    <p class="tern-note"><b>Published data you are happy to open</b> becomes another open TDB on
-      this page, credited to your work, with a starter ChemSage file back, no charge. The open
-      commons grows by one system. <b>Proprietary or confidential data</b> is assessed privately
-      and the file stays yours, as a paid service. Either way, the same address: point this card
-      at your paper folder to list the papers, then email
-      <a href="mailto:info@odinzen.io">info@odinzen.io</a>. <b>Your files are listed locally in
-      your browser and never uploaded</b>, there is no server behind this page.</p>
+    <p class="tern-note">Have a stack of published papers on a system the open database does not
+      cover yet, whether your own work or literature you have gathered (phase-diagram studies,
+      calorimetry, activity measurements)? That is what an assessed database is built from, the
+      way the open slag database above was made: measured values extracted with provenance, an
+      excess model fitted by this same engine, and a valid ChemSage file out the other end.</p>
+    <p class="tern-note"><b>Published data, opened.</b> If a system is a bounded, natural addition
+      to the open database, we assess it and add it here as another open TDB, free, and send you a
+      starter ChemSage file. Sources are cited to their original authors; the contribution is
+      credited to whoever brought it. That covers low-maintenance growth of the commons, and light
+      ongoing additions are welcome. It is not a blanket free service, though: a large or
+      long-running assessment, or heavy ongoing upkeep, is paid work. We open the science, but
+      sustaining it needs a work product on our side once the scope grows past a small system.</p>
+    <p class="tern-note"><b>Proprietary or confidential data</b> is assessed privately and the file
+      stays yours, as a paid service. Either way, the same address: point this card at your paper
+      folder to list the papers, then email <a href="mailto:info@odinzen.io">info@odinzen.io</a>.
+      <b>Your files are listed locally in your browser and never uploaded</b>, there is no server
+      behind this page.</p>
     <div class="row">
       <label class="filebtn">Select your PDF folder
         <input type="file" id="lit-dir" webkitdirectory multiple>
@@ -1967,13 +1972,12 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
     const href = 'mailto:info@odinzen.io?subject=' + encodeURIComponent('Database request (' + pdfs.length + ' papers)') + '&body=' + encodeURIComponent(body);
     next.innerHTML = '<b>Next step.</b> Send this paper set to '
       + '<a href="' + href + '">info@odinzen.io</a> (the link starts the email; attach the PDFs). '
-      + 'If the data is published and you are happy for the result to be open, we assess it and '
-      + 'add it to the open database on this page as another open TDB, credited to your work, and '
-      + 'send you a starter file that loads in the calculator above, no charge. If it is '
-      + 'proprietary or you need it kept private, we assess it privately and the file stays yours, '
-      + 'as a paid service (simple single-system requests start around $3,500, quoted to your '
-      + 'scope). Prefer to build it yourself? The same open pipeline (the dbbuild module in the '
-      + 'repository) is free for two to four components.';
+      + 'If it is published and a bounded addition to the open database, we assess it and add it '
+      + 'here as another open TDB, free, with a starter file for the calculator above. Sources are '
+      + 'cited to their authors; the contribution is credited to you. Larger or long-running work, '
+      + 'or a private assessment where the file stays yours, is paid (simple single-system '
+      + 'requests start around $3,500, quoted to scope). Prefer to build it yourself? The dbbuild '
+      + 'module in the repository is free for two to four components.';
     next.hidden = false;
   }
 

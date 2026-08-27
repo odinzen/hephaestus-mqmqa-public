@@ -1289,12 +1289,20 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
   function phaseAt(xfe,xsi){ const n=proj.ngrid,i=Math.round(xfe*n),j=Math.round(xsi*n);
     if(i<0||i>n||!proj.field_rows[i]) return null; const ch=proj.field_rows[i][j];
     return (ch===undefined||ch==='.')?null:proj.phases[+ch]; }
+  // snap in-triangle pixels off the coarse grid to the nearest filled cell (cleans edge sawtooth)
+  function nearestPhaseP(xfe,xsi){ const n=proj.ngrid,ci=Math.round(xfe*n),cj=Math.round(xsi*n);
+    for(let r=1;r<=3;r++) for(let di=-r;di<=r;di++) for(let dj=-r;dj<=r;dj++){
+      if(Math.max(Math.abs(di),Math.abs(dj))!==r) continue;
+      const i=ci+di,j=cj+dj; if(i<0||i>n||!proj.field_rows[i]) continue;
+      const ch=proj.field_rows[i][j]; if(ch!==undefined&&ch!=='.') return proj.phases[+ch]; }
+    return null; }
   function renderProjection(){
     ctx.clearRect(0,0,W,H);
     const img=ctx.createImageData(W,H),d=img.data,rgb={};
     for(const k in PHASE_FILL) rgb[k]=hex2rgb(PHASE_FILL[k]);
     for(let py=Math.floor(apexY);py<=yBase;py++) for(let px=PAD;px<=PAD+S;px++){
-      const c=pxToComp(px,py); if(!c) continue; const p=phaseAt(c[0],c[1]); if(!p) continue;
+      const c=pxToComp(px,py); if(!c) continue; let p=phaseAt(c[0],c[1]);
+      if(!p) p=nearestPhaseP(c[0],c[1]); if(!p) continue;
       const o=(py*W+px)*4,col=rgb[p]; if(!col) continue; d[o]=col[0];d[o+1]=col[1];d[o+2]=col[2];d[o+3]=235;
     }
     ctx.putImageData(img,0,0);
@@ -1397,6 +1405,14 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
     if(i<0||i>n||!data.field_rows[i]) return [null,null];
     const ch=data.field_rows[i][j], p=(ch===undefined||ch==='.')?null:data.phases[+ch];
     const tl=data.liquidus_C&&data.liquidus_C[i]?data.liquidus_C[i][j]:null; return [p,tl]; }
+  // in-triangle pixels whose rounded grid cell is empty (the coarse-grid sawtooth along the
+  // slanted edges) snap to the nearest filled cell, so fields reach the triangle edge cleanly.
+  function nearestPhase(xca,xsi){ const n=data.ngrid,ci=Math.round(xca*n),cj=Math.round(xsi*n);
+    for(let r=1;r<=3;r++) for(let di=-r;di<=r;di++) for(let dj=-r;dj<=r;dj++){
+      if(Math.max(Math.abs(di),Math.abs(dj))!==r) continue;
+      const i=ci+di,j=cj+dj; if(i<0||i>n||!data.field_rows[i]) continue;
+      const ch=data.field_rows[i][j]; if(ch!==undefined&&ch!=='.') return data.phases[+ch]; }
+    return null; }
   function frame(){ ctx.strokeStyle=css('--ink');ctx.lineWidth=1.4;ctx.beginPath();
     const A=triXY(0,0),B=triXY(1,0),C=triXY(0,1);
     ctx.moveTo(...A);ctx.lineTo(...B);ctx.lineTo(...C);ctx.closePath();ctx.stroke();
@@ -1407,7 +1423,8 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
   function render(){ ctx.clearRect(0,0,W,H); if(!data){frame();return;}
     const img=ctx.createImageData(W,H),d=img.data,rgb={}; for(const k in FILL) rgb[k]=hex2rgb(FILL[k]);
     for(let py=Math.floor(apexY);py<=yBase;py++) for(let px=PAD;px<=PAD+S;px++){
-      const c=pxToComp(px,py); if(!c) continue; const p=cellAt(c[0],c[1])[0]; if(!p) continue;
+      const c=pxToComp(px,py); if(!c) continue; let p=cellAt(c[0],c[1])[0];
+      if(!p) p=nearestPhase(c[0],c[1]); if(!p) continue;
       const o=(py*W+px)*4,col=rgb[p]; if(!col) continue; d[o]=col[0];d[o+1]=col[1];d[o+2]=col[2];d[o+3]=235; }
     ctx.putImageData(img,0,0); frame(); }
   function legend(){ legEl.innerHTML=''; if(!data) return; const seen=new Set();

@@ -422,8 +422,10 @@
       </label>
       <label>Preset
         <select id="bld-preset">
-          <option value="ternary">Three-oxide eutectic</option>
-          <option value="quaternary">Four-component eutectic</option>
+          <option value="saltA">Molten salt &middot; NaCl-KCl-MgCl2</option>
+          <option value="saltB">Molten salt &middot; +CaCl2 (4-component)</option>
+          <option value="ternary">Generic three-component</option>
+          <option value="quaternary">Generic four-component</option>
           <option value="eutectic">Simple binary eutectic</option>
           <option value="ideal">Ideal binary (W = 0)</option>
           <option value="oxide">Oxide-like binary (deep eutectic)</option>
@@ -465,14 +467,18 @@
 
   <div class="card" id="litcard">
     <h2>Request a database for your system<span class="tern-badge">concierge</span></h2>
-    <p class="tern-note">Have a stack of published papers on your system &mdash; phase diagram
-      studies, calorimetry, activity measurements? That is exactly what an assessed database is
-      built from, and it is how the open slag database above was made: measured values extracted
-      with provenance, an excess model fitted by this same engine, and a valid ChemSage file out
-      the other end. We build that file for you &mdash; quicker than doing it yourself, assessed
-      against the measurements, and it runs right here in your browser. Point this card at your
-      paper folder to start. <b>Your files are listed locally in your browser and never
-      uploaded</b> &mdash; there is no server behind this page.</p>
+    <p class="tern-note">Have a stack of published papers on a system with no open database yet
+      (phase-diagram studies, calorimetry, activity measurements)? That is what an assessed
+      database is built from, the way the open slag database above was made: measured values
+      extracted with provenance, an excess model fitted by this same engine, and a valid ChemSage
+      file out the other end.</p>
+    <p class="tern-note"><b>Published data you are happy to open</b> becomes another open TDB on
+      this page, credited to your work, with a starter ChemSage file back, no charge. The open
+      commons grows by one system. <b>Proprietary or confidential data</b> is assessed privately
+      and the file stays yours, as a paid service. Either way, the same address: point this card
+      at your paper folder to list the papers, then email
+      <a href="mailto:info@odinzen.io">info@odinzen.io</a>. <b>Your files are listed locally in
+      your browser and never uploaded</b>, there is no server behind this page.</p>
     <div class="row">
       <label class="filebtn">Select your PDF folder
         <input type="file" id="lit-dir" webkitdirectory multiple>
@@ -1696,14 +1702,16 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
   // preset: N + per-component [name, Tm(°C), dH(kJ/mol)] + Wa(kJ), Wb(J/mol·K). The ternary/quaternary
   // °C values are the exact Kelvin validation targets (1700 K = 1426.85 °C, etc.).
   const PRESETS={
+    saltA:     {N:3, C:[['NaCl',801,28.2],['KCl',771,26.3],['MgCl2',714,43.1]], Wa:-8, Wb:0},
+    saltB:     {N:4, C:[['NaCl',801,28.2],['KCl',771,26.3],['MgCl2',714,43.1],['CaCl2',772,28.0]], Wa:-8, Wb:0},
     ternary:   {N:3, C:[['A',1426.85,30],['B',1126.85,25],['C',1226.85,28]], Wa:10, Wb:0},
     quaternary:{N:4, C:[['A',1426.85,30],['B',1126.85,25],['C',1226.85,28],['D',1326.85,26]], Wa:10, Wb:0},
     eutectic:  {N:2, C:[['A',1427,30],['B',1127,25]], Wa:10, Wb:0},
     ideal:     {N:2, C:[['A',1427,30],['B',1127,25]], Wa:0,  Wb:0},
     oxide:     {N:2, C:[['SiO2',1723,9.6],['CaSiO3',1544,56]], Wa:26, Wb:0},
   };
-  const DEFAULTS=[['A',1426.85,30],['B',1126.85,25],['C',1226.85,28],
-                  ['D',1326.85,26],['E',1276.85,27],['F',1176.85,24]];
+  const DEFAULTS=[['NaCl',801,28.2],['KCl',771,26.3],['MgCl2',714,43.1],
+                  ['CaCl2',772,28.0],['LiCl',605,19.9],['BaCl2',961,16.0]];
   let curN=3;
 
   // build the six component input blocks (shown/hidden by component count)
@@ -1929,7 +1937,7 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
   $('bld-nseg').addEventListener('click',e=>{ const b=e.target.closest('.seg-btn'); if(b) setN(+b.dataset.n); });
   $('bld-preset').addEventListener('change',e=>loadPreset(e.target.value));
   new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
-  loadPreset('ternary');
+  loadPreset('saltA');
 })();
 </script>
 <script>
@@ -1957,14 +1965,15 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
     const names = pdfs.slice(0, 30).map(f => '- ' + f.name).join('\n');
     const body = 'System (fill in, e.g. CaO-Al2O3):\n\nPapers (attach these PDFs to this email):\n' + names + '\n';
     const href = 'mailto:info@odinzen.io?subject=' + encodeURIComponent('Database request (' + pdfs.length + ' papers)') + '&body=' + encodeURIComponent(body);
-    next.innerHTML = '<b>Next step.</b> Assessing a literature set is expert work, and it is the '
-      + 'service behind this site: send this paper set to '
-      + '<a href="' + href + '">info@odinzen.io</a> (the link starts the email; attach the PDFs) '
-      + 'and you get back an assessed database file that loads in the calculator at the top of '
-      + 'this page and stays yours. Simple single-system requests start around $3,500, quoted '
-      + 'to the scope your papers support. If you can make your own &mdash; great: the same open pipeline (the '
-      + 'dbbuild module in the repository) is free for systems of two to four components; five '
-      + 'or more components is where our paid tier begins.';
+    next.innerHTML = '<b>Next step.</b> Send this paper set to '
+      + '<a href="' + href + '">info@odinzen.io</a> (the link starts the email; attach the PDFs). '
+      + 'If the data is published and you are happy for the result to be open, we assess it and '
+      + 'add it to the open database on this page as another open TDB, credited to your work, and '
+      + 'send you a starter file that loads in the calculator above, no charge. If it is '
+      + 'proprietary or you need it kept private, we assess it privately and the file stays yours, '
+      + 'as a paid service (simple single-system requests start around $3,500, quoted to your '
+      + 'scope). Prefer to build it yourself? The same open pipeline (the dbbuild module in the '
+      + 'repository) is free for two to four components.';
     next.hidden = false;
   }
 

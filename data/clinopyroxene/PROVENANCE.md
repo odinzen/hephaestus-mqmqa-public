@@ -24,33 +24,25 @@ conditioned, so this is a faithful reproduction of the published Cp, not a re-de
 Independent anchor (not used, cross-check only): Navrotsky & Coons 1976 oxide-melt
 calorimetry gives diopside dHf consistent with the Bull. 2131 value.
 
-## Mixing (v0.2, MLIP-triangulated)
+## Mixing: IDEAL (no excess term)
 
-No open diopside-hedenbergite mixing calorimetry exists, and the standard activity model
-(Davidson & Lindsley 1985) is a paywalled phase-equilibrium assessment, not ingestible
-measured data. So the (Fe,Mg) M1 excess is **computed from a foundation MLIP** (MatterSim
-v1.0.0-5M), the same triangulation used for the CaO-SiO2 / MgO-SiO2 liquids and now
-extended to a CEF solid solution. Because the enthalpy of mixing is a *difference* between
-the alloy and its endmembers, the MLIP's systematic per-atom error largely cancels.
+The (Fe,Mg) M1 mixing is shipped **ideal**. No open diopside-hedenbergite mixing calorimetry
+exists (the standard Davidson & Lindsley 1985 activity model is a paywalled phase-equilibrium
+assessment, not ingestible measured data), so the excess was first computed from a foundation
+MLIP. A seven-model triangulation against measured olivine mixing
+(`data/olivine/_mlip/VALIDATION.md`) then re-ran di-hed with four viable models: L0 = +1259
+(SevenNet), -576 (MatterSim), -1843 (TensorNet), -5440 (ORB). Unlike spinel (a 22 kJ spread),
+these **cluster near zero** - every model agrees di-hed is essentially ideal.
 
-Method (data/clinopyroxene/_mlip): the diopside C2/c cell (COD 1000007) is the common
-framework; for each Fe/Mg ordering on the M1 sublattice, the cell and positions are
-relaxed at 0 GPa. A doubled cell (8 M1 sites, up to 8 orderings per composition) gives the
-configurational-average H_mix(x). A Redlich-Kister excess is fit, uncertainty-weighted:
+Two independent checks say a nonzero value is not earned: the models put |H_mix| well under
+0.5 kJ/mol, and a direct test showed the MatterSim excess shifts the CaO-FeO-MgO-SiO2 liquidus
+by <= 20 K and never changes which phase crystallizes. So no excess is shipped - the ideal
+configurational term carries the mixing, di-hed remains a complete solid solution at all
+temperatures, and the L1 (composition dependence), which no model resolved, is not over-read.
 
-    G_xs = y_Fe*y_Mg*[L0 + L1*(y_Fe - y_Mg)],  L0 = -576, L1 = +3442 J/mol formula
-
-**The result is a small, near-ideal excess** (|H_mix| < 0.5 kJ/mol), too small to open a
-miscibility gap - di-hed is a complete solid solution at all temperatures. The .dat excess
-reproduces the fitted RK to < 0.05 J/mol. T-independent (no excess-entropy evidence).
-
-**Near-ideal is robust across models; the precise L0, L1 are MLIP estimates (~+/-few kJ).**
-A seven-model triangulation against measured olivine mixing (`data/olivine/_mlip/VALIDATION.md`)
-re-ran di-hed with four viable models: L0 = +1259 (SevenNet), -576 (MatterSim), -1843
-(TensorNet), -5440 (ORB). Unlike spinel (a 22 kJ spread), these **cluster near zero** - every
-model agrees di-hed is essentially ideal, so the shipped MatterSim value is safe as a small
-central estimate. The L1 (composition dependence) is not resolved by any model and should not
-be over-read.
+The `_mlip/` scripts (diopside C2/c cell COD 1000007, doubled 8-M1-site supercell, per-ordering
+relaxation) are retained as the documented basis and as the harness for a future DFT or measured
+excess.
 
 ## Validation
 

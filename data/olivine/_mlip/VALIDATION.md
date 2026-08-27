@@ -105,6 +105,11 @@ composition dependence is not resolved by any model.
    gap only below ~420 K), so the **slag-relevant phase behaviour is model-independent** even
    though L0 is not.
 
-5. The shipped spinel and cpx excesses are therefore labelled **MLIP estimates, near-ideal,
-   +/-10-15 kJ**, with the phase behaviour (complete miscibility) as the supported claim - not
-   a precise L0, L1. This 7-model study is the documented basis for that uncertainty statement.
+5. **Decision: spinel and cpx ship IDEAL (no excess term).** With no measurement to arbitrate,
+   no model agreement (spinel), and a direct test showing the cpx excess moves the
+   CaO-FeO-MgO-SiO2 liquidus by <= 20 K with no phase change, a nonzero excess is not earned.
+   Shipping ideal avoids an unconstrained parameter while keeping the supported claim - complete
+   Fe-Mg miscibility, no gap at slag temperatures - which every model agrees on. The `_mlip/`
+   scripts and this study are retained as the basis for the choice and as the drop-in harness for
+   a future DFT or measured excess. Verified: the ideal SUBL blocks reproduce pycalphad to 1e-6
+   and match the analytic ideal-mixing Gibbs to < 0.1 J/mol (tests updated accordingly).

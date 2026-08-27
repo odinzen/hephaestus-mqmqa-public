@@ -38,14 +38,22 @@ def test_endmembers_reproduce_robie_hemingway(model):
     assert em.ENDMEMBERS["hedenbergite"]["dHf"] == pytest.approx(-2839900.0)
 
 
-def test_mixing_excess_small_and_asymmetric(model):
-    """v0.2 carries the MLIP-triangulated (Fe,Mg) excess: small (near-ideal, no gap) and
-    asymmetric (negative Mg-rich, positive Fe-rich). Checked as the RK enthalpy."""
-    bd, _, _ = model
-    assert (bd.L0, bd.L1) == pytest.approx((-576.0, 3441.7))
-    hmix = lambda x: x * (1 - x) * (bd.L0 + bd.L1 * (2 * x - 1))   # J/mol formula
-    assert abs(hmix(0.5)) < 500                                    # near-ideal
-    assert hmix(0.125) < -200 and hmix(0.875) > 100               # asymmetric
+def test_ideal_mixing_no_excess(model):
+    """The (Fe,Mg) M1 mixing is ideal: no excess term is shipped. A 7-model MLIP study put
+    di-hed near ideal across every model, and the excess shifts the CaO-FeO-MgO-SiO2 liquidus
+    by <= 20 K with no phase change (data/olivine/_mlip/VALIDATION.md). The phase Gibbs equals
+    the endmember mixture plus the ideal one-site configurational term exactly."""
+    bd, db, _ = model
+    assert bd.EXCESS == []
+    p = db.phase_index("CLINOPYROXENE")
+    R, T = 8.31446, 1400.0
+    for xmg in (0.25, 0.5, 0.75):
+        g = db.cef_gibbs(p, [1.0, 1 - xmg, xmg, 1.0, 1.0], T, per_mole_atoms=True)
+        g_hed = db.cef_gibbs(p, [1.0, 1.0, 0.0, 1.0, 1.0], T, per_mole_atoms=True)
+        g_di = db.cef_gibbs(p, [1.0, 0.0, 1.0, 1.0, 1.0], T, per_mole_atoms=True)
+        ideal = (xmg * g_di + (1 - xmg) * g_hed
+                 + R * T * (xmg * np.log(xmg) + (1 - xmg) * np.log(1 - xmg)) / 10.0)  # 1 site / 10 atoms
+        assert g == pytest.approx(ideal, abs=0.1), xmg
 
 
 def test_cef_gibbs_matches_pycalphad(model):

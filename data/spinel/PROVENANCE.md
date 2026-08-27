@@ -22,29 +22,23 @@ FeAl2O4 dHf and S298 are the TKV evaluation; MgAl2O4 S298 is the measured third-
 Cp(T) of both is Neumann-Kopp from the shipped oxide Cp models (MgO/FeO + Al2O3), the
 Maier-Kelley form; it reproduces the TKV FeAl2O4 Cp298 to ~5 J/K.
 
-## Mixing (MLIP-triangulated)
+## Mixing: IDEAL (no excess term)
 
-No open Fe-Mg spinel-hercynite mixing calorimetry exists, so the A-site excess is computed
-from a foundation MLIP (MatterSim v1.0.0-5M, data/spinel/_mlip), the method proven on
-clinopyroxene. The MgAl2O4 conventional cell (COD 9010342, 56 atoms, 8 A-sites) is the
-framework; Fe/Mg orderings on the A-site are relaxed (cell + positions, 0 GPa) and
-averaged. A static relaxation does not swap cation identities, so it gives the
-normal-spinel mixing energy directly.
+The (Fe,Mg) A-site is shipped **ideal**. No open spinel-hercynite mixing calorimetry exists, so
+the excess was first taken from a foundation MLIP; a seven-model triangulation against the one
+Fe-Mg join with real calorimetry (olivine, Wood & Kleppa 1981; `data/olivine/_mlip/VALIDATION.md`)
+then showed foundation MLIPs cannot pin it. The four viable models give L0 = -14915 (SevenNet),
+-9949 (TensorNet), -3411 (MatterSim), +6953 (ORB) - a **22 kJ spread that does not even agree on
+sign**, and the original shipped value came from MatterSim, which fails the olivine control.
 
-Shipped value (MatterSim): **L0 = -3411, L1 = -2373 J/mol** (G_xs = y_Fe*y_Mg*[L0 + L1*(y_Fe -
-y_Mg)]), a small, favourable (negative) excess, H_mix = -766 J/mol at x = 0.5.
+With no measurement to arbitrate and no model agreement, an unconstrained excess is not shipped.
+This costs nothing in phase behaviour: every model (both signs) gives complete Fe-Mg miscibility
+with no gap above ~1000 K (ORB's positive L0 opens a gap only below ~420 K), so the slag-relevant
+behaviour is model-independent. The ideal configurational entropy carries the mixing; the residual
+excess is a near-ideal quantity of undetermined sign, below both MLIP and equilibrium resolution.
 
-**This magnitude carries a large MLIP uncertainty, ~+/-10-15 kJ on L0.** A seven-model
-triangulation against the one Fe-Mg join with real calorimetry (olivine, Wood & Kleppa 1981;
-see `data/olivine/_mlip/VALIDATION.md`) shows foundation MLIPs disagree enormously on these
-solid-solution excesses. On spinel itself the four viable models give L0 = -14915 (SevenNet),
--9949 (TensorNet), -3411 (MatterSim), +6953 (ORB) - a 22 kJ spread that does not even fix the
-sign. The two models that best reproduce the measured olivine excess both put spinel strongly
-negative, so the **sign leans favourable and the shipped MatterSim value is a conservative
-central estimate**, but the precise L0, L1 are not determined. What IS model-independent: every
-model (both signs) gives complete Fe-Mg miscibility with no gap above ~1000 K - ORB's positive
-L0 opens a gap only below ~420 K. The slag-relevant phase behaviour is robust; the exact excess
-is a near-ideal MLIP estimate with the stated band.
+The `_mlip/` scripts and the 7-model comparison are retained as the documented basis for this
+choice, and as the harness a future DFT or measured excess would drop into.
 
 ## Validation
 

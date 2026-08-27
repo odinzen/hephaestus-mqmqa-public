@@ -22,11 +22,12 @@ em = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(em)
 
 ELEMENTS = [("CA", 40.078), ("FE", 55.845), ("MG", 24.305), ("SI", 28.085), ("O", 15.9994)]
-# (Fe,Mg) M1 excess, Redlich-Kister on (y_Fe - y_Mg): G_xs = y_Fe*y_Mg*[L0 + L1*(y_Fe-y_Mg)].
-# v0.2, MLIP-triangulated (MatterSim, data/clinopyroxene/_mlip): a small asymmetric,
-# near-ideal excess (|H_mix| < 0.5 kJ/mol; no miscibility gap). T-independent.
-L0 = -576.0
-L1 = 3441.7
+# (Fe,Mg) M1 mixing: IDEAL (no excess term). A 7-model MLIP study against measured olivine
+# (data/olivine/_mlip/VALIDATION.md) put every model's di-hed excess near zero (L0 spread
+# -5.4 to +1.3 kJ), and a direct test showed the excess shifts the CaO-FeO-MgO-SiO2 liquidus
+# by <= 20 K and never changes the crystallizing phase. The data do not support a nonzero
+# value, so none is shipped. EXCESS = [] writes an ideal SUBL block.
+EXCESS = []
 
 
 def _fmt(x):
@@ -84,7 +85,7 @@ def build(out=None):
         [1.0, 1.0, 2.0, 6.0],
         [["CA"], ["FE", "MG"], ["SI"], ["O"]],
         [[1, 1], [1, 2], [1, 1], [1, 1]],
-        [L0, L1])
+        EXCESS)
     path = out or (HERE / "Clinopyroxene-CEF.dat")
     Path(path).write_text("\n".join(lines) + "\n", encoding="ascii")
     return path

@@ -19,9 +19,13 @@ em = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(em)
 
 ELEMENTS = [("FE", 55.845), ("MG", 24.305), ("AL", 26.982), ("O", 15.9994)]
-# MLIP-triangulated (Fe,Mg) A-site excess (data/spinel/_mlip/fit): RK on (y_Fe - y_Mg).
-L0 = -3411.1
-L1 = -2373.3
+# (Fe,Mg) A-site mixing: IDEAL (no excess term). A 7-model MLIP study against measured olivine
+# (data/olivine/_mlip/VALIDATION.md) gave a 22 kJ spread on the spinel-hercynite L0 and did not
+# even agree on sign (SevenNet/TensorNet strongly negative, ORB positive); the shipped value had
+# come from MatterSim, which fails the olivine control. No measurement exists to arbitrate, and
+# every model gives complete miscibility with no gap above ~1000 K. An unconstrained parameter
+# is not shipped; the ideal configurational entropy carries the mixing. EXCESS = [] -> ideal SUBL.
+EXCESS = []
 
 
 def _fmt(x):
@@ -71,7 +75,7 @@ def build(out=None):
          ("SPINEL_MG", sp, [0.0, 1.0, 2.0, 4.0])],
         [1.0, 2.0, 4.0], [["FE", "MG"], ["AL"], ["O"]],
         [[1, 2], [1, 1], [1, 1]],
-        [L0, L1])
+        EXCESS)
     path = out or (HERE / "Spinel-CEF.dat")
     Path(path).write_text("\n".join(lines) + "\n", encoding="ascii")
     return path

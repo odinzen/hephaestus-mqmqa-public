@@ -127,7 +127,7 @@ def build(out=None):
          ("DIOPSIDE", di, [1.0, 0.0, 1.0, 2.0, 6.0])],
         [1.0, 1.0, 2.0, 6.0], [["CA"], ["FE", "MG"], ["SI"], ["O"]],
         [[1, 1], [1, 2], [1, 1], [1, 1]],
-        [_cpx.L0, _cpx.L1])
+        _cpx.EXCESS)
 
     path = out or (HERE / "Olivine-Opx-Cpx-CEF.dat")
     Path(path).write_text("\n".join(out_lines) + "\n", encoding="ascii")

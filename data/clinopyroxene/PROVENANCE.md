@@ -40,11 +40,17 @@ configurational-average H_mix(x). A Redlich-Kister excess is fit, uncertainty-we
 
     G_xs = y_Fe*y_Mg*[L0 + L1*(y_Fe - y_Mg)],  L0 = -576, L1 = +3442 J/mol formula
 
-**The result is a small, asymmetric, near-ideal excess** (|H_mix| < 0.5 kJ/mol across the
-join; slightly ordering-favorable on the Mg-rich side, slightly positive on the Fe-rich
-side). It is everywhere too small to open a miscibility gap, consistent with di-hed being
-a complete solid solution at all temperatures. The .dat excess reproduces the fitted RK to
-< 0.05 J/mol. T-independent (no excess-entropy evidence).
+**The result is a small, near-ideal excess** (|H_mix| < 0.5 kJ/mol), too small to open a
+miscibility gap - di-hed is a complete solid solution at all temperatures. The .dat excess
+reproduces the fitted RK to < 0.05 J/mol. T-independent (no excess-entropy evidence).
+
+**Near-ideal is robust across models; the precise L0, L1 are MLIP estimates (~+/-few kJ).**
+A seven-model triangulation against measured olivine mixing (`data/olivine/_mlip/VALIDATION.md`)
+re-ran di-hed with four viable models: L0 = +1259 (SevenNet), -576 (MatterSim), -1843
+(TensorNet), -5440 (ORB). Unlike spinel (a 22 kJ spread), these **cluster near zero** - every
+model agrees di-hed is essentially ideal, so the shipped MatterSim value is safe as a small
+central estimate. The L1 (composition dependence) is not resolved by any model and should not
+be over-read.
 
 ## Validation
 

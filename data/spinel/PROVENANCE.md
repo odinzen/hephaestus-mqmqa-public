@@ -31,11 +31,20 @@ framework; Fe/Mg orderings on the A-site are relaxed (cell + positions, 0 GPa) a
 averaged. A static relaxation does not swap cation identities, so it gives the
 normal-spinel mixing energy directly.
 
-**Result: a small, asymmetric, favourable (negative) excess** (well resolved, per-ordering
-spread <= 0.7 meV/formula vs a signal of hundreds of J): H_mix = -766 J/mol at x = 0.5,
-deepening toward the Fe-rich side. Redlich-Kister fit, G_xs = y_Fe*y_Mg*[L0 + L1*(y_Fe -
-y_Mg)], **L0 = -3411, L1 = -2373 J/mol**. Negative mixing means the solid solution is
-stabilized (no miscibility gap), consistent with complete spinel-hercynite miscibility.
+Shipped value (MatterSim): **L0 = -3411, L1 = -2373 J/mol** (G_xs = y_Fe*y_Mg*[L0 + L1*(y_Fe -
+y_Mg)]), a small, favourable (negative) excess, H_mix = -766 J/mol at x = 0.5.
+
+**This magnitude carries a large MLIP uncertainty, ~+/-10-15 kJ on L0.** A seven-model
+triangulation against the one Fe-Mg join with real calorimetry (olivine, Wood & Kleppa 1981;
+see `data/olivine/_mlip/VALIDATION.md`) shows foundation MLIPs disagree enormously on these
+solid-solution excesses. On spinel itself the four viable models give L0 = -14915 (SevenNet),
+-9949 (TensorNet), -3411 (MatterSim), +6953 (ORB) - a 22 kJ spread that does not even fix the
+sign. The two models that best reproduce the measured olivine excess both put spinel strongly
+negative, so the **sign leans favourable and the shipped MatterSim value is a conservative
+central estimate**, but the precise L0, L1 are not determined. What IS model-independent: every
+model (both signs) gives complete Fe-Mg miscibility with no gap above ~1000 K - ORB's positive
+L0 opens a gap only below ~420 K. The slag-relevant phase behaviour is robust; the exact excess
+is a near-ideal MLIP estimate with the stated band.
 
 ## Validation
 

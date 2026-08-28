@@ -15,7 +15,7 @@ OUT = HERE.parents[1] / "web" / "crystallization_cao_mgo_sio2.json"
 X_FE = 0.05          # fixed FeO level (cation fraction), a lean slag: shows both the
                      # Fe/Mg silicates and the calcium silicates (the latter are flux-
                      # suppressed at higher FeO)
-NGRID = 20           # triangular grid over the remaining CaO-MgO-SiO2 (step 1/NGRID)
+NGRID = 60           # triangular grid over the remaining CaO-MgO-SiO2 (step 1/NGRID)
 
 # solid phases, ordered; index becomes the field digit
 PHASES = ["OLIVINE", "ORTHOPYROXENE", "CLINOPYROXENE", "WOLLASTONITE", "LARNITE",

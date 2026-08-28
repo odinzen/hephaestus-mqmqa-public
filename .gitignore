@@ -52,3 +52,6 @@ data/feo-mgo-sio2/bs_comparison.png
 
 # packaging build artifacts (pip install -e)
 python/*.egg-info/
+# olivine DFT control: pseudos are downloadable; QE save dirs are large binaries
+data/olivine/_dft/pseudo/
+data/olivine/_dft/runs/*/out/

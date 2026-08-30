@@ -616,6 +616,15 @@ function loadDatabase(text, name) {
     anNames.push(api.an(db,phase,k));
     anEl.appendChild(chip(api.an(db,phase,k)+' (−'+api.anQ(db,phase,k)+')'));
   }
+
+  // The three assessed ternary showcases below are all oxide slag systems, so they do not
+  // belong to a salt (halide) database, whose relevant tool is the binary join above. Hide
+  // them for salts; keep them for slags and on the default landing view. Keyed to the loaded
+  // chemistry, not the load button, so an uploaded salt file behaves the same way.
+  const saltLike = anNames.some(a => /^(cl|f|br|i)$/i.test(a));
+  for (const id of ['terncard','crystcard','livecard']) {
+    document.getElementById(id).classList.toggle('hidden', saltLike);
+  }
   const solids=[]; for(let i=0;i<api.nStoich(db);i++) solids.push(api.stName(db,i));
   document.getElementById('solids').textContent = solids.length ? solids.join(', ') : '—';
 

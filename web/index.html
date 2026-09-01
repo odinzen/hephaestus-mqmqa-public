@@ -293,9 +293,9 @@
     <div class="card">
       <h2>Phase diagram</h2>
       <p class="muted" style="margin:0 0 .9rem">
-        Pick a binary join between two salt end members. The engine computes the
-        liquid Gibbs energy across the join and takes the lower convex hull against
-        the database's stoichiometric compounds, so the liquidus and the melting
+        Pick a binary join between two end members of the loaded database. The engine
+        computes the liquid Gibbs energy across the join and takes the lower convex hull
+        against the database's stoichiometric compounds, so the liquidus and the melting
         invariants are solved in your browser, point by point.</p>
       <div class="pdctl" id="pdctl">
         <label for="pdA">End member A</label><select id="pdA"></select>
@@ -1974,9 +1974,20 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
   // Seed the builder to match the loaded database: the molten-salt example for a salt (halide)
   // file, a neutral generic ternary for slags and the default landing view, so salt data never
   // shows in a slag context. Programmatic (no change event), and skipped once the user edits.
-  window._bldSeedFor=(salt)=>{ if(userTouched) return; const k=salt?'saltA':'ternary';
-    $('bld-preset').value=k; loadPreset(k); };
-  $('bld-preset').value='ternary'; loadPreset('ternary');
+  window._bldSeedFor=(salt)=>{
+    // Show only the presets that belong to the loaded chemistry: the molten-salt examples for a
+    // salt (halide) file, the oxide example for slags and the default view. Runs even after the
+    // user edits, so a salt preset never appears in a slag context (or vice versa).
+    const saltPresets=['saltA','saltB'], slagPresets=['oxide'];
+    [...$('bld-preset').options].forEach(o=>{
+      if(saltPresets.includes(o.value)) o.hidden=!salt;
+      else if(slagPresets.includes(o.value)) o.hidden=salt;
+    });
+    if(userTouched) return;
+    const k=salt?'saltA':'ternary';
+    $('bld-preset').value=k; loadPreset(k);
+  };
+  _bldSeedFor(false);   // default (landing / slag): hide salt presets, seed the generic ternary
 })();
 </script>
 <script>

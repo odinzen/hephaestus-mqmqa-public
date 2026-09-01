@@ -158,6 +158,11 @@
                   font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--ink); }
   .calc-hist .chist-n { color:var(--pointer); font-weight:700; min-width:1.5rem; text-align:right; }
   .calc-hist .chist-txt { overflow-wrap:anywhere; }
+  .bld-save-row { max-width:40rem; margin:.7rem auto 0; }
+  .bld-save-row button { background:var(--field); border:1px solid var(--line); color:var(--ink);
+                  font:inherit; font-size:var(--fs-sm); padding:.35rem .85rem; border-radius:8px; cursor:pointer; }
+  .bld-save-row button:hover { border-color:var(--brand); color:var(--brand); }
+  #bldhist { max-width:40rem; margin-left:auto; margin-right:auto; }
   /* phase diagram builder */
   .bld-ctl { margin-bottom:.7rem; }
   .bld-ctl label, .bld-comp label { display:flex; flex-direction:column; gap:.2rem;
@@ -466,6 +471,8 @@
       <div class="bld-result" id="bld-result" hidden></div>
     </div>
     <div class="tern-read" id="bldread">&nbsp;</div>
+    <div class="bld-save-row"><button id="bld-save" type="button">Save this eutectic</button></div>
+    <div id="bldhist" class="calc-hist"></div>
     <div class="legend" id="bld-legend"></div>
     <div class="bld-caution">
       <b>If you build with your own data, read this.</b> This is a regular-solution model with a
@@ -2088,6 +2095,7 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
     const n=curN, useCanvas=(n===2||n===3);
     cv.style.display=useCanvas?'block':'none';
     $('bld-result').hidden=useCanvas;
+    $('bld-save').closest('.bld-save-row').style.display=(n<=4)?'':'none';
     if(pending) return;
     pending=setTimeout(()=>{ pending=0; render(); }, 0);
   }
@@ -2107,6 +2115,18 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
   $('bW-b').addEventListener('input',draw); $('bW-b').addEventListener('input',touch);
   $('bld-nseg').addEventListener('click',e=>{ const b=e.target.closest('.seg-btn'); if(b){ setN(+b.dataset.n); touch(); } });
   $('bld-preset').addEventListener('change',e=>{ loadPreset(e.target.value); touch(); });
+  // Save the current eutectic to a comparison list, so different systems and W values stack up
+  // side by side instead of being written down.
+  const eutHist=[];
+  function renderEutHist(){ renderCalcHist($('bldhist'), eutHist.slice(),
+    ()=>{ eutHist.length=0; renderEutHist(); }); }
+  $('bld-save').addEventListener('click',()=>{
+    const t=$('bldread').textContent.trim();
+    if(!/eutectic/i.test(t)) return;            // nothing to save (premium tier or no eutectic found)
+    const {Wa,Wb}=Wvals();
+    eutHist.push(t+'   ·   W='+Wa+' kJ/mol'+(Wb?' + '+Wb+'·T':''));
+    renderEutHist();
+  });
   new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
   // Seed the builder to match the loaded database: the molten-salt example for a salt (halide)
   // file, a neutral generic ternary for slags and the default landing view, so salt data never

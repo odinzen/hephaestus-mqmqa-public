@@ -407,8 +407,8 @@
     <h2>Phase diagram builder &middot; build &amp; tune your own<span class="tern-badge">your data</span></h2>
     <p class="tern-note">Enter each component's own data &mdash; melting point and heat of fusion,
       plus a single liquid interaction energy W &mdash; and the engine computes the eutectic live
-      from multicomponent regular-solution thermodynamics. Free up to <b>four components</b>: that
-      is one more than FactSage's free tier stops at. Change any value (the sliders are quickest)
+      from multicomponent regular-solution thermodynamics, for up to <b>four components</b>, solved
+      in your browser. Change any value (the sliders are quickest)
       and watch the diagram and the eutectic move. Load a preset to start, or enter a brand-new
       system.</p>
     <div class="bld-ctl-row">
@@ -969,8 +969,8 @@ function pdDiscretes(endA, endB){
     const n0=Math.round(aA/dA), n1=Math.round(aB/dB), units=n0+n1; if(units<=0) continue;
     const reqCommon=n0*endA.els[common]+n1*endB.els[common];
     if(Math.abs((c[common]||0)-reqCommon)>1e-6) continue;
-    // A stoichiometric compound is a solid unless its name marks it liquid: FactSage-style
-    // files write "(s)"/"(l)" suffixes, but plain names (CRISTOBALITE, Ca3Al2O6) are solids.
+    // A stoichiometric compound is a solid unless its name marks it liquid: some files write
+    // "(s)"/"(l)" suffixes, but plain names (CRISTOBALITE, Ca3Al2O6) are solids.
     out.push({xi:n1/units, units, name, idx:i, solid:!/\(l\)|\(liq\)|liquid/i.test(name)});
   }
   return out;
@@ -1969,7 +1969,7 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
       return '<div class="bld-bar"><span class="nm">'+esc(c.name)+'</span>'
         +'<span class="track"><span class="fill" style="width:'+pct.toFixed(1)+'%;background:'+COMPCOL[k]+'"></span></span>'
         +'<span class="amt">'+eut.x[k].toFixed(3)+'</span></div>'; }).join('');
-    res.innerHTML='<h3>Four-component eutectic<span class="bld-feature">beyond FactSage free</span></h3>'
+    res.innerHTML='<h3>Four-component eutectic<span class="bld-feature">free &amp; open</span></h3>'
       +'<p class="sub">The lowest melting point over the whole four-component composition simplex.</p>'
       +'<div class="bld-eutT">'+(eut.T-273.15).toFixed(0)+' °C</div>'
       +'<div class="bld-bars">'+bars+'</div>';
@@ -1982,7 +1982,7 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
   function drawPremium(n){
     $('bld-result').innerHTML='<div class="bld-prem"><div class="lock">🔒</div>'
       +'<h3>'+n+'-component eutectics are a premium feature</h3>'
-      +'<p>Free coverage runs to four components — already one past FactSage’s free tier. '
+      +'<p>Free coverage runs to four components, solved live in your browser. '
       +'Five- and six-component builds are part of Odinzen’s premium tier.</p>'
       +'<p>Want it, or have a specific system in mind? Email '
       +'<a href="mailto:info@odinzen.io">info@odinzen.io</a>.</p></div>';

@@ -147,6 +147,17 @@
   .tern-live b { color:var(--brand); }
   .tern-liveout { display:block; margin-top:.4rem; font-family:var(--font-mono);
                   color:var(--ink); min-height:1.2em; }
+  .calc-hist { margin-top:.75rem; }
+  .calc-hist .chist-head { display:flex; align-items:center; gap:.5rem; margin-bottom:.25rem;
+                  font-size:var(--fs-sm); color:var(--muted); }
+  .calc-hist .chist-clear { margin-left:auto; background:none; border:1px solid var(--line);
+                  color:var(--muted); font:inherit; font-size:var(--fs-xs); padding:.12rem .55rem;
+                  border-radius:6px; cursor:pointer; }
+  .calc-hist .chist-clear:hover { color:var(--ink); border-color:var(--muted); }
+  .calc-hist .chist-row { display:flex; gap:.55rem; padding:.3rem 0; border-top:1px dashed var(--line);
+                  font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--ink); }
+  .calc-hist .chist-n { color:var(--pointer); font-weight:700; min-width:1.5rem; text-align:right; }
+  .calc-hist .chist-txt { overflow-wrap:anywhere; }
   /* phase diagram builder */
   .bld-ctl { margin-bottom:.7rem; }
   .bld-ctl label, .bld-comp label { display:flex; flex-direction:column; gap:.2rem;
@@ -345,8 +356,10 @@
     <div class="tern-live" id="ternlive">
       <b>Live melt calculator</b> &mdash; click anywhere in the triangle to solve the equilibrium
       liquid there in your browser (the WASM engine, not the precomputed data above), at the
-      section temperature. Reports the liquid Gibbs energy and dominant melt species.
+      section temperature. Reports the liquid Gibbs energy and dominant melt species. Every click
+      is added to the list below, numbered to its marker, so you can compare points.
       <span id="ternliveout" class="tern-liveout"></span>
+      <div id="ternhist" class="calc-hist"></div>
     </div>
   </div>
 
@@ -392,6 +405,7 @@
     </div>
     <div class="tern-read" id="liveread">Press Compute to solve the diagram at the chosen temperature.</div>
     <div class="legend" id="livelegend"></div>
+    <div id="livehist" class="calc-hist"></div>
     <div class="bld-caution">
       <b>Reading this diagram.</b> Every phase boundary here is solved live by the open engine, not
       looked up &mdash; the liquid by the MQMQA solver, the solids by their compound-energy models,
@@ -1425,6 +1439,7 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
 
   function refresh(){ if(mode==='proj'){ if(proj){renderProjection();legendProjection();} }
     else { if(iso){renderSection();legendSection();} } }
+  window._ternRefresh = refresh;   // let the live melt calculator clear its markers by redrawing the base
 
   function hover(ev){ const r=cv.getBoundingClientRect();
     const px=(ev.clientX-r.left)*W/r.width, py=(ev.clientY-r.top)*H/r.height, c=pxToComp(px,py);
@@ -1551,10 +1566,25 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
       .filter(e=>e[0]>0.02).map(e=>inp.quadLabel(e[1])+' '+(100*e[0]).toFixed(0)+'%');
     return {GM:r.GM, top};
   }
-  function marker(px,py){ ctx.save(); ctx.strokeStyle=css('--pointer'); ctx.lineWidth=2;
+  // shared helper: render a numbered comparison list into a .calc-hist container
+  window.renderCalcHist = window.renderCalcHist || function(el, rows, onClear){
+    if(!rows.length){ el.innerHTML=''; return; }
+    el.innerHTML='<div class="chist-head"><b>Saved points</b> <span>('+rows.length+')</span>'
+      +'<button class="chist-clear" type="button">clear</button></div>'
+      +'<div class="chist-list">'+rows.map((t,i)=>
+        '<div class="chist-row"><span class="chist-n">'+(i+1)+'</span><span class="chist-txt">'+t+'</span></div>'
+      ).join('')+'</div>';
+    el.querySelector('.chist-clear').onclick=onClear;
+  };
+
+  const histEl=document.getElementById('ternhist'); const hist=[];
+  function marker(px,py,n){ ctx.save(); ctx.strokeStyle=css('--pointer'); ctx.lineWidth=2;
     ctx.beginPath(); ctx.arc(px,py,6,0,2*Math.PI); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(px-10,py); ctx.lineTo(px+10,py); ctx.moveTo(px,py-10); ctx.lineTo(px,py+10); ctx.stroke();
-    ctx.restore(); }
+    ctx.fillStyle=css('--pointer'); ctx.font='700 12px '+(css('--font-ui')||'system-ui,sans-serif');
+    ctx.textAlign='left'; ctx.textBaseline='bottom'; ctx.fillText(String(n), px+9, py-7); ctx.restore(); }
+  function renderHist(){ renderCalcHist(histEl, hist.map(h=>h.txt), ()=>{
+    hist.length=0; renderHist(); if(window._ternRefresh) window._ternRefresh(); }); }
 
   cv.addEventListener('click', async ev=>{
     const r=cv.getBoundingClientRect();
@@ -1566,11 +1596,13 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
       const [xfe,xsi]=c, xmg=1-xfe-xsi, t=currentT();
       const mFe=xfe*Mm.FeO,mMg=xmg*Mm.MgO,mSi=xsi*Mm.SiO2,tot=mFe+mMg+mSi, w=x=>(100*x/tot).toFixed(0);
       const L=liquidAt(xfe,xsi,t);
-      const [px,py]=triXY(xfe,xsi); marker(px,py);
+      const [px,py]=triXY(xfe,xsi);
       if(!L){ out.textContent='liquid did not converge at this composition.'; return; }
-      out.textContent='FeO '+w(mFe)+'  MgO '+w(mMg)+'  SiO₂ '+w(mSi)+' wt%  @ '+(t-273.15).toFixed(0)
+      const line='FeO '+w(mFe)+'  MgO '+w(mMg)+'  SiO₂ '+w(mSi)+' wt%  @ '+(t-273.15).toFixed(0)
         +' °C   →   liquid G = '+L.GM.toLocaleString(undefined,{maximumFractionDigits:0})
         +' J/mol-atom' + (L.top.length?'   ·   melt: '+L.top.join(', '):'');
+      out.textContent=line;
+      hist.push({txt:line}); marker(px,py,hist.length); renderHist();
     }, 20);
   });
 })();
@@ -1735,7 +1767,20 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
     for(const k of keys){ const ph=phByKey[k],[r,g,b]=colByKey[k], sp=document.createElement('span');
       sp.innerHTML='<span class="swatch" style="background:rgb('+r+','+g+','+b+')"></span>'+esc(asmLabel(ph));
       leg.appendChild(sp); }
+    drawPins();
   }
+
+  // tap-to-pin points and a numbered comparison list (works on touch, unlike hover)
+  const histEl2=document.getElementById('livehist'); const pins=[];
+  function pinMarker(xb,xc,n){ const [px,py]=triXY(xb,xc); ctx.save();
+    ctx.strokeStyle=css('--pointer'); ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(px,py,6,0,2*Math.PI); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(px-10,py); ctx.lineTo(px+10,py); ctx.moveTo(px,py-10); ctx.lineTo(px,py+10); ctx.stroke();
+    ctx.fillStyle=css('--pointer'); ctx.font='700 12px '+(css('--font-ui')||'system-ui,sans-serif');
+    ctx.textAlign='left'; ctx.textBaseline='bottom'; ctx.fillText(String(n), px+9, py-7); ctx.restore(); }
+  function drawPins(){ pins.forEach((p,i)=>pinMarker(p.xb,p.xc,i+1)); }
+  function renderLiveHist(){ renderCalcHist(histEl2, pins.map(p=>p.txt),
+    ()=>{ pins.length=0; renderLiveHist(); render(); }); }
 
   const tsl=document.getElementById('live-t'), tval=document.getElementById('live-tval'),
         go=document.getElementById('live-go'), read=document.getElementById('liveread'),
@@ -1746,6 +1791,7 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
     tsl.min=SYS.tmin; tsl.max=SYS.tmax; tsl.value=SYS.tdef; tval.textContent=tsl.value+' °C';
     document.getElementById('livelegend').innerHTML='';
     read.textContent='Press Compute to solve the diagram at the chosen temperature.';
+    pins.length=0; renderLiveHist();
     render();
   });
   go.addEventListener('click',()=>{
@@ -1759,7 +1805,7 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
       model={pts,phName,facets,boxes,T}; render();
       const ms=Math.round(performance.now()-t0);
       read.textContent='Solved at '+degC+' °C in '+ms+' ms — '+pts.length+' phase samples, '+facets.length
-        +' tie-facets. Hover to read a composition and its stable phases.';
+        +' tie-facets. Tap a composition to read and pin it to the list (hover previews on desktop).';
       go.disabled=false;
     }, 30);
   });
@@ -1770,7 +1816,16 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
     read.textContent=SYS.corners[0]+' '+w(mA)+'  '+SYS.corners[1]+' '+w(mB)+'  '+SYS.corners[2]+' '+w(mC)
       +' wt%  @ '+(model.T-273.15).toFixed(0)
       +' °C'+(a?'   ·   '+asmLabel(a):'   ·   outside the sampled field'); }
+  function pin(ev){ if(!model){ read.textContent='Press Compute first, then tap to pin points.'; return; }
+    const r=cv.getBoundingClientRect();
+    const c=pxToComp((ev.clientX-r.left)*W/r.width,(ev.clientY-r.top)*H/r.height); if(!c){ return; }
+    const [xb,xc,xa]=c, a=assemblageAt(model.pts,model.facets,model.boxes,model.phName,[xb,xc]);
+    const mA=xa*SYS.mass.A,mB=xb*SYS.mass.B,mC=xc*SYS.mass.C,tot=mA+mB+mC, w=x=>(100*x/tot).toFixed(0);
+    const line=SYS.corners[0]+' '+w(mA)+'  '+SYS.corners[1]+' '+w(mB)+'  '+SYS.corners[2]+' '+w(mC)
+      +' wt%  @ '+(model.T-273.15).toFixed(0)+' °C'+(a?'   ·   '+asmLabel(a):'   ·   outside the sampled field');
+    read.textContent=line; pins.push({xb,xc,txt:line}); pinMarker(xb,xc,pins.length); renderLiveHist(); }
   cv.addEventListener('mousemove',hover);
+  cv.addEventListener('click',pin);
   new MutationObserver(render).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
   frame();
 })();

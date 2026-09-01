@@ -332,6 +332,8 @@
       <div id="pdout" class="hidden">
         <div class="pdwrap"><canvas id="pdcanvas"></canvas></div>
         <div class="legend" id="pdlegend"></div>
+        <div class="tern-read" id="pdread">Tap the diagram to read a composition and pin it.</div>
+        <div id="pdhist" class="calc-hist"></div>
       </div>
     </div>
   </div>
@@ -948,6 +950,7 @@ document.getElementById('solve').addEventListener('click', () => {
 // carried per salt formula so the hull and lever rule share one basis.
 
 let pdResult = null;          // last computed diagram, kept for redraw on theme change
+let pdPins = [];              // tap-to-read points {xi, T, txt} pinned on the binary diagram
 let pdVary = [], pdCommon = []; // ion menus for the loaded system
 const PD_FLOOR = 0.0015;      // keep the liquid sampling off the pure end members
 
@@ -1226,10 +1229,35 @@ async function generateDiagram(){
   document.getElementById('pdgen').disabled=false;
   msg.textContent='';
   pdResult={endA, endB, comps, Tmin, Tmax, cols, xiCells, disc, melts};
+  pdPins.length=0; renderPdHist();   // a new join/range invalidates old pinned points
   out.classList.remove('hidden');
   drawDiagram();
   renderLegend();
 }
+
+// Read what the binary diagram shows at a client (x,y): the join composition, the region at
+// that temperature (liquid / liquid+solid / subsolidus), and the liquidus at that composition.
+function pdReadAt(clientX, clientY){
+  if(!pdResult) return null;
+  const cv=document.getElementById('pdcanvas'), r=cv.getBoundingClientRect();
+  const cssW=cv.clientWidth||640, cssH=420, mL=54, mR=16, mT=34, mB=48;
+  const L=mL, BP=cssH-mB, PW=cssW-mR-L, PH=BP-mT;
+  const px=(clientX-r.left)*cssW/r.width, py=(clientY-r.top)*cssH/r.height;
+  const f=(px-L)/PW; if(f<0||f>1) return null;
+  const {Tmin,Tmax,cols,xiCells,endA,endB}=pdResult;
+  const T=Tmin+(BP-py)/PH*(Tmax-Tmin); if(T<Tmin||T>Tmax) return null;
+  const c=Math.min(xiCells-1,Math.max(0,Math.floor(f*xiCells)));
+  const nT=cols.length, j=Math.min(nT-1,Math.max(0,Math.round((T-Tmin)/(Tmax-Tmin)*(nT-1))));
+  const region=['liquid','liquid + solid','subsolidus'][cols[j].cls[c]];
+  let liqT=null;   // highest T at this composition where it stops being all-liquid
+  for(let jj=nT-1;jj>=0;jj--){ if(cols[jj].cls[c]!==0){ liqT=jj<nT-1?0.5*(cols[jj].T+cols[jj+1].T):cols[jj].T; break; } }
+  const molB=Math.round(f*100);
+  const txt=endA.label+' '+(100-molB)+'  '+endB.label+' '+molB+' mol%  @ '+Math.round(T)+' K   ·   '+region
+    +(liqT!=null?'   ·   liquidus '+Math.round(liqT)+' K':'   ·   liquidus below range');
+  return {xi:f, T, txt};
+}
+function renderPdHist(){ renderCalcHist(document.getElementById('pdhist'), pdPins.map(p=>p.txt),
+  ()=>{ pdPins.length=0; renderPdHist(); drawDiagram(); }); }
 
 function pdThemeColors(){
   const cs=getComputedStyle(document.documentElement);
@@ -1315,6 +1343,16 @@ function drawDiagram(){
   ctx.font='11px system-ui,sans-serif'; ctx.fillStyle=rgba(col.muted,1); ctx.textBaseline='top';
   ctx.textAlign='left';  ctx.fillText(endA.label, L, BP+20);
   ctx.textAlign='right'; ctx.fillText(endB.label, R, BP+20);
+
+  // pinned tap-to-read points, numbered to the saved-points list
+  if(pdPins.length){ const pointer=getComputedStyle(document.documentElement).getPropertyValue('--pointer').trim();
+    ctx.save(); ctx.lineWidth=2; ctx.strokeStyle=pointer; ctx.fillStyle=pointer;
+    ctx.font='700 12px system-ui,sans-serif'; ctx.textAlign='left'; ctx.textBaseline='bottom';
+    for(let i=0;i<pdPins.length;i++){ const px=X(pdPins[i].xi), py=Y(pdPins[i].T);
+      ctx.beginPath(); ctx.arc(px,py,6,0,2*Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(px-10,py); ctx.lineTo(px+10,py); ctx.moveTo(px,py-10); ctx.lineTo(px,py+10); ctx.stroke();
+      ctx.fillText(String(i+1), px+9, py-7); }
+    ctx.restore(); }
 }
 
 function renderLegend(){
@@ -1333,6 +1371,13 @@ function renderLegend(){
 document.getElementById('pdgen').addEventListener('click', generateDiagram);
 // re-bracket the temperature axis whenever the join changes
 ['pdA','pdB','pdCommon'].forEach(id=>document.getElementById(id).addEventListener('change', pdAutoRange));
+// tap-to-read + pin points on the binary diagram (the main salt tool; also serves slag binaries)
+(function(){ const cv=document.getElementById('pdcanvas'), read=document.getElementById('pdread');
+  cv.addEventListener('mousemove', ev=>{ const r=pdReadAt(ev.clientX,ev.clientY);
+    if(r) read.textContent=r.txt; });
+  cv.addEventListener('click', ev=>{ const r=pdReadAt(ev.clientX,ev.clientY); if(!r) return;
+    read.textContent=r.txt; pdPins.push({xi:r.xi,T:r.T,txt:r.txt}); drawDiagram(); renderPdHist(); });
+})();
 window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
 
 // theme is fixed to the dark pixel palette (no light theme, no toggle)

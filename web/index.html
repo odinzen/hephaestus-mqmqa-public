@@ -266,8 +266,9 @@
     <div class="card">
       <h2>Solve equilibrium</h2>
       <p class="muted" style="margin:0 0 .8rem">
-        Pick the components, set their mole fractions and a temperature, and the
-        engine minimizes the Gibbs energy over the quadruplet distribution.</p>
+        Pick the components (the oxide or salt end members), set their mole fractions
+        and a temperature, and the engine minimizes the Gibbs energy over the quadruplet
+        distribution. Working in components keeps the melt electroneutral automatically.</p>
       <div id="complist" class="row" style="margin-bottom:.6rem"></div>
       <div id="compfields" class="kv" style="max-width:340px;margin-bottom:.9rem"></div>
       <label class="temp" style="margin:.2rem 0 1rem">Temperature
@@ -691,36 +692,60 @@ function phaseElements(){
   return [...els];
 }
 
+function gcdInt(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ const t=a%b; a=b; b=t; } return a||1; }
+function prettyEl(e){ return e.charAt(0)+e.slice(1).toLowerCase(); }
+
+// Neutral endmember components (oxides / salts) of the loaded solution phase, one per distinct
+// cation-anion pair. FeO, MgO, SiO2 for a slag; LiCl, KCl for a salt. Entering component
+// fractions keeps the bulk exactly electroneutral - the solver rejects even a 1e-6 charge
+// imbalance, so raw element fractions (which a user cannot hand-balance to that precision) fail.
+function componentList(){
+  const M=api.M, np=api.nPairs(db,phase);
+  const cbuf=M._malloc(np*4), abuf=M._malloc(np*4);
+  api.pairIx(db,phase,cbuf,abuf);
+  const pc=readI(cbuf,np), pa=readI(abuf,np); [cbuf,abuf].forEach(p=>M._free(p));
+  const comps=[], seen=new Set();
+  for(let i=0;i<np;i++){
+    const catEl=elementOf(api.cat(db,phase,pc[i])), anEl=elementOf(api.an(db,phase,pa[i]));
+    const key=catEl+'|'+anEl; if(seen.has(key)) continue; seen.add(key);
+    const zc=Math.round(api.catQ(db,phase,pc[i])), za=Math.round(api.anQ(db,phase,pa[i]));
+    const g=gcdInt(zc,za), nCat=za/g, nAn=zc/g;
+    const label=prettyEl(catEl)+(nCat>1?nCat:'')+prettyEl(anEl)+(nAn>1?nAn:'');
+    comps.push({catEl, anEl, nCat, nAn, label});
+  }
+  return comps;
+}
+
 function populateComponents(){
   const list=document.getElementById('complist'); list.innerHTML='';
   document.getElementById('eqout').classList.add('hidden');
   document.getElementById('eqmsg').textContent='';
-  // default selection: the first cation element and first anion element, a valid subsystem
-  const firstCat=elementOf(api.cat(db,phase,0)), firstAn=elementOf(api.an(db,phase,0));
-  for(const e of phaseElements()){
+  window._components=componentList();
+  window._components.forEach((c,idx)=>{
     const lab=document.createElement('label'); lab.className='chip'; lab.style.cursor='pointer';
-    const cb=document.createElement('input'); cb.type='checkbox'; cb.value=e;
-    cb.checked=(e===firstCat||e===firstAn); cb.style.marginRight='.35rem';
+    const cb=document.createElement('input'); cb.type='checkbox'; cb.value=String(idx);
+    cb.checked=true; cb.style.marginRight='.35rem';
     cb.addEventListener('change', renderCompFields);
-    lab.appendChild(cb); lab.appendChild(document.createTextNode(e));
+    lab.appendChild(cb); lab.appendChild(document.createTextNode(c.label));
     list.appendChild(lab);
-  }
+  });
   renderCompFields();
 }
 
-function selectedComponents(){
-  return [...document.querySelectorAll('#complist input:checked')].map(c=>c.value);
+function selectedComponentIdx(){
+  return [...document.querySelectorAll('#complist input:checked')].map(c=>+c.value);
 }
 
 function renderCompFields(){
   const box=document.getElementById('compfields'); box.innerHTML='';
-  const sel=selectedComponents();
+  const sel=selectedComponentIdx();
   const val = sel.length ? (1/sel.length) : 0;
-  for(const e of sel){
-    const dt=document.createElement('dt'); dt.textContent=e+' mole fraction';
+  for(const idx of sel){
+    const c=window._components[idx];
+    const dt=document.createElement('dt'); dt.textContent=c.label+' mole fraction';
     const dd=document.createElement('dd');
     const inp=document.createElement('input'); inp.type='number'; inp.step='0.01';
-    inp.min='0'; inp.value=val.toFixed(2); inp.dataset.el=e;
+    inp.min='0'; inp.value=val.toFixed(2); inp.dataset.idx=String(idx);
     inp.style.cssText='width:6rem;font:inherit;padding:.3rem .45rem;border:1px solid var(--line);'+
                       'border-radius:6px;background:var(--field);color:var(--fg)';
     dd.appendChild(inp); box.appendChild(dt); box.appendChild(dd);
@@ -854,21 +879,29 @@ document.getElementById('solve').addEventListener('click', () => {
   const msg=document.getElementById('eqmsg'), out=document.getElementById('eqout');
   out.classList.add('hidden');
   if(!db){ msg.textContent='Load a database first.'; return; }
-  const sel=selectedComponents();
-  const hasCat=sel.some(e=>{ for(let i=0;i<api.nCat(db,phase);i++) if(elementOf(api.cat(db,phase,i))===e) return true; return false; });
-  const hasAn=sel.some(e=>{ for(let k=0;k<api.nAn(db,phase);k++) if(elementOf(api.an(db,phase,k))===e) return true; return false; });
-  if(!hasCat||!hasAn){ msg.textContent='Select at least one cation element and one anion element.'; return; }
-  const target={}; let sum=0;
-  document.querySelectorAll('#compfields input').forEach(inp=>{
-    const v=parseFloat(inp.value)||0; target[inp.dataset.el]=v; sum+=v;
-  });
-  if(sum<=0){ msg.textContent='Enter nonzero mole fractions.'; return; }
+  const comps=window._components||[];
+  const rows=[...document.querySelectorAll('#compfields input')]
+    .map(i=>({c:comps[+i.dataset.idx], x:parseFloat(i.value)||0}));
+  let sum=0; rows.forEach(r=>sum+=r.x);
+  if(sum<=0){ msg.textContent='Enter a nonzero amount for at least one component.'; return; }
+
+  // Component fractions -> element amounts. Each component adds integer stoichiometry
+  // (FeO: 1 Fe + 1 O; SiO2: 1 Si + 2 O), so the bulk is electroneutral to machine precision.
+  const target={}, elems=new Set();
+  for(const {c,x} of rows){ if(x<=0||!c) continue;
+    target[c.catEl]=(target[c.catEl]||0)+c.nCat*x/sum;
+    target[c.anEl] =(target[c.anEl] ||0)+c.nAn *x/sum;
+    elems.add(c.catEl); elems.add(c.anEl);
+  }
   const T=parseFloat(document.getElementById('eqT').value)||1873;
 
-  msg.textContent='Solving...';
-  const inp=buildInputs(sel, T);
+  msg.textContent='Solving…';
+  const inp=buildInputs([...elems], T);
   const res=solveEquilibrium(inp, target);
-  if(!isFinite(res.GM)){ msg.textContent='The solver did not converge for this composition.'; return; }
+  if(!isFinite(res.GM)){
+    msg.textContent='The solver did not converge at '+T+' K. Try another temperature or composition.';
+    return;
+  }
   msg.textContent='';
 
   document.getElementById('gm').textContent =
@@ -912,34 +945,30 @@ function pdEnd(varyIon, commonIon){
   return pdSalt(cat.sym, cat.q, an.sym, an.q, varyIon.sym);
 }
 
-function allElements(){ const o=[]; for(let i=0;i<api.nEl(db);i++) o.push(api.el(db,i)); return o; }
-
-// Parse a stoichiometric compound name (its leading formula token) into element
-// counts, matching against the database's element symbols (longest first).
-function pdParse(name, elements){
-  let f=name.split('(')[0]; const us=f.indexOf('_'); if(us>0) f=f.slice(0,us);
-  const syms=[...elements].sort((a,b)=>b.length-a.length); const c={}; let i=0;
-  while(i<f.length){ let sym=null; for(const s of syms){ if(f.startsWith(s,i)){ sym=s; break; } }
-    if(!sym) return null; i+=sym.length; let j=i;
-    while(j<f.length && f[j]>='0' && f[j]<='9') j++;
-    const n=j>i?parseInt(f.slice(i,j),10):1; c[sym]=(c[sym]||0)+n; i=j; }
-  return c;
+// Composition of stoichiometric compound i as {elementSymbol: amount}, read straight from
+// the database. These files name compounds by mineral (WUSTITE, PERICLASE, CRISTOBALITE),
+// not by formula, so the composition must come from the data, not from parsing the name.
+function pdStoichComp(i){
+  const M=api.M, nEl=api.nEl(db), buf=M._malloc(nEl*8);
+  api.stElems(db,i,buf); const c={};
+  for(let j=0;j<nEl;j++){ const v=M.getValue(buf+j*8,'double'); if(Math.abs(v)>1e-9) c[api.el(db,j)]=v; }
+  M._free(buf); return c;
 }
 
 // Every stoichiometric compound sitting exactly on the join, as its join fraction
 // xi, salt-formula units per compound, database index, and solid/liquid kind.
 function pdDiscretes(endA, endB){
-  const elements=allElements();
   const varyA=endA.vary, varyB=endB.vary, common=endA.common;
   const joinEls=new Set([varyA,varyB,common]); const out=[];
+  const near=x=>Math.abs(x-Math.round(x))<1e-6;
   for(let i=0;i<api.nStoich(db);i++){
-    const name=api.stName(db,i); const c=pdParse(name,elements); if(!c) continue;
-    if(Object.keys(c).some(e=>!joinEls.has(e))) continue;
+    const name=api.stName(db,i); const c=pdStoichComp(i);
+    const els=Object.keys(c); if(!els.length || els.some(e=>!joinEls.has(e))) continue;
     const aA=c[varyA]||0, aB=c[varyB]||0, dA=endA.els[varyA], dB=endB.els[varyB];
-    if(aA%dA!==0 || aB%dB!==0) continue;
-    const n0=aA/dA, n1=aB/dB, units=n0+n1; if(units<=0) continue;
+    if(!near(aA/dA) || !near(aB/dB)) continue;
+    const n0=Math.round(aA/dA), n1=Math.round(aB/dB), units=n0+n1; if(units<=0) continue;
     const reqCommon=n0*endA.els[common]+n1*endB.els[common];
-    if(Math.abs((c[common]||0)-reqCommon)>1e-9) continue;
+    if(Math.abs((c[common]||0)-reqCommon)>1e-6) continue;
     // A stoichiometric compound is a solid unless its name marks it liquid: FactSage-style
     // files write "(s)"/"(l)" suffixes, but plain names (CRISTOBALITE, Ca3Al2O6) are solids.
     out.push({xi:n1/units, units, name, idx:i, solid:!/\(l\)|\(liq\)|liquid/i.test(name)});
@@ -1032,6 +1061,37 @@ function pdMelts(disc){
   return out;
 }
 
+// Pure end-member melting temperatures: where an end-member solid crosses the pure liquid.
+// The liquid is the solution phase (no liquid discrete to pair with), so it is solved directly.
+function pdEndMeltT(comps, endA, endB, disc){
+  const out=[];
+  for(const xiEnd of [0,1]){
+    const sol=disc.find(d=>d.solid && Math.abs(d.xi-xiEnd)<1e-6); if(!sol) continue;
+    const xq = xiEnd<0.5?PD_FLOOR:1-PD_FLOOR;
+    const f=T=> api.stG(db,sol.idx,T)/sol.units - pdLiquidG(comps,endA,endB,xq,T)*pdAtoms(endA,endB,xq);
+    let lo=250, hi=6000, flo=f(lo); if(flo*f(hi)>0) continue;
+    for(let it=0;it<44;it++){ const m=0.5*(lo+hi), fm=f(m); if(flo*fm<=0) hi=m; else { lo=m; flo=fm; } }
+    out.push({xi:xiEnd, T:0.5*(lo+hi), solid:sol.name});
+  }
+  return out;
+}
+
+// Bracket the temperature axis to the current join's end-member melting points, so a
+// refractory join (MgO melts near 3100 K) is not left off the top of a fixed default window.
+function pdAutoRange(){
+  if(!db) return;
+  const ia=+document.getElementById('pdA').value, ib=+document.getElementById('pdB').value, ic=+document.getElementById('pdCommon').value;
+  if(ia===ib || !pdVary[ia] || !pdVary[ib]) return;
+  const common=pdCommon[ic]||pdCommon[0];
+  const endA=pdEnd(pdVary[ia],common), endB=pdEnd(pdVary[ib],common);
+  const comps=[pdVary[ia].sym, pdVary[ib].sym, common.sym];
+  const melts=pdEndMeltT(comps,endA,endB,pdDiscretes(endA,endB));
+  if(!melts.length) return;
+  const Ts=melts.map(m=>m.T), hi=Math.max(...Ts), lo=Math.min(...Ts);
+  document.getElementById('pdTmin').value=Math.max(300, Math.floor((lo-400)/50)*50);
+  document.getElementById('pdTmax').value=Math.ceil((hi+150)/50)*50;
+}
+
 function pdBuildHull(pts){
   const byx=new Map();
   for(const p of pts){ if(!isFinite(p[1])) continue; const k=p[0].toFixed(9);
@@ -1108,6 +1168,7 @@ function populateDiagram(){
   pdgen.disabled = pdVary.length<2 || pdCommon.length<1;
   document.getElementById('pdmsg').textContent = pdgen.disabled ?
     'This system has no two-component join to plot.' : '';
+  if(!pdgen.disabled) pdAutoRange();
 }
 
 async function generateDiagram(){
@@ -1123,7 +1184,7 @@ async function generateDiagram(){
 
   const disc=pdDiscretes(endA,endB);
   const cefs=pdCefOnJoin(endA,endB);
-  const melts=pdMelts(disc);
+  const melts=pdMelts(disc).concat(pdEndMeltT(comps,endA,endB,disc));
   const xiCells=280, nT=120;
   const cols=[];
   document.getElementById('pdgen').disabled=true;
@@ -1248,6 +1309,8 @@ function renderLegend(){
 }
 
 document.getElementById('pdgen').addEventListener('click', generateDiagram);
+// re-bracket the temperature axis whenever the join changes
+['pdA','pdB','pdCommon'].forEach(id=>document.getElementById(id).addEventListener('change', pdAutoRange));
 window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
 
 // theme is fixed to the dark pixel palette (no light theme, no toggle)

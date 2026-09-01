@@ -374,6 +374,7 @@
     <div class="tern-wrap"><canvas id="crystcanvas" width="620" height="560"></canvas></div>
     <div class="tern-read" id="crystread">&nbsp;</div>
     <div class="legend" id="crystlegend"></div>
+    <div id="crysthist" class="calc-hist"></div>
   </div>
 
   <div class="card" id="livecard">
@@ -1514,7 +1515,18 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
       const c=pxToComp(px,py); if(!c) continue; let p=cellAt(c[0],c[1])[0];
       if(!p) p=nearestPhase(c[0],c[1]); if(!p) continue;
       const o=(py*W+px)*4,col=rgb[p]; if(!col) continue; d[o]=col[0];d[o+1]=col[1];d[o+2]=col[2];d[o+3]=235; }
-    ctx.putImageData(img,0,0); frame(); }
+    ctx.putImageData(img,0,0); frame(); drawPins(); }
+  // tap-to-pin points and a numbered comparison list (same as the live calculators)
+  const histEl=document.getElementById('crysthist'); const pins=[];
+  function pinMarker(xca,xsi,n){ const [px,py]=triXY(xca,xsi); ctx.save();
+    ctx.strokeStyle=css('--pointer'); ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(px,py,6,0,2*Math.PI); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(px-10,py); ctx.lineTo(px+10,py); ctx.moveTo(px,py-10); ctx.lineTo(px,py+10); ctx.stroke();
+    ctx.fillStyle=css('--pointer'); ctx.font='700 12px '+(css('--font-ui')||'system-ui,sans-serif');
+    ctx.textAlign='left'; ctx.textBaseline='bottom'; ctx.fillText(String(n), px+9, py-7); ctx.restore(); }
+  function drawPins(){ if(!pins.length) return; pins.forEach((p,i)=>pinMarker(p.xca,p.xsi,i+1)); }
+  function renderCrystHist(){ renderCalcHist(histEl, pins.map(p=>p.txt),
+    ()=>{ pins.length=0; renderCrystHist(); render(); }); }
   function legend(){ legEl.innerHTML=''; if(!data) return; const seen=new Set();
     for(const row of data.field_rows) for(const ch of row) if(ch!=='.') seen.add(+ch);
     for(const i of [...seen].sort((a,b)=>a-b)){ const p=data.phases[i],s=document.createElement('span');
@@ -1526,6 +1538,13 @@ window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
     read.textContent='CaO '+f(xca)+'  MgO '+f(xmg)+'  SiO₂ '+f(xsi)+'  FeO 5 mol%'
       +(p?'   ·   primary: '+cap(p):'')+(tl?'   ·   liquidus '+Math.round(tl)+' °C':''); });
   cv.addEventListener('mouseleave',()=>{ read.innerHTML='&nbsp;'; });
+  cv.addEventListener('click',ev=>{ if(!data) return; const r=cv.getBoundingClientRect();
+    const px=(ev.clientX-r.left)*W/r.width,py=(ev.clientY-r.top)*H/r.height,c=pxToComp(px,py);
+    if(!c) return; const [xca,xsi,xmg]=c,f=x=>(95*x).toFixed(0);
+    const [p,tl]=cellAt(xca,xsi);
+    const line='CaO '+f(xca)+'  MgO '+f(xmg)+'  SiO₂ '+f(xsi)+'  FeO 5 mol%'
+      +(p?'   ·   primary: '+cap(p):'')+(tl?'   ·   liquidus '+Math.round(tl)+' °C':'');
+    read.textContent=line; pins.push({xca,xsi,txt:line}); pinMarker(xca,xsi,pins.length); renderCrystHist(); });
   new MutationObserver(render).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
   fetch('./crystallization_cao_mgo_sio2.json').then(r=>r.json()).then(j=>{ data=j; render(); legend(); })
     .catch(()=>{ read.textContent='Could not load crystallization data.'; });

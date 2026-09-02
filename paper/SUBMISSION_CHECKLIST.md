@@ -1,5 +1,36 @@
 # JORS submission checklist (Hephaestus metapaper)
 
+Updated 2026-09-02 (final pass). Manuscript updated to release v0.2.0, cover letter rebuilt
+on the Odinzen letterhead, gates re-run. Ready for the two submission clicks below.
+
+## Done (2026-09-02, third pass)
+
+- main pushed (public repo now matches the deployed site) and release v0.2.0 tagged and pushed.
+- Manuscript updated to v0.2.0: browser-application section lists all five tools including
+  session uploads and the live solver for any loaded three-cation file; the reuse section
+  records the in-browser hull covering loaded ternaries (was future work, now shipped);
+  software-location and data-availability blocks bumped; docx and PDF rebuilt from the md.
+- Cover letter rebuilt on the Odinzen letterhead template (header block, footer logo),
+  dated 2 September 2026, v0.2.0 archive line; PDF rendered and visually checked.
+- Gate record: argus order on the rebuilt docx is green (26 in-text / 26 list in
+  first-appearance order; tables 1-2 and figures 1-3 resolve). The reference list is
+  hash-identical to the 2026-08-25 build (sha256 prefix 9bac98bda6192e47), so the 08-25
+  metadata gate (24 registry-resolved, 2 hand-verified monographs, suspects adjudicated)
+  carries to this build unchanged.
+
+## Remaining - Michael's two clicks
+
+1. **Zenodo DOI (do first; JORS wants a persistent archive):** zenodo.org -> log in with
+   GitHub -> enable the hephaestus-mqmqa-public repository toggle -> on GitHub, the existing
+   v0.2.0 release triggers the deposit (or click "create release" again if needed). Copy the
+   minted DOI into the JORS form when asked.
+2. **JORS portal:** openresearchsoftware.metajnl.com -> submit -> upload the manuscript docx,
+   the three figures, and the cover letter from this package.
+3. Optional, after submission: SSRN (MatSciRN) preprint from the same PDF, feeding the
+   LinkedIn series.
+
+## Prior passes
+
 Updated 2026-08-25 (second pass). The bibliography is now Zotero-generated, the
 repository is public, and v0.1.0 is tagged. The list below is what remains.
 

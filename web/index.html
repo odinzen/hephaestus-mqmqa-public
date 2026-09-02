@@ -694,13 +694,17 @@ function loadDatabase(text, name) {
   // belong to a salt (halide) database, whose relevant tool is the binary join above. Hide
   // them for salts; keep them for slags and on the default landing view. Keyed to the loaded
   // chemistry, not the load button, so an uploaded salt file behaves the same way.
-  // the showcases are oxide-slag ternaries: show them only for a system with an oxygen anion.
-  // Any non-oxide system (chloride, fluoride, ...) hides them - robust to how the anion is named.
-  const saltLike = !anNames.some(a => elementOf(a) === 'O');
-  for (const id of ['terncard','crystcard','livecard']) {
-    document.getElementById(id).classList.toggle('hidden', saltLike);
-  }
-  if (window._bldSeedFor) window._bldSeedFor(saltLike);
+  // The two precomputed triangles (assessed projection, crystallization) are fixed FeO-MgO-SiO2
+  // demos - show them only when the loaded system IS FeO-MgO-SiO2. The live-engine card adapts to
+  // whatever is loaded, so it shows for any 3-cation system and computes it.
+  const cats3 = []; for (let i = 0; i < api.nCat(db, phase); i++) cats3.push(elementOf(api.cat(db, phase, i)));
+  const hasO = anNames.some(a => elementOf(a) === 'O');
+  const isFMS = hasO && cats3.length === 3 && ['FE','MG','SI'].every(c => cats3.includes(c));
+  document.getElementById('terncard').classList.toggle('hidden', !isFMS);
+  document.getElementById('crystcard').classList.toggle('hidden', !isFMS);
+  document.getElementById('livecard').classList.toggle('hidden', cats3.length !== 3);
+  if (window._liveSyncLoaded) window._liveSyncLoaded();     // point the live engine at this system
+  if (window._bldSeedFor) window._bldSeedFor(!hasO);        // builder presets: salt vs oxide
   const solids=[]; for(let i=0;i<api.nStoich(db);i++) solids.push(api.stName(db,i));
   document.getElementById('solids').textContent = solids.length ? solids.join(', ') : '—';
 
@@ -1834,6 +1838,41 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
   };
   let SYS=SYSTEMS.slag;
 
+  // ---- adapt the live engine to whatever database is loaded (3-cation ternary systems) ----
+  const ATWT={H:1.008,LI:6.94,B:10.81,C:12.011,N:14.007,O:15.999,F:18.998,NA:22.99,MG:24.305,
+    AL:26.982,SI:28.085,P:30.974,S:32.06,CL:35.45,K:39.098,CA:40.078,TI:47.867,V:50.942,
+    CR:51.996,MN:54.938,FE:55.845,CO:58.933,NI:58.693,CU:63.546,ZN:65.38,SR:87.62,BA:137.327};
+  const _sub=n=>String(n).replace(/\d/g,d=>'₀₁₂₃₄₅₆₇₈₉'[+d]);
+  function _neutralFormula(catEl,catQ,anEl,anQ){
+    const g=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t;}return a||1;};
+    const gg=g(catQ,anQ), nc=Math.abs(anQ)/gg, na=Math.abs(catQ)/gg;
+    const pr=e=>e.charAt(0)+e.slice(1).toLowerCase();
+    return {label:pr(catEl)+(nc>1?_sub(nc):'')+pr(anEl)+(na>1?_sub(na):''), nc, na};
+  }
+  function buildLoadedSystem(){
+    if(!db || api.nCat(db,phase)!==3 || api.nAn(db,phase)<1) return null;   // only a 3-cation join is a triangle
+    const anEl=elementOf(api.an(db,phase,0)), anQ=Math.round(api.anQ(db,phase,0));
+    const cats=[], oxy={}, corners=[], mass={}, keys=['A','B','C']; let molOnly=false;
+    for(let i=0;i<3;i++){
+      const ce=elementOf(api.cat(db,phase,i)), cq=Math.round(api.catQ(db,phase,i));
+      const f=_neutralFormula(ce,cq,anEl,anQ);
+      cats.push(ce); oxy[ce]=f.na/f.nc; corners.push(f.label);
+      const cw=ATWT[ce], aw=ATWT[anEl];
+      if(cw==null||aw==null){ molOnly=true; mass[keys[i]]=1; } else mass[keys[i]]=(f.nc*cw+f.na*aw)/f.nc;
+    }
+    if(molOnly){ mass.A=mass.B=mass.C=1; }   // unknown atomic weight: report mole% instead of wt%
+    const nel=api.nEl(db), elems=[]; for(let e=0;e<nel;e++) elems.push(api.el(db,e));
+    const iA=elems.indexOf(cats[0]), iB=elems.indexOf(cats[1]), iC=elems.indexOf(cats[2]);
+    const buf=api.M._malloc(nel*8), stoich=[];
+    for(let s=0;s<api.nStoich(db);s++){ api.stElems(db,s,buf); const v=readD(buf,nel);
+      const nA=iA>=0?v[iA]:0,nB=iB>=0?v[iB]:0,nC=iC>=0?v[iC]:0,ncat=nA+nB+nC;
+      if(ncat<=0) continue; stoich.push({idx:s,name:api.stName(db,s),b:nB/ncat,c:nC/ncat,ncat}); }
+    api.M._free(buf);
+    const oxide = anEl==='O';
+    return { loaded:true, TDB:db, LIQ:phase, cats, els:[...cats,anEl], oxy, corners, mass, molOnly,
+      stoich, inpCache:{}, cef:null, tmin:oxide?1000:400, tmax:oxide?2200:1200, tdef:oxide?1600:800 };
+  }
+
   function ensure(sys){ if(sys.loaded) return Promise.resolve();
     return fetch(sys.dat).then(r=>r.text()).then(txt=>{
       sys.TDB=api.read(txt); if(api.error()) throw new Error(api.error());
@@ -1929,6 +1968,27 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
     pins.length=0; renderLiveHist();
     render();
   });
+
+  // called by loadDatabase whenever a database is loaded: offer/select a "Loaded" option that
+  // computes that system live (3-cation ternaries only), so the live diagram follows the data.
+  window._liveSyncLoaded = function(){
+    const ls = buildLoadedSystem();
+    let opt = [...sysSel.options].find(o=>o.value==='loaded');
+    const reset = s => { SYS=s; model=null; pins.length=0; renderLiveHist();
+      tsl.min=SYS.tmin; tsl.max=SYS.tmax; tsl.value=SYS.tdef; tval.textContent=tsl.value+' °C';
+      document.getElementById('livelegend').innerHTML='';
+      read.textContent='Press Compute to solve '+(s.loaded?'the loaded database':'the diagram')+' at the chosen temperature.';
+      render(); };
+    if(ls){
+      SYSTEMS.loaded = ls;
+      if(!opt){ opt=document.createElement('option'); opt.value='loaded'; sysSel.insertBefore(opt, sysSel.firstChild); }
+      opt.hidden=false; opt.textContent='Loaded: '+ls.corners.join('–');
+      sysSel.value='loaded'; reset(ls);                 // follow the newly loaded system
+    } else if(opt){
+      opt.hidden=true;
+      if(sysSel.value==='loaded'){ sysSel.value='slag'; reset(SYSTEMS.slag); }
+    }
+  };
   go.addEventListener('click',()=>{
     if(!api||!api.M){ read.textContent='Engine still loading, try again in a moment.'; return; }
     const degC=+tsl.value; read.textContent='Solving the diagram at '+degC+' °C (a second or two)…';
@@ -1949,7 +2009,7 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
     const [xb,xc,xa]=c, a=assemblageAt(model.pts,model.facets,model.boxes,model.phName,[xb,xc]);
     const mA=xa*SYS.mass.A,mB=xb*SYS.mass.B,mC=xc*SYS.mass.C,tot=mA+mB+mC, w=x=>(100*x/tot).toFixed(0);
     read.textContent=SYS.corners[0]+' '+w(mA)+'  '+SYS.corners[1]+' '+w(mB)+'  '+SYS.corners[2]+' '+w(mC)
-      +' wt%  @ '+(model.T-273.15).toFixed(0)
+      +(SYS.molOnly?' mol%  @ ':' wt%  @ ')+(model.T-273.15).toFixed(0)
       +' °C'+(a?'   ·   '+asmLabel(a):'   ·   outside the sampled field'); }
   function pin(ev){ if(!model){ read.textContent='Press Compute first, then tap to pin points.'; return; }
     const r=cv.getBoundingClientRect();
@@ -1957,7 +2017,7 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
     const [xb,xc,xa]=c, a=assemblageAt(model.pts,model.facets,model.boxes,model.phName,[xb,xc]);
     const mA=xa*SYS.mass.A,mB=xb*SYS.mass.B,mC=xc*SYS.mass.C,tot=mA+mB+mC, w=x=>(100*x/tot).toFixed(0);
     const line=SYS.corners[0]+' '+w(mA)+'  '+SYS.corners[1]+' '+w(mB)+'  '+SYS.corners[2]+' '+w(mC)
-      +' wt%  @ '+(model.T-273.15).toFixed(0)+' °C'+(a?'   ·   '+asmLabel(a):'   ·   outside the sampled field');
+      +(SYS.molOnly?' mol%  @ ':' wt%  @ ')+(model.T-273.15).toFixed(0)+' °C'+(a?'   ·   '+asmLabel(a):'   ·   outside the sampled field');
     read.textContent=line; pins.push({xb,xc,txt:line}); pinMarker(xb,xc,pins.length); renderLiveHist(); }
   cv.addEventListener('mousemove',hover);
   cv.addEventListener('click',pin);

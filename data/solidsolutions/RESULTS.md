@@ -65,8 +65,25 @@ values are the trustworthy output; the full RK curve shape (L1) carries more unc
 everywhere. None of the three unknowns has calorimetry to check against; they are validated only
 indirectly through olivine.
 
-## Status
+## Reconciliation with the shipped databases
 
-Orthopyroxene and spinel are ready to replace "ideal" with an MLIP-predicted excess (with the
-inversion note on spinel). Clinopyroxene's equimolar value is firm; its curve shape is the softest
-of the set. Raw data: `_mlip/campaign_results.json`, `_mlip/cpx_firmup.json`.
+Tracing where each excess would go shows the campaign **corroborates the existing database choices
+rather than supplying a missing excess** - nothing needs wiring in.
+
+- **Olivine** (`data/olivine`, in the web slag DB) already uses the *measured* Wood-Kleppa excess.
+  SevenNet reproduces it; that is the control, not a replacement.
+- **Orthopyroxene** (`data/olivine-opx`, in the web slag DB) already uses the *measured*
+  Chatillon-Colinet excess (L = 7949.6 J per M2Si2O6, H_mix@0.5 approx +1987). SevenNet's +1707
+  agrees within the method's ~861 J/mol uncertainty, so the measured value stands - overwriting
+  measured data with an MLIP prediction would be a downgrade.
+- **Clinopyroxene** (`data/clinopyroxene`, in the CaO-FeO-MgO-SiO2 crystallization model) ships
+  **ideal by a documented decision**: a prior 7-model MLIP study found the di-hed excess scatters
+  near zero (L0 spread -5.4 to +1.3 kJ) and a sensitivity test shifted the liquidus <= 20 K without
+  ever changing the crystallizing phase. SevenNet's +327 J/mol (essentially zero) confirms that
+  decision.
+- **Spinel** is not a phase in any shipped database, so the -3739 value stands as a standalone
+  MLIP prediction (normal-spinel, inversion ignored), not a database parameter.
+
+Net: no database change is warranted. The campaign's value is an independent MLIP backing the
+measured orthopyroxene excess and the ideal clinopyroxene treatment. Raw data:
+`_mlip/campaign_results.json`, `_mlip/cpx_firmup.json`.

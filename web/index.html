@@ -257,6 +257,10 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <button class="filebtn ghost" id="example-salt" type="button">Load the open salt database</button>
       <span id="loadmsg" class="muted">No database loaded yet.</span>
     </div>
+    <div id="temp-note" class="muted" hidden style="margin-top:.6rem; font-size:var(--fs-xs)">
+      Uploaded databases live only in this tab and vanish when you refresh &mdash; nothing is saved.
+      Keep up to three pinned at once to switch between them.
+    </div>
   </div>
 
   <div id="results" class="hidden">
@@ -595,21 +599,40 @@ Hephaestus().then(M => {
   api.M = M;
 });
 
-// A session-only button for the .dat you upload, so you can see it is loaded and reload it while
-// the app is open (never persisted - it is gone on refresh). Coloured differently from the two
-// shipped-example buttons.
-let uploadedDB = null;
-function showUploadedButton(name, text){
-  uploadedDB = {name, text};
-  let btn = document.getElementById('uploaded-db');
-  if(!btn){
-    btn = document.createElement('button');
-    btn.id = 'uploaded-db'; btn.type = 'button'; btn.className = 'filebtn uploaded';
-    btn.addEventListener('click', ()=>{ if(uploadedDB) loadDatabase(uploadedDB.text, uploadedDB.name); });
-    document.getElementById('example-salt').insertAdjacentElement('afterend', btn);
+// Session-only uploaded databases: up to 3 pinned as reload buttons (alternating colours) so you
+// can flip between the .dat files you have uploaded. Kept only in memory - gone on refresh, never
+// saved. A fourth at once is a paid feature.
+const TEMP_COLORS = ['#bf83e0', '#5b8fd0'];   // purple / blue, alternating - distinct from the green examples
+const MAX_TEMP = 3;
+let uploadedDBs = [];   // [{name, text}], this session only
+
+function renderUploadedButtons(){
+  document.querySelectorAll('.filebtn.uploaded').forEach(b => b.remove());
+  let anchor = document.getElementById('example-salt');
+  uploadedDBs.forEach((u, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'filebtn uploaded';
+    const col = TEMP_COLORS[i % TEMP_COLORS.length];
+    btn.style.color = col; btn.style.borderColor = col;
+    btn.textContent = u.name;
+    btn.title = 'Reload this uploaded database (this session only)';
+    btn.addEventListener('click', () => loadDatabase(u.text, u.name));
+    anchor.insertAdjacentElement('afterend', btn); anchor = btn;
+  });
+  const note = document.getElementById('temp-note');
+  if(note) note.hidden = uploadedDBs.length === 0;
+}
+
+function addUploadedDB(name, text){
+  const i = uploadedDBs.findIndex(u => u.name === name);
+  if(i >= 0){ uploadedDBs[i] = {name, text}; renderUploadedButtons(); return; }   // re-upload updates in place
+  if(uploadedDBs.length >= MAX_TEMP){
+    document.getElementById('loadmsg').innerHTML = name + ' loaded. You already have ' + MAX_TEMP
+      + ' uploaded databases pinned (the free limit) - keeping more open at once is a paid feature '
+      + '(<a href="mailto:info@odinzen.io">info@odinzen.io</a>).';
+    return;   // still loaded and usable, just not pinned as a fourth button
   }
-  btn.textContent = 'Reload ' + name;
-  btn.title = 'Your uploaded database, this session only: ' + name;
+  uploadedDBs.push({name, text}); renderUploadedButtons();
 }
 
 document.getElementById('file').addEventListener('change', async e => {
@@ -617,7 +640,7 @@ document.getElementById('file').addEventListener('change', async e => {
   if (!f || !api) return;
   const text = await f.text();
   loadDatabase(text, f.name);
-  if (db) showUploadedButton(f.name, text);   // only after it parsed successfully
+  if (db) addUploadedDB(f.name, text);   // only pin after it parsed successfully
 });
 
 // Our own literature-only open databases - shipped next to the page, no third-party data.

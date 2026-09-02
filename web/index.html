@@ -258,8 +258,13 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <span id="loadmsg" class="muted">No database loaded yet.</span>
     </div>
     <div id="temp-note" class="muted" hidden style="margin-top:.6rem; font-size:var(--fs-xs)">
-      Uploaded databases live only in this tab and vanish when you refresh &mdash; nothing is saved.
-      Keep up to three pinned at once to switch between them.
+      Uploaded databases are temporary &mdash; they live only in this tab and vanish when you refresh.
+      Up to three at once.
+    </div>
+    <div id="open-share-note" class="muted" hidden style="font-size:var(--fs-xs); margin-top:.3rem">
+      To keep one: contribute it to the open collection (free, shared) &mdash; email
+      <a href="mailto:info@odinzen.io">info@odinzen.io</a>. Private saved databases are coming with a
+      free account.
     </div>
   </div>
 
@@ -619,8 +624,8 @@ function renderUploadedButtons(){
     btn.addEventListener('click', () => loadDatabase(u.text, u.name));
     anchor.insertAdjacentElement('afterend', btn); anchor = btn;
   });
-  const note = document.getElementById('temp-note');
-  if(note) note.hidden = uploadedDBs.length === 0;
+  const has = uploadedDBs.length > 0;
+  for(const id of ['temp-note','open-share-note']){ const el = document.getElementById(id); if(el) el.hidden = !has; }
 }
 
 function addUploadedDB(name, text){

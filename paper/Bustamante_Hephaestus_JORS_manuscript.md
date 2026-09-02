@@ -34,7 +34,7 @@ Equilibrium is calculated at two levels. The core minimizes the liquid Gibbs ene
 
 The Python package also contains dbbuild, a declarative route from measured data to a loadable database. A user describes components with sourced endmember thermodynamics and fitted binary excess terms, and dbbuild writes a valid ChemSage file; a fitting routine obtains the excess parameters from measured component activities using the engine itself as the forward model. The builder covers single-anion oxide systems of two to four components, and multicomponent liquids are assembled from their binaries in the usual way.
 
-The browser application, hosted at https://odinzen.github.io/hephaestus-mqmqa-public/, exposes four tools: a calculator over any loaded ChemSage file, a viewer for the assessed FeO-MgO-SiO~2~ diagrams, a live isothermal-section solver that calculates the full phase assemblage at a chosen temperature in about a second (Figure 2), and an interactive eutectic builder for user-entered systems. Everything runs client side. The page holds a strict content security policy, makes no third-party requests, and never transmits a loaded file, which matters to industrial users whose compositions are confidential.
+The browser application, hosted at https://odinzen.github.io/hephaestus-mqmqa-public/, exposes five tools: a calculator over any loaded ChemSage file (a user can hold up to three uploaded files per session and switch between them), a binary join phase-diagram tool with tap-to-read point comparison, a viewer for the assessed FeO-MgO-SiO~2~ diagrams, a live isothermal-section solver that calculates the full phase assemblage at a chosen temperature in about a second, for the shipped ternaries or for any loaded three-cation file (Figure 2), and an interactive eutectic builder whose component names, melting points, and fusion enthalpies pre-fill from the loaded database. Everything runs client side. The page holds a strict content security policy, escapes all file-derived strings, makes no third-party requests, and never transmits a loaded file, which matters to industrial users whose compositions are confidential.
 
 ![Figure 2: The live solver in the browser application. The user loads the shipped database, picks a temperature, and presses Compute; the WebAssembly engine then solves the full FeO-MgO-SiO~2~ phase assemblage client side (here 1023 composition samples and 512 tie-facets in under half a second) and reports the composition and stable phases under the cursor on hover.](figures/fig2_browser_app.png){width=5.2in}
 
@@ -102,18 +102,18 @@ Michael E. Bustamante (design, implementation, validation, data curation).
 **Archive**
 
 - Name: GitHub Releases (release archive of the code repository)
-- Persistent identifier: https://github.com/odinzen/hephaestus-mqmqa-public/releases/tag/v0.1.0
+- Persistent identifier: https://github.com/odinzen/hephaestus-mqmqa-public/releases/tag/v0.2.0
 - Licence: MIT (code), CC BY 4.0 (database)
 - Publisher: Michael E. Bustamante
-- Version published: v0.1.0
-- Date published: 2026-08-25
+- Version published: v0.2.0
+- Date published: 2026-09-02
 
 **Code repository**
 
 - Name: GitHub
 - Identifier: https://github.com/odinzen/hephaestus-mqmqa-public
 - Licence: MIT (code), CC BY 4.0 (database, under data/)
-- Date published: 2026-08-25
+- Date published: 2026-09-02
 
 ### Language
 
@@ -125,11 +125,11 @@ The nearest reuse is interoperation. Hephaestus reads the same ChemSage format p
 
 The browser application makes the lowest barrier the default. A lecture on slag thermodynamics, a plant metallurgist screening a composition, or a reviewer checking a claimed equilibrium can load the database and calculate in seconds, with confidential inputs never leaving the machine. The same property makes it a practical template for other groups who want to publish a model as a zero-install tool.
 
-The database is a starting point rather than an endpoint, and the file format rewards growth: new components, new phases, and refits against new measurements accumulate in the same database. A system is therefore extended release by release rather than rebuilt, and archived versions keep results calculated against earlier releases reproducible. Because every value carries its source and every judgment is written down, another assessor can reweight the data, swap an endmember, or extend a system without reverse-engineering anything; dbbuild turns a table of measured activities into a loadable file in a few lines. Natural extensions are further oxide systems, the remaining ChemSage solution models, and a C port of the multiphase hull for fully in-browser phase diagrams of arbitrary systems. Contributions and issues are handled through the GitHub repository.
+The database is a starting point rather than an endpoint, and the file format rewards growth: new components, new phases, and refits against new measurements accumulate in the same database. A system is therefore extended release by release rather than rebuilt, and archived versions keep results calculated against earlier releases reproducible. Because every value carries its source and every judgment is written down, another assessor can reweight the data, swap an endmember, or extend a system without reverse-engineering anything; dbbuild turns a table of measured activities into a loadable file in a few lines. The in-browser multiphase hull already covers any loaded three-cation file, so a new system becomes a browser phase diagram the moment its file loads; natural extensions are further oxide systems and the remaining ChemSage solution models. Contributions and issues are handled through the GitHub repository.
 
 ## Data availability
 
-The engine, the database, the browser application, and the validation suite are openly available in the code repository listed above; the version described here is archived as release v0.1.0. The database files and their provenance records are in the repository's data directory under CC BY 4.0.
+The engine, the database, the browser application, and the validation suite are openly available in the code repository listed above; the version described here is archived as release v0.2.0. The database files and their provenance records are in the repository's data directory under CC BY 4.0.
 
 ## Acknowledgements
 

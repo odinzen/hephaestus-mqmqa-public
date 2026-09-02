@@ -18,6 +18,12 @@ on the Odinzen letterhead, gates re-run. Ready for the two submission clicks bel
   metadata gate (24 registry-resolved, 2 hand-verified monographs, suspects adjudicated)
   carries to this build unchanged.
 
+- 2026-09-02 addendum: salt-family mention added to the database section with three new
+  registry-verified references (Barin 1995, Hersh & Kleppa 1965, Sangster & Pelton 1987;
+  argus check 3/3 ok, argus order green at 29/29). A wrong first-guess DOI for Hersh &
+  Kleppa (resolved to a different 1965 JCP article) was caught by the gate and corrected
+  to 10.1063/1.1696115 before it entered the list.
+
 ## Remaining - Michael's two clicks
 
 1. **Zenodo DOI (do first; JORS wants a persistent archive):** zenodo.org -> log in with

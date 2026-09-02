@@ -97,6 +97,8 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
   #tval, #gm, #cerr { font-family:var(--font-mono); }
 
   .muted { color:var(--muted); }
+  /* every content link (the info@odinzen.io addresses) is the brand green, defined once here */
+  .wrap a, .wrap a:visited { color:var(--brand); }
   .hidden { display:none; }
 
   /* phase-diagram card */
@@ -183,7 +185,6 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
         border-radius:8px; background:color-mix(in srgb, var(--neg) 8%, transparent);
         font-size:var(--fs-sm); color:var(--ink); line-height:1.5; max-width:none; }
   .bld-caution b { color:var(--neg); }
-  .bld-caution a { color:var(--brand); }
   .bld-ctl-row { display:flex; gap:1.4rem; flex-wrap:wrap; align-items:flex-end; margin-bottom:.8rem; }
   .seg-btn.prem { color:var(--muted); font-style:italic; }
   .seg-btn.prem::before { content:"\1F512"; font-style:normal; margin-right:.28rem; opacity:.75; }
@@ -208,7 +209,6 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
   .bld-prem .lock { font-size:2rem; line-height:1; }
   .bld-prem h3 { margin:.5rem 0 .3rem; }
   .bld-prem p { color:var(--muted); font-size:var(--fs-sm); max-width:30rem; margin:.3rem auto; line-height:1.5; }
-  .bld-prem a { color:var(--brand); }
   @media (max-width:640px){ .bld-grid { grid-template-columns:1fr; } }
 
   /* ---- pixel theme: VT323 wordmark + section headings, squared CRT panels ---- */
@@ -535,7 +535,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       salts, running fully in your browser. Single-phase equilibrium and binary phase
       diagrams are solved client-side; larger multicomponent systems are on the roadmap.</p>
     <p style="margin:0">Questions, errors, or help with your own data? Email
-      <a href="mailto:info@odinzen.io" style="color:var(--brand)">info@odinzen.io</a>.</p>
+      <a href="mailto:info@odinzen.io">info@odinzen.io</a>.</p>
   </footer>
 
 </div>

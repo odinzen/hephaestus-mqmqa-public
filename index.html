@@ -81,6 +81,8 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
              cursor:pointer; font-size:var(--fs-sm); color:var(--ink); }
   .filebtn:hover { background:color-mix(in srgb, var(--brand) 12%, transparent); border-color:var(--brand); }
   .filebtn.ghost { background:transparent; color:var(--brand); border-color:var(--brand); }
+  .filebtn.uploaded { background:transparent; color:var(--pointer); border-color:var(--pointer); }
+  .filebtn.uploaded:hover { background:color-mix(in srgb, var(--pointer) 12%, transparent); }
   input[type=file] { display:none; }
 
   table { width:100%; border-collapse:collapse; font-size:var(--fs-sm);
@@ -593,11 +595,29 @@ Hephaestus().then(M => {
   api.M = M;
 });
 
+// A session-only button for the .dat you upload, so you can see it is loaded and reload it while
+// the app is open (never persisted - it is gone on refresh). Coloured differently from the two
+// shipped-example buttons.
+let uploadedDB = null;
+function showUploadedButton(name, text){
+  uploadedDB = {name, text};
+  let btn = document.getElementById('uploaded-db');
+  if(!btn){
+    btn = document.createElement('button');
+    btn.id = 'uploaded-db'; btn.type = 'button'; btn.className = 'filebtn uploaded';
+    btn.addEventListener('click', ()=>{ if(uploadedDB) loadDatabase(uploadedDB.text, uploadedDB.name); });
+    document.getElementById('example-salt').insertAdjacentElement('afterend', btn);
+  }
+  btn.textContent = 'Reload ' + name;
+  btn.title = 'Your uploaded database, this session only: ' + name;
+}
+
 document.getElementById('file').addEventListener('change', async e => {
   const f = e.target.files[0];
   if (!f || !api) return;
   const text = await f.text();
   loadDatabase(text, f.name);
+  if (db) showUploadedButton(f.name, text);   // only after it parsed successfully
 });
 
 // Our own literature-only open databases - shipped next to the page, no third-party data.
@@ -651,7 +671,9 @@ function loadDatabase(text, name) {
   // belong to a salt (halide) database, whose relevant tool is the binary join above. Hide
   // them for salts; keep them for slags and on the default landing view. Keyed to the loaded
   // chemistry, not the load button, so an uploaded salt file behaves the same way.
-  const saltLike = anNames.some(a => /^(cl|f|br|i)$/i.test(a));
+  // the showcases are oxide-slag ternaries: show them only for a system with an oxygen anion.
+  // Any non-oxide system (chloride, fluoride, ...) hides them - robust to how the anion is named.
+  const saltLike = !anNames.some(a => elementOf(a) === 'O');
   for (const id of ['terncard','crystcard','livecard']) {
     document.getElementById(id).classList.toggle('hidden', saltLike);
   }

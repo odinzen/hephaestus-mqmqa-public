@@ -55,7 +55,8 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
   .hero .tag { margin:.45rem 0 0; color:var(--muted); font-size:var(--fs-md); max-width:none; }
   .theme-toggle { flex:none; background:transparent; border:1px solid var(--line);
                   color:var(--ink); width:2rem; height:2rem; border-radius:8px;
-                  cursor:pointer; font-size:1rem; line-height:1; }
+                  cursor:pointer; font-size:1rem; line-height:1;
+                  display:inline-flex; align-items:center; justify-content:center; padding:0; }
   .theme-toggle:hover { border-color:var(--brand); }
 
   .card { background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
@@ -1388,7 +1389,8 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
 
 // light / dark background toggle (default dark, persisted; canvases re-render via their own observers)
 (function(){ const root=document.documentElement, btn=document.getElementById('theme-toggle'); if(!btn) return;
-  const setIcon=()=>{ btn.textContent = root.dataset.theme==='light' ? '☾' : '☀'; };
+  // ︎ forces the monochrome text form so iOS does not render a wider, off-center color emoji
+  const setIcon=()=>{ btn.textContent = root.dataset.theme==='light' ? '☾' : '☀︎'; };
   setIcon();
   btn.addEventListener('click', ()=>{
     root.dataset.theme = root.dataset.theme==='light' ? 'dark' : 'light';

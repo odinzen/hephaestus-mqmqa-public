@@ -217,7 +217,8 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
   [data-theme="dark"] { --pix-tri:#c6c6c6; }
   .pixmark { flex:none; color:var(--pix-tri); shape-rendering:crispEdges; }
   .hero h1 { font-family:"VT323", var(--font-mono); font-weight:400; letter-spacing:0;
-             font-size:2.5rem; color:#151a1f; }
+             font-size:2.5rem; color:#151a1f;
+             -webkit-text-stroke:0.7px currentColor; paint-order:stroke fill; }
   [data-theme="dark"] .hero h1 { color:#ffffff; }
   .card h2 { font-family:"VT323", var(--font-mono); font-weight:400; font-size:1.05rem;
              text-transform:none; letter-spacing:.01em; }

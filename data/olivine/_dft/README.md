@@ -65,3 +65,24 @@ Fe4Mg4 ordering carries ordering energy rather than the measured random-mixing e
 SQS / multi-ordering averaging). A DFT campaign that actually arbitrates these excesses requires
 +U or meta-GGA plus configurational averaging; each functional is ~an overnight run at this cell
 size. Until then, SevenNet remains the best single tool, which is why spinel/cpx ship ideal.
+
+## Follow-up: PBE+U and SQS (2026-09-01)
+
+The two caveats were tested directly.
+
+- **PBE+U (U = 4 eV on Fe 3d) fixes the sign.** A single x=0.5 ordering went from -4742 (bare PBE)
+  to **+16100** J/mol - correct sign, but ~5x over the measured +3138, because that one clustered
+  ordering carries ordering energy, not random-mixing enthalpy.
+- **Ordering bias confirmed.** Alternate SevenNet-relaxed orderings, re-relaxed at DFT+U, sat far
+  lower (~+800 J/mol), straddling the measurement instead of sitting 5x high. So the overshoot was
+  the single-ordering artifact, exactly as expected.
+- **SQS attempt.** An 8-site special quasirandom structure (nearest and next-nearest shells matched
+  to random) was built and run at U=4 to get one clean random-mixing value. The from-scratch SCF
+  plateaued at ~1e-5 and never reached 1e-7 - the known magnetic-oxide + LDA+U convergence
+  pathology (eigenvalues not fully converged capping the accuracy). It was not pushed further.
+
+**Conclusion.** DFT+U with proper random mixing gets the sign and the order of magnitude right, but
+pinning the exact value needs a tuned U (a U scan), an SQS, and configurational averaging - a
+multi-overnight campaign per functional. SevenNet reproduces +3138 out of the box, so it is the
+reference model for the solid-solution excesses. The MLIP excesses for the ship-ideal joins
+(spinel, clinopyroxene, orthopyroxene) are in `../../solidsolutions/RESULTS.md`.

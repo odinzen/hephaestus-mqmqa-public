@@ -81,7 +81,9 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
              cursor:pointer; font-size:var(--fs-sm); color:var(--ink); }
   .filebtn:hover { background:color-mix(in srgb, var(--brand) 12%, transparent); border-color:var(--brand); }
   .filebtn.ghost { background:transparent; color:var(--brand); border-color:var(--brand); }
-  .filebtn.uploaded { background:transparent; color:var(--pointer); border-color:var(--pointer); }
+  .filebtn.uploaded { background:transparent; color:var(--pointer); border-color:var(--pointer);
+                      max-width:14rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+                      display:inline-block; }
   .filebtn.uploaded:hover { background:color-mix(in srgb, var(--pointer) 12%, transparent); }
   input[type=file] { display:none; }
 
@@ -1906,7 +1908,8 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
     return {label:pr(catEl)+(nc>1?_sub(nc):'')+pr(anEl)+(na>1?_sub(na):''), nc, na};
   }
   function buildLoadedSystem(){
-    if(!db || api.nCat(db,phase)!==3 || api.nAn(db,phase)<1) return null;   // only a 3-cation join is a triangle
+    // only a 3-cation, single-anion system maps onto the triangle (multi-anion has no 2-D projection)
+    if(!db || api.nCat(db,phase)!==3 || api.nAn(db,phase)!==1) return null;
     const anEl=elementOf(api.an(db,phase,0)), anQ=Math.round(api.anQ(db,phase,0));
     const cats=[], oxy={}, corners=[], mass={}, keys=['A','B','C']; let molOnly=false;
     for(let i=0;i<3;i++){
@@ -1925,7 +1928,7 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
       if(ncat<=0) continue; stoich.push({idx:s,name:api.stName(db,s),b:nB/ncat,c:nC/ncat,ncat}); }
     api.M._free(buf);
     const oxide = anEl==='O';
-    return { loaded:true, TDB:db, LIQ:phase, cats, els:[...cats,anEl], oxy, corners, mass, molOnly,
+    return { loaded:true, TDB:db, LIQ:phase, cats, anEl, els:[...cats,anEl], oxy, corners, mass, molOnly,
       stoich, inpCache:{}, cef:null, tmin:oxide?1000:400, tmax:oxide?2200:1200, tdef:oxide?1600:800 };
   }
 
@@ -1955,9 +1958,10 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
     for(let i=0;i<=LIQ_G;i++) for(let j=0;j<=LIQ_G-i;j++){ const xb=i/LIQ_G,xc=j/LIQ_G,xa=1-xb-xc;
       if((xa<1e-9&&xb<1e-9)||(xb<1e-9&&xc<1e-9)||(xa<1e-9&&xc<1e-9)) continue;
       const t={}; t[cA]=xa; t[cB]=xb; t[cC]=xc;
-      t.O=xa*sys.oxy[cA]+xb*sys.oxy[cB]+xc*sys.oxy[cC];
+      const nAn=xa*sys.oxy[cA]+xb*sys.oxy[cB]+xc*sys.oxy[cC];
+      t[sys.anEl||'O']=nAn;                     // the system's own anion (O for slags, Cl for salts, ...)
       const r=solveEquilibrium(inp,t);
-      const atoms=1+t.O;                        // per mole of cations
+      const atoms=1+nAn;                        // per mole of cations
       if(isFinite(r.GM)){ pts.push([xb,xc,r.GM*atoms]); phName.push('LIQUID'); } }
     db=sd; phase=sp;
     if(sys.cef) sys.cef(sys,pts,phName,T);
@@ -2051,12 +2055,19 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
     go.disabled=true;
     setTimeout(async()=>{
       try{ await ensure(SYS); }catch(e){ read.textContent='Could not load the database: '+e.message; go.disabled=false; return; }
-      const T=degC+273.15, t0=performance.now();
-      const {pts,phName}=sample(T); const facets=lowerHull(pts), boxes=facetBoxes(pts,facets);
-      model={pts,phName,facets,boxes,T}; render();
-      const ms=Math.round(performance.now()-t0);
-      read.textContent='Solved at '+degC+' °C in '+ms+' ms — '+pts.length+' phase samples, '+facets.length
-        +' tie-facets. Tap a composition to read and pin it to the list (hover previews on desktop).';
+      try{
+        const T=degC+273.15, t0=performance.now();
+        const {pts,phName}=sample(T);
+        if(pts.length<4) throw new Error('too few solvable phase samples at this temperature');
+        const facets=lowerHull(pts), boxes=facetBoxes(pts,facets);
+        model={pts,phName,facets,boxes,T}; render();
+        const ms=Math.round(performance.now()-t0);
+        read.textContent='Solved at '+degC+' °C in '+ms+' ms — '+pts.length+' phase samples, '+facets.length
+          +' tie-facets. Tap a composition to read and pin it to the list (hover previews on desktop).';
+      }catch(err){
+        model=null; render();
+        read.textContent='Could not solve this system at '+degC+' °C ('+err.message+'). Try another temperature, or email info@odinzen.io.';
+      }
       go.disabled=false;
     }, 30);
   });

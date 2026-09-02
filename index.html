@@ -361,8 +361,10 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
     <p class="tern-note">Liquidus projection of the open iron&ndash;magnesium&ndash;silicate slag
       database: primary crystallizing phase across the join, with liquidus isotherms. Computed by
       the 2-D minimizer and validated against pycalphad; reproduces the topology of Bowen &amp;
-      Schairer 1935. Move over the diagram to read a composition. Live in-browser ternary solving
-      is on the roadmap &mdash; this section shows the precomputed assessed result.</p>
+      Schairer 1935. Move over the diagram to read a composition. This is a precomputed showcase of
+      the built-in FeO&ndash;MgO&ndash;SiO<sub>2</sub> database only &mdash; it is not generated for
+      other or uploaded systems. For those, use the live ternary section below, which solves
+      whatever database is loaded.</p>
     <div class="tern-ctl">
       <div class="seg" role="tablist">
         <button id="mode-proj" class="seg-btn on" type="button">Liquidus projection</button>
@@ -395,7 +397,9 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       solutions and the oxide solids sit on one calibrated scale (diopside melts at 1670&nbsp;K,
       forsterite at 2163&nbsp;K); the multi-phase equilibrium is precomputed and validated against
       pycalphad. Mafic melts crystallize olivine, calcium-rich melts crystallize clinopyroxene. Move
-      over the diagram to read a composition, its primary phase and the liquidus.</p>
+      over the diagram to read a composition, its primary phase and the liquidus. Like the section
+      above, this is a precomputed showcase of the built-in slag database only, not generated for
+      other or uploaded systems &mdash; the live ternary below covers those.</p>
     <div class="tern-wrap"><canvas id="crystcanvas" width="620" height="560"></canvas></div>
     <div class="tern-read" id="crystread">&nbsp;</div>
     <div class="legend" id="crystlegend"></div>

@@ -611,6 +611,10 @@ const TEMP_COLORS = ['#bf83e0', '#5b8fd0'];   // purple / blue, alternating - di
 const MAX_TEMP = 3;
 let uploadedDBs = [];   // [{name, text}], this session only
 
+// Escape any string that came out of an uploaded file (its name, element/phase/compound names)
+// before it reaches innerHTML - a malicious .dat must render as text, never as markup.
+function escHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
 function renderUploadedButtons(){
   document.querySelectorAll('.filebtn.uploaded').forEach(b => b.remove());
   let anchor = document.getElementById('example-salt');
@@ -632,7 +636,7 @@ function addUploadedDB(name, text){
   const i = uploadedDBs.findIndex(u => u.name === name);
   if(i >= 0){ uploadedDBs[i] = {name, text}; renderUploadedButtons(); return; }   // re-upload updates in place
   if(uploadedDBs.length >= MAX_TEMP){
-    document.getElementById('loadmsg').innerHTML = name + ' loaded. You already have ' + MAX_TEMP
+    document.getElementById('loadmsg').innerHTML = escHtml(name) + ' loaded. You already have ' + MAX_TEMP
       + ' uploaded databases pinned (the free limit) - keeping more open at once is a paid feature '
       + '(<a href="mailto:info@odinzen.io">info@odinzen.io</a>).';
     return;   // still loaded and usable, just not pinned as a fourth button
@@ -744,7 +748,7 @@ function updatePairs() {
   for (let k=0;k<nPairs;k++){
     const g = M.getValue(gbuf+k*8,'double');
     const tr = document.createElement('tr');
-    tr.innerHTML = '<td>'+window._pairLabels[k]+'</td><td class="num">'+
+    tr.innerHTML = '<td>'+escHtml(window._pairLabels[k])+'</td><td class="num">'+
                    g.toLocaleString(undefined,{maximumFractionDigits:0})+'</td>';
     tbody.appendChild(tr);
   }
@@ -760,7 +764,9 @@ function chip(t){ const s=document.createElement('span'); s.className='chip'; s.
 
 // ---- equilibrium solver (composition + temperature -> quadruplet distribution) ----
 
-function elementOf(name){ return name.match(/^[A-Z]+/)[0]; }
+// leading element symbol of a constituent name; falls back to the raw name so a hostile or
+// malformed file degrades gracefully instead of throwing mid-load
+function elementOf(name){ const m=String(name).match(/^[A-Z]+/i); return m ? m[0].toUpperCase() : String(name); }
 
 // typed-array marshaling to/from the WASM heap
 function iArr(a){ const M=api.M, p=M._malloc(Math.max(a.length,1)*4);
@@ -1039,7 +1045,7 @@ document.getElementById('solve').addEventListener('click', () => {
   inp.qca.map((_,q)=>q).sort((a,b)=>res.X[b]-res.X[a]).forEach(q=>{
     if(res.X[q]<1e-9) return;
     const tr=document.createElement('tr');
-    tr.innerHTML='<td>'+inp.quadLabel(q)+'</td><td class="num">'+res.X[q].toFixed(5)+'</td>';
+    tr.innerHTML='<td>'+escHtml(inp.quadLabel(q))+'</td><td class="num">'+res.X[q].toFixed(5)+'</td>';
     tb.appendChild(tr);
   });
   out.classList.remove('hidden');
@@ -1761,7 +1767,7 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
     el.innerHTML='<div class="chist-head"><b>Saved points</b> <span>('+rows.length+')</span>'
       +'<button class="chist-clear" type="button">clear</button></div>'
       +'<div class="chist-list">'+rows.map((t,i)=>
-        '<div class="chist-row"><span class="chist-n">'+(i+1)+'</span><span class="chist-txt">'+t+'</span></div>'
+        '<div class="chist-row"><span class="chist-n">'+(i+1)+'</span><span class="chist-txt">'+escHtml(t)+'</span></div>'
       ).join('')+'</div>';
     el.querySelector('.chist-clear').onclick=onClear;
   };

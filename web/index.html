@@ -704,7 +704,9 @@ function loadDatabase(text, name) {
   document.getElementById('crystcard').classList.toggle('hidden', !isFMS);
   document.getElementById('livecard').classList.toggle('hidden', cats3.length !== 3);
   if (window._liveSyncLoaded) window._liveSyncLoaded();     // point the live engine at this system
-  if (window._bldSeedFor) window._bldSeedFor(!hasO);        // builder presets: salt vs oxide
+  // pre-fill the builder with this system's components (names + derived Tm/dHf), still tunable
+  if (window._bldLoadSystem) window._bldLoadSystem(componentThermo(), !hasO);
+  else if (window._bldSeedFor) window._bldSeedFor(!hasO);
   const solids=[]; for(let i=0;i<api.nStoich(db);i++) solids.push(api.stName(db,i));
   document.getElementById('solids').textContent = solids.length ? solids.join(', ') : '—';
 
@@ -792,6 +794,49 @@ function componentList(){
     comps.push({catEl, anEl, nCat, nAn, label});
   }
   return comps;
+}
+
+// Derive melting point (deg C) and heat of fusion (kJ/mol) for each neutral endmember of the loaded
+// database, so the builder can be pre-filled instead of left blank. Tm is where the pure solid
+// stoichiometric compound crosses the pure liquid endmember; dHf = Tm*(S_liq - S_sol) at Tm, with
+// entropies from the temperature slope of the Gibbs functions. Approximate (a reduction of the full
+// MQMQA model); null when the file has no pure-solid endmember for a component.
+function componentThermo(){
+  const M=api.M, comps=componentList();
+  const np=api.nPairs(db,phase);
+  const cbuf=M._malloc(np*4), abuf=M._malloc(np*4); api.pairIx(db,phase,cbuf,abuf);
+  const pc=readI(cbuf,np), pa=readI(abuf,np); [cbuf,abuf].forEach(p=>M._free(p));
+  const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t;}return a||1;};
+  function liqIdx(catEl,anEl){ for(let i=0;i<np;i++){
+    if(elementOf(api.cat(db,phase,pc[i]))===catEl && elementOf(api.an(db,phase,pa[i]))===anEl){
+      const cq=Math.round(api.catQ(db,phase,pc[i])), aq=Math.round(api.anQ(db,phase,pa[i]));
+      return {i, nc:Math.abs(aq)/gcd(cq,aq)}; } } return null; }
+  const gbuf=M._malloc(np*8);
+  const liqGpc=(li,T)=>{ api.pairG(db,phase,T,gbuf); return M.getValue(gbuf+li.i*8,'double')/li.nc; };
+  const nel=api.nEl(db), elems=[]; for(let e=0;e<nel;e++) elems.push(api.el(db,e));
+  const sbuf=M._malloc(nel*8);
+  function solidIdx(catEl,anEl){ for(let s=0;s<api.nStoich(db);s++){ api.stElems(db,s,sbuf); const v=readD(sbuf,nel);
+    let ok=true, cc=0; for(let e=0;e<nel;e++){ if(v[e]<1e-9) continue;
+      if(elems[e]===catEl) cc=v[e]; else if(elems[e]!==anEl){ ok=false; break; } }
+    if(ok && cc>0) return {s, nc:cc}; } return null; }
+  const solGpc=(si,T)=>api.stG(db,si.s,T)/si.nc;
+  const out=[];
+  for(const c of comps){
+    const li=liqIdx(c.catEl,c.anEl), si=solidIdx(c.catEl,c.anEl);
+    if(!li||!si){ out.push({name:c.label, TmC:null, dHf:null}); continue; }
+    const f=T=>solGpc(si,T)-liqGpc(li,T);       // solid lower below Tm -> f<0; liquid lower above -> f>0
+    let lo=300, hi=4000, flo=f(lo);
+    if(!(flo*f(hi)<0)){ out.push({name:c.label, TmC:null, dHf:null}); continue; }
+    for(let it=0;it<50;it++){ const m=0.5*(lo+hi), fm=f(m); if(flo*fm<=0) hi=m; else { lo=m; flo=fm; } }
+    // entropies from the Gibbs slope, each on its own stable side of Tm and offset a few K so the
+    // derivative never straddles a function break that sits at the melting point (e.g. liquid FeO).
+    const Tm=0.5*(lo+hi), dT=1.0, off=3.0;
+    const Ssol=-(solGpc(si,Tm-off+dT)-solGpc(si,Tm-off-dT))/(2*dT);
+    const Sliq=-(liqGpc(li,Tm+off+dT)-liqGpc(li,Tm+off-dT))/(2*dT);
+    out.push({name:c.label, TmC:Tm-273.15, dHf:Tm*(Sliq-Ssol)*c.nCat/1000});
+  }
+  [gbuf,sbuf].forEach(p=>M._free(p));
+  return out;
 }
 
 function populateComponents(){
@@ -2312,6 +2357,19 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
     if(userTouched) return;
     const k=salt?'saltA':'ternary';
     $('bld-preset').value=k; loadPreset(k);
+  };
+  // Pre-fill the builder from the loaded database's components (names + derived melting point and heat
+  // of fusion) so an uploaded system arrives filled in, not blank. Still fully tunable; once the user
+  // edits anything a later load no longer overwrites their values.
+  window._bldLoadSystem=(comps, salt)=>{
+    _bldSeedFor(salt);                        // preset-dropdown visibility (+ generic seed if untouched)
+    if(userTouched) return;
+    const use=(comps||[]).slice(0,4);
+    if(use.length<2) return;                  // not enough to build a diagram - keep the generic seed
+    use.forEach((c,i)=>{ $('c'+i+'-name').value=c.name;
+      if(c.TmC!=null) $('c'+i+'-Tm').value=Math.round(c.TmC);
+      if(c.dHf!=null) $('c'+i+'-dH').value=(+c.dHf).toFixed(1); });
+    setN(use.length);
   };
   _bldSeedFor(false);   // default (landing / slag): hide salt presets, seed the generic ternary
 })();

@@ -22,6 +22,7 @@ import numpy as np
 from scipy.optimize import minimize
 
 import mqmqa
+from mqmqa._abi import c_equilibrate
 
 
 def _element(name):
@@ -261,7 +262,9 @@ def multiphase_binary(inp, end0, end1, solids, xi, ngrid=400):
 
     def liq_g(t):
         comp = join_comp(t)
-        return equilibrate(inp, comp)["GM"] * atoms_per_salt(t)
+        # the C solver: the same single-phase minimizer the browser uses, validated
+        # against pycalphad; the SciPy path can stall on flat quadruplet landscapes
+        return c_equilibrate(inp, comp)["GM"] * atoms_per_salt(t)
 
     grid = np.concatenate([np.linspace(1e-3, 0.12, ngrid // 3),
                            np.linspace(0.12, 1 - 1e-3, ngrid - ngrid // 3)])

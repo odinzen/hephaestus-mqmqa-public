@@ -10,7 +10,7 @@ ORCID: 0009-0009-9001-8151
 
 **Abstract**
 
-The Modified Quasichemical Model in the Quadruplet Approximation (MQMQA) is the standard thermodynamic description of short-range-ordered ionic melts, and it underpins the commercial databases used throughout pyrometallurgy. Open implementations exist inside larger frameworks, but no free oxide slag database exists at all, so every practical slag calculation still depends on closed data. Hephaestus addresses the model and the data together. The engine is a small dependency-free C core with a Python interface and a WebAssembly build, so the same code runs embedded, scripted, or in a browser with nothing installed. It reads ChemSage-format files directly, covering MQMQA liquids, compound energy formalism solid solutions, and stoichiometric compounds, and it calculates phase equilibria up to full ternary isothermal sections and liquidus projections. Every energy path is validated to machine precision against pycalphad. The companion database covers the CaO-SiO~2~, MgO-SiO~2~, and FeO-SiO~2~ liquids and the FeO-MgO-SiO~2~ ternary with olivine and orthopyroxene solid solutions, assembled solely from published measurements with per-value provenance and documented limits. The code is MIT licensed and the database is CC BY 4.0.
+The Modified Quasichemical Model in the Quadruplet Approximation (MQMQA) is the standard thermodynamic description of short-range-ordered ionic melts, and it underpins the commercial databases used throughout pyrometallurgy. Open implementations exist inside larger frameworks, but no free oxide slag database exists at all, so every practical slag calculation still depends on closed data. Hephaestus addresses the model and the data together. The engine is a small dependency-free C core with a Python interface and a WebAssembly build, so the same code runs embedded, scripted, or in a browser with nothing installed. It reads ChemSage-format files directly, covering MQMQA liquids, compound energy formalism solid solutions, and stoichiometric compounds, and it also reads the Thermo-Calc TDB dialect for alloy systems, so one zero-install page calculates across both of the field's file families. It computes phase equilibria up to full ternary isothermal sections and liquidus projections, and Scheil-Gulliver solidification paths on any binary join. Every energy path is validated to machine precision against pycalphad. The companion database covers the CaO-SiO~2~, MgO-SiO~2~, and FeO-SiO~2~ liquids and the FeO-MgO-SiO~2~ ternary with olivine and orthopyroxene solid solutions, assembled solely from published measurements with per-value provenance and documented limits. The code is MIT licensed and the database is CC BY 4.0.
 
 **Keywords:** CALPHAD; molten slag; modified quasichemical model; thermodynamic database; phase diagram; WebAssembly; oxide melts; open data
 
@@ -20,6 +20,8 @@ The Modified Quasichemical Model in the Quadruplet Approximation (MQMQA) is the 
 
 Molten oxide slags and molten salts are dominated by short-range ordering, which the Modified Quasichemical Model in the Quadruplet Approximation describes through the distribution of cation-anion quadruplets [1]. The quadruplet formalism is the current form of the modified quasichemical family, which grew from the pair-approximation treatment of binary liquids [2] and its application to silicate slags [3]. The model is published in full, and it is the basis of the oxide and salt databases in FactSage, the software that carries most industrial slag work [4]; databases of this kind are embedded in everyday steelmaking practice, from slag design through virtual process simulation [5,6]. What separates a published model from a usable calculation is an implementation and a parameter set. On the implementation side the situation has improved. OpenCalphad brought a free general equilibrium code [7]; pycalphad, itself published in this journal [8], gained an MQMQA model with uncertainty quantification [9] and a companion parameter-fitting framework [10]; Thermochimica calculates MQMQA molten salts inside a nuclear fuel framework [11]. Both MQMQA implementations live inside larger frameworks with correspondingly large dependency stacks. On the data side the situation has not improved at all. The community has argued for years that phase-based data need open infrastructure [12], yet there is no free MQMQA oxide slag database. A student, a startup, or a plant engineer who wants to calculate a slag equilibrium with open tools has the model, possibly an implementation, and no parameters to run through it.
 
+The workflows behind these tools also shape who can use them. FactSage [4] and Thermo-Calc [13] are mature commercial suites, module GUIs over licensed closed databases, powerful in expert hands and licensed for institutions, and other commercial packages follow the same shape. OpenCalphad [7] and pycalphad [8] are free engines for the code-comfortable: command files or Python sessions over TDB databases, with no graphical calculator attached. CemGEMS [14] showed a third way for cement chemistry, a free web front end whose users install nothing, though its calculations still run on a project server. What none of them offers is a calculator that is zero-install, fully client-side, and open-data at once: a page anyone can open, load a database in either of the field's file dialects, and calculate against, with nothing transmitted anywhere. Hephaestus takes that seat deliberately as a complement rather than a competitor. It does not chase FactSage's breadth or Thermo-Calc's alloy depth; it is the low-barrier door into the same published models, with open parameters behind it and a fitting loop short enough that refitting an excess term against new measurements is an interactive step rather than a vendor request.
+
 Hephaestus is a deliberate response to that gap, and it treats the engine and the data as one contribution because neither is useful alone. The engine is small on purpose. Its core is plain C with no dependencies, which makes it easy to embed and lets the identical code compile to WebAssembly, so the full calculator runs in a web browser with nothing installed and no data leaving the user's machine. The database is open on purpose. Every parameter in it derives from published measurements, each value carries its provenance down to table and page, and the known shortcomings are documented next to the numbers they affect. The present work describes both, their validation against pycalphad and against measured phase equilibria, and the ways they can be reused.
 
 ### Implementation and architecture
@@ -28,26 +30,40 @@ Hephaestus is layered (Figure 1). A C core holds all thermodynamics. A thin Pyth
 
 ![Figure 1: Architecture of Hephaestus. A single dependency-free C core reads ChemSage-format files and computes all thermodynamics; the same core is used as a native library, from Python through cffi, and compiled to WebAssembly behind the browser application. dbbuild writes new ChemSage files from measured data, and every energy path is validated against pycalphad.](figures/fig1_architecture.png){width=6.3in}
 
-The core implements the MQMQA Gibbs energy of Pelton, Chartrand and Eriksson [1]: the pair reference energy, the configurational entropy of the quadruplet distribution, and the excess energy with composition-dependent interaction terms, together with the recursive coordination-number rules, including reciprocal quadruplets. Solid solutions use the compound energy formalism [13], with sublattice site fractions, per-sublattice ideal entropy, and Redlich-Kister excess terms; the Gibbs energy is normalized per mole of real atoms, so vacancy-bearing phases come out on the same basis pycalphad uses. A reader for the ChemSage data format loads MQMQA liquids (SUBQ and SUBG blocks), compound energy formalism phases (SUBL, including the magnetic variant), and stoichiometric compounds, with multi-interval Gibbs functions and the additional-term forms such as T^0.5^ and ln T. The format has no public specification, so the reader's grammar was written against the format as handled by pycalphad's open-source parser and proven by loading pycalphad's own test databases.
+The core implements the MQMQA Gibbs energy of Pelton, Chartrand and Eriksson [1]: the pair reference energy, the configurational entropy of the quadruplet distribution, and the excess energy with composition-dependent interaction terms, together with the recursive coordination-number rules, including reciprocal quadruplets. Solid solutions use the compound energy formalism [15], with sublattice site fractions, per-sublattice ideal entropy, and Redlich-Kister excess terms; the Gibbs energy is normalized per mole of real atoms, so vacancy-bearing phases come out on the same basis pycalphad uses. A reader for the ChemSage data format, the file lineage of the ChemSage and ChemApp equilibrium programs [16], loads MQMQA liquids (SUBQ and SUBG blocks), compound energy formalism phases (SUBL, including the magnetic variant), and stoichiometric compounds, with multi-interval Gibbs functions and the additional-term forms such as T^0.5^ and ln T. The format has no public specification, so the reader's grammar was written against the format as handled by pycalphad's open-source parser and proven by loading pycalphad's own test databases.
 
 Equilibrium is calculated at two levels. The core minimizes the liquid Gibbs energy over quadruplet fractions under element balance. The Python layer adds an exact one-dimensional solve for common-anion binary liquids, where mass balance pins the quadruplet distribution to a single degree of freedom, and a multiphase construction by dense sampling and the lower convex hull, the same global method pycalphad uses. For a binary the hull yields tie-lines with a test that separates true two-phase edges from adjacent samples of one continuous curve. For a ternary the hull runs over the cation simplex, and each facet is a tie-triangle or tie-line read directly with the lever rule. On top of this sit isothermal sections and liquidus projections for the full FeO-MgO-SiO~2~ system.
 
+The same core also reads the Thermo-Calc TDB dialect, the lingua franca of alloy CALPHAD shared by Thermo-Calc [13], OpenCalphad [7], and pycalphad [8]. TDB files parse into the same internal database, so the accessors, the Python layer, and the browser work unchanged, and the format is auto-detected on load. The supported subset covers elements, species, piecewise FUNCTION expressions with nested references, compound energy formalism phases with vacancies, and Redlich-Kister interactions of any order; models outside the subset, such as the magnetic contribution, order-disorder partitioning, and the ionic two-sublattice liquid, are rejected with a stated reason rather than computed incompletely. Temperature extrapolation above a function's last interval follows the Thermo-Calc convention for TDB data while ChemSage data keep their own zero-above convention. MQMQA liquids have no TDB representation, so melts remain the province of the .dat dialect; the two families meet in one engine.
+
+From Python the calculation chain is three calls, identical for either dialect:
+
+```
+from mqmqa import Database
+from mqmqa.equilibrium import build_inputs, c_equilibrate
+
+db  = Database.read("FeO-MgO-SiO2-combined.dat")   # or any .tdb
+inp = build_inputs(db, db.phase_index("FEO-MGO-SIO2-LIQUID"), 1873.0)
+res = c_equilibrate(inp, {"FE": 0.2, "MG": 0.2, "SI": 0.2, "O": 1.4})
+# res["GM"], res["X"]: molar Gibbs energy and the quadruplet distribution
+```
+
 The Python package also contains dbbuild, a declarative route from measured data to a loadable database. A user describes components with sourced endmember thermodynamics and fitted binary excess terms, and dbbuild writes a valid ChemSage file; a fitting routine obtains the excess parameters from measured component activities using the engine itself as the forward model. The builder covers single-anion oxide systems of two to four components, and multicomponent liquids are assembled from their binaries in the usual way.
 
-The browser application, hosted at https://odinzen.github.io/hephaestus-mqmqa-public/, exposes five tools: a calculator over any loaded ChemSage file (a user can hold up to three uploaded files per session and switch between them), a binary join phase-diagram tool with tap-to-read point comparison, a viewer for the assessed FeO-MgO-SiO~2~ diagrams, a live isothermal-section solver that calculates the full phase assemblage at a chosen temperature in about a second, for the shipped ternaries or for any loaded three-cation file (Figure 2), and an interactive eutectic builder whose component names, melting points, and fusion enthalpies pre-fill from the loaded database. Everything runs client side. The page holds a strict content security policy, escapes all file-derived strings, makes no third-party requests, and never transmits a loaded file, which matters to industrial users whose compositions are confidential.
+The browser application, hosted at https://odinzen.github.io/hephaestus-mqmqa-public/, exposes six tools: a calculator over any loaded database (ChemSage .dat or Thermo-Calc .tdb, auto-detected, with up to three uploaded files held per session), a binary join phase-diagram tool with tap-to-read point comparison, a Scheil-Gulliver solidification panel on the same join with the equilibrium lever-rule path drawn alongside, a viewer for the assessed FeO-MgO-SiO~2~ diagrams, a live isothermal-section solver that calculates the full phase assemblage at a chosen temperature in about a second, for the shipped ternaries or for any loaded three-cation file (Figure 2), and an interactive eutectic builder whose component names, melting points, and fusion enthalpies pre-fill from the loaded database. Loading an alloy TDB reshapes the workspace: the elements become the end members and every compound energy formalism phase spanning the join enters the same convex hull construction. Everything runs client side. The page holds a strict content security policy, escapes all file-derived strings, makes no third-party requests, and never transmits a loaded file, which matters to industrial users whose compositions are confidential.
 
 ![Figure 2: The live solver in the browser application (release v0.2.0, light theme). The user loads the shipped database, picks a temperature, and presses Compute; the WebAssembly engine then solves the full FeO-MgO-SiO~2~ phase assemblage client side (here 1023 composition samples and 512 tie-facets in under half a second). Tapping a composition reads its stable phases and pins it to a comparison list; hovering previews on desktop.](figures/fig2_browser_app.png){width=5.2in}
 
-The database is the second half of the contribution. Endmember oxide thermodynamics come from open compilations, chiefly Robie and Hemingway [14] and the NIST-JANAF tables [15]. Liquid excess parameters are fitted to published measurements: Knudsen-effusion and gas-slag equilibrium activities for CaO-SiO~2~ [16,17], the measured iron-saturated activities collected by Björkman for FeO-SiO~2~ [18], and the melting and immiscibility constraints of the classical phase diagram studies [19-21]. Solution-calorimetric compound enthalpies [22] anchor the solids. Where published calorimetry cannot constrain a liquid, melt-mixing enthalpies from machine-learned interatomic potentials [23,24] serve as auxiliary anchors after bias correction against measured formation enthalpies; each such use is recorded in the provenance files. The olivine and orthopyroxene solid solutions take their endmembers from Robie and Hemingway [14] and their mixing parameters from solution calorimetry [25]. The assembled ternary reproduces the topology of the measured MgO-FeO-SiO~2~ liquidus surface [19], with the olivine field quantitative and the known offsets stated. No parameter is taken from any prior assessment or commercial database; published assessments of these systems [26] are used only as method literature. The same engine and file format also serve molten salts: the repository ships an open chloride family alongside the slags (LiCl-KCl, NaCl-KCl with its continuous halite solid solution, KCl-MgCl~2~ with the double salt KMgCl~3~, NaCl-MgCl~2~, and the assembled NaCl-KCl-MgCl~2~ ternary), built the same way from evaluated endmember tables [27], measured mixing calorimetry [28], and the measured eutectic, liquidus, and solvus record of the halide literature [29], and loadable in the browser application with one click. Each system folder carries a provenance file that names every source, every modeling judgment, and every known limit. The largest limit is stated plainly: the CaO-SiO~2~ and MgO-SiO~2~ silica-rich miscibility gaps sit at the right compositions but too high in temperature, a documented consequence of the single-common-anion excess form. Figure 3 shows the assembled ternary as the engine calculates it from the shipped database files, in the two views the application offers; Table 1 summarizes each fitted liquid, the data behind it, and what it reproduces. The code is MIT licensed at the repository root and the database directory carries its own CC BY 4.0 license.
+The database is the second half of the contribution. Endmember oxide thermodynamics come from open compilations, chiefly Robie and Hemingway [17] and the NIST-JANAF tables [18]. Liquid excess parameters are fitted to published measurements: Knudsen-effusion and gas-slag equilibrium activities for CaO-SiO~2~ [19,20], the measured iron-saturated activities collected by Björkman for FeO-SiO~2~ [21], and the melting and immiscibility constraints of the classical phase diagram studies [22-24]. Solution-calorimetric compound enthalpies [25] anchor the solids. Where published calorimetry cannot constrain a liquid, melt-mixing enthalpies from machine-learned interatomic potentials [26,27] serve as auxiliary anchors after bias correction against measured formation enthalpies; each such use is recorded in the provenance files. The olivine and orthopyroxene solid solutions take their endmembers from Robie and Hemingway [17] and their mixing parameters from solution calorimetry [28]. The assembled ternary reproduces the topology of the measured MgO-FeO-SiO~2~ liquidus surface [22], with the olivine field quantitative and the known offsets stated. No parameter is taken from any prior assessment or commercial database; published assessments of these systems [29] are used only as method literature. The same engine and file format also serve molten salts: the repository ships an open chloride family alongside the slags (LiCl-KCl, NaCl-KCl with its continuous halite solid solution, KCl-MgCl~2~ with the double salt KMgCl~3~, NaCl-MgCl~2~, and the assembled NaCl-KCl-MgCl~2~ ternary), built the same way from evaluated endmember tables [30], measured mixing calorimetry [31], and the measured eutectic, liquidus, and solvus record of the halide literature [32], and loadable in the browser application with one click. Each system folder carries a provenance file that names every source, every modeling judgment, and every known limit. The largest limit is stated plainly: the CaO-SiO~2~ and MgO-SiO~2~ silica-rich miscibility gaps sit at the right compositions but too high in temperature, a documented consequence of the single-common-anion excess form. Figure 3 shows the assembled ternary as the engine calculates it from the shipped database files, in the two views the application offers; Table 1 summarizes each fitted liquid, the data behind it, and what it reproduces. The code is MIT licensed at the repository root and the database directory carries its own CC BY 4.0 license.
 
 ![Figure 3: The assessed FeO-MgO-SiO~2~ system calculated from the shipped database files. (a) Liquidus projection: primary crystallizing phase fields, with liquidus isotherms labeled in °C. (b) Isothermal section at 1600 °C: stable phase assemblages, shaded by the number of solid phases present. Phase labels: L liquid, Crs cristobalite, Ol olivine, Opx orthopyroxene, Per periclase, Wus wustite.](figures/fig3_ternary.png){width=6.5in}
 
 | System | Fitted liquid excess (J/mol) | Fitted to | Reproduces; known limit |
 |---|---|---|---|
-| CaO-SiO~2~ | (-189764 + 15.71 T) + 57171 χ~Ca~ | silica activities [16,17]; bias-corrected melt-mixing enthalpies [23,24]; endmember and compound melting | mixing enthalpy near -58 kJ/mol at the metasilicate; silica-rich miscibility gap at the right composition but high in temperature |
-| MgO-SiO~2~ | five terms in the equivalent fraction Y~SiO2~, each a + b T | measured invariants and immiscibility data [20,21] from five studies, the measured consolute, and solution calorimetry [22] | all four invariants within about 40 °C; calorimetry matched; stable two-liquid field about 340 °C high |
-| FeO-SiO~2~ | -42839 + 17.83 T | 23 iron-saturated activities across two isotherms [18] | RMS ln a = 0.067; fayalite congruent melting within a few degrees |
-| FeO-MgO-SiO~2~ | binaries combined; no ternary term | assembled from the binaries with olivine and orthopyroxene solutions [14,25] | measured liquidus-surface topology [19]; stable phase sets match pycalphad at 15 of 16 points |
+| CaO-SiO~2~ | (-189764 + 15.71 T) + 57171 χ~Ca~ | silica activities [19,20]; bias-corrected melt-mixing enthalpies [26,27]; endmember and compound melting | mixing enthalpy near -58 kJ/mol at the metasilicate; silica-rich miscibility gap at the right composition but high in temperature |
+| MgO-SiO~2~ | five terms in the equivalent fraction Y~SiO2~, each a + b T | measured invariants and immiscibility data [23,24] from five studies, the measured consolute, and solution calorimetry [25] | all four invariants within about 40 °C; calorimetry matched; stable two-liquid field about 340 °C high |
+| FeO-SiO~2~ | -42839 + 17.83 T | 23 iron-saturated activities across two isotherms [21] | RMS ln a = 0.067; fayalite congruent melting within a few degrees |
+| FeO-MgO-SiO~2~ | binaries combined; no ternary term | assembled from the binaries with olivine and orthopyroxene solutions [17,28] | measured liquidus-surface topology [22]; stable phase sets match pycalphad at 15 of 16 points |
 
 Table 1: The assessed liquids. Full source lists, modeling judgments, and limits are in each system's provenance file in the repository.
 
@@ -61,7 +77,7 @@ That asymmetry is the economics of the field in miniature: implementations of th
 
 ### Quality control
 
-pycalphad is the validation oracle throughout, on the principle that nothing is claimed working until it matches an independent implementation; Table 2 lists the checks. The test suite, 73 tests run with pytest, checks every energy contribution against pycalphad on shared parameters to machine precision, near 10^-10^ J per mole of atoms. The reader is tested by loading pycalphad's open test databases and reproducing their energies with no pycalphad at runtime. The compound energy formalism kernel matches pycalphad on a real multicomponent industrial file with charged species, vacancies, and logarithmic temperature terms. The multiphase construction is tested end to end: a combined file holding the MQMQA liquid, both solid solutions, and three stoichiometric oxides runs through pycalphad's own equilibrium calculation. The stable phase sets agree at 15 of 16 probe points, with Gibbs energies within about 10 J per mole of atoms; the one disagreement is a facet-resolution sliver at a field boundary. The WebAssembly build is validated in the browser against the same oracle values to machine precision.
+pycalphad is the validation oracle throughout, on the principle that nothing is claimed working until it matches an independent implementation; Table 2 lists the checks. The test suite, 81 tests run with pytest, checks every energy contribution against pycalphad on shared parameters to machine precision, near 10^-10^ J per mole of atoms. The reader is tested by loading pycalphad's open test databases and reproducing their energies with no pycalphad at runtime. The compound energy formalism kernel matches pycalphad on a real multicomponent industrial file with charged species, vacancies, and logarithmic temperature terms. The multiphase construction is tested end to end: a combined file holding the MQMQA liquid, both solid solutions, and three stoichiometric oxides runs through pycalphad's own equilibrium calculation. The stable phase sets agree at 15 of 16 probe points, with Gibbs energies within about 10 J per mole of atoms; the one disagreement is a facet-resolution sliver at a field boundary. The WebAssembly build is validated in the browser against the same oracle values to machine precision. The TDB front-end is validated the same way, with pycalphad's own shipped test databases as the corpus: the subset-compatible alloy systems (Al-Zn, Pb-Sn, Al-Mg) load, and every solution phase matches pycalphad's Gibbs energy at random site fractions and temperatures to about 10^-10^ J per mole of atoms, line compounds included, while out-of-subset files must fail with the stated reason, and the suite asserts those failures too. The Scheil panel is checked against known invariants: for Al-Zn at 30 mol% Zn it nucleates FCC_A1 at 836 K and freezes the 12.5% residue within one temperature step of the assessed 654 K eutectic [33]; for LiCl-KCl the residue freezes at 629 K against the measured 626 K.
 
 | Check | Scope | Agreement |
 |---|---|---|
@@ -70,10 +86,12 @@ pycalphad is the validation oracle throughout, on the principle that nothing is 
 | CEF kernel | multicomponent industrial file with charges, vacancies, ln T terms | machine precision |
 | Multiphase equilibrium | liquid + two solid solutions + three oxides, 16 probe points | phase sets at 15 of 16; Gibbs energies within ~10 J per mole of atoms |
 | WebAssembly build | in-browser against the same oracle values | machine precision |
+| TDB reader | pycalphad's shipped alloy TDBs (Al-Zn, Pb-Sn, Al-Mg), every phase and line compound | ~10^-10^ J per mole of atoms |
+| TDB scope guard | magnetic and ionic-liquid test files | rejected, with the reason asserted |
 
 Table 2: Validation against the independent oracle. Every check runs in the pytest suite except the in-browser one, which is exercised manually per release.
 
-The database is tested against measurements rather than against other software. Endmember fusion points reproduce their sources exactly. The fitted FeO-SiO~2~ liquid reproduces 23 measured activity points with a root-mean-square deviation of 0.067 in ln a [18], and the fitting route itself is regression-tested by re-deriving those published parameters from the raw data. Congruent melting of fayalite and forsterite lands within a few degrees of measurement, assessed MgO-SiO~2~ invariants sit within about 40 °C, and the ternary liquidus projection reproduces the measured field topology [19]. The suite runs on Windows 11 under CPython 3.11 and 3.12; the browser application is exercised in Chromium- and Gecko-based browsers. A user can confirm a working installation by running pytest against the bundled test databases, or with no installation at all by opening the web application and loading the shipped ternary database.
+The database is tested against measurements rather than against other software. Endmember fusion points reproduce their sources exactly. The fitted FeO-SiO~2~ liquid reproduces 23 measured activity points with a root-mean-square deviation of 0.067 in ln a [21], and the fitting route itself is regression-tested by re-deriving those published parameters from the raw data. Congruent melting of fayalite and forsterite lands within a few degrees of measurement, assessed MgO-SiO~2~ invariants sit within about 40 °C, and the ternary liquidus projection reproduces the measured field topology [22]. Development practice is plain: the repository is version controlled with tagged releases (v0.1.0 through the v0.3.0 described here), the full suite runs before every release, and a fixed bug lands together with the regression test that would have caught it. The suite runs on Windows 11 under CPython 3.11 and 3.12; the browser application is exercised in Chromium- and Gecko-based browsers. A user can confirm a working installation by running pytest against the bundled test databases, or with no installation at all by opening the web application and loading the shipped ternary database.
 
 ## (2) Availability
 
@@ -102,10 +120,10 @@ Michael E. Bustamante (design, implementation, validation, data curation).
 **Archive**
 
 - Name: GitHub Releases (release archive of the code repository)
-- Persistent identifier: https://github.com/odinzen/hephaestus-mqmqa-public/releases/tag/v0.2.0
+- Persistent identifier: https://github.com/odinzen/hephaestus-mqmqa-public/releases/tag/v0.3.0
 - Licence: MIT (code), CC BY 4.0 (database)
 - Publisher: Michael E. Bustamante
-- Version published: v0.2.0
+- Version published: v0.3.0
 - Date published: 2026-09-02
 
 **Code repository**
@@ -125,11 +143,65 @@ The nearest reuse is interoperation. Hephaestus reads the same ChemSage format p
 
 The browser application makes the lowest barrier the default. A lecture on slag thermodynamics, a plant metallurgist screening a composition, or a reviewer checking a claimed equilibrium can load the database and calculate in seconds, with confidential inputs never leaving the machine. The same property makes it a practical template for other groups who want to publish a model as a zero-install tool.
 
-The database is a starting point rather than an endpoint, and the file format rewards growth: new components, new phases, and refits against new measurements accumulate in the same database. A system is therefore extended release by release rather than rebuilt, and archived versions keep results calculated against earlier releases reproducible. Because every value carries its source and every judgment is written down, another assessor can reweight the data, swap an endmember, or extend a system without reverse-engineering anything; dbbuild turns a table of measured activities into a loadable file in a few lines. The in-browser multiphase hull already covers any loaded three-cation file, so a new system becomes a browser phase diagram the moment its file loads; natural extensions are further oxide systems and the remaining ChemSage solution models. Contributions and issues are handled through the GitHub repository.
+### Worked examples
+
+Two complete sessions show the public API end to end; both run against the shipped files exactly as printed and produce the figures shown. The salt session computes the LiCl-KCl phase diagram:
+
+```
+from mqmqa import Database
+from mqmqa.equilibrium import build_inputs, multiphase_binary
+
+db  = Database.read("web/LiCl-KCl.dat")            # the file the browser app ships
+liq = db.phase_index("LICL-KCL-LIQUID")
+LiCl, KCl = {"LI": 1, "CL": 1}, {"K": 1, "CL": 1}  # endmember element compositions
+
+diagram = []
+for T in np.arange(500.0, 1101.0, 10.0):
+    inp    = build_inputs(db, liq, T)              # liquid model at this temperature
+    solids = [(0.0, db.stoich_gibbs(0, T), "LiCl(s)"),
+              (1.0, db.stoich_gibbs(1, T), "KCl(s)")]
+    for xi in np.arange(0.025, 1.0, 0.025):        # xi = mole fraction KCl
+        state = multiphase_binary(inp, LiCl, KCl, solids, xi, ngrid=80)
+        diagram.append((xi, T, "+".join(sorted(state["phases"]))))
+
+liquid_only = [(T, xi) for xi, T, ph in diagram if ph == "LIQUID"]
+Te, xe = min(liquid_only)                          # coldest all-liquid point = eutectic
+```
+
+The listing prints its eutectic at x~KCl~ = 0.400 and 640 K on this deliberately coarse grid, against the measured 0.415 and 626 K; Figure 4 is the diagram it draws.
+
+![Figure 4: The LiCl-KCl phase diagram computed by the salt listing from the shipped open database, on the listing's own grid. Light to dark: liquid, two-phase, and subsolidus fields. The dot is the computed eutectic on this grid (0.400, 640 K); the star is the measured eutectic (0.415, 626 K).](figures/fig4_salt_example.png){width=4.6in}
+
+The alloy session reads the Thermo-Calc dialect through the same API and computes the Al-Zn diagram with a ten-line convex hull:
+
+```
+from mqmqa import Database
+
+db = Database.read("web/AlZn.tdb")                 # Thermo-Calc dialect, same reader
+phases = [(db.phase_index(n), n) for n in db.phase_names]
+
+diagram = []
+for T in np.arange(300.0, 1001.0, 5.0):
+    pts = []
+    for p, name in phases:                         # every CEF phase along the join
+        for y in np.linspace(1e-4, 1-1e-4, 60):
+            pts.append((y, db.cef_gibbs(p, [1.0-y, y], T, per_mole_atoms=True), name))
+    hull = lower_hull(pts)                         # 2-D lower convex hull of (x, G)
+    for edge_a, edge_b in zip(hull, hull[1:]):
+        xa, _ga, name_a = edge_a
+        xb, _gb, name_b = edge_b
+        diagram.append((0.5*(xa+xb), T, tuple(sorted({name_a, name_b}))))
+```
+
+It locates the eutectic at x~Zn~ = 0.890 and 660 K against the assessed 0.885 and 654 K [33] (Figure 5). The shipped AlZn.tdb is itself an openly licensed transcription of that published assessment on the SGTE unary functions [34], verified bit-identical through pycalphad against the file it transcribes. The slag systems run through the same calls behind Figures 2 and 3, and the repository's validation scripts are their executable record.
+
+![Figure 5: The Al-Zn phase diagram computed by the alloy listing from the shipped open TDB. Light to dark: liquid, liquid plus solid, and solid fields. The dot is the computed eutectic (0.890, 660 K); the star is the assessed eutectic (0.885, 654 K).](figures/fig5_alloy_example.png){width=4.6in}
+
+The database is a starting point rather than an endpoint, and the file format rewards growth: new components, new phases, and refits against new measurements accumulate in the same database. A system is therefore extended release by release rather than rebuilt, and archived versions keep results calculated against earlier releases reproducible. Because every value carries its source and every judgment is written down, another assessor can reweight the data, swap an endmember, or extend a system without reverse-engineering anything; dbbuild turns a table of measured activities into a loadable file in a few lines. The in-browser multiphase hull already covers any loaded three-cation file and any loaded alloy TDB join, so a new system becomes a browser phase diagram the moment its file loads. Natural extensions are further oxide systems, the remaining ChemSage solution models, the magnetic and ionic-liquid TDB models, and multicomponent Scheil on the same hull machinery. Contributions and issues are handled through the GitHub repository.
 
 ## Data availability
 
-The engine, the database, the browser application, and the validation suite are openly available in the code repository listed above; the version described here is archived as release v0.2.0. The database files and their provenance records are in the repository's data directory under CC BY 4.0.
+The engine, the database, the browser application, and the validation suite are openly available in the code repository listed above; the version described here is archived as release v0.3.0. The database files and their provenance records are in the repository's data directory under CC BY 4.0.
 
 ## Acknowledgements
 
@@ -169,36 +241,46 @@ The author founded Odinzen LLC, which provides commercial thermodynamic modeling
 
 [12] Campbell CE, Kattner UR, Liu ZK. The development of phase-based property data using the CALPHAD method and infrastructure needs. Integr Mater Manuf Innov. 2014 Dec;3(1):158–80. doi:10.1186/2193-9772-3-12
 
-[13] Hillert M. The compound energy formalism. Journal of Alloys and Compounds. 2001 May;320(2):161–76. doi:10.1016/S0925-8388(00)01481-X
+[13] Andersson JO, Helander T, Höglund L, Shi P, Sundman B. Thermo-Calc & DICTRA, computational tools for materials science. Calphad. 2002 Jun;26(2):273-312. doi:10.1016/S0364-5916(02)00037-8
 
-[14] Robie RA, Hemingway BS. Thermodynamic properties of minerals and related substances at 298.15 K and 1 bar (10^5^ pascals) pressure and at higher temperatures. U.S. Geological Survey Bulletin 2131. Washington: U.S. Government Printing Office; 1995.
+[14] Kulik DA, Winnefeld F, Kulik A, Miron GD, Lothenbach B. CemGEMS - an easy-to-use web application for thermodynamic modeling of cementitious materials. RILEM Tech Lett. 2021;6:36-52. doi:10.21809/rilemtechlett.2021.140
 
-[15] Chase MW Jr. NIST-JANAF Thermochemical Tables, 4th edition. Journal of Physical and Chemical Reference Data, Monograph 9. Woodbury, NY: American Institute of Physics; 1998.
+[15] Hillert M. The compound energy formalism. Journal of Alloys and Compounds. 2001 May;320(2):161–76. doi:10.1016/S0925-8388(00)01481-X
 
-[16] Kay DAR, Taylor J. Activities of silica in the lime + alumina + silica system. Trans Faraday Soc. 1960;56:1372. doi:10.1039/tf9605601372
+[16] Eriksson G, Hack K. ChemSage - A computer program for the calculation of complex chemical equilibria. Metall Trans B. 1990 Dec;21(6):1013-23. doi:10.1007/BF02670272
 
-[17] Stolyarova VL, Shornikov SI, Ivanov GG, Shultz MM. High Temperature Mass Spectrometric Study of Thermodynamic Properties of the CaO-SiO2 System. J Electrochem Soc. 1991 Dec 1;138(12):3710–4. doi:10.1149/1.2085485
+[17] Robie RA, Hemingway BS. Thermodynamic properties of minerals and related substances at 298.15 K and 1 bar (10^5^ pascals) pressure and at higher temperatures. U.S. Geological Survey Bulletin 2131. Washington: U.S. Government Printing Office; 1995.
 
-[18] Björkman B. An assessment of the system Fe-O-SiO2 using a structure based model for the liquid silicate. Calphad. 1985 Jul;9(3):271–82. doi:10.1016/0364-5916(85)90012-4
+[18] Chase MW Jr. NIST-JANAF Thermochemical Tables, 4th edition. Journal of Physical and Chemical Reference Data, Monograph 9. Woodbury, NY: American Institute of Physics; 1998.
 
-[19] Bowen NL, Schairer JF. The system MgO-FeO-SiO2. American Journal of Science. 1935 Feb 1;s5-29(170):151–217. doi:10.2475/ajs.s5-29.170.151
+[19] Kay DAR, Taylor J. Activities of silica in the lime + alumina + silica system. Trans Faraday Soc. 1960;56:1372. doi:10.1039/tf9605601372
 
-[20] Greig JW. Immiscibility in silicate melts; Part I. American Journal of Science. 1927 Jan 1;s5-13(73):1–44. doi:10.2475/ajs.s5-13.73.1
+[20] Stolyarova VL, Shornikov SI, Ivanov GG, Shultz MM. High Temperature Mass Spectrometric Study of Thermodynamic Properties of the CaO-SiO2 System. J Electrochem Soc. 1991 Dec 1;138(12):3710–4. doi:10.1149/1.2085485
 
-[21] Greig JW. Immiscibility in silicate melts; Part II. American Journal of Science. 1927 Feb 1;s5-13(74):133–54. doi:10.2475/ajs.s5-13.74.133
+[21] Björkman B. An assessment of the system Fe-O-SiO2 using a structure based model for the liquid silicate. Calphad. 1985 Jul;9(3):271–82. doi:10.1016/0364-5916(85)90012-4
 
-[22] Charlu TV, Newton RC, Kleppa OJ. Enthalpies of formation at 970 K of compounds in the system MgO-Al2O3-SiO2 from high temperature solution calorimetry. Geochimica et Cosmochimica Acta. 1975 Nov;39(11):1487–97. doi:10.1016/0016-7037(75)90150-7
+[22] Bowen NL, Schairer JF. The system MgO-FeO-SiO2. American Journal of Science. 1935 Feb 1;s5-29(170):151–217. doi:10.2475/ajs.s5-29.170.151
 
-[23] Yang H, Hu C, Zhou Y, Liu X, Shi Y, Li J, et al. MatterSim: A Deep Learning Atomistic Model Across Elements, Temperatures and Pressures. arXiv; 2024. doi:10.48550/ARXIV.2405.04967
+[23] Greig JW. Immiscibility in silicate melts; Part I. American Journal of Science. 1927 Jan 1;s5-13(73):1–44. doi:10.2475/ajs.s5-13.73.1
 
-[24] Neumann M, Gin J, Rhodes B, Bennett S, Li Z, Choubisa H, et al. Orb: A Fast, Scalable Neural Network Potential. arXiv; 2024. doi:10.48550/ARXIV.2410.22570
+[24] Greig JW. Immiscibility in silicate melts; Part II. American Journal of Science. 1927 Feb 1;s5-13(74):133–54. doi:10.2475/ajs.s5-13.74.133
 
-[25] Wood BJ, Kleppa OJ. Thermochemistry of forsterite-fayalite olivine solutions. Geochimica et Cosmochimica Acta. 1981 Apr;45(4):529–34. doi:10.1016/0016-7037(81)90185-X
+[25] Charlu TV, Newton RC, Kleppa OJ. Enthalpies of formation at 970 K of compounds in the system MgO-Al2O3-SiO2 from high temperature solution calorimetry. Geochimica et Cosmochimica Acta. 1975 Nov;39(11):1487–97. doi:10.1016/0016-7037(75)90150-7
 
-[26] Wu P, Eriksson G, Pelton AD, Blander M. Prediction of the Thermodynamic Properties and Phase Diagrams of Silicate Systems-Evaluation of the FeO-MgO-SiO2 System. ISIJ International. 1993;33(1):26–35. doi:10.2355/isijinternational.33.26
+[26] Yang H, Hu C, Zhou Y, Liu X, Shi Y, Li J, et al. MatterSim: A Deep Learning Atomistic Model Across Elements, Temperatures and Pressures. arXiv; 2024. doi:10.48550/ARXIV.2405.04967
 
-[27] Barin I. Thermochemical Data of Pure Substances. 3rd ed. Weinheim: VCH; 1995. doi:10.1002/9783527619825
+[27] Neumann M, Gin J, Rhodes B, Bennett S, Li Z, Choubisa H, et al. Orb: A Fast, Scalable Neural Network Potential. arXiv; 2024. doi:10.48550/ARXIV.2410.22570
 
-[28] Hersh LS, Kleppa OJ. Enthalpies of Mixing in Some Binary Liquid Halide Mixtures. J Chem Phys. 1965;42:1309. doi:10.1063/1.1696115
+[28] Wood BJ, Kleppa OJ. Thermochemistry of forsterite-fayalite olivine solutions. Geochimica et Cosmochimica Acta. 1981 Apr;45(4):529–34. doi:10.1016/0016-7037(81)90185-X
 
-[29] Sangster J, Pelton AD. Phase Diagrams and Thermodynamic Properties of the 70 Binary Alkali Halide Systems Having Common Ions. J Phys Chem Ref Data. 1987;16:509. doi:10.1063/1.555803
+[29] Wu P, Eriksson G, Pelton AD, Blander M. Prediction of the Thermodynamic Properties and Phase Diagrams of Silicate Systems-Evaluation of the FeO-MgO-SiO2 System. ISIJ International. 1993;33(1):26–35. doi:10.2355/isijinternational.33.26
+
+[30] Barin I. Thermochemical Data of Pure Substances. 3rd ed. Weinheim: VCH; 1995. doi:10.1002/9783527619825
+
+[31] Hersh LS, Kleppa OJ. Enthalpies of Mixing in Some Binary Liquid Halide Mixtures. J Chem Phys. 1965;42:1309. doi:10.1063/1.1696115
+
+[32] Sangster J, Pelton AD. Phase Diagrams and Thermodynamic Properties of the 70 Binary Alkali Halide Systems Having Common Ions. J Phys Chem Ref Data. 1987;16:509. doi:10.1063/1.555803
+
+[33] an Mey S. Reevaluation of the Al-Zn system. Z Metallkd. 1993;84(7):451-5. doi:10.1515/ijmr-1993-840704
+
+[34] Dinsdale AT. SGTE data for pure elements. Calphad. 1991 Oct;15(4):317-425. doi:10.1016/0364-5916(91)90030-N

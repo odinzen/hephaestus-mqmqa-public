@@ -3,6 +3,22 @@
 Updated 2026-09-02 (final pass). Manuscript updated to release v0.2.0, cover letter rebuilt
 on the Odinzen letterhead, gates re-run. Ready for the two submission clicks below.
 
+## Done (2026-09-02, fourth pass - v0.3.0)
+
+- TDB front-end shipped: the engine reads the Thermo-Calc dialect; validated on pycalphad's
+  own test databases to ~1e-10 J/mol-atom (Al-Zn, Pb-Sn, Al-Mg), out-of-subset models fail
+  loudly, suite now 81 passed. Browser gained alloy mode, the open AlZn.tdb example (own
+  transcription of an Mey 1993 on Dinsdale unaries, verified bit-identical via pycalphad),
+  and Scheil solidification on both chemistries.
+- Manuscript rewritten around it: universal-reader abstract, workflow-stack introduction
+  (FactSage, Thermo-Calc, OpenCalphad, pycalphad, CemGEMS), ChemSage lineage cited, TDB
+  reader and Python API in Implementation, six-tool browser paragraph with Scheil, QC rows
+  for the TDB oracle and scope guard, release-practice line, and a Worked examples
+  subsection with the salt and alloy listings and Figures 4-5 (run verbatim; outputs match
+  the figures). Five new registry-verified references (argus check 5/5 ok); full renumber
+  to 34 entries, argus order green (34/34, figures 1-5, tables 1-2).
+- Version bumped to v0.3.0 throughout (software location, data availability, cover letter).
+
 ## Done (2026-09-02, third pass)
 
 - main pushed (public repo now matches the deployed site) and release v0.2.0 tagged and pushed.

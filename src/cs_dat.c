@@ -728,10 +728,18 @@ static void free_db(Db *db)
 /* ------------------------------------------------------------------ *
  * Public entry points
  * ------------------------------------------------------------------ */
+/* TDB front-end (defined at the end of this file). Detects and parses the
+ * Thermo-Calc TDB dialect into the same Db the ChemSage reader builds. */
+static int tdb_detect(const char *text);
+static Db *read_tdb(char *text_owned);
+
 static Db *read_from_text(char *text_owned)
 {
     /* Uppercase in place, matching pycalphad's reader so species names align. */
     for (char *p = text_owned; *p; ++p) *p = (char)toupper((unsigned char)*p);
+
+    if (tdb_detect(text_owned))
+        return read_tdb(text_owned);
 
     Lexer lx;
     memset(&lx, 0, sizeof lx);
@@ -1009,4 +1017,1085 @@ void mqmqa_enumerate_quadruplets(int n_cat, int n_an, int *ca, int *cb, int *ax,
                     ca[n] = i; cb[n] = j; ax[n] = k; ay[n] = l;
                     ++n;
                 }
+}
+
+/* ================================================================== *
+ * TDB front-end
+ *
+ * Reads the Thermo-Calc TDB dialect (the CALPHAD lingua franca used by
+ * Thermo-Calc, OpenCalphad and pycalphad) into the same in-memory Db the
+ * ChemSage reader builds, so every accessor, the Python binding and the
+ * WASM build work unchanged. Clean-room from the published format as
+ * handled by pycalphad's open-source parser; pycalphad is the oracle.
+ *
+ * v1 subset: ELEMENT / SPECIES / FUNCTION (piecewise, nested references) /
+ * PHASE + CONSTITUENT (compound-energy formalism) / PARAMETER G and L
+ * (Redlich-Kister, single mixing pair per term). Anything outside the
+ * subset (magnetic TC/BMAGN, order-disorder partitions, the ionic
+ * two-sublattice liquid, ternary interactions) fails loudly with a
+ * message rather than computing silently wrong energies.
+ * ================================================================== */
+
+#define TDB_MAX_SEG   24
+#define TDB_MAX_TERMS 48
+#define TDB_MAX_FUNCS 4096
+#define TDB_MAX_SUBL  10
+#define TDB_MAX_CON   64
+
+/* one additive term: c * T^power, c * T*ln(T), or c * FUNC(T) */
+typedef struct {
+    double c;
+    int kind;        /* 0 = T^power, 1 = T*ln(T), 2 = function reference */
+    double power;
+    int func;        /* kind==2: index into the function table */
+    /* deferred combinations, folded at resolution when the tables are complete:
+     * func2   : second function in a product (one of the two must be constant)
+     * fpow_on : the function is raised to fpow (must then be constant)
+     * tmul    : 0 none, 1 times T^power, 2 times T*ln(T) (function must be constant) */
+    int func2;
+    int fpow_on; double fpow;
+    int tmul;
+} TdbTerm;
+
+typedef struct {
+    double lo, hi;
+    int n;
+    TdbTerm t[TDB_MAX_TERMS];
+} TdbSeg;
+
+typedef struct {
+    char name[NAME_MAX];
+    int n_seg;
+    TdbSeg seg[TDB_MAX_SEG];
+    int state;       /* 0 unresolved, 1 resolving (cycle guard), 2 resolved */
+} TdbFunc;
+
+typedef struct {
+    char name[NAME_MAX];
+    int n_el;                 /* element composition (indices into db element list) */
+    int el[8];
+    double n[8];
+    double atoms;             /* total real atoms per formula (0 for VA) */
+} TdbSpecies;
+
+typedef struct {
+    char name[NAME_MAX];
+    int n_subl;
+    double ratio[TDB_MAX_SUBL];
+    int ncon[TDB_MAX_SUBL];
+    char con[TDB_MAX_SUBL][TDB_MAX_CON][NAME_MAX];
+    int flags_magnetic, flags_order;
+} TdbPhase;
+
+typedef struct {
+    char phase[NAME_MAX];
+    int con[TDB_MAX_SUBL][2]; /* up to two constituents per sublattice (local idx) */
+    int ncon[TDB_MAX_SUBL];
+    int order;                /* Redlich-Kister order */
+    TdbSeg expr[TDB_MAX_SEG]; /* parsed expression segments (resolved later) */
+    int n_seg;
+} TdbParam;
+
+typedef struct {
+    Lexer *lx;                /* shares the error longjmp */
+    char *cur;                /* scan position in the uppercased text */
+    int line;
+    /* symbol tables */
+    int n_func;  TdbFunc  *func;
+    int n_el;    char (*el_name)[NAME_MAX]; double *el_mass;
+    int n_sp;    TdbSpecies *sp;
+    int n_ph;    TdbPhase *ph;
+    int n_par;   TdbParam *par; int cap_par;
+    char magnetic_typedefs[16]; int n_mag_td;
+    char order_typedefs[16];    int n_ord_td;
+} Tdb;
+
+static void tdb_fail(Tdb *tb, const char *what)
+{
+    snprintf(tb->lx->err, sizeof tb->lx->err, "TDB line %d: %s", tb->line, what);
+    longjmp(tb->lx->jb, 1);
+}
+
+static int tdb_detect(const char *text)
+{
+    /* First non-comment, non-blank line starting with a TDB keyword. */
+    const char *p = text;
+    for (int lines = 0; lines < 200 && *p; ++lines) {
+        while (*p == ' ' || *p == '\t' || *p == '\r') p++;
+        if (*p == '$') { while (*p && *p != '\n') p++; if (*p) p++; continue; }
+        if (*p == '\n') { p++; continue; }
+        {
+            static const char *kw[] = { "ELEM", "SPEC", "FUNC",
+                "TYPE_DEF", "PHAS", "DATABASE_INFO", "TEMP_LIM",
+                "TEMPERATURE_LIMITS", "VERSION_DATE", "REFERENCE_FILE",
+                "ASSESSED_SYSTEMS", NULL };
+            int k;
+            for (k = 0; kw[k]; ++k) {
+                size_t n = strlen(kw[k]);
+                if (strncmp(p, kw[k], n) == 0)
+                    return 1;
+            }
+        }
+        return 0;   /* first real line is not a TDB statement */
+    }
+    return 0;
+}
+
+/* ---- statement scanning: everything up to '!', with '$' comments ---- */
+
+static char *tdb_next_statement(Tdb *tb)
+{
+    char *p = tb->cur;
+    for (;;) {
+        while (*p == ' ' || *p == '\t' || *p == '\r') p++;
+        if (*p == '\n') { tb->line++; p++; continue; }
+        if (*p == '$') { while (*p && *p != '\n') p++; continue; }
+        break;
+    }
+    if (!*p) { tb->cur = p; return NULL; }
+    {
+        char *start = p;
+        while (*p && *p != '!') {
+            if (*p == '\n') tb->line++;
+            else if (*p == '$') { while (*p && *p != '\n') *p++ = ' '; continue; }
+            p++;
+        }
+        if (*p == '!') { *p = '\0'; p++; }
+        tb->cur = p;
+        return start;
+    }
+}
+
+/* ---- in-statement tokens: words and single punctuation characters ---- */
+
+static char *tdb_word(char **s, char *buf, size_t bufsz)
+{
+    char *p = *s;
+    size_t n = 0;
+    while (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n') p++;
+    if (!*p) { *s = p; return NULL; }
+    if (strchr(",:;()*", *p)) { buf[n++] = *p++; }
+    else {
+        while (*p && !strchr(" \t\r\n,:;()", *p)) {
+            if (n + 1 < bufsz) buf[n++] = *p;
+            p++;
+        }
+    }
+    buf[n] = '\0';
+    *s = p;
+    return buf;
+}
+
+static char tdb_peekc(char *s)
+{
+    while (*s == ' ' || *s == '\t' || *s == '\r' || *s == '\n') s++;
+    return *s;
+}
+
+/* ---- expression parsing ---- */
+
+static int tdb_func_const(Tdb *tb, int fi, double *val);
+
+static int tdb_func_index(Tdb *tb, const char *name)
+{
+    int i;
+    for (i = 0; i < tb->n_func; ++i)
+        if (strcmp(tb->func[i].name, name) == 0) return i;
+    return -1;
+}
+
+static void tdb_parse_expr(Tdb *tb, char **s, TdbSeg *seg)
+{
+    double sign = 1.0;
+    seg->n = 0;
+    for (;;) {
+        char c = tdb_peekc(*s);
+        double coeff = 1.0;
+        int have_num = 0;
+        int kind = 0; double power = 0.0; int func = -1;
+        int power_set = 0;
+        int func2 = -1, fpow_on = 0, tmul = 0; double fpow = 1.0;
+        if (c == '\0' || c == ';') break;
+        for (;;) {
+            while (**s == ' ' || **s == '\t' || **s == '\r' || **s == '\n') (*s)++;
+            c = **s;
+            if (c == '+' || c == '-') {
+                if (have_num || power_set || func >= 0 || kind == 1) break;
+                if (c == '-') sign = -sign;
+                (*s)++;
+                continue;
+            }
+            if ((c >= '0' && c <= '9') || c == '.') {
+                char *end = NULL;
+                double v = strtod(*s, &end);
+                if (end == *s) tdb_fail(tb, "bad number in expression");
+                *s = end;
+                coeff *= v; have_num = 1;
+            } else if (c == 'T' && !isalnum((unsigned char)(*s)[1]) && (*s)[1] != '_') {
+                (*s)++;
+                if ((*s)[0] == '*' && (*s)[1] == '*') {
+                    char *end = NULL; double v; int paren;
+                    *s += 2;
+                    while (**s == ' ') (*s)++;
+                    paren = (**s == '(');
+                    if (paren) (*s)++;
+                    v = strtod(*s, &end);
+                    if (end == *s) tdb_fail(tb, "bad exponent");
+                    *s = end;
+                    if (paren) { while (**s == ' ') (*s)++; if (**s == ')') (*s)++; }
+                    power += v; power_set = 1;
+                } else if (strncmp(*s, "*LN(T)", 6) == 0) {
+                    *s += 6; kind = 1;
+                } else {
+                    power += 1.0; power_set = 1;
+                }
+            } else if (strncmp(*s, "LN(T)", 5) == 0) {
+                tdb_fail(tb, "standalone LN(T) term is outside the v1 subset");
+            } else if (strncmp(*s, "EXP(", 4) == 0) {
+                tdb_fail(tb, "EXP(...) term is outside the v1 subset");
+            } else if (isalpha((unsigned char)c) || c == '_') {
+                char name[NAME_MAX]; size_t n = 0;
+                int fi;
+                while (**s && (isalnum((unsigned char)**s) || **s == '_')) {
+                    if (n + 1 < sizeof name) name[n++] = **s;
+                    (*s)++;
+                }
+                name[n] = '\0';
+                if (**s == '#') (*s)++;
+                fi = tdb_func_index(tb, name);
+                if (fi < 0) {
+                    if (tb->n_func >= TDB_MAX_FUNCS) tdb_fail(tb, "too many functions");
+                    fi = tb->n_func++;
+                    snprintf(tb->func[fi].name, NAME_MAX, "%s", name);
+                    tb->func[fi].n_seg = 0;
+                }
+                /* NAME#**n : store the power, folded at resolution time */
+                while (**s == ' ') (*s)++;
+                if ((*s)[0] == '*' && (*s)[1] == '*') {
+                    char *end = NULL; double v; int paren;
+                    *s += 2;
+                    while (**s == ' ') (*s)++;
+                    paren = (**s == '(');
+                    if (paren) (*s)++;
+                    v = strtod(*s, &end);
+                    if (end == *s) tdb_fail(tb, "bad exponent");
+                    *s = end;
+                    if (paren) { while (**s == ' ') (*s)++; if (**s == ')') (*s)++; }
+                    if (func >= 0) tdb_fail(tb, "product of powered functions is outside the v1 subset");
+                    func = fi; kind = 2; fpow_on = 1; fpow = v; fi = -1;
+                }
+                if (fi >= 0 && func >= 0) {
+                    if (func2 >= 0) tdb_fail(tb, "product of three functions is outside the v1 subset");
+                    func2 = fi; fi = -1;
+                }
+                if (fi >= 0) { func = fi; kind = 2; }
+            } else {
+                break;
+            }
+            while (**s == ' ') (*s)++;
+            if (**s == '*' && (*s)[1] != '*') (*s)++;
+        }
+        if (!have_num && !power_set && func < 0 && kind != 1) break;
+        if (seg->n >= TDB_MAX_TERMS) tdb_fail(tb, "too many terms in one segment");
+        {
+            TdbTerm *t = &seg->t[seg->n++];
+            t->c = sign * coeff;
+            if (func >= 0 && (power_set || kind == 1)) {
+                tmul = power_set ? 1 : 2;
+                kind = 2;
+            }
+            t->kind = kind; t->power = power; t->func = func;
+            t->func2 = func2; t->fpow_on = fpow_on; t->fpow = fpow; t->tmul = tmul;
+        }
+        sign = 1.0;
+    }
+}
+
+/* Parse "lowT expr ; T Y expr ; ... T N [ref]" into segments. */
+static int tdb_parse_piecewise(Tdb *tb, char **s, TdbSeg *seg, int max_seg)
+{
+    char buf[NAME_MAX];
+    char *end = NULL;
+    double lo;
+    int n = 0;
+    if (!tdb_word(s, buf, sizeof buf)) tdb_fail(tb, "missing lower temperature limit");
+    lo = strtod(buf, &end);
+    if (end == buf) tdb_fail(tb, "bad lower temperature limit");
+    for (;;) {
+        double hi;
+        if (n >= max_seg) tdb_fail(tb, "too many temperature intervals");
+        seg[n].lo = lo;
+        tdb_parse_expr(tb, s, &seg[n]);
+        while (**s == ' ' || **s == '\t' || **s == '\r' || **s == '\n') (*s)++;
+        if (**s == ';') (*s)++;
+        if (!tdb_word(s, buf, sizeof buf)) { seg[n].hi = 6000.0; n++; break; }
+        hi = strtod(buf, &end);
+        if (end == buf) { seg[n].hi = 6000.0; n++; break; }  /* trailing ref name */
+        seg[n].hi = hi; n++;
+        if (!tdb_word(s, buf, sizeof buf)) break;
+        if (buf[0] == 'Y') { lo = hi; continue; }
+        break;   /* 'N': the rest of the statement is the reference */
+    }
+    return n;
+}
+
+/* ---- resolution: inline function references, splitting at breakpoints ---- */
+
+static void tdb_resolve_func(Tdb *tb, int fi);
+
+static void tdb_collect_breaks(Tdb *tb, const TdbSeg *seg, double lo, double hi,
+                               double *br, int *n_br, int max_br)
+{
+    int i;
+    for (i = 0; i < seg->n; ++i) {
+        int fi, k;
+        TdbFunc *f;
+        if (seg->t[i].kind != 2) continue;
+        if (seg->t[i].fpow_on || seg->t[i].tmul) continue;   /* folds to a constant */
+        fi = seg->t[i].func;
+        if (seg->t[i].func2 >= 0) {
+            double cv;
+            if (tdb_func_const(tb, fi, &cv)) fi = seg->t[i].func2;
+        }
+        tdb_resolve_func(tb, fi);
+        f = &tb->func[fi];
+        for (k = 0; k < f->n_seg; ++k) {
+            double b[2]; int j;
+            b[0] = f->seg[k].lo; b[1] = f->seg[k].hi;
+            for (j = 0; j < 2; ++j) {
+                int seen = 0, m;
+                if (b[j] <= lo + 1e-9 || b[j] >= hi - 1e-9) continue;
+                for (m = 0; m < *n_br; ++m)
+                    if (fabs(br[m] - b[j]) < 1e-9) { seen = 1; break; }
+                if (!seen) {
+                    if (*n_br >= max_br) tdb_fail(tb, "too many interval breakpoints");
+                    br[(*n_br)++] = b[j];
+                }
+            }
+        }
+    }
+}
+
+static void tdb_add_term(Tdb *tb, TdbSeg *dst, double c, int kind, double power)
+{
+    int i;
+    if (fabs(c) < 1e-300) return;
+    for (i = 0; i < dst->n; ++i) {
+        if (dst->t[i].kind == kind &&
+            (kind == 1 || fabs(dst->t[i].power - power) < 1e-12)) {
+            dst->t[i].c += c;
+            return;
+        }
+    }
+    if (dst->n >= TDB_MAX_TERMS) tdb_fail(tb, "too many terms after expansion");
+    dst->t[dst->n].c = c;
+    dst->t[dst->n].kind = kind;
+    dst->t[dst->n].power = power;
+    dst->t[dst->n].func = -1;
+    dst->t[dst->n].func2 = -1;
+    dst->t[dst->n].fpow_on = 0; dst->t[dst->n].fpow = 1.0;
+    dst->t[dst->n].tmul = 0;
+    dst->n++;
+}
+
+static void tdb_expand_into(Tdb *tb, const TdbSeg *seg, double lo, double hi,
+                            double scale, TdbSeg *out, int *n_out, int max_out)
+{
+    double br[TDB_MAX_SEG * 4]; int n_br = 0;
+    double a;
+    int piece, i;
+    tdb_collect_breaks(tb, seg, lo, hi, br, &n_br, (int)(sizeof br / sizeof br[0]));
+    for (i = 1; i < n_br; ++i) {
+        double v = br[i]; int j = i - 1;
+        while (j >= 0 && br[j] > v) { br[j + 1] = br[j]; j--; }
+        br[j + 1] = v;
+    }
+    a = lo;
+    for (piece = 0; piece <= n_br; ++piece) {
+        double b = (piece < n_br) ? br[piece] : hi;
+        TdbSeg *dst = NULL;
+        if (b <= a + 1e-9) { a = b; continue; }
+        for (i = 0; i < *n_out; ++i)
+            if (fabs(out[i].lo - a) < 1e-9 && fabs(out[i].hi - b) < 1e-9) { dst = &out[i]; break; }
+        if (!dst) {
+            if (*n_out >= max_out) tdb_fail(tb, "too many intervals after expansion");
+            dst = &out[(*n_out)++];
+            dst->lo = a; dst->hi = b; dst->n = 0;
+        }
+        for (i = 0; i < seg->n; ++i) {
+            const TdbTerm *t = &seg->t[i];
+            TdbFunc *f;
+            const TdbSeg *src = NULL;
+            int k;
+            if (t->kind != 2) {
+                tdb_add_term(tb, dst, scale * t->c, t->kind, t->power);
+                continue;
+            }
+            {
+                double cmul = scale * t->c;
+                int fmain = t->func;
+                if (t->func2 >= 0) {
+                    double cv;
+                    if (tdb_func_const(tb, t->func2, &cv)) cmul *= cv;
+                    else if (tdb_func_const(tb, fmain, &cv)) { cmul *= cv; fmain = t->func2; }
+                    else tdb_fail(tb, "product of two non-constant functions is outside the v1 subset");
+                }
+                if (t->fpow_on) {
+                    double cv;
+                    if (!tdb_func_const(tb, fmain, &cv))
+                        tdb_fail(tb, "power of a non-constant function is outside the v1 subset");
+                    tdb_add_term(tb, dst, cmul * pow(cv, t->fpow), 0, 0.0);
+                    continue;
+                }
+                if (t->tmul) {
+                    double cv;
+                    if (!tdb_func_const(tb, fmain, &cv))
+                        tdb_fail(tb, "function times T-power is outside the v1 subset");
+                    tdb_add_term(tb, dst, cmul * cv, t->tmul == 2 ? 1 : 0, t->power);
+                    continue;
+                }
+                tdb_resolve_func(tb, fmain);
+                f = &tb->func[fmain];
+                for (k = 0; k < f->n_seg; ++k)
+                    if (a >= f->seg[k].lo - 1e-9 && b <= f->seg[k].hi + 1e-9) { src = &f->seg[k]; break; }
+                if (!src && f->n_seg > 0)
+                    src = (a < f->seg[0].lo) ? &f->seg[0] : &f->seg[f->n_seg - 1];
+                if (!src) tdb_fail(tb, "reference to an empty function");
+                for (k = 0; k < src->n; ++k) {
+                    if (src->t[k].kind == 2) tdb_fail(tb, "unresolved nested reference");
+                    tdb_add_term(tb, dst, cmul * src->t[k].c,
+                                 src->t[k].kind, src->t[k].power);
+                }
+            }
+        }
+        a = b;
+    }
+}
+
+static void tdb_resolve_func(Tdb *tb, int fi)
+{
+    TdbFunc *f = &tb->func[fi];
+    TdbSeg out[TDB_MAX_SEG]; int n_out = 0;
+    int k, i;
+    if (f->state == 2) return;
+    if (f->state == 1) tdb_fail(tb, "circular function reference");
+    if (f->n_seg == 0) {
+        snprintf(tb->lx->err, sizeof tb->lx->err,
+                 "TDB: function %s referenced but never defined", f->name);
+        longjmp(tb->lx->jb, 1);
+    }
+    f->state = 1;
+    for (k = 0; k < f->n_seg; ++k)
+        tdb_expand_into(tb, &f->seg[k], f->seg[k].lo, f->seg[k].hi, 1.0,
+                        out, &n_out, TDB_MAX_SEG);
+    for (i = 1; i < n_out; ++i) {
+        TdbSeg v = out[i]; int j = i - 1;
+        while (j >= 0 && out[j].lo > v.lo) { out[j + 1] = out[j]; j--; }
+        out[j + 1] = v;
+    }
+    f->n_seg = n_out;
+    memcpy(f->seg, out, (size_t)n_out * sizeof(TdbSeg));
+    f->state = 2;
+}
+
+/* If the function resolves to a pure constant (the SGTE UNTIER/TROIS idiom),
+ * return 1 and the value; used to fold products and powers of such refs. */
+static int tdb_func_const(Tdb *tb, int fi, double *val)
+{
+    TdbFunc *f;
+    int k;
+    tdb_resolve_func(tb, fi);
+    f = &tb->func[fi];
+    if (f->n_seg < 1) return 0;
+    if (f->seg[0].n == 0) { *val = 0.0; }
+    else if (f->seg[0].n == 1 && f->seg[0].t[0].kind == 0 &&
+             fabs(f->seg[0].t[0].power) < 1e-12) *val = f->seg[0].t[0].c;
+    else return 0;
+    for (k = 1; k < f->n_seg; ++k) {
+        if (f->seg[k].n == 0) { if (fabs(*val) > 1e-300) return 0; continue; }
+        if (!(f->seg[k].n == 1 && f->seg[k].t[0].kind == 0 &&
+              fabs(f->seg[k].t[0].power) < 1e-12 &&
+              fabs(f->seg[k].t[0].c - *val) < 1e-9 * (1.0 + fabs(*val)))) return 0;
+    }
+    return 1;
+}
+
+static int tdb_resolve_param(Tdb *tb, TdbSeg *raw, int n_raw, TdbSeg *out, int max_out)
+{
+    int n_out = 0, k, i;
+    for (k = 0; k < n_raw; ++k)
+        tdb_expand_into(tb, &raw[k], raw[k].lo, raw[k].hi, 1.0, out, &n_out, max_out);
+    for (i = 1; i < n_out; ++i) {
+        TdbSeg v = out[i]; int j = i - 1;
+        while (j >= 0 && out[j].lo > v.lo) { out[j + 1] = out[j]; j--; }
+        out[j + 1] = v;
+    }
+    return n_out;
+}
+
+/* ---- conversion into the shared Db representation ---- */
+
+static void *tdb_alloc(Tdb *tb, size_t n)
+{
+    void *p = calloc(1, n);
+    if (!p) tdb_fail(tb, "out of memory");
+    return p;
+}
+
+/* Basis terms map onto the ChemSage coefficient slots (1, T, T ln T, T^2,
+ * T^3, 1/T); every other power becomes an additional (coeff, exponent) pair. */
+static void tdb_fill_endmember(Tdb *tb, Endmember *em, const TdbSeg *seg, int n_seg)
+{
+    int k;
+    em->n_intervals = n_seg > 0 ? n_seg : 1;
+    em->intervals = tdb_alloc(tb, (size_t)em->n_intervals * sizeof(Interval));
+    if (n_seg == 0) { em->intervals[0].t_max = 1e12; return; }
+    for (k = 0; k < n_seg; ++k) {
+        Interval *iv = &em->intervals[k];
+        int n_add = 0, i, j;
+        iv->t_max = seg[k].hi;
+        for (i = 0; i < seg[k].n; ++i) {
+            const TdbTerm *t = &seg[k].t[i];
+            double p;
+            if (t->kind == 1) { iv->coeff[2] += t->c; continue; }   /* T ln T */
+            p = t->power;
+            if      (fabs(p - 0.0) < 1e-12) iv->coeff[0] += t->c;
+            else if (fabs(p - 1.0) < 1e-12) iv->coeff[1] += t->c;
+            else if (fabs(p - 2.0) < 1e-12) iv->coeff[3] += t->c;
+            else if (fabs(p - 3.0) < 1e-12) iv->coeff[4] += t->c;
+            else if (fabs(p + 1.0) < 1e-12) iv->coeff[5] += t->c;
+            else n_add++;
+        }
+        if (n_add) {
+            iv->n_add = n_add;
+            iv->add_c = tdb_alloc(tb, (size_t)n_add * sizeof(double));
+            iv->add_e = tdb_alloc(tb, (size_t)n_add * sizeof(double));
+            j = 0;
+            for (i = 0; i < seg[k].n; ++i) {
+                const TdbTerm *t = &seg[k].t[i];
+                double p;
+                if (t->kind != 0) continue;
+                p = t->power;
+                if (fabs(p) < 1e-12 || fabs(p - 1.0) < 1e-12 || fabs(p - 2.0) < 1e-12 ||
+                    fabs(p - 3.0) < 1e-12 || fabs(p + 1.0) < 1e-12) continue;
+                iv->add_c[j] = t->c; iv->add_e[j] = p; j++;
+            }
+        }
+    }
+    /* TDB convention (matching pycalphad): the last interval extrapolates above
+     * its upper bound instead of dropping to zero as ChemSage data do. */
+    em->intervals[em->n_intervals - 1].t_max = 1e12;
+}
+
+static void tdb_fill_excess(Tdb *tb, double *coeff6, const TdbSeg *seg, int n_seg)
+{
+    int i;
+    if (n_seg > 1) tdb_fail(tb, "piecewise interaction parameter is outside the v1 subset");
+    if (n_seg == 0) return;
+    for (i = 0; i < seg[0].n; ++i) {
+        const TdbTerm *t = &seg[0].t[i];
+        double p;
+        if (t->kind == 1) { coeff6[2] += t->c; continue; }
+        p = t->power;
+        if      (fabs(p - 0.0) < 1e-12) coeff6[0] += t->c;
+        else if (fabs(p - 1.0) < 1e-12) coeff6[1] += t->c;
+        else if (fabs(p - 2.0) < 1e-12) coeff6[3] += t->c;
+        else if (fabs(p - 3.0) < 1e-12) coeff6[4] += t->c;
+        else if (fabs(p + 1.0) < 1e-12) coeff6[5] += t->c;
+        else tdb_fail(tb, "interaction parameter with a non-polynomial term is outside the v1 subset");
+    }
+}
+
+static const TdbSpecies *tdb_species(Tdb *tb, const char *name)
+{
+    int i;
+    for (i = 0; i < tb->n_sp; ++i)
+        if (strcmp(tb->sp[i].name, name) == 0) return &tb->sp[i];
+    return NULL;
+}
+
+static int tdb_element_index(Tdb *tb, const char *name)
+{
+    int i;
+    for (i = 0; i < tb->n_el; ++i)
+        if (strcmp(tb->el_name[i], name) == 0) return i;
+    return -1;
+}
+
+/* parse a species stoichiometry string like AL2O3 or NA1CL1 or O1/-2 */
+static void tdb_parse_composition(Tdb *tb, const char *s, TdbSpecies *sp)
+{
+    const char *p = s;
+    sp->n_el = 0; sp->atoms = 0.0;
+    while (*p && *p != '/') {
+        char el[3];
+        char *end = NULL;
+        double n;
+        el[0] = el[1] = el[2] = '\0';
+        if (!isalpha((unsigned char)*p)) tdb_fail(tb, "bad species stoichiometry");
+        el[0] = *p++;
+        if (isalpha((unsigned char)*p)) {
+            char two[3];
+            two[0] = el[0]; two[1] = *p; two[2] = '\0';
+            if (tdb_element_index(tb, two) >= 0) { el[1] = *p; p++; }
+        }
+        n = strtod(p, &end);
+        if (end == p) n = 1.0; else p = end;
+        if (strcmp(el, "VA") != 0) {
+            int ei = tdb_element_index(tb, el);
+            if (ei < 0) tdb_fail(tb, "species uses an element not declared");
+            if (sp->n_el >= 8) tdb_fail(tb, "species with too many elements");
+            sp->el[sp->n_el] = ei; sp->n[sp->n_el] = n; sp->n_el++;
+            sp->atoms += n;
+        }
+        if (*p == '/') break;
+    }
+}
+
+/* ---- assemble the Db ---- */
+
+static Db *tdb_build_db(Tdb *tb)
+{
+    Db *db = calloc(1, sizeof(Db));
+    int i, p, q, s;
+    if (!db) tdb_fail(tb, "out of memory");
+    db->n_el = tb->n_el;
+    db->el_name = calloc((size_t)tb->n_el, NAME_MAX);
+    db->el_mass = calloc((size_t)tb->n_el, sizeof(double));
+    if (!db->el_name || !db->el_mass) tdb_fail(tb, "out of memory");
+    for (i = 0; i < tb->n_el; ++i) {
+        snprintf(db->el_name[i], NAME_MAX, "%s", tb->el_name[i]);
+        db->el_mass[i] = tb->el_mass[i];
+    }
+    db->n_gibbs = 6;
+    for (i = 0; i < 6; ++i) db->gibbs_idx[i] = i + 1;
+    db->n_excess = 6;
+    for (i = 0; i < 6; ++i) db->excess_idx[i] = i + 1;
+
+    db->phases = calloc((size_t)(tb->n_ph > 0 ? tb->n_ph : 1), sizeof(Phase));
+    db->stoich = calloc((size_t)(tb->n_ph > 0 ? tb->n_ph : 1), sizeof(Endmember));
+    if (!db->phases || !db->stoich) tdb_fail(tb, "out of memory");
+
+    for (p = 0; p < tb->n_ph; ++p) {
+        TdbPhase *tp = &tb->ph[p];
+        int is_stoich = 1;
+        if (tp->flags_magnetic)
+            tdb_fail(tb, "magnetic phase model is outside the v1 subset");
+        if (tp->flags_order)
+            tdb_fail(tb, "order-disorder phase model is outside the v1 subset");
+        for (s = 0; s < tp->n_subl; ++s)
+            if (tp->ncon[s] == 0) tdb_fail(tb, "phase with an empty sublattice");
+        for (s = 0; s < tp->n_subl; ++s)
+            if (tp->ncon[s] != 1) { is_stoich = 0; break; }
+
+        if (is_stoich) {
+            Endmember *em = &db->stoich[db->n_stoich];
+            TdbSeg out[TDB_MAX_SEG];
+            int found = 0, has_atoms = 0;
+            memset(em, 0, sizeof *em);
+            snprintf(em->name, NAME_MAX, "%s", tp->name);
+            em->stoich_el = calloc((size_t)tb->n_el, sizeof(double));
+            if (!em->stoich_el) tdb_fail(tb, "out of memory");
+            for (s = 0; s < tp->n_subl; ++s) {
+                const TdbSpecies *sp = tdb_species(tb, tp->con[s][0]);
+                int e;
+                if (!sp) {
+                    if (strcmp(tp->con[s][0], "VA") == 0) continue;
+                    tdb_fail(tb, "constituent is not a declared species");
+                }
+                for (e = 0; e < sp->n_el; ++e) {
+                    em->stoich_el[sp->el[e]] += tp->ratio[s] * sp->n[e];
+                    has_atoms = 1;
+                }
+            }
+            for (q = 0; q < tb->n_par; ++q) {
+                int n;
+                if (strcmp(tb->par[q].phase, tp->name) != 0) continue;
+                n = tdb_resolve_param(tb, tb->par[q].expr, tb->par[q].n_seg,
+                                      out, TDB_MAX_SEG);
+                tdb_fill_endmember(tb, em, out, n);
+                found = 1;
+                break;
+            }
+            if (!found || !has_atoms) { free(em->stoich_el); em->stoich_el = NULL; continue; }
+            db->n_stoich++;
+            continue;
+        }
+
+        /* CEF solution phase */
+        {
+        Phase *ph = &db->phases[db->n_phases++];
+        SublPhase *cf;
+        int n_con = 0, n_em = 0, n_ex = 0;
+        TdbSeg out[TDB_MAX_SEG];
+        memset(ph, 0, sizeof *ph);
+        snprintf(ph->name, NAME_MAX, "%s", tp->name);
+        ph->kind = 1;
+        ph->soln_type = -1;
+        cf = calloc(1, sizeof(SublPhase));
+        if (!cf) tdb_fail(tb, "out of memory");
+        ph->cef = cf;
+        cf->n_subl = tp->n_subl;
+        cf->site_ratio = calloc((size_t)tp->n_subl, sizeof(double));
+        cf->subl_ncon = calloc((size_t)tp->n_subl, sizeof(int));
+        cf->subl_off = calloc((size_t)tp->n_subl, sizeof(int));
+        if (!cf->site_ratio || !cf->subl_ncon || !cf->subl_off) tdb_fail(tb, "out of memory");
+        for (s = 0; s < tp->n_subl; ++s) {
+            cf->site_ratio[s] = tp->ratio[s];
+            cf->subl_ncon[s] = tp->ncon[s];
+            cf->subl_off[s] = n_con;
+            n_con += tp->ncon[s];
+        }
+        cf->n_con = n_con;
+        cf->con_name = calloc((size_t)n_con, NAME_MAX);
+        cf->con_atoms = calloc((size_t)n_con, sizeof(double));
+        if (!cf->con_name || !cf->con_atoms) tdb_fail(tb, "out of memory");
+        for (s = 0; s < tp->n_subl; ++s) {
+            for (i = 0; i < tp->ncon[s]; ++i) {
+                int fi = cf->subl_off[s] + i;
+                const TdbSpecies *sp;
+                snprintf(cf->con_name[fi], NAME_MAX, "%s", tp->con[s][i]);
+                if (strcmp(tp->con[s][i], "VA") == 0) { cf->con_atoms[fi] = 0.0; continue; }
+                sp = tdb_species(tb, tp->con[s][i]);
+                if (!sp) tdb_fail(tb, "constituent is not a declared species");
+                cf->con_atoms[fi] = sp->atoms;
+            }
+        }
+        for (q = 0; q < tb->n_par; ++q) {
+            int mixing = 0;
+            if (strcmp(tb->par[q].phase, tp->name) != 0) continue;
+            for (s = 0; s < tp->n_subl; ++s)
+                if (tb->par[q].ncon[s] == 2) mixing++;
+            if (mixing == 0) n_em++;
+            else if (mixing == 1) n_ex++;
+            else tdb_fail(tb, "interaction on two sublattices at once is outside the v1 subset");
+        }
+        cf->em = calloc((size_t)(n_em > 0 ? n_em : 1), sizeof(Endmember));
+        cf->em_con = calloc((size_t)(n_em > 0 ? n_em : 1) * (size_t)tp->n_subl, sizeof(int));
+        cf->ex = calloc((size_t)(n_ex > 0 ? n_ex : 1), sizeof(CefExcess));
+        if (!cf->em || !cf->em_con || !cf->ex) tdb_fail(tb, "out of memory");
+        for (q = 0; q < tb->n_par; ++q) {
+            TdbParam *pa = &tb->par[q];
+            int mixing_subl = -1, n;
+            if (strcmp(pa->phase, tp->name) != 0) continue;
+            for (s = 0; s < tp->n_subl; ++s)
+                if (pa->ncon[s] == 2) { mixing_subl = s; break; }
+            n = tdb_resolve_param(tb, pa->expr, pa->n_seg, out, TDB_MAX_SEG);
+            if (mixing_subl < 0) {
+                Endmember *em = &cf->em[cf->n_em];
+                memset(em, 0, sizeof *em);
+                snprintf(em->name, NAME_MAX, "%s", tp->name);
+                tdb_fill_endmember(tb, em, out, n);
+                for (s = 0; s < tp->n_subl; ++s)
+                    cf->em_con[cf->n_em * tp->n_subl + s] = pa->con[s][0];
+                cf->n_em++;
+            } else {
+                CefExcess *ex = &cf->ex[cf->n_ex];
+                int ci = pa->con[mixing_subl][0], cj = pa->con[mixing_subl][1];
+                memset(ex, 0, sizeof *ex);
+                ex->subl = mixing_subl;
+                if (strcmp(tp->con[mixing_subl][ci], tp->con[mixing_subl][cj]) > 0) {
+                    int t2 = ci; int k2, m2;
+                    ci = cj; cj = t2;
+                    if (pa->order % 2 == 1) {
+                        /* odd RK order: swapping the pair flips the sign */
+                        for (k2 = 0; k2 < pa->n_seg; ++k2)
+                            for (m2 = 0; m2 < pa->expr[k2].n; ++m2)
+                                pa->expr[k2].t[m2].c = -pa->expr[k2].t[m2].c;
+                        n = tdb_resolve_param(tb, pa->expr, pa->n_seg, out, TDB_MAX_SEG);
+                    }
+                }
+                ex->i = ci; ex->j = cj;
+                ex->order = pa->order;
+                ex->coeff = calloc(6, sizeof(double));
+                ex->other = calloc((size_t)tp->n_subl, sizeof(int));
+                if (!ex->coeff || !ex->other) tdb_fail(tb, "out of memory");
+                tdb_fill_excess(tb, ex->coeff, out, n);
+                for (s = 0; s < tp->n_subl; ++s)
+                    ex->other[s] = (s == mixing_subl) ? -1 : pa->con[s][0];
+                cf->n_ex++;
+            }
+        }
+        if (cf->n_em == 0)
+            tdb_fail(tb, "solution phase with no G parameters");
+        }
+    }
+    return db;
+}
+
+/* ---- the parse driver ---- */
+
+static Db *read_tdb(char *text_owned)
+{
+    Lexer lx;
+    Tdb tb;
+    Db *db = NULL;
+    memset(&lx, 0, sizeof lx);
+    lx.buf = text_owned;
+    lx.line = 1;
+    memset(&tb, 0, sizeof tb);
+    tb.lx = &lx;
+    tb.cur = text_owned;
+    tb.line = 1;
+
+    if (setjmp(lx.jb) == 0) {
+        char *st;
+        tb.func = calloc(TDB_MAX_FUNCS, sizeof(TdbFunc));
+        tb.el_name = calloc(64, NAME_MAX);
+        tb.el_mass = calloc(64, sizeof(double));
+        tb.sp = calloc(4096, sizeof(TdbSpecies));
+        tb.ph = calloc(512, sizeof(TdbPhase));
+        tb.cap_par = 32768;
+        tb.par = calloc((size_t)tb.cap_par, sizeof(TdbParam));
+        if (!tb.func || !tb.el_name || !tb.el_mass || !tb.sp || !tb.ph || !tb.par)
+            tdb_fail(&tb, "out of memory");
+
+        /* built-in: the gas constant, referenced as R# in some files */
+        {
+            int fi = tb.n_func++;
+            snprintf(tb.func[fi].name, NAME_MAX, "R");
+            tb.func[fi].n_seg = 1;
+            tb.func[fi].seg[0].lo = 0.01; tb.func[fi].seg[0].hi = 1e12;
+            tb.func[fi].seg[0].n = 1;
+            tb.func[fi].seg[0].t[0].c = 8.31451;
+            tb.func[fi].seg[0].t[0].kind = 0;
+            tb.func[fi].seg[0].t[0].power = 0.0;
+            tb.func[fi].seg[0].t[0].func = -1;
+        }
+        /* pass 0: register every FUNCTION from a scratch copy, so forward
+         * references (including constant folding) resolve during pass 1 */
+        {
+            size_t len = strlen(text_owned);
+            char *copy = malloc(len + 1);
+            if (!copy) tdb_fail(&tb, "out of memory");
+            memcpy(copy, text_owned, len + 1);
+            {
+                Tdb pre = tb;
+                pre.cur = copy; pre.line = 1;
+                while ((st = tdb_next_statement(&pre)) != NULL) {
+                    char *s = st;
+                    char kw[NAME_MAX], name[NAME_MAX];
+                    if (!tdb_word(&s, kw, sizeof kw)) continue;
+                    if (strncmp(kw, "FUN", 3) != 0) continue;
+                    if (!tdb_word(&s, name, sizeof name)) continue;
+                    {
+                        int fi = tdb_func_index(&pre, name);
+                        if (fi < 0) {
+                            if (pre.n_func >= TDB_MAX_FUNCS) tdb_fail(&pre, "too many functions");
+                            fi = pre.n_func++;
+                            snprintf(pre.func[fi].name, NAME_MAX, "%s", name);
+                        }
+                        pre.func[fi].n_seg = tdb_parse_piecewise(&pre, &s, pre.func[fi].seg, TDB_MAX_SEG);
+                        pre.func[fi].state = 0;
+                    }
+                }
+                tb.n_func = pre.n_func;   /* the table itself is shared storage */
+            }
+            free(copy);
+        }
+
+        while ((st = tdb_next_statement(&tb)) != NULL) {
+            char *s = st;
+            char kw[NAME_MAX];
+            if (!tdb_word(&s, kw, sizeof kw)) continue;
+
+            if (strncmp(kw, "ELEM", 4) == 0) {
+                char name[NAME_MAX], ref[NAME_MAX], w[NAME_MAX];
+                double mass = 0.0;
+                TdbSpecies *sp;
+                if (!tdb_word(&s, name, sizeof name)) tdb_fail(&tb, "ELEMENT without a name");
+                tdb_word(&s, ref, sizeof ref);
+                if (tdb_word(&s, w, sizeof w)) mass = atof(w);
+                if (strcmp(name, "/-") == 0 || strcmp(name, "VA") == 0) continue;
+                if (tb.n_el >= 64) tdb_fail(&tb, "too many elements");
+                snprintf(tb.el_name[tb.n_el], NAME_MAX, "%s", name);
+                tb.el_mass[tb.n_el] = mass;
+                sp = &tb.sp[tb.n_sp++];
+                snprintf(sp->name, NAME_MAX, "%s", name);
+                sp->n_el = 1; sp->el[0] = tb.n_el; sp->n[0] = 1.0; sp->atoms = 1.0;
+                tb.n_el++;
+            } else if (strncmp(kw, "SPEC", 4) == 0) {
+                char name[NAME_MAX], comp[NAME_MAX];
+                TdbSpecies *sp;
+                if (!tdb_word(&s, name, sizeof name) || !tdb_word(&s, comp, sizeof comp))
+                    tdb_fail(&tb, "malformed SPECIES");
+                if (strcmp(name, "VA") == 0) continue;
+                if (tb.n_sp >= 4096) tdb_fail(&tb, "too many species");
+                sp = &tb.sp[tb.n_sp++];
+                snprintf(sp->name, NAME_MAX, "%s", name);
+                tdb_parse_composition(&tb, comp, sp);
+            } else if (strncmp(kw, "FUN", 3) == 0) {
+                char name[NAME_MAX];
+                int fi;
+                if (!tdb_word(&s, name, sizeof name)) tdb_fail(&tb, "FUNCTION without a name");
+                fi = tdb_func_index(&tb, name);
+                if (fi < 0) {
+                    if (tb.n_func >= TDB_MAX_FUNCS) tdb_fail(&tb, "too many functions");
+                    fi = tb.n_func++;
+                    snprintf(tb.func[fi].name, NAME_MAX, "%s", name);
+                }
+                tb.func[fi].n_seg = tdb_parse_piecewise(&tb, &s, tb.func[fi].seg, TDB_MAX_SEG);
+                tb.func[fi].state = 0;
+            } else if (strncmp(kw, "TYPE_DEF", 8) == 0) {
+                char ch[NAME_MAX];
+                if (!tdb_word(&s, ch, sizeof ch)) continue;
+                if (strstr(s, "MAGNETIC")) {
+                    if (tb.n_mag_td < 15) tb.magnetic_typedefs[tb.n_mag_td++] = ch[0];
+                } else if (strstr(s, "DISORD") || strstr(s, "DIS_PART")) {
+                    if (tb.n_ord_td < 15) tb.order_typedefs[tb.n_ord_td++] = ch[0];
+                }
+            } else if (strncmp(kw, "PHAS", 4) == 0) {
+                char name[NAME_MAX], code[NAME_MAX], w[NAME_MAX];
+                char *colon;
+                TdbPhase *ph;
+                char *c;
+                int m;
+                if (!tdb_word(&s, name, sizeof name)) tdb_fail(&tb, "PHASE without a name");
+                colon = strchr(name, ':');
+                if (colon) *colon = '\0';
+                if (*s == ':') {          /* attached :L / :Y model-type suffix */
+                    char sfx[NAME_MAX];
+                    tdb_word(&s, sfx, sizeof sfx);      /* the colon */
+                    if (tdb_word(&s, sfx, sizeof sfx) && sfx[0] == 'Y')
+                        tdb_fail(&tb, "ionic two-sublattice liquid (:Y) is outside the v1 subset");
+                }
+                if (tb.n_ph >= 512) tdb_fail(&tb, "too many phases");
+                ph = &tb.ph[tb.n_ph++];
+                snprintf(ph->name, NAME_MAX, "%s", name);
+                if (!tdb_word(&s, code, sizeof code)) tdb_fail(&tb, "PHASE without a model code");
+                for (c = code; *c; ++c) {
+                    for (m = 0; m < tb.n_mag_td; ++m)
+                        if (*c == tb.magnetic_typedefs[m]) ph->flags_magnetic = 1;
+                    for (m = 0; m < tb.n_ord_td; ++m)
+                        if (*c == tb.order_typedefs[m]) ph->flags_order = 1;
+                }
+                if (!tdb_word(&s, w, sizeof w)) tdb_fail(&tb, "PHASE without sublattice count");
+                ph->n_subl = atoi(w);
+                if (ph->n_subl < 1 || ph->n_subl > TDB_MAX_SUBL)
+                    tdb_fail(&tb, "unsupported sublattice count");
+                for (m = 0; m < ph->n_subl; ++m) {
+                    if (!tdb_word(&s, w, sizeof w)) tdb_fail(&tb, "missing site ratio");
+                    ph->ratio[m] = atof(w);
+                }
+            } else if (strncmp(kw, "CONS", 4) == 0) {
+                char name[NAME_MAX], w[NAME_MAX];
+                char *colon;
+                TdbPhase *ph = NULL;
+                int i2, subl = -1;
+                if (!tdb_word(&s, name, sizeof name)) tdb_fail(&tb, "CONSTITUENT without a phase");
+                colon = strchr(name, ':');
+                if (colon) *colon = '\0';
+                if (*s == ':') {          /* attached :L suffix: colon + short suffix, only
+                                           * when the real list starts at a later colon */
+                    char *save = s;
+                    char sfx[NAME_MAX];
+                    tdb_word(&s, sfx, sizeof sfx);      /* the colon */
+                    if (!(tdb_word(&s, sfx, sizeof sfx) && sfx[0] != ':' &&
+                          strlen(sfx) <= 2 && tdb_peekc(s) == ':'))
+                        s = save;
+                }
+                for (i2 = 0; i2 < tb.n_ph; ++i2)
+                    if (strcmp(tb.ph[i2].name, name) == 0) { ph = &tb.ph[i2]; break; }
+                if (!ph) tdb_fail(&tb, "CONSTITUENT for an undeclared phase");
+                while (tdb_word(&s, w, sizeof w)) {
+                    size_t len;
+                    if (w[0] == ':') { subl++; if (subl >= ph->n_subl) break; continue; }
+                    if (w[0] == ',') continue;
+                    if (subl < 0) continue;
+                    len = strlen(w);
+                    if (len && w[len - 1] == '%') w[len - 1] = '\0';
+                    if (!w[0]) continue;
+                    if (ph->ncon[subl] >= TDB_MAX_CON) tdb_fail(&tb, "too many constituents");
+                    snprintf(ph->con[subl][ph->ncon[subl]++], NAME_MAX, "%s", w);
+                }
+            } else if (strncmp(kw, "PARA", 4) == 0) {
+                char type[NAME_MAX]; size_t tn = 0;
+                char desc[512]; size_t dn = 0;
+                int depth;
+                char *comma, *phname, *pcolon, *arr, *semi, *tokp;
+                int order = 0, subl;
+                TdbPhase *ph = NULL;
+                TdbParam *pa;
+                int i2;
+                while (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r') s++;
+                while (*s && *s != '(' && tn + 1 < sizeof type) type[tn++] = *s++;
+                type[tn] = '\0';
+                while (tn && type[tn - 1] == ' ') type[--tn] = '\0';
+                if (*s != '(') tdb_fail(&tb, "malformed PARAMETER descriptor");
+                s++;
+                depth = 1;
+                while (*s && depth > 0) {
+                    if (*s == '(') depth++;
+                    else if (*s == ')') { depth--; if (!depth) { s++; break; } }
+                    if (depth > 0 && dn + 1 < sizeof desc) desc[dn++] = *s;
+                    s++;
+                }
+                desc[dn] = '\0';
+                if (strcmp(type, "TC") == 0 || strcmp(type, "BMAGN") == 0 ||
+                    strcmp(type, "BM") == 0)
+                    tdb_fail(&tb, "magnetic parameters (TC/BMAGN) are outside the v1 subset");
+                if (strcmp(type, "G") != 0 && strcmp(type, "L") != 0)
+                    continue;   /* MQ, VS, diffusion etc.: ignored, energies unaffected */
+                comma = strchr(desc, ',');
+                if (!comma) tdb_fail(&tb, "PARAMETER without a constituent array");
+                *comma = '\0';
+                phname = desc;
+                pcolon = strchr(phname, ':');
+                if (pcolon) *pcolon = '\0';
+                arr = comma + 1;
+                semi = strrchr(arr, ';');
+                if (semi) { order = atoi(semi + 1); *semi = '\0'; }
+                for (i2 = 0; i2 < tb.n_ph; ++i2)
+                    if (strcmp(tb.ph[i2].name, phname) == 0) { ph = &tb.ph[i2]; break; }
+                if (!ph) continue;
+                if (tb.n_par >= tb.cap_par) tdb_fail(&tb, "too many parameters");
+                pa = &tb.par[tb.n_par];
+                memset(pa, 0, sizeof *pa);
+                snprintf(pa->phase, NAME_MAX, "%s", phname);
+                pa->order = order;
+                subl = 0;
+                tokp = arr;
+                while (subl < ph->n_subl && tokp) {
+                    char *next = strchr(tokp, ':');
+                    char *mem;
+                    int m = 0;
+                    if (next) *next = '\0';
+                    mem = tokp;
+                    while (mem && *mem) {
+                        char *mc = strchr(mem, ',');
+                        char *e;
+                        int li = -1, i3;
+                        if (mc) *mc = '\0';
+                        while (*mem == ' ') mem++;
+                        e = mem + strlen(mem);
+                        while (e > mem && e[-1] == ' ') *--e = '\0';
+                        for (i3 = 0; i3 < ph->ncon[subl]; ++i3)
+                            if (strcmp(ph->con[subl][i3], mem) == 0) { li = i3; break; }
+                        if (li < 0) tdb_fail(&tb, "parameter constituent not in CONSTITUENT list");
+                        if (m >= 2) tdb_fail(&tb, "three-constituent interaction is outside the v1 subset");
+                        pa->con[subl][m++] = li;
+                        mem = mc ? mc + 1 : NULL;
+                    }
+                    if (m == 0) tdb_fail(&tb, "empty sublattice in parameter array");
+                    pa->ncon[subl] = m;
+                    subl++;
+                    tokp = next ? next + 1 : NULL;
+                }
+                if (subl != ph->n_subl) tdb_fail(&tb, "parameter array does not match sublattice count");
+                pa->n_seg = tdb_parse_piecewise(&tb, &s, pa->expr, TDB_MAX_SEG);
+                tb.n_par++;
+            } else {
+                continue;   /* DATABASE_INFO, LIST_OF_REFERENCES, DEFAULT_COMMAND, ... */
+            }
+        }
+        db = tdb_build_db(&tb);
+        g_error[0] = '\0';
+    } else {
+        snprintf(g_error, sizeof g_error, "%s", lx.err);
+        db = NULL;
+    }
+    free(tb.func); free(tb.el_name); free(tb.el_mass);
+    free(tb.sp); free(tb.ph); free(tb.par);
+    free(text_owned);
+    return db;
 }

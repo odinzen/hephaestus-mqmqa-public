@@ -1,4 +1,4 @@
-# Hephaestus: an open-source engine and database for the thermodynamics and phase diagrams of molten oxide slags
+# Hephaestus: an in-browser open-source engine and open databases for the thermodynamics and phase diagrams of slags, molten salts, and alloys
 
 Michael E. Bustamante
 

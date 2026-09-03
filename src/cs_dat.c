@@ -1066,7 +1066,7 @@ typedef struct {
 typedef struct {
     char name[NAME_MAX];
     int n_seg;
-    TdbSeg seg[TDB_MAX_SEG];
+    TdbSeg *seg;     /* heap, TDB_MAX_SEG entries once defined (WASM-friendly) */
     int state;       /* 0 unresolved, 1 resolving (cycle guard), 2 resolved */
 } TdbFunc;
 
@@ -1076,6 +1076,7 @@ typedef struct {
     int el[8];
     double n[8];
     double atoms;             /* total real atoms per formula (0 for VA) */
+    double charge;            /* from the /+n or /-n suffix, 0 when absent */
 } TdbSpecies;
 
 typedef struct {
@@ -1085,6 +1086,7 @@ typedef struct {
     int ncon[TDB_MAX_SUBL];
     char con[TDB_MAX_SUBL][TDB_MAX_CON][NAME_MAX];
     int flags_magnetic, flags_order;
+    int is_q;                 /* :Q model suffix - the MQMQA quadruplet liquid */
 } TdbPhase;
 
 typedef struct {
@@ -1092,9 +1094,23 @@ typedef struct {
     int con[TDB_MAX_SUBL][2]; /* up to two constituents per sublattice (local idx) */
     int ncon[TDB_MAX_SUBL];
     int order;                /* Redlich-Kister order */
-    TdbSeg expr[TDB_MAX_SEG]; /* parsed expression segments (resolved later) */
+    TdbSeg *expr;             /* heap, TDB_MAX_SEG entries (WASM-friendly) */
     int n_seg;
 } TdbParam;
+
+/* one MQ* statement, kept raw until the build step */
+typedef struct {
+    char phase[NAME_MAX];
+    int  kind;                /* 0 MQG, 1 MQZETA, 2 MQSTOI, 3 MQZ, 4 MQX, 5 MQGRP */
+    char names[5][NAME_MAX];  /* constituent names as written (up to A,B,X,Y,addcat) */
+    int  n_names;
+    char code;                /* MQX: Q/G/B/R */
+    int  exp_p, exp_q, exp_r; /* MQX exponents (r = -1 when absent) */
+    double vals[8];           /* MQZETA/MQSTOI/MQZ/MQGRP constant payloads */
+    int  n_vals;
+    TdbSeg *expr;             /* MQG / MQX piecewise payload */
+    int  n_seg;
+} TdbMq;
 
 typedef struct {
     Lexer *lx;                /* shares the error longjmp */
@@ -1106,6 +1122,7 @@ typedef struct {
     int n_sp;    TdbSpecies *sp;
     int n_ph;    TdbPhase *ph;
     int n_par;   TdbParam *par; int cap_par;
+    int n_mq;    TdbMq *mq;     int cap_mq;
     char magnetic_typedefs[16]; int n_mag_td;
     char order_typedefs[16];    int n_ord_td;
 } Tdb;
@@ -1204,6 +1221,13 @@ static int tdb_func_index(Tdb *tb, const char *name)
     return -1;
 }
 
+static void tdb_func_segs(Tdb *tb, int fi)
+{
+    if (tb->func[fi].seg) return;
+    tb->func[fi].seg = calloc(TDB_MAX_SEG, sizeof(TdbSeg));
+    if (!tb->func[fi].seg) tdb_fail(tb, "out of memory");
+}
+
 static void tdb_parse_expr(Tdb *tb, char **s, TdbSeg *seg)
 {
     double sign = 1.0;
@@ -1268,6 +1292,7 @@ static void tdb_parse_expr(Tdb *tb, char **s, TdbSeg *seg)
                     fi = tb->n_func++;
                     snprintf(tb->func[fi].name, NAME_MAX, "%s", name);
                     tb->func[fi].n_seg = 0;
+                    tb->func[fi].seg = NULL;
                 }
                 /* NAME#**n : store the power, folded at resolution time */
                 while (**s == ' ') (*s)++;
@@ -1475,8 +1500,10 @@ static void tdb_expand_into(Tdb *tb, const TdbSeg *seg, double lo, double hi,
 static void tdb_resolve_func(Tdb *tb, int fi)
 {
     TdbFunc *f = &tb->func[fi];
-    TdbSeg out[TDB_MAX_SEG]; int n_out = 0;
+    TdbSeg *out; int n_out = 0;
     int k, i;
+    out = calloc(TDB_MAX_SEG, sizeof(TdbSeg));
+    if (!out) tdb_fail(tb, "out of memory");
     if (f->state == 2) return;
     if (f->state == 1) tdb_fail(tb, "circular function reference");
     if (f->n_seg == 0) {
@@ -1495,6 +1522,7 @@ static void tdb_resolve_func(Tdb *tb, int fi)
     }
     f->n_seg = n_out;
     memcpy(f->seg, out, (size_t)n_out * sizeof(TdbSeg));
+    free(out);
     f->state = 2;
 }
 
@@ -1626,7 +1654,7 @@ static int tdb_element_index(Tdb *tb, const char *name)
 static void tdb_parse_composition(Tdb *tb, const char *s, TdbSpecies *sp)
 {
     const char *p = s;
-    sp->n_el = 0; sp->atoms = 0.0;
+    sp->n_el = 0; sp->atoms = 0.0; sp->charge = 0.0;
     while (*p && *p != '/') {
         char el[3];
         char *end = NULL;
@@ -1650,6 +1678,155 @@ static void tdb_parse_composition(Tdb *tb, const char *s, TdbSpecies *sp)
         }
         if (*p == '/') break;
     }
+    if (*p == '/') sp->charge = strtod(p + 1, NULL);
+}
+
+/* ---- assemble a :Q (MQMQA / SUBQ) phase from the MQ* records ---- */
+
+static int tdb_q_name_index(char (*names)[NAME_MAX], int n, const char *want)
+{
+    int i;
+    for (i = 0; i < n; ++i)
+        if (strcmp(names[i], want) == 0) return i;
+    return -1;
+}
+
+static void tdb_build_q_phase(Tdb *tb, Db *db, TdbPhase *tp)
+{
+    Phase *ph = &db->phases[db->n_phases++];
+    int ncat, nan, i, k, q;
+    TdbSeg *out = calloc(TDB_MAX_SEG, sizeof(TdbSeg));   /* heap: WASM stacks are small */
+    if (!out) tdb_fail(tb, "out of memory");
+    memset(ph, 0, sizeof *ph);
+    snprintf(ph->name, NAME_MAX, "%s", tp->name);
+    ph->kind = 0;
+    ph->soln_type = 1;   /* SUBQ */
+    if (tp->n_subl != 2) tdb_fail(tb, ":Q phase must have two sublattices (cations : anions)");
+    ncat = tp->ncon[0]; nan = tp->ncon[1];
+    if (ncat < 1 || nan < 1) tdb_fail(tb, ":Q phase with an empty sublattice");
+    ph->n_cat = ncat; ph->n_an = nan;
+    ph->cat_name = calloc((size_t)ncat, NAME_MAX);
+    ph->an_name = calloc((size_t)nan, NAME_MAX);
+    ph->cat_charge = calloc((size_t)ncat, sizeof(double));
+    ph->an_charge = calloc((size_t)nan, sizeof(double));
+    ph->cat_group = calloc((size_t)ncat, sizeof(int));
+    ph->an_group = calloc((size_t)nan, sizeof(int));
+    if (!ph->cat_name || !ph->an_name || !ph->cat_charge || !ph->an_charge ||
+        !ph->cat_group || !ph->an_group) tdb_fail(tb, "out of memory");
+    for (i = 0; i < ncat; ++i) {
+        const TdbSpecies *sp = tdb_species(tb, tp->con[0][i]);
+        snprintf(ph->cat_name[i], NAME_MAX, "%s", tp->con[0][i]);
+        ph->cat_charge[i] = sp ? fabs(sp->charge) : 0.0;
+        if (ph->cat_charge[i] <= 0.0) tdb_fail(tb, ":Q cation without a declared charge (SPECIES .../+n)");
+        ph->cat_group[i] = 1;
+    }
+    for (k = 0; k < nan; ++k) {
+        const TdbSpecies *sp = tdb_species(tb, tp->con[1][k]);
+        snprintf(ph->an_name[k], NAME_MAX, "%s", tp->con[1][k]);
+        ph->an_charge[k] = sp ? fabs(sp->charge) : 0.0;
+        if (ph->an_charge[k] <= 0.0) tdb_fail(tb, ":Q anion without a declared charge (SPECIES .../-n)");
+        ph->an_group[k] = 1;
+    }
+    /* pairs, cation-major over the constituent lists */
+    ph->n_pairs = ncat * nan;
+    ph->pairs = calloc((size_t)ph->n_pairs, sizeof(Endmember));
+    if (!ph->pairs) tdb_fail(tb, "out of memory");
+    for (i = 0; i < ncat; ++i) for (k = 0; k < nan; ++k) {
+        Endmember *em = &ph->pairs[i * nan + k];
+        em->cat_idx = i; em->an_idx = k;
+        em->zeta = 0.0;
+        em->stoich_quad[0] = 1.0;
+    }
+    /* walk the MQ records for this phase */
+    ph->n_quads = 0;
+    { int nz = 0, nx = 0;
+      for (q = 0; q < tb->n_mq; ++q) {
+          if (strcmp(tb->mq[q].phase, tp->name) != 0) continue;
+          if (tb->mq[q].kind == 3) nz++;
+          if (tb->mq[q].kind == 4) nx++;
+      }
+      ph->mqmz = calloc((size_t)(nz > 0 ? nz : 1), sizeof(Mqmz));
+      ph->mqmx = calloc((size_t)(nx > 0 ? nx : 1), sizeof(Mqmx));
+      if (!ph->mqmz || !ph->mqmx) tdb_fail(tb, "out of memory");
+    }
+    for (q = 0; q < tb->n_mq; ++q) {
+        TdbMq *mq = &tb->mq[q];
+        if (strcmp(mq->phase, tp->name) != 0) continue;
+        if (mq->kind == 0 || mq->kind == 1 || mq->kind == 2) {
+            int ci, ai;
+            Endmember *em;
+            if (mq->n_names < 2) tdb_fail(tb, "MQ pair statement needs cation and anion");
+            ci = tdb_q_name_index(tp->con[0], ncat, mq->names[0]);
+            ai = tdb_q_name_index(tp->con[1], nan, mq->names[1]);
+            if (ci < 0 || ai < 0) tdb_fail(tb, "MQ pair names a constituent not in the phase");
+            em = &ph->pairs[ci * nan + ai];
+            if (mq->kind == 0) {
+                int n;
+                memset(out, 0, TDB_MAX_SEG * sizeof(TdbSeg));
+                n = tdb_resolve_param(tb, mq->expr, mq->n_seg, out, TDB_MAX_SEG);
+                tdb_fill_endmember(tb, em, out, n);
+            } else if (mq->kind == 1) {
+                if (mq->n_vals >= 1) em->zeta = mq->vals[0];
+            } else {
+                int v;
+                for (v = 0; v < mq->n_vals && v < 5; ++v) em->stoich_quad[v] = mq->vals[v];
+            }
+        } else if (mq->kind == 3) {
+            Mqmz *z = &ph->mqmz[ph->n_quads];
+            int A, B, X, Y, v;
+            if (mq->n_names < 4) tdb_fail(tb, "MQZ needs four constituent names");
+            A = tdb_q_name_index(tp->con[0], ncat, mq->names[0]);
+            B = tdb_q_name_index(tp->con[0], ncat, mq->names[1]);
+            X = tdb_q_name_index(tp->con[1], nan, mq->names[2]);
+            Y = tdb_q_name_index(tp->con[1], nan, mq->names[3]);
+            if (A < 0 || B < 0 || X < 0 || Y < 0) tdb_fail(tb, "MQZ names a constituent not in the phase");
+            if (mq->n_vals < 4) tdb_fail(tb, "MQZ needs four coordination numbers");
+            if (A <= B) { z->A = A; z->B = B; z->Z[0] = mq->vals[0]; z->Z[1] = mq->vals[1]; }
+            else        { z->A = B; z->B = A; z->Z[0] = mq->vals[1]; z->Z[1] = mq->vals[0]; }
+            if (X <= Y) { z->X = X; z->Y = Y; z->Z[2] = mq->vals[2]; z->Z[3] = mq->vals[3]; }
+            else        { z->X = Y; z->Y = X; z->Z[2] = mq->vals[3]; z->Z[3] = mq->vals[2]; }
+            (void)v;
+            ph->n_quads++;
+        } else if (mq->kind == 4) {
+            Mqmx *x = &ph->mqmx[ph->n_mqmx];
+            int n, A, B, X, Y, t;
+            memset(out, 0, TDB_MAX_SEG * sizeof(TdbSeg));
+            if (mq->n_names < 4) tdb_fail(tb, "MQX needs four constituent names");
+            A = tdb_q_name_index(tp->con[0], ncat, mq->names[0]);
+            B = tdb_q_name_index(tp->con[0], ncat, mq->names[1]);
+            X = tdb_q_name_index(tp->con[1], nan, mq->names[2]);
+            Y = tdb_q_name_index(tp->con[1], nan, mq->names[3]);
+            if (A < 0 || B < 0 || X < 0 || Y < 0) tdb_fail(tb, "MQX names a constituent not in the phase");
+            x->code = mq->code;
+            x->A = A; x->B = B; x->X = X; x->Y = Y;
+            x->mix = (A != B && X == Y) ? 0 : (A == B && X != Y) ? 1 : -1;
+            x->exp[0] = mq->exp_p; x->exp[1] = mq->exp_q;
+            x->exp[2] = 0; x->exp[3] = (mq->exp_r >= 0) ? mq->exp_r : 0;
+            x->add_cat = -1;
+            if (mq->exp_r >= 0 && mq->n_names >= 5) {
+                t = tdb_q_name_index(tp->con[0], ncat, mq->names[4]);
+                if (t < 0) tdb_fail(tb, "MQX ternary cation not in the phase");
+                x->add_cat = t;
+            }
+            x->coeff = calloc((size_t)db->n_excess, sizeof(double));
+            if (!x->coeff) tdb_fail(tb, "out of memory");
+            n = tdb_resolve_param(tb, mq->expr, mq->n_seg, out, TDB_MAX_SEG);
+            tdb_fill_excess(tb, x->coeff, out, n);
+            ph->n_mqmx++;
+        } else if (mq->kind == 5) {
+            int t = tdb_q_name_index(tp->con[0], ncat, mq->names[0]);
+            if (t >= 0) { if (mq->n_vals >= 1) ph->cat_group[t] = (int)mq->vals[0]; }
+            else {
+                t = tdb_q_name_index(tp->con[1], nan, mq->names[0]);
+                if (t >= 0 && mq->n_vals >= 1) ph->an_group[t] = (int)mq->vals[0];
+            }
+        }
+    }
+    /* every pair needs a Gibbs function */
+    for (i = 0; i < ph->n_pairs; ++i)
+        if (!ph->pairs[i].intervals)
+            tdb_fail(tb, ":Q phase pair without an MQG parameter");
+    free(out);
 }
 
 /* ---- assemble the Db ---- */
@@ -1679,6 +1856,7 @@ static Db *tdb_build_db(Tdb *tb)
     for (p = 0; p < tb->n_ph; ++p) {
         TdbPhase *tp = &tb->ph[p];
         int is_stoich = 1;
+        if (tp->is_q) { tdb_build_q_phase(tb, db, tp); continue; }
         if (tp->flags_magnetic)
             tdb_fail(tb, "magnetic phase model is outside the v1 subset");
         if (tp->flags_order)
@@ -1690,8 +1868,9 @@ static Db *tdb_build_db(Tdb *tb)
 
         if (is_stoich) {
             Endmember *em = &db->stoich[db->n_stoich];
-            TdbSeg out[TDB_MAX_SEG];
+            TdbSeg *out = calloc(TDB_MAX_SEG, sizeof(TdbSeg));
             int found = 0, has_atoms = 0;
+            if (!out) tdb_fail(tb, "out of memory");
             memset(em, 0, sizeof *em);
             snprintf(em->name, NAME_MAX, "%s", tp->name);
             em->stoich_el = calloc((size_t)tb->n_el, sizeof(double));
@@ -1717,6 +1896,7 @@ static Db *tdb_build_db(Tdb *tb)
                 found = 1;
                 break;
             }
+            free(out);
             if (!found || !has_atoms) { free(em->stoich_el); em->stoich_el = NULL; continue; }
             db->n_stoich++;
             continue;
@@ -1727,7 +1907,8 @@ static Db *tdb_build_db(Tdb *tb)
         Phase *ph = &db->phases[db->n_phases++];
         SublPhase *cf;
         int n_con = 0, n_em = 0, n_ex = 0;
-        TdbSeg out[TDB_MAX_SEG];
+        TdbSeg *out = calloc(TDB_MAX_SEG, sizeof(TdbSeg));
+        if (!out) tdb_fail(tb, "out of memory");
         memset(ph, 0, sizeof *ph);
         snprintf(ph->name, NAME_MAX, "%s", tp->name);
         ph->kind = 1;
@@ -1816,6 +1997,7 @@ static Db *tdb_build_db(Tdb *tb)
                 cf->n_ex++;
             }
         }
+        free(out);
         if (cf->n_em == 0)
             tdb_fail(tb, "solution phase with no G parameters");
         }
@@ -1847,13 +2029,17 @@ static Db *read_tdb(char *text_owned)
         tb.ph = calloc(512, sizeof(TdbPhase));
         tb.cap_par = 32768;
         tb.par = calloc((size_t)tb.cap_par, sizeof(TdbParam));
-        if (!tb.func || !tb.el_name || !tb.el_mass || !tb.sp || !tb.ph || !tb.par)
+        tb.cap_mq = 8192;
+        tb.mq = calloc((size_t)tb.cap_mq, sizeof(TdbMq));
+        if (!tb.func || !tb.el_name || !tb.el_mass || !tb.sp || !tb.ph || !tb.par || !tb.mq)
             tdb_fail(&tb, "out of memory");
 
         /* built-in: the gas constant, referenced as R# in some files */
         {
             int fi = tb.n_func++;
             snprintf(tb.func[fi].name, NAME_MAX, "R");
+            tb.func[fi].seg = calloc(TDB_MAX_SEG, sizeof(TdbSeg));
+            if (!tb.func[fi].seg) tdb_fail(&tb, "out of memory");
             tb.func[fi].n_seg = 1;
             tb.func[fi].seg[0].lo = 0.01; tb.func[fi].seg[0].hi = 1e12;
             tb.func[fi].seg[0].n = 1;
@@ -1884,7 +2070,9 @@ static Db *read_tdb(char *text_owned)
                             if (pre.n_func >= TDB_MAX_FUNCS) tdb_fail(&pre, "too many functions");
                             fi = pre.n_func++;
                             snprintf(pre.func[fi].name, NAME_MAX, "%s", name);
+                            pre.func[fi].seg = NULL;
                         }
+                        tdb_func_segs(&pre, fi);
                         pre.func[fi].n_seg = tdb_parse_piecewise(&pre, &s, pre.func[fi].seg, TDB_MAX_SEG);
                         pre.func[fi].state = 0;
                     }
@@ -1933,7 +2121,9 @@ static Db *read_tdb(char *text_owned)
                     if (tb.n_func >= TDB_MAX_FUNCS) tdb_fail(&tb, "too many functions");
                     fi = tb.n_func++;
                     snprintf(tb.func[fi].name, NAME_MAX, "%s", name);
+                    tb.func[fi].seg = NULL;
                 }
+                tdb_func_segs(&tb, fi);
                 tb.func[fi].n_seg = tdb_parse_piecewise(&tb, &s, tb.func[fi].seg, TDB_MAX_SEG);
                 tb.func[fi].state = 0;
             } else if (strncmp(kw, "TYPE_DEF", 8) == 0) {
@@ -1953,11 +2143,18 @@ static Db *read_tdb(char *text_owned)
                 if (!tdb_word(&s, name, sizeof name)) tdb_fail(&tb, "PHASE without a name");
                 colon = strchr(name, ':');
                 if (colon) *colon = '\0';
-                if (*s == ':') {          /* attached :L / :Y model-type suffix */
-                    char sfx[NAME_MAX];
-                    tdb_word(&s, sfx, sizeof sfx);      /* the colon */
-                    if (tdb_word(&s, sfx, sizeof sfx) && sfx[0] == 'Y')
-                        tdb_fail(&tb, "ionic two-sublattice liquid (:Y) is outside the v1 subset");
+                {
+                    int q_suffix = 0;
+                    if (*s == ':') {      /* attached :L / :Y / :Q model-type suffix */
+                        char sfx[NAME_MAX];
+                        tdb_word(&s, sfx, sizeof sfx);  /* the colon */
+                        if (tdb_word(&s, sfx, sizeof sfx)) {
+                            if (sfx[0] == 'Y')
+                                tdb_fail(&tb, "ionic two-sublattice liquid (:Y) is outside the v1 subset");
+                            if (sfx[0] == 'Q') q_suffix = 1;
+                        }
+                    }
+                    tb.ph[tb.n_ph].is_q = q_suffix;   /* the slot about to be filled */
                 }
                 if (tb.n_ph >= 512) tdb_fail(&tb, "too many phases");
                 ph = &tb.ph[tb.n_ph++];
@@ -2034,8 +2231,89 @@ static Db *read_tdb(char *text_owned)
                 if (strcmp(type, "TC") == 0 || strcmp(type, "BMAGN") == 0 ||
                     strcmp(type, "BM") == 0)
                     tdb_fail(&tb, "magnetic parameters (TC/BMAGN) are outside the v1 subset");
+                if (strncmp(type, "MQ", 2) == 0) {
+                    /* uTDB extension statements (docs/UNIFIED_TDB_SPEC.md) */
+                    TdbMq *mq;
+                    char *arr2, *seg2, *mem2;
+                    int ni = 0;
+                    if (tb.n_mq >= tb.cap_mq) tdb_fail(&tb, "too many MQ parameters");
+                    mq = &tb.mq[tb.n_mq];
+                    memset(mq, 0, sizeof *mq);
+                    mq->exp_r = -1;
+                    if      (strcmp(type, "MQG") == 0)    mq->kind = 0;
+                    else if (strcmp(type, "MQZETA") == 0) mq->kind = 1;
+                    else if (strcmp(type, "MQSTOI") == 0) mq->kind = 2;
+                    else if (strcmp(type, "MQZ") == 0)    mq->kind = 3;
+                    else if (strcmp(type, "MQGRP") == 0)  mq->kind = 5;
+                    else if (type[2] == 'X') {
+                        mq->kind = 4;
+                        mq->code = (type[3] == 'T') ? type[4] : type[3];
+                        if (type[3] == 'T') mq->exp_r = 0;   /* ternary form, r read below */
+                    } else continue;
+                    /* descriptor: PHASE , names (comma/colon separated) ; exponents [: addcat] */
+                    {
+                        char *dcomma = strchr(desc, ',');
+                        if (!dcomma) tdb_fail(&tb, "MQ parameter without a constituent array");
+                        *dcomma = '\0';
+                        snprintf(mq->phase, NAME_MAX, "%s", desc);
+                        { char *pc = strchr(mq->phase, ':'); if (pc) *pc = '\0'; }
+                        arr2 = dcomma + 1;
+                    }
+                    seg2 = strchr(arr2, ';');
+                    if (seg2) { *seg2 = '\0'; seg2++; }
+                    /* addcat rides after a colon in the exponent tail (MQXT) */
+                    mem2 = arr2;
+                    while (mem2 && *mem2 && ni < 5) {
+                        char *nx = mem2 + strcspn(mem2, ",:");
+                        char sep = *nx;
+                        *nx = '\0';
+                        while (*mem2 == ' ') mem2++;
+                        { char *e2 = mem2 + strlen(mem2);
+                          while (e2 > mem2 && e2[-1] == ' ') *--e2 = '\0'; }
+                        if (*mem2) snprintf(mq->names[ni++], NAME_MAX, "%s", mem2);
+                        mem2 = sep ? nx + 1 : NULL;
+                    }
+                    mq->n_names = ni;
+                    if (seg2 && mq->kind == 4) {
+                        char *colon2 = strchr(seg2, ':');
+                        if (colon2) {
+                            *colon2 = '\0';
+                            if (ni < 5) snprintf(mq->names[mq->n_names++], NAME_MAX, "%s", colon2 + 1);
+                        }
+                        {
+                            char *q2 = strchr(seg2, ',');
+                            mq->exp_p = atoi(seg2);
+                            if (q2) {
+                                char *r2 = strchr(q2 + 1, ',');
+                                mq->exp_q = atoi(q2 + 1);
+                                if (r2) mq->exp_r = atoi(r2 + 1);
+                            }
+                        }
+                    }
+                    if (mq->kind == 0 || mq->kind == 4) {
+                        mq->expr = calloc(TDB_MAX_SEG, sizeof(TdbSeg));
+                        if (!mq->expr) tdb_fail(&tb, "out of memory");
+                        mq->n_seg = tdb_parse_piecewise(&tb, &s, mq->expr, TDB_MAX_SEG);
+                    } else {
+                        /* constant payload row: lowT v1 v2 ... ; T N */
+                        char w2[NAME_MAX];
+                        int after_semi = 0;
+                        if (!tdb_word(&s, w2, sizeof w2)) tdb_fail(&tb, "MQ constants missing");
+                        while (tdb_word(&s, w2, sizeof w2)) {
+                            char *e3 = NULL;
+                            double v3;
+                            if (w2[0] == ';') { after_semi = 1; continue; }
+                            v3 = strtod(w2, &e3);
+                            if (e3 == w2) break;        /* hit the trailing N / ref */
+                            if (after_semi) continue;   /* upper temperature limit */
+                            if (mq->n_vals < 8) mq->vals[mq->n_vals++] = v3;
+                        }
+                    }
+                    tb.n_mq++;
+                    continue;
+                }
                 if (strcmp(type, "G") != 0 && strcmp(type, "L") != 0)
-                    continue;   /* MQ, VS, diffusion etc.: ignored, energies unaffected */
+                    continue;   /* VS, diffusion etc.: ignored, energies unaffected */
                 comma = strchr(desc, ',');
                 if (!comma) tdb_fail(&tb, "PARAMETER without a constituent array");
                 *comma = '\0';
@@ -2053,6 +2331,8 @@ static Db *read_tdb(char *text_owned)
                 memset(pa, 0, sizeof *pa);
                 snprintf(pa->phase, NAME_MAX, "%s", phname);
                 pa->order = order;
+                pa->expr = calloc(TDB_MAX_SEG, sizeof(TdbSeg));
+                if (!pa->expr) tdb_fail(&tb, "out of memory");
                 subl = 0;
                 tokp = arr;
                 while (subl < ph->n_subl && tokp) {
@@ -2094,8 +2374,14 @@ static Db *read_tdb(char *text_owned)
         snprintf(g_error, sizeof g_error, "%s", lx.err);
         db = NULL;
     }
+    {
+        int i;
+        for (i = 0; i < tb.n_func; ++i) free(tb.func[i].seg);
+        for (i = 0; i < tb.n_par; ++i) free(tb.par[i].expr);
+        for (i = 0; i < tb.n_mq; ++i) free(tb.mq[i].expr);
+    }
     free(tb.func); free(tb.el_name); free(tb.el_mass);
-    free(tb.sp); free(tb.ph); free(tb.par);
+    free(tb.sp); free(tb.ph); free(tb.par); free(tb.mq);
     free(text_owned);
     return db;
 }

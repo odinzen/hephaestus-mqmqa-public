@@ -253,10 +253,11 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
     <h2>1 &middot; Load a thermodynamic database</h2>
     <div class="row">
       <label class="filebtn">Choose a ChemSage .dat file
-        <input type="file" id="file" accept=".dat,.DAT,text/plain">
+        <input type="file" id="file" accept=".dat,.DAT,.tdb,.TDB,text/plain">
       </label>
       <button class="filebtn ghost" id="example" type="button">Load the open slag database</button>
       <button class="filebtn ghost" id="example-salt" type="button">Load the open salt database</button>
+      <button class="filebtn ghost" id="example-alloy" type="button">Load the open alloy TDB</button>
       <span id="loadmsg" class="muted">No database loaded yet.</span>
     </div>
     <div id="temp-note" class="muted" hidden style="margin-top:.6rem; font-size:var(--fs-xs)">
@@ -352,6 +353,21 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
         <div class="legend" id="pdlegend"></div>
         <div class="tern-read" id="pdread">Tap the diagram to read a composition and pin it.</div>
         <div id="pdhist" class="calc-hist"></div>
+        <div class="tern-live" id="scheilbox">
+          <b>Scheil solidification</b> &mdash; rudimentary solidification kinetics on this join:
+          the melt cools from the liquidus, each solid increment keeps its composition (no
+          back-diffusion in the solid, complete mixing in the liquid), and the residual liquid
+          freezes at the invariant. The equilibrium (lever-rule) path is drawn alongside.
+          <div class="row" style="margin:.6rem 0 .4rem">
+            <label>Composition (mol% of the right end member)
+              <input type="number" id="scheil-x" min="1" max="99" step="1" value="30" style="width:5rem">
+            </label>
+            <button id="scheil-go" type="button" class="seg-btn on" style="border-radius:8px">Run Scheil</button>
+            <span id="scheil-msg" class="muted"></span>
+          </div>
+          <div class="pdwrap"><canvas id="scheilcanvas" style="display:none"></canvas></div>
+          <div class="tern-read" id="scheil-read">&nbsp;</div>
+        </div>
       </div>
     </div>
   </div>
@@ -671,6 +687,7 @@ async function loadShipped(file) {
 }
 document.getElementById('example').addEventListener('click', () => loadShipped('FeO-MgO-SiO2-combined.dat'));
 document.getElementById('example-salt').addEventListener('click', () => loadShipped('LiCl-KCl.dat'));
+document.getElementById('example-alloy').addEventListener('click', () => loadShipped('AlZn.tdb'));
 
 function loadDatabase(text, name) {
   const M = api.M;
@@ -687,6 +704,10 @@ function loadDatabase(text, name) {
   if (!db) { msg.textContent = 'Could not read this file: ' + api.error(); return; }
 
   phase = 0; // first solution phase
+  // alloy mode: a TDB (or any file) whose phases are all CEF - no MQMQA liquid
+  window.alloyMode = true;
+  for (let p = 0; p < api.nPh(db); p++)
+    if (api.phaseKind(db, p) === 0) { window.alloyMode = false; break; }
   msg.textContent = name + ' loaded.';
   document.getElementById('results').classList.remove('hidden');
 
@@ -704,6 +725,20 @@ function loadDatabase(text, name) {
     anNames.push(api.an(db,phase,k));
     anEl.appendChild(chip(api.an(db,phase,k)+' (−'+api.anQ(db,phase,k)+')'));
   }
+  if (window.alloyMode) {
+    // no cation/anion sublattices: show the CEF constituents instead
+    catEl.innerHTML = ''; anEl.innerHTML = '';
+    const seen = new Set();
+    for (let p = 0; p < api.nPh(db); p++) {
+      const ns = api.cefNumSubl(db, p);
+      const nb = api.M._malloc(ns*4); api.cefSublNcon(db, p, nb);
+      const ncon = readI(nb, ns); api.M._free(nb);
+      for (let s2 = 0; s2 < ns; s2++)
+        for (let i2 = 0; i2 < ncon[s2]; i2++) seen.add(api.cefCon(db, p, s2, i2));
+    }
+    for (const c of [...seen].sort()) catEl.appendChild(chip(c));
+    anEl.appendChild(chip('— (alloy: no ionic sublattices)'));
+  }
 
   // The three assessed ternary showcases below are all oxide slag systems, so they do not
   // belong to a salt (halide) database, whose relevant tool is the binary join above. Hide
@@ -720,7 +755,7 @@ function loadDatabase(text, name) {
   document.getElementById('livecard').classList.toggle('hidden', cats3.length !== 3);
   if (window._liveSyncLoaded) window._liveSyncLoaded();     // point the live engine at this system
   // pre-fill the builder with this system's components (names + derived Tm/dHf), still tunable
-  if (window._bldLoadSystem) window._bldLoadSystem(componentThermo(), !hasO);
+  if (window._bldLoadSystem) window._bldLoadSystem(window.alloyMode ? [] : componentThermo(), !hasO);
   else if (window._bldSeedFor) window._bldSeedFor(!hasO);
   const solids=[]; for(let i=0;i<api.nStoich(db);i++) solids.push(api.stName(db,i));
   document.getElementById('solids').textContent = solids.length ? solids.join(', ') : '—';
@@ -739,8 +774,12 @@ function loadDatabase(text, name) {
   // keep the label honest with the actual (possibly step-snapped) slider value
   const t = document.getElementById('temp');
   document.getElementById('tval').textContent = t.value + ' K';
-  updatePairs();
-  populateComponents();
+  // the pair-energies and quadruplet-equilibrium cards are MQMQA-liquid tools
+  const pairCard = document.getElementById('pairs').closest('.card');
+  const solveCard = document.getElementById('solve').closest('.card');
+  pairCard.classList.toggle('hidden', !!window.alloyMode);
+  solveCard.classList.toggle('hidden', !!window.alloyMode);
+  if (!window.alloyMode) { updatePairs(); populateComponents(); }
   populateDiagram();
 }
 
@@ -1162,7 +1201,7 @@ function pdCefPoints(cefs,T,n){
         if(s===c.mix){ M.setValue(c.Yp+8*(off+c.iB),y,'double'); M.setValue(c.Yp+8*(off+(1-c.iB)),1-y,'double'); off+=2; }
         else { M.setValue(c.Yp+8*off,1,'double'); off+=1; }
       }
-      pts.push([y, api.cefG(db,c.idx,c.Yp,T,0)/c.units, 'sol']);
+      pts.push([y, api.cefG(db,c.idx,c.Yp,T,0)/c.units, 'sol', c.name]);
     }
   }
   return pts;
@@ -1249,8 +1288,8 @@ function pdBuildHull(pts){
 // xi cell (0 liquid, 1 two-phase, 2 subsolidus) and the liquidus envelope xL, rL.
 function pdColumn(comps,endA,endB,disc,T,xiCells,cefs){
   const aps=xi=>pdAtoms(endA,endB,xi);
-  const liqPt=xi=>[xi, pdLiquidG(comps,endA,endB,xi,T)*aps(xi), 'liq'];
-  const discPts=disc.map(d=>[d.xi, api.stG(db,d.idx,T)/d.units, d.solid?'sol':'liq'])
+  const liqPt=xi=>[xi, pdLiquidG(comps,endA,endB,xi,T)*aps(xi), 'liq', 'LIQUID'];
+  const discPts=disc.map(d=>[d.xi, api.stG(db,d.idx,T)/d.units, d.solid?'sol':'liq', d.name])
     .concat(cefs&&cefs.length?pdCefPoints(cefs,T,120):[]);
 
   const coarse=[]; const nC=64;
@@ -1290,6 +1329,24 @@ function populateDiagram(){
   document.getElementById('pdout').classList.add('hidden');
   document.getElementById('pdmsg').textContent='';
   const cats=[], ans=[];
+  if (window.alloyMode) {
+    // element end-members; charge bookkeeping is inert for alloys
+    for (let e = 0; e < api.nEl(db); e++)
+      cats.push({sym: api.el(db, e), q: 0, isCat: true});
+    pdVary = cats; pdCommon = [];
+    const A=document.getElementById('pdA'), B=document.getElementById('pdB'), C=document.getElementById('pdCommon');
+    const fill=(sel,ions)=>{ sel.innerHTML=''; ions.forEach((ion,i)=>{ const o=document.createElement('option');
+      o.value=i; o.textContent=ion.sym; sel.appendChild(o); }); };
+    fill(A,pdVary); fill(B,pdVary);
+    A.value=0; B.value=Math.min(1,pdVary.length-1);
+    document.getElementById('pdCommonLab').style.display='none'; C.style.display='none';
+    const pdgen=document.getElementById('pdgen');
+    pdgen.disabled = pdVary.length<2;
+    document.getElementById('pdmsg').textContent = pdgen.disabled ?
+      'This system has no two-component join to plot.' : '';
+    if(!pdgen.disabled) pdAlloyAutoRange();
+    return;
+  }
   for(let i=0;i<api.nCat(db,phase);i++) cats.push({sym:elementOf(api.cat(db,phase,i)), q:api.catQ(db,phase,i), isCat:true});
   for(let k=0;k<api.nAn(db,phase);k++) ans.push({sym:elementOf(api.an(db,phase,k)), q:api.anQ(db,phase,k), isCat:false});
   // vary whichever sublattice has two or more members; share the other
@@ -1312,7 +1369,283 @@ function populateDiagram(){
   if(!pdgen.disabled) pdAutoRange();
 }
 
+/* ---- alloy (TDB) binary diagram: every CEF phase sampled along the element join,
+ * line compounds as points, the same lower hull; the LIQUID phase paints as liquid. ---- */
+
+function pdAlloyPhases(iA, iB){
+  // CEF phases usable on the join: exactly one sublattice carries both elements
+  // (with real atoms); other sublattices must be single-constituent.
+  const M=api.M, out=[];
+  const elA=pdVary[iA].sym, elB=pdVary[iB].sym;
+  for(let p=0;p<api.nPh(db);p++){
+    if(api.phaseKind(db,p)!==1) continue;
+    const ns=api.cefNumSubl(db,p);
+    const nb=M._malloc(ns*4); api.cefSublNcon(db,p,nb); const ncon=readI(nb,ns); M._free(nb);
+    const sb=M._malloc(ns*8); api.cefSiteRatio(db,p,sb); const ratio=readD(sb,ns); M._free(sb);
+    let mix=-1, ok=true; const cons=[];
+    for(let s=0;s<ns;s++){
+      const row=[]; for(let i=0;i<ncon[s];i++) row.push(api.cefCon(db,p,s,i));
+      cons.push(row);
+      const hasA=row.includes(elA), hasB=row.includes(elB);
+      if(hasA&&hasB&&row.length===2) mix=s;
+      else if(row.length!==1) ok=false;
+    }
+    if(!ok||mix<0) continue;
+    const iBc=cons[mix].indexOf(elB);
+    const Yp=M._malloc(cons.reduce((a,r)=>a+r.length,0)*8);
+    out.push({name:api.phName(db,p), idx:p, ns, ncon, ratio, cons, mix, iB:iBc, Yp,
+              liquid:/LIQUID|LIQ/.test(api.phName(db,p))});
+  }
+  return out;
+}
+
+function pdAlloyPoints(phs, T, n){
+  const M=api.M, pts=[];
+  for(const c of phs){
+    // atoms per formula on the join: only the mixing sublattice varies A<->B (1 atom each)
+    for(let k=0;k<n;k++){
+      const y=1e-4+(1-2e-4)*k/(n-1);
+      let off=0;
+      for(let s=0;s<c.ns;s++){
+        if(s===c.mix){ M.setValue(c.Yp+8*(off+c.iB),y,'double');
+                       M.setValue(c.Yp+8*(off+(1-c.iB)),1-y,'double'); off+=2; }
+        else { M.setValue(c.Yp+8*off,1,'double'); off+=1; }
+      }
+      // per mole of atoms; the join coordinate equals the site fraction on the mixing subl
+      pts.push([y, api.cefG(db,c.idx,c.Yp,T,1), c.liquid?'liq':'sol', c.name]);
+    }
+  }
+  return pts;
+}
+
+function pdAlloyStoich(iA, iB){
+  const M=api.M, nel=api.nEl(db), out=[];
+  const elA=pdVary[iA].sym, elB=pdVary[iB].sym;
+  let ia=-1, ib=-1;
+  for(let e=0;e<nel;e++){ const nm=api.el(db,e); if(nm===elA) ia=e; if(nm===elB) ib=e; }
+  const buf=M._malloc(nel*8);
+  for(let i2=0;i2<api.nStoich(db);i2++){
+    api.stElems(db,i2,buf); const v=readD(buf,nel);
+    let others=0; for(let e=0;e<nel;e++) if(e!==ia&&e!==ib) others+=Math.abs(v[e]);
+    const nA=ia>=0?v[ia]:0, nB=ib>=0?v[ib]:0, tot=nA+nB;
+    if(others>1e-9||tot<=0) continue;
+    out.push({idx:i2, name:api.stName(db,i2), xi:nB/tot, atoms:tot});
+  }
+  M._free(buf);
+  return out;
+}
+
+function pdAlloyColumn(phs, sto, T, xiCells){
+  const pts=pdAlloyPoints(phs, T, 90)
+    .concat(sto.map(d=>[d.xi, api.stG(db,d.idx,T)/d.atoms, 'sol', d.name]));
+  const H=pdBuildHull(pts);
+  const hx=H.map(h=>h[0]);
+  const cls=new Int8Array(xiCells);
+  for(let c=0;c<xiCells;c++){
+    const xi=(c+0.5)/xiCells;
+    let k=0; while(k<hx.length && hx[k]<xi) k++;
+    k=Math.min(Math.max(k,1),H.length-1);
+    const a=H[k-1][2], b=H[k][2];
+    cls[c] = (a==='liq'&&b==='liq') ? 0 : (a==='sol'&&b==='sol') ? 2 : 1;
+  }
+  let rL=NaN, lL=NaN;
+  for(let k=0;k<H.length-1;k++){
+    const a=H[k][2], b=H[k+1][2];
+    if(a==='liq'&&b==='sol'){ const x=H[k][0]; if(isNaN(rL)||x>rL) rL=x; }
+    if(a==='sol'&&b==='liq'){ const x=H[k+1][0]; if(isNaN(lL)||x<lL) lL=x; }
+  }
+  return {T, cls, rL, lL};
+}
+
+function pdAlloyEndMelt(phs, xiEnd){
+  // pure-end melting: where the LIQUID curve crosses the lowest solid at that end
+  const liq=phs.find(c=>c.liquid); if(!liq) return null;
+  const xq = xiEnd<0.5 ? 1e-4 : 1-1e-4;
+  const gAt=(c,T)=>pdAlloyPoints([c],T,3)[xiEnd<0.5?0:2][1];
+  const f=T=>{
+    let best=Infinity;
+    for(const c of phs){ if(c.liquid) continue; best=Math.min(best,gAt(c,T)); }
+    for(const d of pdAlloyStoichCache){ if(Math.abs(d.xi-xiEnd)<1e-6)
+        best=Math.min(best, api.stG(db,d.idx,T)/d.atoms); }
+    return best - gAt(liq,T);
+  };
+  let lo=300, hi=3500, flo=f(lo); if(flo*f(hi)>0) return null;
+  for(let it=0;it<40;it++){ const m=0.5*(lo+hi), fm=f(m); if(flo*fm<=0) hi=m; else { lo=m; flo=fm; } }
+  return 0.5*(lo+hi);
+}
+
+let pdAlloyStoichCache=[];
+function pdAlloyAutoRange(){
+  const ia=+document.getElementById('pdA').value, ib=+document.getElementById('pdB').value;
+  if(ia===ib||!pdVary[ia]||!pdVary[ib]) return;
+  const phs=pdAlloyPhases(ia,ib); pdAlloyStoichCache=pdAlloyStoich(ia,ib);
+  if(!phs.length){ phs.forEach(c=>api.M._free(c.Yp)); return; }
+  const Ts=[pdAlloyEndMelt(phs,0), pdAlloyEndMelt(phs,1)].filter(t=>t);
+  phs.forEach(c=>api.M._free(c.Yp));
+  if(!Ts.length) return;
+  document.getElementById('pdTmin').value=Math.max(300, Math.floor((Math.min(...Ts)-350)/50)*50);
+  document.getElementById('pdTmax').value=Math.ceil((Math.max(...Ts)+150)/50)*50;
+}
+
+async function generateAlloyDiagram(){
+  const msg=document.getElementById('pdmsg'), out=document.getElementById('pdout');
+  const ia=+document.getElementById('pdA').value, ib=+document.getElementById('pdB').value;
+  if(ia===ib){ msg.textContent='Pick two different elements.'; return; }
+  let Tmin=+document.getElementById('pdTmin').value, Tmax=+document.getElementById('pdTmax').value;
+  if(!(Tmax>Tmin)){ msg.textContent='Temperature max must exceed min.'; return; }
+  const phs=pdAlloyPhases(ia,ib), sto=pdAlloyStoich(ia,ib);
+  if(!phs.length){ msg.textContent='No solution phase spans this join in the loaded file.'; return; }
+  const xiCells=280, nT=120, cols=[];
+  document.getElementById('pdgen').disabled=true;
+  const yieldEvery=Math.max(1, Math.round(nT/12));
+  for(let j=0;j<nT;j++){
+    const T=Tmin+(Tmax-Tmin)*j/(nT-1);
+    cols.push(pdAlloyColumn(phs, sto, T, xiCells));
+    if(j%yieldEvery===0){
+      msg.innerHTML='<span class="spinner"></span> Computing '+Math.round(100*(j+1)/nT)+'%';
+      await new Promise(r=>setTimeout(r));
+    }
+  }
+  pdAlloyStoichCache=sto;
+  const meltTs=[pdAlloyEndMelt(phs,0), pdAlloyEndMelt(phs,1)];
+  phs.forEach(c=>api.M._free(c.Yp));
+  document.getElementById('pdgen').disabled=false;
+  msg.textContent='';
+  const endA={label:pdVary[ia].sym, els:{[pdVary[ia].sym]:1}, atoms:1, vary:pdVary[ia].sym, common:''};
+  const endB={label:pdVary[ib].sym, els:{[pdVary[ib].sym]:1}, atoms:1, vary:pdVary[ib].sym, common:''};
+  const melts=[];
+  if(meltTs[0]) melts.push({xi:0, T:meltTs[0], solid:endA.label});
+  if(meltTs[1]) melts.push({xi:1, T:meltTs[1], solid:endB.label});
+  pdResult={endA, endB, comps:[], Tmin, Tmax, cols, xiCells, disc:[], melts};
+  pdPins.length=0; renderPdHist();
+  out.classList.remove('hidden');
+  drawDiagram();
+  renderLegend();
+}
+
+/* ---- Scheil-Gulliver solidification on the current binary join ----
+ * March the liquid down the liquidus using the same per-temperature lower hull
+ * the diagram uses. At each step the tie-line around the current liquid gives
+ * the solid composition x_S and new liquidus composition x_L; the Scheil update
+ * f_L <- f_L (x_S - x_L,old)/(x_S - x_L,new) removes each solid increment from
+ * the balance. When the liquid interval vanishes (invariant), the residue
+ * freezes there. The lever-rule path recomputes equilibrium at fixed overall
+ * composition for contrast. */
+
+function scheilPointsAt(T, ctx2){
+  if(window.alloyMode) return pdAlloyPoints(ctx2.phs, T, 120)
+    .concat(ctx2.sto.map(d=>[d.xi, api.stG(db,d.idx,T)/d.atoms, 'sol', d.name]));
+  const {comps,endA,endB,disc,cefs}=ctx2;
+  const aps=xi=>pdAtoms(endA,endB,xi);
+  const pts=[];
+  const n=110;
+  for(let k=0;k<n;k++){ const xi=PD_FLOOR+(1-2*PD_FLOOR)*k/(n-1);
+    pts.push([xi, pdLiquidG(comps,endA,endB,xi,T)*aps(xi), 'liq', 'LIQUID']); }
+  for(const d of disc) pts.push([d.xi, api.stG(db,d.idx,T)/d.units, d.solid?'sol':'liq', d.name]);
+  if(cefs&&cefs.length) pts.push(...pdCefPoints(cefs,T,110));
+  return pts;
+}
+
+function scheilTie(H, x){
+  // hull edge covering x: returns {xs, xl, solName} for a liq-sol edge, 'liq' if
+  // inside the liquid, 'sol' if fully solid, null outside the hull
+  for(let k=0;k<H.length-1;k++){
+    const a=H[k], b=H[k+1];
+    if(x < a[0]-1e-12 || x > b[0]+1e-12) continue;
+    if(a[2]==='liq'&&b[2]==='liq') return {state:'liq'};
+    if(a[2]==='sol'&&b[2]==='sol') return {state:'sol', names:[a[3],b[3]]};
+    const liq = a[2]==='liq'?a:b, sol = a[2]==='liq'?b:a;
+    return {state:'two', xl:liq[0], xs:sol[0], solName:sol[3]||'solid'};
+  }
+  return null;
+}
+
+async function runScheil(){
+  const msg=document.getElementById('scheil-msg'), read=document.getElementById('scheil-read');
+  const cvS=document.getElementById('scheilcanvas');
+  if(!pdResult){ msg.textContent='Generate the phase diagram first.'; return; }
+  const x0=Math.min(0.99,Math.max(0.01,(+document.getElementById('scheil-x').value||30)/100));
+  const {Tmin,Tmax,endA,endB}=pdResult;
+  let ctx2;
+  if(window.alloyMode){
+    const ia=+document.getElementById('pdA').value, ib=+document.getElementById('pdB').value;
+    ctx2={phs:pdAlloyPhases(ia,ib), sto:pdAlloyStoich(ia,ib)};
+  } else {
+    const ia=+document.getElementById('pdA').value, ib=+document.getElementById('pdB').value,
+          ic=+document.getElementById('pdCommon').value;
+    const common=pdCommon[ic]||pdCommon[0];
+    const eA=pdEnd(pdVary[ia],common), eB=pdEnd(pdVary[ib],common);
+    ctx2={comps:[pdVary[ia].sym,pdVary[ib].sym,common.sym], endA:eA, endB:eB,
+          disc:pdDiscretes(eA,eB), cefs:pdCefOnJoin(eA,eB)};
+  }
+  msg.innerHTML='<span class="spinner"></span> Solidifying…';
+  await new Promise(r=>setTimeout(r,20));
+  try{
+    const nT=110, dT=(Tmax-Tmin)/(nT-1);
+    let fL=1.0, xL=x0, started=false, xlPrev=x0;
+    const sch=[], lever=[], events=[];
+    for(let j=nT-1;j>=0;j--){
+      const T=Tmin+dT*j;
+      const H=pdBuildHull(scheilPointsAt(T,ctx2));
+      // lever path at fixed overall x0
+      const tv=scheilTie(H,x0);
+      if(tv){ if(tv.state==='liq') lever.push([T,0]);
+        else if(tv.state==='sol') lever.push([T,1]);
+        else lever.push([T, Math.min(1,Math.max(0,(x0-tv.xl)/(tv.xs-tv.xl)))]); }
+      // Scheil path follows the moving liquid
+      if(fL<=1e-4) continue;
+      const t=scheilTie(H,xL);
+      if(!t) continue;
+      if(t.state==='liq'){ sch.push([T,1-fL]); xlPrev=xL; continue; }
+      if(t.state==='sol'){
+        events.push('residual liquid ('+(100*fL).toFixed(1)+'%) freezes at '+Math.round(T+dT)+' K as '+(t.names||[]).filter(Boolean).join(' + '));
+        sch.push([T,1]); fL=0; continue;
+      }
+      if(!started){ started=true; events.push('first solid '+t.solName+' at '+Math.round(T)+' K'); }
+      const xlNew=t.xl;
+      const denomOld=t.xs-xlPrev, denomNew=t.xs-xlNew;
+      if(Math.abs(denomNew)>1e-9 && Math.abs(denomOld)>1e-9){
+        fL*=Math.max(0,Math.min(1,denomOld/denomNew));
+      }
+      xL=xlNew; xlPrev=xlNew;
+      sch.push([T,1-fL]);
+    }
+    if(window.alloyMode) ctx2.phs.forEach(c=>api.M._free(c.Yp));
+    // draw fraction-solid vs temperature, greyscale-friendly
+    const dpr=window.devicePixelRatio||1, cssW=cvS.parentElement.clientWidth||600, cssH=280;
+    cvS.style.display='block'; cvS.width=cssW*dpr; cvS.height=cssH*dpr;
+    const c2=cvS.getContext('2d'); c2.setTransform(dpr,0,0,dpr,0,0); c2.clearRect(0,0,cssW,cssH);
+    const col=pdThemeColors();
+    const mL2=50,mR2=14,mT2=14,mB2=36, PW2=cssW-mL2-mR2, PH2=cssH-mT2-mB2;
+    const X2=fs=>mL2+fs*PW2, Y2=T=>mT2+PH2*(1-(T-Tmin)/(Tmax-Tmin));
+    c2.strokeStyle=rgba(col.line,1); c2.strokeRect(mL2,mT2,PW2,PH2);
+    c2.fillStyle=rgba(col.ink,0.85); c2.font='11px system-ui,sans-serif';
+    c2.textAlign='center'; c2.textBaseline='top';
+    for(let fs=0;fs<=1.001;fs+=0.25){ c2.fillText(Math.round(fs*100)+'', X2(fs), mT2+PH2+5); }
+    c2.fillText('fraction solid (%)', mL2+PW2/2, mT2+PH2+20);
+    c2.textAlign='right'; c2.textBaseline='middle';
+    const ts=(Tmax-Tmin)>1200?300:200;
+    for(let T=Math.ceil(Tmin/ts)*ts;T<=Tmax;T+=ts) c2.fillText(T+'', mL2-5, Y2(T));
+    const drawCurve=(arr,color,dash)=>{ if(!arr.length) return;
+      c2.setLineDash(dash); c2.strokeStyle=color; c2.lineWidth=2; c2.beginPath();
+      let st=false;
+      for(const [T,fs] of arr){ const px=X2(fs),py=Y2(T);
+        if(!st){c2.moveTo(px,py);st=true;} else c2.lineTo(px,py); }
+      c2.stroke(); c2.setLineDash([]); };
+    drawCurve(lever, rgba(col.muted,0.9), [5,4]);
+    drawCurve(sch, rgba(col.brand,1), []);
+    read.textContent=events.length?('Scheil: '+events.join('  ·  ')
+      +'   (solid line: Scheil; dashed: equilibrium lever rule)')
+      :'No solidification within the diagram temperature range.';
+    msg.textContent='';
+  }catch(err){
+    if(window.alloyMode && ctx2 && ctx2.phs) ctx2.phs.forEach(c=>{try{api.M._free(c.Yp);}catch(e){}});
+    msg.textContent='Scheil failed: '+err.message;
+  }
+}
+
 async function generateDiagram(){
+  if(window.alloyMode) return generateAlloyDiagram();
   const msg=document.getElementById('pdmsg'), out=document.getElementById('pdout');
   if(!db){ msg.textContent='Load a database first.'; return; }
   const ia=+document.getElementById('pdA').value, ib=+document.getElementById('pdB').value, ic=+document.getElementById('pdCommon').value;
@@ -1485,8 +1818,9 @@ function renderLegend(){
 }
 
 document.getElementById('pdgen').addEventListener('click', generateDiagram);
+document.getElementById('scheil-go').addEventListener('click', runScheil);
 // re-bracket the temperature axis whenever the join changes
-['pdA','pdB','pdCommon'].forEach(id=>document.getElementById(id).addEventListener('change', pdAutoRange));
+['pdA','pdB','pdCommon'].forEach(id=>document.getElementById(id).addEventListener('change', ()=>window.alloyMode?pdAlloyAutoRange():pdAutoRange()));
 // tap-to-read + pin points on the binary diagram (the main salt tool; also serves slag binaries)
 (function(){ const cv=document.getElementById('pdcanvas'), read=document.getElementById('pdread');
   cv.addEventListener('mousemove', ev=>{ const r=pdReadAt(ev.clientX,ev.clientY);

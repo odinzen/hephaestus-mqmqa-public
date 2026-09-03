@@ -8,7 +8,7 @@ from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 plt.rcParams.update({"font.family": "serif", "font.serif": ["Times New Roman", "DejaVu Serif"]})
 
 FIG_W, FIG_H = 11.0, 7.2
-fig, ax = plt.subplots(figsize=(FIG_W, FIG_H), dpi=300)
+fig, ax = plt.subplots(figsize=(FIG_W, FIG_H), dpi=600)
 ax.set_xlim(0, 100)
 ax.set_ylim(0, 66)
 ax.axis("off")

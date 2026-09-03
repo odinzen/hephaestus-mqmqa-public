@@ -74,6 +74,23 @@ def left_align_code(styles_xml: str) -> str:
     )
 
 
+def keep_figures_with_captions(xml: str) -> str:
+    """An image paragraph binds to the caption below it (keepNext), and both stay
+    unsplit (keepLines), so a figure and its caption always share a page."""
+    def fix(m):
+        para = m.group(0)
+        if "<w:drawing" not in para:
+            return para
+        props = "<w:keepNext/><w:keepLines/>"
+        if "<w:pPr>" in para:
+            if "<w:keepNext/>" not in para:
+                para = para.replace("<w:pPr>", "<w:pPr>" + props, 1)
+            return para
+        return re.sub(r"<w:p([^>]*)>", r"<w:p><w:pPr>" + props + "</w:pPr>", para, count=1)
+
+    return re.sub(r"<w:p(?:(?!</w:p>).)*?</w:p>", fix, xml, flags=re.S)
+
+
 def left_align_table_cells(xml: str) -> str:
     """Justified body text inside narrow table cells stretches into rivers of
     space; force every table-cell paragraph to left alignment."""
@@ -114,6 +131,7 @@ def left_align_headings(styles_xml: str) -> str:
 def main(path: str) -> None:
     z = zipfile.ZipFile(path)
     xml = left_align_table_cells(keep_tables_together(z.read("word/document.xml").decode("utf-8")))
+    xml = keep_figures_with_captions(xml)
     styles = left_align_headings(left_align_code(z.read("word/styles.xml").decode("utf-8")))
     with zipfile.ZipFile(path + ".new", "w", zipfile.ZIP_DEFLATED) as out:
         for item in z.namelist():

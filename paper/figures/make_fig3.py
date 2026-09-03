@@ -72,7 +72,7 @@ GREY = {"OLIVINE": "0.78", "ORTHOPYROXENE": "0.88", "PERICLASE": "0.55",
 cats = sorted(set(prim))
 code = np.array([cats.index(p) for p in prim], float)
 
-fig, (axa, axb) = plt.subplots(1, 2, figsize=(12.6, 5.6), dpi=300)
+fig, (axa, axb) = plt.subplots(1, 2, figsize=(12.6, 5.6), dpi=600)
 ok = np.array([p != "" for p in prim]) & ~np.isnan(liqC)
 axa.scatter(Xa[ok], Ya[ok], c=[GREY[p] for p in np.array(prim)[ok]], s=4.5,
             marker="s", linewidths=0)

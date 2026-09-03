@@ -93,10 +93,28 @@ def left_align_table_cells(xml: str) -> str:
     return re.sub(r"<w:tbl\b.*?</w:tbl>", fix_table, xml, flags=re.S)
 
 
+def left_align_headings(styles_xml: str) -> str:
+    """Titles and headings must not be justified; the body standard does not apply."""
+    def fix(m):
+        st = m.group(0)
+        if "<w:jc " in st:
+            return re.sub(r'<w:jc w:val="[^"]*"\s*/>', '<w:jc w:val="left"/>', st)
+        if "<w:pPr>" in st:
+            return st.replace("</w:pPr>", '<w:jc w:val="left"/></w:pPr>', 1)
+        return st.replace("<w:name", '<w:pPr><w:jc w:val="left"/></w:pPr><w:name', 1)
+
+    for sid in ["Title", "Subtitle", "Heading1", "Heading2", "Heading3",
+                "Heading4", "Heading5", "Heading6"]:
+        styles_xml = re.sub(
+            r'<w:style [^>]*w:styleId="%s".*?</w:style>' % sid, fix, styles_xml, flags=re.S
+        )
+    return styles_xml
+
+
 def main(path: str) -> None:
     z = zipfile.ZipFile(path)
     xml = left_align_table_cells(keep_tables_together(z.read("word/document.xml").decode("utf-8")))
-    styles = left_align_code(z.read("word/styles.xml").decode("utf-8"))
+    styles = left_align_headings(left_align_code(z.read("word/styles.xml").decode("utf-8")))
     with zipfile.ZipFile(path + ".new", "w", zipfile.ZIP_DEFLATED) as out:
         for item in z.namelist():
             if item == "word/document.xml":

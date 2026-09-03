@@ -1,7 +1,30 @@
 # JORS submission checklist (Hephaestus metapaper)
 
-Updated 2026-09-02 (final pass). Manuscript updated to release v0.2.0, cover letter rebuilt
-on the Odinzen letterhead, gates re-run. Ready for the two submission clicks below.
+Updated 2026-09-03 (fifth pass, v0.4.0). Title and abstract carry the full scope, gates
+re-run green. Ready for the two submission clicks below.
+
+## Done (2026-09-03, fifth pass - v0.4.0)
+
+- uTDB unified dialect shipped: :Q phases and MQ* parameters in the TDB reader, open spec
+  (docs/UNIFIED_TDB_SPEC.md), two themed demonstration files (aluminum recycling: Al-Zn +
+  NaCl-KCl-MgCl2 flux; steelmaking: Fe-C + FeO-MgO-SiO2 slag), machine-precision round-trip
+  suites for both. Fixed a ternary-excess exponent slot bug the round-trip gate caught.
+- Inden-Hillert-Jarl magnetic model implemented for TDB CEF phases; validated by pycalphad
+  parity (crfe_bcc_magnetic) and the pure-iron transitions (1185/1668/1811 K vs measured
+  1184.8/1667.5/1811). Own FeC.tdb (Gustafson 1985 on Dinsdale unaries). Suite: 104 passed.
+- Web app: Melt/Alloy view toggle for unified files (computes the real Fe-C diagram,
+  eutectic 1430 K at 17 mol% C), interstitial-phase support in the alloy sampler, figure
+  zoom on every calculator, interactive Scheil (hover + pinned points, windowed axes,
+  annotated), builder auto-populates from any loaded file, capacity-limited concierge copy.
+- Supplementary Material S1 added: plain-language primer for the non-programmer, ending
+  with how to do an assessment as a non-expert; referenced from the manuscript.
+- Title and abstract updated to the full scope (slags, molten salts, alloys; three
+  dialects; magnetic model; chloride family). Schools-of-formats table (Table 1) with
+  XTDB as the spine; TDB -> uTDB -> XTDB path stated.
+- Manuscript docx rebuilt clean of accumulated duplicate media (13.8 MB -> <1 MB); the
+  argus heading-regex hang this exposed is fixed upstream in the argus repo with a
+  regression test.
+- Cover letter re-dated 3 September 2026, archive line v0.4.0.
 
 ## Done (2026-09-02, fourth pass - v0.3.0)
 

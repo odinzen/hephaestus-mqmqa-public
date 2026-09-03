@@ -69,7 +69,7 @@ Press **Choose a .dat or .tdb file** and pick the file. It loads exactly like th
 
 ### 8. When your system is not on the page
 
-The built-in buttons cover the open slag and chloride salt databases shipped with this work. If the system you need is not among them, there are two doors:
+The built-in buttons cover the open slag, chloride salt, and Al-Zn alloy databases shipped with this work, plus the two unified demonstrations (aluminum recycling and steelmaking). If the system you need is not among them, there are two doors:
 
 - The **Phase diagram builder** card lets you construct a simple system yourself from melting points and mixing energies, directly on the page. It is a teaching and estimation tool, not an assessment.
 - The **Request a database** card is for real systems with real literature. Point it at your folder of collected papers and it prepares an email to us. Small, well-bounded systems may be added to the open collection free as capacity allows, with sources cited to their original authors and the contribution credited to you; larger or confidential work is a paid engagement and comes back as a quoted proposal. Either way you never touch a file format.

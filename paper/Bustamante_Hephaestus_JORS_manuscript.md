@@ -61,6 +61,8 @@ res = c_equilibrate(inp, {"FE": 0.2, "MG": 0.2, "SI": 0.2, "O": 1.4})
 # res["GM"], res["X"]: molar Gibbs energy and the quadruplet distribution
 ```
 
+Read as plain steps: the two import lines fetch the named tools from the installed package. Database.read opens the file, detects its dialect, and loads every phase and parameter into memory. build_inputs gathers what the solver needs about one named phase at one temperature, here the slag liquid at 1873 K. c_equilibrate then finds the internal state of lowest Gibbs energy for the given amounts of each element and returns a small table: res["GM"] is the molar Gibbs energy and res["X"] is the melt's internal structure, the quadruplet fractions. Every calculation in this paper is some loop around these three calls.
+
 The Python package also contains dbbuild, a declarative route from measured data to a loadable database. A user describes components with sourced endmember thermodynamics and fitted binary excess terms, and dbbuild writes a valid ChemSage file; a fitting routine obtains the excess parameters from measured component activities using the engine itself as the forward model. The builder covers single-anion oxide systems of two to four components, and multicomponent liquids are assembled from their binaries in the usual way.
 
 The browser application, hosted at https://odinzen.github.io/hephaestus-mqmqa-public/, exposes six tools: a calculator over any loaded database (ChemSage .dat or Thermo-Calc .tdb, auto-detected, with up to three uploaded files held per session), a binary join phase-diagram tool with tap-to-read point comparison, a Scheil-Gulliver solidification panel on the same join with the equilibrium lever-rule path drawn alongside, a viewer for the assessed FeO-MgO-SiO~2~ diagrams, a live isothermal-section solver that calculates the full phase assemblage at a chosen temperature in about a second, for the shipped ternaries or for any loaded three-cation file (Figure 2), and an interactive eutectic builder whose component names, melting points, and fusion enthalpies pre-fill from the loaded database. Loading an alloy TDB reshapes the workspace: the elements become the end members and every compound energy formalism phase spanning the join enters the same convex hull construction. Everything runs client side. The page holds a strict content security policy, escapes all file-derived strings, makes no third-party requests, and never transmits a loaded file, which matters to industrial users whose compositions are confidential.
@@ -182,6 +184,8 @@ liquid_only = [(T, xi) for xi, T, ph in diagram if ph == "LIQUID"]
 Te, xe = min(liquid_only)                          # coldest all-liquid point = eutectic
 ```
 
+In plain terms: the session sweeps a grid of temperatures and compositions, and at each point multiphase_binary compares the liquid solution against the two solid salts and reports which phases coexist. The two stoich_gibbs lines fetch the Gibbs energies of solid LiCl and solid KCl at that temperature. The closing lines only search the results: among all points where the melt is entirely liquid, the coldest is the eutectic.
+
 The listing prints its eutectic at x~KCl~ = 0.400 and 640 K on this deliberately coarse grid, against the measured 0.415 and 626 K; Figure 4 is the diagram it draws.
 
 ![Figure 4: The LiCl-KCl phase diagram computed by the salt listing from the shipped open database, on the listing's own grid. Light to dark: liquid, two-phase, and subsolidus fields. The dot is the computed eutectic on this grid (0.400, 640 K); the star is the measured eutectic (0.415, 626 K).](figures/fig4_salt_example.png){width=4.6in}
@@ -206,6 +210,8 @@ for T in np.arange(300.0, 1001.0, 5.0):
         xb, _gb, name_b = edge_b
         diagram.append((0.5*(xa+xb), T, tuple(sorted({name_a, name_b}))))
 ```
+
+In plain terms: at each temperature the loop evaluates every solid-solution phase's Gibbs energy across the whole composition line (cef_gibbs), and lower_hull keeps only the states no mixture of others can beat, the geometric equivalent of the common-tangent construction. Where two neighboring hull points belong to different phases, those phases coexist.
 
 It locates the eutectic at x~Zn~ = 0.890 and 660 K against the assessed 0.885 and 654 K [34] (Figure 5). The shipped AlZn.tdb is itself an openly licensed transcription of that published assessment on the SGTE unary functions [35], verified bit-identical through pycalphad against the file it transcribes. The slag systems run through the same calls behind Figures 2 and 3, and the repository's validation scripts are their executable record.
 

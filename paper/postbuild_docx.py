@@ -38,16 +38,36 @@ def keep_tables_together(xml: str) -> str:
     return re.sub(r"<w:tbl\b.*?</w:tbl>", fix_table, xml, flags=re.S)
 
 
+def left_align_code(styles_xml: str) -> str:
+    """Code blocks must never be justified: force jc=left on the SourceCode style."""
+    def fix(m):
+        st = m.group(0)
+        if "<w:jc " in st:
+            return re.sub(r'<w:jc w:val="[^"]*"/>', '<w:jc w:val="left"/>', st)
+        if "<w:pPr>" in st:
+            return st.replace("</w:pPr>", '<w:jc w:val="left"/></w:pPr>', 1)
+        return st.replace("</w:style>", '<w:pPr><w:jc w:val="left"/></w:pPr></w:style>', 1)
+
+    return re.sub(
+        r'<w:style [^>]*w:styleId="SourceCode".*?</w:style>', fix, styles_xml, flags=re.S
+    )
+
+
 def main(path: str) -> None:
     z = zipfile.ZipFile(path)
-    xml = z.read("word/document.xml").decode("utf-8")
-    fixed = keep_tables_together(xml)
+    xml = keep_tables_together(z.read("word/document.xml").decode("utf-8"))
+    styles = left_align_code(z.read("word/styles.xml").decode("utf-8"))
     with zipfile.ZipFile(path + ".new", "w", zipfile.ZIP_DEFLATED) as out:
         for item in z.namelist():
-            out.writestr(item, fixed.encode("utf-8") if item == "word/document.xml" else z.read(item))
+            if item == "word/document.xml":
+                out.writestr(item, xml.encode("utf-8"))
+            elif item == "word/styles.xml":
+                out.writestr(item, styles.encode("utf-8"))
+            else:
+                out.writestr(item, z.read(item))
     z.close()
     shutil.move(path + ".new", path)
-    print(f"tables kept together in {path}")
+    print(f"tables kept together and code left-aligned in {path}")
 
 
 if __name__ == "__main__":

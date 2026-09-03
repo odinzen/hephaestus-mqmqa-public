@@ -798,9 +798,6 @@ function loadDatabase(text, name) {
   document.getElementById('crystcard').classList.toggle('hidden', !isFMS);
   document.getElementById('livecard').classList.toggle('hidden', cats3.length !== 3);
   if (window._liveSyncLoaded) window._liveSyncLoaded();     // point the live engine at this system
-  // pre-fill the builder with this system's components (names + derived Tm/dHf), still tunable
-  if (window._bldLoadSystem) window._bldLoadSystem(window.alloyMode ? [] : componentThermo(), !hasO);
-  else if (window._bldSeedFor) window._bldSeedFor(!hasO);
   const solids=[]; for(let i=0;i<api.nStoich(db);i++) solids.push(api.stName(db,i));
   document.getElementById('solids').textContent = solids.length ? solids.join(', ') : '—';
 
@@ -825,6 +822,13 @@ function loadDatabase(text, name) {
   solveCard.classList.toggle('hidden', !!window.alloyMode);
   if (!window.alloyMode) { updatePairs(); populateComponents(); }
   populateDiagram();
+  // Pre-fill the builder with this system's components (names + derived Tm/dHf), still tunable.
+  // After populateDiagram so alloy mode has pdVary; the salt flag stays false for alloys so the
+  // molten-salt presets never seed over an alloy file.
+  if (window._bldLoadSystem)
+    window._bldLoadSystem(window.alloyMode ? alloyComponentThermo() : componentThermo(),
+                          !hasO && !window.alloyMode);
+  else if (window._bldSeedFor) window._bldSeedFor(!hasO && !window.alloyMode);
 }
 
 function updatePairs() {
@@ -936,6 +940,44 @@ function componentThermo(){
     out.push({name:c.label, TmC:Tm-273.15, dHf:Tm*(Sliq-Ssol)*c.nCat/1000});
   }
   [gbuf,sbuf].forEach(p=>M._free(p));
+  return out;
+}
+
+function alloyComponentThermo(){
+  // per-element Tm and dHf for the builder, from the loaded TDB: each element is the pure end
+  // of a join, melting where the liquid crosses the lowest solid (same construction the alloy
+  // diagram uses), dHf = Tm * (S_liq - S_sol) from the Gibbs slopes either side of Tm.
+  const out=[];
+  if(!window.alloyMode || !pdVary || pdVary.length<2) return out;
+  const savedCache=pdAlloyStoichCache;
+  for(let i=0;i<pdVary.length && out.length<4;i++){
+    const j=(i===0)?1:0;
+    const ia=Math.min(i,j), ib=Math.max(i,j), xiEnd=(i===ia)?0:1;
+    let Tm=null, dHf=null;
+    try{
+      const phs=pdAlloyPhases(ia,ib);
+      if(phs.length){
+        pdAlloyStoichCache=pdAlloyStoich(ia,ib);
+        Tm=pdAlloyEndMelt(phs,xiEnd);
+        if(Tm){
+          const liq=phs.find(c=>c.liquid);
+          const gAt=(c,T)=>pdAlloyPoints([c],T,3)[xiEnd<0.5?0:2][1];
+          const solidG=T=>{ let best=Infinity;
+            for(const c of phs){ if(c.liquid) continue; best=Math.min(best,gAt(c,T)); }
+            for(const d of pdAlloyStoichCache){ if(Math.abs(d.xi-xiEnd)<1e-6)
+                best=Math.min(best, api.stG(db,d.idx,T)/d.atoms); }
+            return best; };
+          const dT=1.0, off=3.0;
+          const Ss=-(solidG(Tm-off+dT)-solidG(Tm-off-dT))/(2*dT);
+          const Sl=-(gAt(liq,Tm+off+dT)-gAt(liq,Tm+off-dT))/(2*dT);
+          dHf=Tm*(Sl-Ss)/1000;
+        }
+        phs.forEach(c=>api.M._free(c.Yp));
+      }
+    }catch(e){ /* leave this element blank rather than fail the load */ }
+    out.push({name:pdVary[i].sym, TmC:Tm!=null?Tm-273.15:null, dHf});
+  }
+  pdAlloyStoichCache=savedCache;
   return out;
 }
 

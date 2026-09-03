@@ -112,6 +112,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
            align-items:center; max-width:30rem; margin-bottom:.9rem; }
   .pdctl label { color:var(--muted); font-size:var(--fs-sm); }
   .pdwrap { position:relative; margin-top:1rem; }
+  #scheilcanvas { width:100%; height:auto; display:block; }
   #pdcanvas { width:100%; height:auto; display:block; border:1px solid var(--line);
               border-radius:8px; background:var(--card); }
   .spinner { width:1rem; height:1rem; border:2px solid var(--line);
@@ -135,7 +136,28 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
   /* ternary phase-diagram showcase */
   .tern-note { color:var(--muted); font-size:var(--fs-sm); margin:.1rem 0 .9rem; max-width:none; }
   .tern-wrap { position:relative; max-width:52rem; margin:.2rem auto 0; }
-  .tern-wrap canvas { width:100%; height:auto; display:block; touch-action:none; cursor:crosshair; }
+  .tern-wrap canvas { width:100%; height:auto; display:block; touch-action:pinch-zoom; cursor:crosshair; }
+
+  /* figure zoom: expand button on every calculator canvas + fullscreen viewer */
+  .zoom-btn { position:absolute; top:.45rem; right:.45rem; z-index:5; width:2.1rem; height:2.1rem;
+              border-radius:8px; border:1px solid var(--line);
+              background:color-mix(in srgb, var(--card) 85%, transparent); color:var(--muted);
+              font-size:1.05rem; line-height:1; display:flex; align-items:center; justify-content:center;
+              cursor:pointer; padding:0; }
+  .zoom-btn:hover { color:var(--ink); border-color:var(--brand); }
+  canvas[style*="none"] ~ .zoom-btn { display:none; }
+  #zoombox { position:fixed; inset:0; z-index:80; display:none;
+             background:color-mix(in srgb, var(--bg) 94%, transparent); }
+  #zoombox.on { display:block; }
+  #zoombox .zb-stage { position:absolute; inset:0; overflow:hidden; touch-action:none; cursor:grab; }
+  #zoombox img { position:absolute; left:0; top:0; transform-origin:0 0; max-width:none;
+                 user-select:none; -webkit-user-drag:none; image-rendering:auto; }
+  #zoombox .zb-bar { position:absolute; top:.6rem; right:.6rem; z-index:2; display:flex; gap:.4rem; }
+  #zoombox .zb-bar button { width:2.6rem; height:2.6rem; border-radius:8px; border:1px solid var(--line);
+                            background:var(--card); color:var(--ink); font-size:1.25rem; cursor:pointer; }
+  #zoombox .zb-bar button:hover { border-color:var(--brand); }
+  #zoombox .zb-hint { position:absolute; bottom:.7rem; left:0; right:0; text-align:center;
+                      color:var(--muted); font-size:var(--fs-xs); pointer-events:none; }
   .tern-read { font-family:var(--font-mono); font-size:var(--fs-sm); color:var(--ink);
                min-height:1.3em; margin:.5rem 0 .2rem; text-align:center; }
   .tern-badge { display:inline-block; font-size:var(--fs-xs); text-transform:uppercase;
@@ -1638,24 +1660,39 @@ async function runScheil(){
     cvS.style.display='block'; cvS.width=cssW*dpr; cvS.height=cssH*dpr;
     const c2=cvS.getContext('2d'); c2.setTransform(dpr,0,0,dpr,0,0); c2.clearRect(0,0,cssW,cssH);
     const col=pdThemeColors();
+    // window the axes to the freezing range so the all-liquid cooling leg above
+    // the liquidus neither draws a spurious vertical at 0% nor stretches the axis
+    const all2=sch.concat(lever);
+    const solidPts=all2.filter(p=>p[1]>1e-6);
+    const freezing=all2.filter(p=>p[1]>1e-6&&p[1]<1-1e-6);
+    let Tlo=Tmin, Thi=Tmax;
+    if(solidPts.length){
+      const Tstart=Math.max(...solidPts.map(p=>p[0]));
+      const Tend2=freezing.length?Math.min(...freezing.map(p=>p[0])):Math.min(...solidPts.map(p=>p[0]));
+      const pad=Math.max(8,(Tstart-Tend2)*0.08);
+      Thi=Math.min(Tmax,Tstart+pad); Tlo=Math.max(Tmin,Tend2-2*pad);
+    }
+    const inWin=p=>p[0]<=Thi+1e-9&&p[0]>=Tlo-1e-9;
+    const schP=sch.filter(inWin), leverP=lever.filter(inWin);
     const mL2=50,mR2=14,mT2=14,mB2=36, PW2=cssW-mL2-mR2, PH2=cssH-mT2-mB2;
-    const X2=fs=>mL2+fs*PW2, Y2=T=>mT2+PH2*(1-(T-Tmin)/(Tmax-Tmin));
+    const X2=fs=>mL2+fs*PW2, Y2=T=>mT2+PH2*(1-(T-Tlo)/(Thi-Tlo));
     c2.strokeStyle=rgba(col.line,1); c2.strokeRect(mL2,mT2,PW2,PH2);
     c2.fillStyle=rgba(col.ink,0.85); c2.font='11px system-ui,sans-serif';
     c2.textAlign='center'; c2.textBaseline='top';
     for(let fs=0;fs<=1.001;fs+=0.25){ c2.fillText(Math.round(fs*100)+'', X2(fs), mT2+PH2+5); }
     c2.fillText('fraction solid (%)', mL2+PW2/2, mT2+PH2+20);
     c2.textAlign='right'; c2.textBaseline='middle';
-    const ts=(Tmax-Tmin)>1200?300:200;
-    for(let T=Math.ceil(Tmin/ts)*ts;T<=Tmax;T+=ts) c2.fillText(T+'', mL2-5, Y2(T));
+    const span2=Thi-Tlo;
+    const ts=[500,300,200,100,50,25,20,10].find(t=>span2/t>=3)||10;
+    for(let T=Math.ceil(Tlo/ts)*ts;T<=Thi;T+=ts) c2.fillText(T+'', mL2-5, Y2(T));
     const drawCurve=(arr,color,dash)=>{ if(!arr.length) return;
       c2.setLineDash(dash); c2.strokeStyle=color; c2.lineWidth=2; c2.beginPath();
       let st=false;
       for(const [T,fs] of arr){ const px=X2(fs),py=Y2(T);
         if(!st){c2.moveTo(px,py);st=true;} else c2.lineTo(px,py); }
       c2.stroke(); c2.setLineDash([]); };
-    drawCurve(lever, rgba(col.muted,0.9), [5,4]);
-    drawCurve(sch, rgba(col.brand,1), []);
+    drawCurve(leverP, rgba(col.muted,0.9), [5,4]);
+    drawCurve(schP, rgba(col.brand,1), []);
     read.textContent=events.length?('Scheil: '+events.join('  ·  ')
       +'   (solid line: Scheil; dashed: equilibrium lever rule)')
       :'No solidification within the diagram temperature range.';
@@ -2754,6 +2791,117 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
     setN(use.length);
   };
   _bldSeedFor(false);   // default (landing / slag): hide salt presets, seed the generic ternary
+})();
+</script>
+<script>
+/* Figure zoom: every calculator canvas gets an expand button that opens the current
+   rendering fullscreen with pinch, drag-pan, wheel, and button zoom (phone-first). */
+(function(){
+  const box = document.createElement('div');
+  box.id = 'zoombox';
+  box.innerHTML =
+    '<div class="zb-stage"><img alt="zoomed figure"></div>' +
+    '<div class="zb-bar">' +
+      '<button id="zb-out" type="button" aria-label="zoom out">&minus;</button>' +
+      '<button id="zb-in" type="button" aria-label="zoom in">+</button>' +
+      '<button id="zb-reset" type="button" aria-label="fit">&#8634;</button>' +
+      '<button id="zb-close" type="button" aria-label="close">&#10005;</button>' +
+    '</div>' +
+    '<div class="zb-hint">pinch or scroll to zoom &middot; drag to pan &middot; double-tap to reset</div>';
+  document.body.appendChild(box);
+  const stage = box.querySelector('.zb-stage'), img = box.querySelector('img');
+  let s = 1, tx = 0, ty = 0, minS = 0.05;
+  const ptrs = new Map();
+  let pinch = null, lastTap = 0;
+
+  function apply(){ img.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + s + ')'; }
+  function fitView(){
+    const W = stage.clientWidth, H = stage.clientHeight;
+    const w = img.naturalWidth || 1, h = img.naturalHeight || 1;
+    minS = Math.min(W / w, H / h) * 0.96;
+    s = minS; tx = (W - w * s) / 2; ty = (H - h * s) / 2; apply();
+  }
+  function zoomAt(px, py, factor){
+    const s2 = Math.min(Math.max(s * factor, minS), minS * 14);
+    tx = px - (px - tx) * (s2 / s);
+    ty = py - (py - ty) * (s2 / s);
+    s = s2; apply();
+  }
+  function openZoom(cv){
+    if (!cv || cv.offsetParent === null || !cv.width) return;
+    img.src = cv.toDataURL('image/png');
+    box.classList.add('on');
+    document.body.style.overflow = 'hidden';
+    if (img.complete) fitView(); else img.onload = fitView;
+  }
+  function closeZoom(){
+    box.classList.remove('on');
+    document.body.style.overflow = '';
+    ptrs.clear(); pinch = null;
+  }
+
+  stage.addEventListener('wheel', e => {
+    e.preventDefault();
+    zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.18 : 1 / 1.18);
+  }, {passive:false});
+  stage.addEventListener('pointerdown', e => {
+    stage.setPointerCapture(e.pointerId);
+    ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY});
+    if (ptrs.size === 2){
+      const [a, b] = [...ptrs.values()];
+      pinch = {d: Math.hypot(a.x - b.x, a.y - b.y),
+               mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, s, tx, ty};
+    }
+  });
+  stage.addEventListener('pointermove', e => {
+    const p = ptrs.get(e.pointerId);
+    if (!p) return;
+    if (ptrs.size === 1){
+      tx += e.clientX - p.x; ty += e.clientY - p.y; apply();
+    }
+    p.x = e.clientX; p.y = e.clientY;
+    if (ptrs.size === 2 && pinch){
+      const [a, b] = [...ptrs.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      const s2 = Math.min(Math.max(pinch.s * (d / pinch.d), minS), minS * 14);
+      tx = mx - (pinch.mx - pinch.tx) * (s2 / pinch.s);
+      ty = my - (pinch.my - pinch.ty) * (s2 / pinch.s);
+      s = s2; apply();
+    }
+  });
+  function endPtr(e){
+    ptrs.delete(e.pointerId);
+    if (ptrs.size < 2) pinch = null;
+    if (e.type === 'pointerup' && ptrs.size === 0){
+      const now = Date.now();
+      if (now - lastTap < 320) fitView();
+      lastTap = now;
+    }
+  }
+  stage.addEventListener('pointerup', endPtr);
+  stage.addEventListener('pointercancel', endPtr);
+  document.getElementById('zb-in').addEventListener('click', () =>
+    zoomAt(stage.clientWidth / 2, stage.clientHeight / 2, 1.35));
+  document.getElementById('zb-out').addEventListener('click', () =>
+    zoomAt(stage.clientWidth / 2, stage.clientHeight / 2, 1 / 1.35));
+  document.getElementById('zb-reset').addEventListener('click', fitView);
+  document.getElementById('zb-close').addEventListener('click', closeZoom);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeZoom(); });
+  window.addEventListener('resize', () => { if (box.classList.contains('on')) fitView(); });
+
+  ['pdcanvas','scheilcanvas','terncanvas','crystcanvas','livecanvas','bldcanvas'].forEach(id => {
+    const cv = document.getElementById(id);
+    if (!cv || !cv.parentElement) return;
+    const wrap = cv.parentElement;
+    if (getComputedStyle(wrap).position === 'static') wrap.style.position = 'relative';
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'zoom-btn'; b.title = 'Zoom this figure';
+    b.setAttribute('aria-label', 'Zoom this figure');
+    b.innerHTML = '&#9974;';
+    b.addEventListener('click', () => openZoom(cv));
+    wrap.appendChild(b);
+  });
 })();
 </script>
 <script>

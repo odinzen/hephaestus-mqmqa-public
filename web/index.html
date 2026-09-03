@@ -283,6 +283,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <button class="filebtn ghost" id="example-salt" type="button">Load the open salt database</button>
       <button class="filebtn ghost" id="example-alloy" type="button">Load the open alloy TDB</button>
       <button class="filebtn ghost" id="example-unified" type="button">Al recycling demo (alloy + salt flux, .utdb)</button>
+      <button class="filebtn ghost" id="example-steel" type="button">Steelmaking demo (steel + slag, .utdb)</button>
       <span id="loadmsg" class="muted">No database loaded yet.</span>
     </div>
     <div class="muted" style="margin-top:.55rem; font-size:var(--fs-xs)">
@@ -614,7 +615,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
 
 </div>
 
-<script src="./hephaestus.js?v=20260903b"></script>
+<script src="./hephaestus.js?v=20260903c"></script>
 <script>
 let api = null, db = 0, phase = 0, nPairs = 0, catNames = [], anNames = [];
 
@@ -735,6 +736,7 @@ document.getElementById('example').addEventListener('click', () => loadShipped('
 document.getElementById('example-salt').addEventListener('click', () => loadShipped('LiCl-KCl.dat'));
 document.getElementById('example-alloy').addEventListener('click', () => loadShipped('AlZn.tdb'));
 document.getElementById('example-unified').addEventListener('click', () => loadShipped('AlZn-NaClKClMgCl2.utdb'));
+document.getElementById('example-steel').addEventListener('click', () => loadShipped('FeC-FeOMgOSiO2.utdb'));
 
 function loadDatabase(text, name) {
   const M = api.M;

@@ -1,0 +1,189 @@
+$ Unified-dialect demonstration: STEELMAKING in one database.
+$
+$ Basic steel (Fe-C after Gustafson 1985 on Dinsdale unaries, as in FeC.tdb,
+$ with the Inden-Hillert-Jarl magnetic BCC and FCC) together with the open
+$ FeO-MgO-SiO2 slag assessment shipped as web/FeO-MgO-SiO2-combined.dat: the
+$ MQMQA slag liquid, the olivine and orthopyroxene solid solutions, and the
+$ oxide solids. Steel and its slag share iron in one file; no legacy container
+$ can hold this pairing. Carried by the uTDB extension statements (:Q phase,
+$ MQG/MQZETA/MQSTOI/MQZ/MQX; see docs/UNIFIED_TDB_SPEC.md); the round-trip
+$ test asserts both halves agree with their source files at machine precision.
+$ CC BY 4.0 like the rest of the data in this repository.
+$
+ ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00 !
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00 !
+ ELEMENT FE   BCC_A2                    5.5847E+01  4.4890E+03  2.7280E+01 !
+ ELEMENT C    GRAPHITE                  1.2011E+01  1.0540E+03  5.7400E+00 !
+ ELEMENT MG   HCP_A3                    2.4305E+01  0.0000E+00  0.0000E+00 !
+ ELEMENT SI   DIA_A4                    2.8085E+01  0.0000E+00  0.0000E+00 !
+ ELEMENT O    GAS_1/2_MOLE_O2           1.5999E+01  0.0000E+00  0.0000E+00 !
+
+ SPECIES FE+2   FE1/+2 !
+ SPECIES MG+2   MG1/+2 !
+ SPECIES SI+4   SI1/+4 !
+ SPECIES O-2    O1/-2 !
+ SPECIES FEO    FE1O1 !
+ SPECIES MGO    MG1O1 !
+ SPECIES SIO2   SI1O2 !
+
+$ ------------------------- Fe-C steel (plain TDB) -------------------------
+
+ FUNCTION GHSERFE  298.15
+    +1225.7+124.134*T-23.5143*T*LN(T)
+    -4.39752E-3*T**2-5.8927E-8*T**3+77359*T**(-1);            1811.00 Y
+    -25383.581+299.31255*T-46*T*LN(T)
+    +2.29603E+31*T**(-9);                                     6000.00 N !
+
+ FUNCTION GFELIQ   298.15
+    +12040.17-6.55843*T-3.6751551E-21*T**7+GHSERFE#;          1811.00 Y
+    -10838.83+291.302*T-46*T*LN(T);                           6000.00 N !
+
+ FUNCTION GFEFCC   298.15
+    -236.7+132.416*T-24.6643*T*LN(T)
+    -3.75752E-3*T**2-5.8927E-8*T**3+77359*T**(-1);            1811.00 Y
+    -27097.396+300.252559*T-46*T*LN(T)
+    +2.78854E+31*T**(-9);                                     6000.00 N !
+
+ FUNCTION GHSERCC  298.15
+    -17368.441+170.73*T-24.3*T*LN(T)
+    -4.723E-4*T**2+2562600*T**(-1)
+    -2.643E+8*T**(-2)+1.2E+10*T**(-3);                        6000.00 N !
+
+ FUNCTION GCLIQ    298.15  +117369-24.63*T+GHSERCC#;          6000.00 N !
+
+ TYPE_DEFINITION % SEQ * !
+ TYPE_DEFINITION & GES A_P_D BCC_A2 MAGNETIC -1.0 0.4 !
+ TYPE_DEFINITION ' GES A_P_D FCC_A1 MAGNETIC -3.0 0.28 !
+
+ PHASE STEEL_LIQUID %  1  1.0 !
+ CONSTITUENT STEEL_LIQUID : C,FE : !
+ PARAMETER G(STEEL_LIQUID,FE;0)    298.15  +GFELIQ#;          6000.00 N !
+ PARAMETER G(STEEL_LIQUID,C;0)     298.15  +GCLIQ#;           6000.00 N !
+ PARAMETER G(STEEL_LIQUID,C,FE;0)  298.15  -124320+28.5*T;    6000.00 N !
+ PARAMETER G(STEEL_LIQUID,C,FE;1)  298.15  +19300;            6000.00 N !
+ PARAMETER G(STEEL_LIQUID,C,FE;2)  298.15  +49260-19*T;       6000.00 N !
+
+ PHASE BCC_A2 %&  2  1.0  3.0 !
+ CONSTITUENT BCC_A2 : FE : C,VA : !
+ PARAMETER G(BCC_A2,FE:VA;0)     298.15  +GHSERFE#;           6000.00 N !
+ PARAMETER TC(BCC_A2,FE:VA;0)    298.15  +1043;               6000.00 N !
+ PARAMETER BMAGN(BCC_A2,FE:VA;0) 298.15  +2.22;               6000.00 N !
+ PARAMETER G(BCC_A2,FE:C;0)      298.15
+    +322050+75.667*T+GHSERFE#+3*GHSERCC#;                     6000.00 N !
+ PARAMETER TC(BCC_A2,FE:C;0)     298.15  +1043;               6000.00 N !
+ PARAMETER BMAGN(BCC_A2,FE:C;0)  298.15  +2.22;               6000.00 N !
+ PARAMETER G(BCC_A2,FE:C,VA;0)   298.15  -190*T;              6000.00 N !
+
+ PHASE FCC_A1 %'  2  1.0  1.0 !
+ CONSTITUENT FCC_A1 : FE : C,VA : !
+ PARAMETER G(FCC_A1,FE:VA;0)     298.15  +GFEFCC#;            6000.00 N !
+ PARAMETER TC(FCC_A1,FE:VA;0)    298.15  -201;                6000.00 N !
+ PARAMETER BMAGN(FCC_A1,FE:VA;0) 298.15  -2.1;                6000.00 N !
+ PARAMETER G(FCC_A1,FE:C;0)      298.15
+    +77207-15.877*T+GFEFCC#+GHSERCC#;                         6000.00 N !
+ PARAMETER TC(FCC_A1,FE:C;0)     298.15  -201;                6000.00 N !
+ PARAMETER BMAGN(FCC_A1,FE:C;0)  298.15  -2.1;                6000.00 N !
+ PARAMETER G(FCC_A1,FE:C,VA;0)   298.15  -34671;              6000.00 N !
+
+ PHASE CEMENTITE %  2  3.0  1.0 !
+ CONSTITUENT CEMENTITE : FE : C : !
+ PARAMETER G(CEMENTITE,FE:C;0)  298.15
+    -10745+706.04*T-120.6*T*LN(T);                            6000.00 N !
+
+ PHASE GRAPHITE %  1  1.0 !
+ CONSTITUENT GRAPHITE : C : !
+ PARAMETER G(GRAPHITE,C;0)  298.15  +GHSERCC#;                6000.00 N !
+
+$ ---------- FeO-MgO-SiO2 slag (uTDB :Q extension + plain TDB) ----------
+$ Same open assessment as web/FeO-MgO-SiO2-combined.dat; per-pair Gibbs on the
+$ (1, T, T lnT, T^2, T^3, 1/T) basis, per mole of oxide formula.
+
+ PHASE SLAG_LIQUID:Q %  2  1.0  1.0 !
+ CONSTITUENT SLAG_LIQUID:Q : FE+2,MG+2,SI+4 : O-2 : !
+
+ PARAMETER MQG(SLAG_LIQUID,FE+2:O-2;0)  298.15
+    -149285.7754984+198.5030345860*T-50.66300*T*LN(T)
+    -4.355641500000E-3*T**2+156690.5*T**(-1);                 1650.00 Y
+    -264529.4463544+268.3476835896*T-50.66300*T*LN(T)
+    -4.355641500000E-3*T**2+156690.5*T**(-1);                 6000.00 N !
+ PARAMETER MQG(SLAG_LIQUID,MG+2:O-2;0)  298.15
+    -551991.7705555+281.6773348254*T-48.24250*T*LN(T)
+    -1.953009500000E-3*T**2+554100*T**(-1);                   3098.00 Y
+    -542774.0320865+278.7019512008*T-48.24250*T*LN(T)
+    -1.953009500000E-3*T**2+554100*T**(-1);                   6000.00 N !
+ PARAMETER MQG(SLAG_LIQUID,SI+4:O-2;0)  298.15
+    -934425.9891327+462.6789704776*T-72.75000*T*LN(T)
+    -6.500000000000E-4*T**2+2066000*T**(-1);                  6000.00 N !
+
+ PARAMETER MQZETA(SLAG_LIQUID,FE+2:O-2)  298.15  1.3774438; 6000.00 N !
+ PARAMETER MQZETA(SLAG_LIQUID,MG+2:O-2)  298.15  1.3774438; 6000.00 N !
+ PARAMETER MQZETA(SLAG_LIQUID,SI+4:O-2)  298.15  1.3774438; 6000.00 N !
+ PARAMETER MQSTOI(SLAG_LIQUID,FE+2:O-2)  298.15  1 1 0 0 0; 6000.00 N !
+ PARAMETER MQSTOI(SLAG_LIQUID,MG+2:O-2)  298.15  1 1 0 0 0; 6000.00 N !
+ PARAMETER MQSTOI(SLAG_LIQUID,SI+4:O-2)  298.15  1 2 0 0 0; 6000.00 N !
+
+ PARAMETER MQZ(SLAG_LIQUID,FE+2,FE+2:O-2,O-2)  298.15
+    1.3774438 1.3774438 1.3774438 1.3774438;                  6000.00 N !
+ PARAMETER MQZ(SLAG_LIQUID,MG+2,MG+2:O-2,O-2)  298.15
+    1.3774438 1.3774438 1.3774438 1.3774438;                  6000.00 N !
+ PARAMETER MQZ(SLAG_LIQUID,SI+4,SI+4:O-2,O-2)  298.15
+    2.7548876 2.7548876 1.3774438 1.3774438;                  6000.00 N !
+
+ PARAMETER MQXQ(SLAG_LIQUID,FE+2,SI+4:O-2,O-2;0,0)  298.15
+    -42839.42808976+17.82976580112*T;                         6000.00 N !
+ PARAMETER MQXQ(SLAG_LIQUID,MG+2,SI+4:O-2,O-2;0,0)  298.15
+    -44468.80-1.6*T;                                          6000.00 N !
+ PARAMETER MQXQ(SLAG_LIQUID,MG+2,SI+4:O-2,O-2;0,1)  298.15
+    -50864.20-0.3*T;                                          6000.00 N !
+ PARAMETER MQXQ(SLAG_LIQUID,MG+2,SI+4:O-2,O-2;0,3)  298.15
+    +1448.2-0.7*T;                                            6000.00 N !
+ PARAMETER MQXQ(SLAG_LIQUID,MG+2,SI+4:O-2,O-2;0,5)  298.15
+    +116056.4-10.8*T;                                         6000.00 N !
+ PARAMETER MQXQ(SLAG_LIQUID,MG+2,SI+4:O-2,O-2;0,7)  298.15
+    -1177.5-0.3*T;                                            6000.00 N !
+
+$ olivine (Fe,Mg)2 (Si)1 (O)4 and orthopyroxene (Fe,Mg)2 (Si)2 (O)6, plain TDB CEF
+
+ PHASE OLIVINE %  3  2.0  1.0  4.0 !
+ CONSTITUENT OLIVINE : FE,MG : SI : O : !
+ PARAMETER G(OLIVINE,FE:SI:O;0)  298.15
+    -1543550.9474+1048.2576562*T-176.02*T*LN(T)
+    +4.404E-3*T**2-4.1183333333E-6*T**3+1944500*T**(-1);      6000.00 N !
+ PARAMETER G(OLIVINE,MG:SI:O;0)  298.15
+    -2244262.5994+439.08104261*T-87.36*T*LN(T)
+    -4.3585E-2*T**2+3.7283333333E-6*T**3+1849500*T**(-1)
+    +3374.4*T**0.5;                                           6000.00 N !
+ PARAMETER G(OLIVINE,FE,MG:SI:O;0)  298.15  +12552;           6000.00 N !
+ PARAMETER G(OLIVINE,FE,MG:SI:O;1)  298.15  +4184;            6000.00 N !
+
+ PHASE ORTHOPYROXENE %  3  2.0  2.0  6.0 !
+ CONSTITUENT ORTHOPYROXENE : FE,MG : SI : O : !
+ PARAMETER G(ORTHOPYROXENE,FE:SI:O;0)  298.15
+    -2488472.3354+1522.4933073*T-248.60*T*LN(T)
+    -1.454E-2*T**2+3378000*T**(-1);                           6000.00 N !
+ PARAMETER G(ORTHOPYROXENE,MG:SI:O;0)  298.15
+    -2979683.7051+5457.8496284*T-701.40*T*LN(T)
+    +1.4720E-1*T**2-1.942E-5*T**3-1769000*T**(-1)
+    -34368*T**0.5;                                            1360.00 Y
+    -3022947.9672+5489.6615859*T-701.40*T*LN(T)
+    +1.4720E-1*T**2-1.942E-5*T**3-1769000*T**(-1)
+    -34368*T**0.5;                                            6000.00 N !
+ PARAMETER G(ORTHOPYROXENE,FE,MG:SI:O;0)  298.15  +7949.6;    6000.00 N !
+
+ PHASE CRISTOBALITE %  1  1.0 !
+ CONSTITUENT CRISTOBALITE : SIO2 : !
+ PARAMETER G(CRISTOBALITE,SIO2;0)  298.15
+    -944006.9891327+467.4790706780*T-72.75000*T*LN(T)
+    -6.500000000000E-4*T**2+2066000*T**(-1);                  6000.00 N !
+
+ PHASE PERICLASE %  1  1.0 !
+ CONSTITUENT PERICLASE : MGO : !
+ PARAMETER G(PERICLASE,MGO;0)  298.15
+    -619774.0320865+303.5566961976*T-48.24250*T*LN(T)
+    -1.953009500000E-3*T**2+554100*T**(-1);                   6000.00 N !
+
+ PHASE WUSTITE %  1  1.0 !
+ CONSTITUENT WUSTITE : FEO : !
+ PARAMETER G(WUSTITE,FEO;0)  298.15
+    -288587.4463544+282.9282896502*T-50.66300*T*LN(T)
+    -4.355641500000E-3*T**2+156690.5*T**(-1);                 6000.00 N !

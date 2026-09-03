@@ -1,0 +1,80 @@
+$ Fe-C, the basic steel system, own transcription for the open calculator.
+$ Unaries after Dinsdale (1991, SGTE); binary after Gustafson (1985), the
+$ assessment industrial Fe-C work still rests on. Phases: liquid, ferrite
+$ BCC_A2 (Fe)(C,VA)3 interstitial, austenite FCC_A1 (Fe)(C,VA), cementite
+$ Fe3C, graphite. The BCC and FCC magnetic contributions use the
+$ Inden-Hillert-Jarl model (this is what puts the alpha/gamma balance right).
+$ Validated in tests/test_fec_steel.py: pycalphad parity on every phase and
+$ the measured pure-iron transition temperatures.
+$ CC BY 4.0 like the rest of the data in this repository.
+$
+ ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00 !
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00 !
+ ELEMENT FE   BCC_A2                    5.5847E+01  4.4890E+03  2.7280E+01 !
+ ELEMENT C    GRAPHITE                  1.2011E+01  1.0540E+03  5.7400E+00 !
+
+ FUNCTION GHSERFE  298.15
+    +1225.7+124.134*T-23.5143*T*LN(T)
+    -4.39752E-3*T**2-5.8927E-8*T**3+77359*T**(-1);            1811.00 Y
+    -25383.581+299.31255*T-46*T*LN(T)
+    +2.29603E+31*T**(-9);                                     6000.00 N !
+
+ FUNCTION GFELIQ   298.15
+    +12040.17-6.55843*T-3.6751551E-21*T**7+GHSERFE#;          1811.00 Y
+    -10838.83+291.302*T-46*T*LN(T);                           6000.00 N !
+
+ FUNCTION GFEFCC   298.15
+    -236.7+132.416*T-24.6643*T*LN(T)
+    -3.75752E-3*T**2-5.8927E-8*T**3+77359*T**(-1);            1811.00 Y
+    -27097.396+300.252559*T-46*T*LN(T)
+    +2.78854E+31*T**(-9);                                     6000.00 N !
+
+ FUNCTION GHSERCC  298.15
+    -17368.441+170.73*T-24.3*T*LN(T)
+    -4.723E-4*T**2+2562600*T**(-1)
+    -2.643E+8*T**(-2)+1.2E+10*T**(-3);                        6000.00 N !
+
+ FUNCTION GCLIQ    298.15  +117369-24.63*T+GHSERCC#;          6000.00 N !
+
+ TYPE_DEFINITION % SEQ * !
+ TYPE_DEFINITION & GES A_P_D BCC_A2 MAGNETIC -1.0 0.4 !
+ TYPE_DEFINITION ' GES A_P_D FCC_A1 MAGNETIC -3.0 0.28 !
+
+ PHASE LIQUID %  1  1.0 !
+ CONSTITUENT LIQUID : C,FE : !
+ PARAMETER G(LIQUID,FE;0)    298.15  +GFELIQ#;                6000.00 N !
+ PARAMETER G(LIQUID,C;0)     298.15  +GCLIQ#;                 6000.00 N !
+ PARAMETER G(LIQUID,C,FE;0)  298.15  -124320+28.5*T;          6000.00 N !
+ PARAMETER G(LIQUID,C,FE;1)  298.15  +19300;                  6000.00 N !
+ PARAMETER G(LIQUID,C,FE;2)  298.15  +49260-19*T;             6000.00 N !
+
+ PHASE BCC_A2 %&  2  1.0  3.0 !
+ CONSTITUENT BCC_A2 : FE : C,VA : !
+ PARAMETER G(BCC_A2,FE:VA;0)     298.15  +GHSERFE#;           6000.00 N !
+ PARAMETER TC(BCC_A2,FE:VA;0)    298.15  +1043;               6000.00 N !
+ PARAMETER BMAGN(BCC_A2,FE:VA;0) 298.15  +2.22;               6000.00 N !
+ PARAMETER G(BCC_A2,FE:C;0)      298.15
+    +322050+75.667*T+GHSERFE#+3*GHSERCC#;                     6000.00 N !
+ PARAMETER TC(BCC_A2,FE:C;0)     298.15  +1043;               6000.00 N !
+ PARAMETER BMAGN(BCC_A2,FE:C;0)  298.15  +2.22;               6000.00 N !
+ PARAMETER G(BCC_A2,FE:C,VA;0)   298.15  -190*T;              6000.00 N !
+
+ PHASE FCC_A1 %'  2  1.0  1.0 !
+ CONSTITUENT FCC_A1 : FE : C,VA : !
+ PARAMETER G(FCC_A1,FE:VA;0)     298.15  +GFEFCC#;            6000.00 N !
+ PARAMETER TC(FCC_A1,FE:VA;0)    298.15  -201;                6000.00 N !
+ PARAMETER BMAGN(FCC_A1,FE:VA;0) 298.15  -2.1;                6000.00 N !
+ PARAMETER G(FCC_A1,FE:C;0)      298.15
+    +77207-15.877*T+GFEFCC#+GHSERCC#;                         6000.00 N !
+ PARAMETER TC(FCC_A1,FE:C;0)     298.15  -201;                6000.00 N !
+ PARAMETER BMAGN(FCC_A1,FE:C;0)  298.15  -2.1;                6000.00 N !
+ PARAMETER G(FCC_A1,FE:C,VA;0)   298.15  -34671;              6000.00 N !
+
+ PHASE CEMENTITE %  2  3.0  1.0 !
+ CONSTITUENT CEMENTITE : FE : C : !
+ PARAMETER G(CEMENTITE,FE:C;0)  298.15
+    -10745+706.04*T-120.6*T*LN(T);                            6000.00 N !
+
+ PHASE GRAPHITE %  1  1.0 !
+ CONSTITUENT GRAPHITE : C : !
+ PARAMETER G(GRAPHITE,C;0)  298.15  +GHSERCC#;                6000.00 N !

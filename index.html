@@ -252,13 +252,19 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
   <div class="card">
     <h2>1 &middot; Load a thermodynamic database</h2>
     <div class="row">
-      <label class="filebtn">Choose a ChemSage .dat file
+      <label class="filebtn">Choose a .dat or .tdb file
         <input type="file" id="file" accept=".dat,.DAT,.tdb,.TDB,text/plain">
       </label>
       <button class="filebtn ghost" id="example" type="button">Load the open slag database</button>
       <button class="filebtn ghost" id="example-salt" type="button">Load the open salt database</button>
       <button class="filebtn ghost" id="example-alloy" type="button">Load the open alloy TDB</button>
       <span id="loadmsg" class="muted">No database loaded yet.</span>
+    </div>
+    <div class="muted" style="margin-top:.55rem; font-size:var(--fs-xs)">
+      Two dialects, one engine: <b>ChemSage .dat</b> (the FactSage / ChemApp / Thermochimica
+      family; the only format that carries the MQMQA melt model, so slags and salts live here)
+      and <b>Thermo-Calc .tdb</b> (the Thermo-Calc / OpenCalphad / pycalphad family; alloy
+      solid-solution systems). Uploaded .tdb files pin in teal, .dat files in purple/blue.
     </div>
     <div id="temp-note" class="muted" hidden style="margin-top:.6rem; font-size:var(--fs-xs)">
       Uploaded databases are temporary &mdash; they live only in this tab and vanish when you refresh.
@@ -534,10 +540,12 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       cover yet, whether your own work or literature you have gathered (phase-diagram studies,
       calorimetry, activity measurements)? That is what an assessed database is built from, the
       way the open slag database above was made: measured values extracted with provenance, an
-      excess model fitted by this same engine, and a valid ChemSage file out the other end.</p>
+      excess model fitted by this same engine, and a valid database file out the other end &mdash;
+      ChemSage .dat when the system needs the MQMQA melt (slags, salts), or Thermo-Calc .tdb for
+      alloy solid-solution systems. This page reads and calculates both.</p>
     <p class="tern-note"><b>Published data, opened.</b> If a system is a bounded, natural addition
-      to the open database, we assess it and add it here as another open TDB, free, and send you a
-      starter ChemSage file. Sources are cited to their original authors; the contribution is
+      to the open database, we assess it and add it here as another open database, free, and send
+      you a starter file in the dialect you work in. Sources are cited to their original authors; the contribution is
       credited to whoever brought it. That covers low-maintenance growth of the commons, and light
       ongoing additions are welcome. It is not a blanket free service, though: a large or
       long-running assessment, or heavy ongoing upkeep, is paid work. We open the science, but
@@ -629,7 +637,8 @@ Hephaestus().then(M => {
 // Session-only uploaded databases: up to 3 pinned as reload buttons (alternating colours) so you
 // can flip between the .dat files you have uploaded. Kept only in memory - gone on refresh, never
 // saved. A fourth at once is a paid feature.
-const TEMP_COLORS = ['#bf83e0', '#5b8fd0'];   // purple / blue, alternating - distinct from the green examples
+const TEMP_COLORS = ['#bf83e0', '#5b8fd0'];   // .dat pins: purple / blue alternating
+const TDB_COLOR = '#3fb0a0';                  // .tdb pins: always teal, so the dialect reads at a glance
 const MAX_TEMP = 3;
 let uploadedDBs = [];   // [{name, text}], this session only
 
@@ -640,13 +649,16 @@ function escHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<'
 function renderUploadedButtons(){
   document.querySelectorAll('.filebtn.uploaded').forEach(b => b.remove());
   let anchor = document.getElementById('example-salt');
+  let datCount = 0;
   uploadedDBs.forEach((u, i) => {
     const btn = document.createElement('button');
     btn.type = 'button'; btn.className = 'filebtn uploaded';
-    const col = TEMP_COLORS[i % TEMP_COLORS.length];
+    const isTdb = /\.tdb$/i.test(u.name);
+    const col = isTdb ? TDB_COLOR : TEMP_COLORS[(datCount++) % TEMP_COLORS.length];
     btn.style.color = col; btn.style.borderColor = col;
     btn.textContent = u.name;
-    btn.title = 'Reload this uploaded database (this session only)';
+    btn.title = (isTdb ? 'Thermo-Calc TDB' : 'ChemSage dat')
+      + ' - reload this uploaded database (this session only)';
     btn.addEventListener('click', () => loadDatabase(u.text, u.name));
     anchor.insertAdjacentElement('afterend', btn); anchor = btn;
   });
@@ -696,7 +708,7 @@ function loadDatabase(text, name) {
   // file (a photo, a spreadsheet, a PDF), say so plainly instead of trying to parse megabytes.
   if (text.length > 8 * 1024 * 1024) {
     msg.textContent = 'This file is too large to be a thermodynamic database (' +
-      (text.length / 1048576).toFixed(1) + ' MB). Please choose a ChemSage .dat file.';
+      (text.length / 1048576).toFixed(1) + ' MB). Please choose a ChemSage .dat or Thermo-Calc .tdb file.';
     return;
   }
   if (db) { api.free(db); db = 0; }

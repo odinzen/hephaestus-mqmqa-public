@@ -2,7 +2,7 @@
 
 ## Hephaestus without programming: what a thermodynamic database is, and your first calculations
 
-This supplement accompanies "Hephaestus: an in-browser open-source engine and open databases for the thermodynamics and phase diagrams of slags, molten salts, and alloys." It is written for the scientist who measures, synthesizes, or operates, and who has never used a computational thermodynamics tool. Nothing here requires programming, installing software, or editing a file. Every walkthrough starts from a button that is already on the page, with the data already behind it; you will never be asked to type species names into empty fields or to prepare an input file. If a step in this document does not work as written, that is a bug, and we would like to hear about it (info@odinzen.io).
+This supplement accompanies "Hephaestus: an in-browser open-source engine and databases for the thermodynamics and phase diagrams of slags, molten salts, and alloys." It is written for the scientist who measures, synthesizes, or operates, and who has never used a computational thermodynamics tool. Nothing here requires programming, installing software, or editing a file. Every walkthrough starts from a button that is already on the page, with the data already behind it; you will never be asked to type species names into empty fields or to prepare an input file. If a step in this document does not work as written, that is a bug, and we would like to hear about it (info@odinzen.io).
 
 The calculator lives at:
 

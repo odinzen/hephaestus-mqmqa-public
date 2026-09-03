@@ -368,6 +368,13 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
         computes the liquid Gibbs energy across the join and takes the lower convex hull
         against the database's stoichiometric compounds, so the liquidus and the melting
         invariants are solved in your browser, point by point.</p>
+      <div class="row" id="pdmode-row" hidden style="margin-bottom:.6rem">
+        <span class="muted">This file holds two chemistries. View:</span>
+        <div class="seg" id="pdmode">
+          <button type="button" class="seg-btn on" data-m="melt">Melt (MQMQA)</button>
+          <button type="button" class="seg-btn" data-m="alloy">Alloy (CEF)</button>
+        </div>
+      </div>
       <div class="pdctl" id="pdctl">
         <label for="pdA">End member A</label><select id="pdA"></select>
         <label for="pdB">End member B</label><select id="pdB"></select>
@@ -756,6 +763,27 @@ function loadDatabase(text, name) {
   window.alloyMode = true;
   for (let p = 0; p < api.nPh(db); p++)
     if (api.phaseKind(db, p) === 0) { window.alloyMode = false; phase = p; break; }
+  // unified file: an MQMQA liquid plus CEF phases built on plain elements
+  window.unifiedAlloy = false;
+  if (!window.alloyMode) {
+    for (let p = 0; p < api.nPh(db); p++) {
+      if (api.phaseKind(db, p) === 0) continue;
+      const ns = api.cefNumSubl(db, p);
+      const nb = api.M._malloc(ns*4); api.cefSublNcon(db, p, nb);
+      const ncon = readI(nb, ns); api.M._free(nb);
+      let els2 = 0;
+      for (let s2 = 0; s2 < ns; s2++)
+        for (let i2 = 0; i2 < ncon[s2]; i2++)
+          if (/^[A-Z]{1,2}$/.test(api.cefCon(db, p, s2, i2))) els2++;
+      if (els2 >= 2) { window.unifiedAlloy = true; break; }
+    }
+  }
+  {
+    const row = document.getElementById('pdmode-row');
+    row.hidden = !window.unifiedAlloy;
+    document.querySelectorAll('#pdmode .seg-btn').forEach(b =>
+      b.classList.toggle('on', b.dataset.m === 'melt'));
+  }
   msg.textContent = name + ' loaded.';
   document.getElementById('results').classList.remove('hidden');
 
@@ -973,7 +1001,10 @@ function alloyComponentThermo(){
         Tm=pdAlloyEndMelt(phs,xiEnd);
         if(Tm){
           const liq=phs.find(c=>c.liquid);
-          const gAt=(c,T)=>pdAlloyPoints([c],T,3)[xiEnd<0.5?0:2][1];
+          const xq2 = xiEnd<0.5 ? 1e-4 : 1-1e-4;
+          const gAt=(c,T)=>{ const pts=pdAlloyPoints([c],T,3);
+            let best=null; for(const pt of pts) if(best===null||Math.abs(pt[0]-xq2)<Math.abs(best[0]-xq2)) best=pt;
+            return (best&&Math.abs(best[0]-xq2)<0.02)?best[1]:Infinity; };
           const solidG=T=>{ let best=Infinity;
             for(const c of phs){ if(c.liquid) continue; best=Math.min(best,gAt(c,T)); }
             for(const d of pdAlloyStoichCache){ if(Math.abs(d.xi-xiEnd)<1e-6)
@@ -1428,9 +1459,28 @@ function populateDiagram(){
   document.getElementById('pdmsg').textContent='';
   const cats=[], ans=[];
   if (window.alloyMode) {
-    // element end-members; charge bookkeeping is inert for alloys
-    for (let e = 0; e < api.nEl(db); e++)
-      cats.push({sym: api.el(db, e), q: 0, isCat: true});
+    // element end-members; charge bookkeeping is inert for alloys. In a unified file
+    // (an MQMQA phase also present) restrict to elements the CEF phases actually carry.
+    let allow = null;
+    if (window.unifiedAlloy) {
+      allow = new Set();
+      for (let p2 = 0; p2 < api.nPh(db); p2++) {
+        if (api.phaseKind(db, p2) === 0) continue;
+        const ns = api.cefNumSubl(db, p2);
+        const nb = api.M._malloc(ns*4); api.cefSublNcon(db, p2, nb);
+        const ncon = readI(nb, ns); api.M._free(nb);
+        for (let s2 = 0; s2 < ns; s2++)
+          for (let i2 = 0; i2 < ncon[s2]; i2++) {
+            const c = api.cefCon(db, p2, s2, i2);
+            if (c !== 'VA' && /^[A-Z]{1,2}$/.test(c)) allow.add(c);
+          }
+      }
+    }
+    for (let e = 0; e < api.nEl(db); e++) {
+      const sym = api.el(db, e);
+      if (allow && !allow.has(sym)) continue;
+      cats.push({sym, q: 0, isCat: true});
+    }
     pdVary = cats; pdCommon = [];
     const A=document.getElementById('pdA'), B=document.getElementById('pdB'), C=document.getElementById('pdCommon');
     const fill=(sel,ions)=>{ sel.innerHTML=''; ions.forEach((ion,i)=>{ const o=document.createElement('option');
@@ -1480,19 +1530,34 @@ function pdAlloyPhases(iA, iB){
     const ns=api.cefNumSubl(db,p);
     const nb=M._malloc(ns*4); api.cefSublNcon(db,p,nb); const ncon=readI(nb,ns); M._free(nb);
     const sb=M._malloc(ns*8); api.cefSiteRatio(db,p,sb); const ratio=readD(sb,ns); M._free(sb);
-    let mix=-1, ok=true; const cons=[];
+    let mix=-1, host=-1, intl=-1, ok=true; const cons=[];
     for(let s=0;s<ns;s++){
       const row=[]; for(let i=0;i<ncon[s];i++) row.push(api.cefCon(db,p,s,i));
       cons.push(row);
       const hasA=row.includes(elA), hasB=row.includes(elB);
       if(hasA&&hasB&&row.length===2) mix=s;
+      else if(row.length===2&&row.includes('VA')&&(hasA||hasB)) intl=s;
+      else if(row.length===1){ if(row[0]===elA||row[0]===elB) host=s; }
       else if(row.length!==1) ok=false;
     }
-    if(!ok||mix<0) continue;
-    const iBc=cons[mix].indexOf(elB);
-    const Yp=M._malloc(cons.reduce((a,r)=>a+r.length,0)*8);
-    out.push({name:api.phName(db,p), idx:p, ns, ncon, ratio, cons, mix, iB:iBc, Yp,
-              liquid:/LIQUID|LIQ/.test(api.phName(db,p))});
+    if(!ok) continue;
+    const base={name:api.phName(db,p), idx:p, ns, ncon, ratio, cons,
+                liquid:/LIQUID|LIQ/.test(api.phName(db,p))};
+    if(mix>=0){
+      const iBc=cons[mix].indexOf(elB);
+      const Yp=M._malloc(cons.reduce((a,r)=>a+r.length,0)*8);
+      out.push(Object.assign(base,{kind:'sub', mix, iB:iBc, Yp}));
+    } else if(host>=0&&intl>=0){
+      // interstitial: one element sits alone on a host sublattice, the other mixes
+      // against VA on an interstitial one (ferrite/austenite (FE)(C,VA) pattern)
+      const hostEl=cons[host][0];
+      const intEl=cons[intl][0]==='VA'?cons[intl][1]:cons[intl][0];
+      if(!((hostEl===elA&&intEl===elB)||(hostEl===elB&&intEl===elA))) continue;
+      const Yp=M._malloc(cons.reduce((a,r)=>a+r.length,0)*8);
+      out.push(Object.assign(base,{kind:'int', host, intl,
+        iInt:cons[intl].indexOf(intEl), hostIsA:hostEl===elA,
+        a:ratio[host], b:ratio[intl], Yp}));
+    }
   }
   return out;
 }
@@ -1500,7 +1565,25 @@ function pdAlloyPhases(iA, iB){
 function pdAlloyPoints(phs, T, n){
   const M=api.M, pts=[];
   for(const c of phs){
-    // atoms per formula on the join: only the mixing sublattice varies A<->B (1 atom each)
+    if(c.kind==='int'){
+      // interstitial: sample the same x grid; site fraction of the interstitial
+      // element follows from the host/interstitial site counts (VA carries no atoms)
+      for(let k=0;k<n;k++){
+        const x=1e-4+(1-2e-4)*k/(n-1);
+        const xInt=c.hostIsA?x:1-x;   // overall fraction of the interstitial element
+        const y=(c.a*xInt)/(c.b*(1-xInt));
+        if(!(y>0)||y>1-1e-9) continue;
+        let off=0;
+        for(let s=0;s<c.ns;s++){
+          if(s===c.intl){ M.setValue(c.Yp+8*(off+c.iInt),y,'double');
+                          M.setValue(c.Yp+8*(off+(1-c.iInt)),1-y,'double'); off+=2; }
+          else { for(let i=0;i<c.ncon[s];i++) M.setValue(c.Yp+8*(off+i),1,'double'); off+=c.ncon[s]; }
+        }
+        pts.push([x, api.cefG(db,c.idx,c.Yp,T,1), c.liquid?'liq':'sol', c.name]);
+      }
+      continue;
+    }
+    // substitutional: only the mixing sublattice varies A<->B (1 atom each)
     for(let k=0;k<n;k++){
       const y=1e-4+(1-2e-4)*k/(n-1);
       let off=0;
@@ -1559,7 +1642,9 @@ function pdAlloyEndMelt(phs, xiEnd){
   // pure-end melting: where the LIQUID curve crosses the lowest solid at that end
   const liq=phs.find(c=>c.liquid); if(!liq) return null;
   const xq = xiEnd<0.5 ? 1e-4 : 1-1e-4;
-  const gAt=(c,T)=>pdAlloyPoints([c],T,3)[xiEnd<0.5?0:2][1];
+  const gAt=(c,T)=>{ const pts=pdAlloyPoints([c],T,3);
+    let best=null; for(const pt of pts) if(best===null||Math.abs(pt[0]-xq)<Math.abs(best[0]-xq)) best=pt;
+    return (best&&Math.abs(best[0]-xq)<0.02)?best[1]:Infinity; };
   const f=T=>{
     let best=Infinity;
     for(const c of phs){ if(c.liquid) continue; best=Math.min(best,gAt(c,T)); }
@@ -1965,6 +2050,26 @@ function renderLegend(){
 
 document.getElementById('pdgen').addEventListener('click', generateDiagram);
 document.getElementById('scheil-go').addEventListener('click', runScheil);
+
+// Unified files: flip the diagram machinery between the melt joins and the alloy joins.
+document.getElementById('pdmode').addEventListener('click', e => {
+  const b = e.target.closest('.seg-btn');
+  if (!b || !db) return;
+  const wantAlloy = b.dataset.m === 'alloy';
+  if (wantAlloy === !!window.alloyMode) return;
+  document.querySelectorAll('#pdmode .seg-btn').forEach(x =>
+    x.classList.toggle('on', x === b));
+  window.alloyMode = wantAlloy;
+  const pairCard = document.getElementById('pairs').closest('.card');
+  const solveCard = document.getElementById('solve').closest('.card');
+  pairCard.classList.toggle('hidden', wantAlloy);
+  solveCard.classList.toggle('hidden', wantAlloy);
+  window._scheilPlot = null;
+  const cvS2 = document.getElementById('scheilcanvas');
+  cvS2.style.display = 'none';
+  document.getElementById('scheil-read').innerHTML = '&nbsp;';
+  populateDiagram();
+});
 
 // Hover reads fraction/temperature off the Scheil curves; click pins the point to a
 // comparison list below, like every other calculator on the page.

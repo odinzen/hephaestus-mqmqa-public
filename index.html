@@ -242,8 +242,10 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
         <svg class="pixmark" width="30" height="30" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="2.09" y="12.09" width=".82" height=".82" fill="currentColor"/><rect x="2.09" y="13.09" width=".82" height=".82" fill="currentColor"/><rect x="2.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="3.09" y="10.09" width=".82" height=".82" fill="currentColor"/><rect x="3.09" y="11.09" width=".82" height=".82" fill="currentColor"/><rect x="3.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="4.09" y="9.09" width=".82" height=".82" fill="currentColor"/><rect x="4.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="5.09" y="6.09" width=".82" height=".82" fill="currentColor"/><rect x="5.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="6.09" y="4.09" width=".82" height=".82" fill="currentColor"/><rect x="6.09" y="5.09" width=".82" height=".82" fill="currentColor"/><rect x="6.09" y="9.09" width=".82" height=".82" fill="currentColor"/><rect x="6.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="7.09" y="2.09" width=".82" height=".82" fill="currentColor"/><rect x="7.09" y="3.09" width=".82" height=".82" fill="currentColor"/><rect x="7.09" y="9.09" width=".82" height=".82" fill="currentColor"/><rect x="7.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="8.09" y="1.09" width=".82" height=".82" fill="currentColor"/><rect x="8.09" y="2.09" width=".82" height=".82" fill="currentColor"/><rect x="8.09" y="10.09" width=".82" height=".82" fill="currentColor"/><rect x="8.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="9.09" y="3.09" width=".82" height=".82" fill="currentColor"/><rect x="9.09" y="4.09" width=".82" height=".82" fill="currentColor"/><rect x="9.09" y="10.09" width=".82" height=".82" fill="currentColor"/><rect x="9.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="10.09" y="5.09" width=".82" height=".82" fill="currentColor"/><rect x="10.09" y="6.09" width=".82" height=".82" fill="currentColor"/><rect x="10.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="11.09" y="7.09" width=".82" height=".82" fill="currentColor"/><rect x="11.09" y="8.09" width=".82" height=".82" fill="currentColor"/><rect x="11.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="12.09" y="9.09" width=".82" height=".82" fill="currentColor"/><rect x="12.09" y="10.09" width=".82" height=".82" fill="currentColor"/><rect x="12.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="13.09" y="11.09" width=".82" height=".82" fill="currentColor"/><rect x="13.09" y="12.09" width=".82" height=".82" fill="currentColor"/><rect x="13.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="14.09" y="13.09" width=".82" height=".82" fill="currentColor"/><rect x="14.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="4.09" y="7.09" width=".82" height=".82" fill="#3fbf63"/><rect x="4.09" y="8.09" width=".82" height=".82" fill="#3fbf63"/><rect x="5.09" y="7.09" width=".82" height=".82" fill="#3fbf63"/><rect x="5.09" y="8.09" width=".82" height=".82" fill="#3fbf63"/><rect x="10.09" y="10.09" width=".82" height=".82" fill="#e5484d"/><rect x="10.09" y="11.09" width=".82" height=".82" fill="#e5484d"/><rect x="11.09" y="10.09" width=".82" height=".82" fill="#e5484d"/><rect x="11.09" y="11.09" width=".82" height=".82" fill="#e5484d"/></svg>
         <h1>hephaestus-mqmqa</h1>
       </div>
-      <p class="tag">An open Modified Quasichemical Model engine for slags and salts.
-         Runs entirely in your browser; nothing is uploaded, nothing is installed.</p>
+      <p class="tag">The user-friendly, multilingual calculator for thermodynamic databases:
+         slags, salts, and alloys, speaking ChemSage .dat, Thermo-Calc .tdb, and the unified
+         .utdb. No code to write and nothing to install: pick a database, click the
+         diagram, read the numbers. Everything runs in your browser; nothing is uploaded.</p>
     </div>
     <button class="theme-toggle" id="theme-toggle" type="button"
             aria-label="Toggle light and dark background" title="Toggle light / dark"></button>
@@ -253,18 +255,22 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
     <h2>1 &middot; Load a thermodynamic database</h2>
     <div class="row">
       <label class="filebtn">Choose a .dat or .tdb file
-        <input type="file" id="file" accept=".dat,.DAT,.tdb,.TDB,text/plain">
+        <input type="file" id="file" accept=".dat,.DAT,.tdb,.TDB,.utdb,.UTDB,text/plain">
       </label>
       <button class="filebtn ghost" id="example" type="button">Load the open slag database</button>
       <button class="filebtn ghost" id="example-salt" type="button">Load the open salt database</button>
       <button class="filebtn ghost" id="example-alloy" type="button">Load the open alloy TDB</button>
+      <button class="filebtn ghost" id="example-unified" type="button">Load the unified demo (alloy + salt)</button>
       <span id="loadmsg" class="muted">No database loaded yet.</span>
     </div>
     <div class="muted" style="margin-top:.55rem; font-size:var(--fs-xs)">
       Two dialects, one engine: <b>ChemSage .dat</b> (the FactSage / ChemApp / Thermochimica
       family; the only format that carries the MQMQA melt model, so slags and salts live here)
       and <b>Thermo-Calc .tdb</b> (the Thermo-Calc / OpenCalphad / pycalphad family; alloy
-      solid-solution systems). Uploaded .tdb files pin in teal/pink, .dat files in purple/blue; up to three at once, either mix.
+      solid-solution systems). The <b>.utdb</b> unified dialect, a documented open extension of
+      TDB, holds both at once: one file can carry an alloy, a slag, and a salt together (see the
+      unified demo). Uploaded .tdb/.utdb files pin in teal/pink, .dat files in purple/blue; up to
+      three at once, either mix.
     </div>
     <div id="temp-note" class="muted" hidden style="margin-top:.6rem; font-size:var(--fs-xs)">
       Uploaded databases are temporary &mdash; they live only in this tab and vanish when you refresh.
@@ -543,11 +549,14 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       excess model fitted by this same engine, and a valid database file out the other end &mdash;
       ChemSage .dat when the system needs the MQMQA melt (slags, salts), or Thermo-Calc .tdb for
       alloy solid-solution systems. This page reads and calculates both.</p>
-    <p class="tern-note"><b>Published data, opened.</b> If a system is a bounded, natural addition
-      to the open database, we assess it and add it here as another open database, free, and send
+    <p class="tern-note"><b>Published data, opened.</b> No coding is involved at any point: you send
+      papers, and what comes back is a working button on this page or a quoted proposal. If a
+      system is a bounded, natural addition
+      to the open database, we may assess it and add it here as another open database, free, and send
       you a starter file in the dialect you work in. Sources are cited to their original authors; the contribution is
       credited to whoever brought it. That covers low-maintenance growth of the commons, and light
-      ongoing additions are welcome. It is not a blanket free service, though: a large or
+      ongoing additions are welcome. It is not a blanket free service, though: open additions are taken a few at
+      a time as capacity allows, and a large or
       long-running assessment, or heavy ongoing upkeep, is paid work. We open the science, but
       sustaining it needs a work product on our side once the scope grows past a small system.</p>
     <p class="tern-note"><b>Proprietary or confidential data</b> is assessed privately and the file
@@ -701,6 +710,7 @@ async function loadShipped(file) {
 document.getElementById('example').addEventListener('click', () => loadShipped('FeO-MgO-SiO2-combined.dat'));
 document.getElementById('example-salt').addEventListener('click', () => loadShipped('LiCl-KCl.dat'));
 document.getElementById('example-alloy').addEventListener('click', () => loadShipped('AlZn.tdb'));
+document.getElementById('example-unified').addEventListener('click', () => loadShipped('AlZn-LiClKCl.utdb'));
 
 function loadDatabase(text, name) {
   const M = api.M;
@@ -716,11 +726,10 @@ function loadDatabase(text, name) {
   db = api.read(text);
   if (!db) { msg.textContent = 'Could not read this file: ' + api.error(); return; }
 
-  phase = 0; // first solution phase
-  // alloy mode: a TDB (or any file) whose phases are all CEF - no MQMQA liquid
+  phase = 0; // first MQMQA solution phase when one exists, else the first phase
   window.alloyMode = true;
   for (let p = 0; p < api.nPh(db); p++)
-    if (api.phaseKind(db, p) === 0) { window.alloyMode = false; break; }
+    if (api.phaseKind(db, p) === 0) { window.alloyMode = false; phase = p; break; }
   msg.textContent = name + ' loaded.';
   document.getElementById('results').classList.remove('hidden');
 
@@ -2774,8 +2783,8 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
     const href = 'mailto:info@odinzen.io?subject=' + encodeURIComponent('Database request (' + pdfs.length + ' papers)') + '&body=' + encodeURIComponent(body);
     next.innerHTML = '<b>Next step.</b> Send this paper set to '
       + '<a href="' + href + '">info@odinzen.io</a> (the link starts the email; attach the PDFs). '
-      + 'If it is published and a bounded addition to the open database, we assess it and add it '
-      + 'here as another open TDB, free, with a starter file for the calculator above. Sources are '
+      + 'If it is published and a bounded addition to the open database, it may join the open set '
+      + 'here free, as capacity allows, with a starter file for the calculator above. Sources are '
       + 'cited to their authors; the contribution is credited to you. Larger or long-running work, '
       + 'or a private assessment where the file stays yours, is paid (simple single-system '
       + 'requests start around $3,500, quoted to scope). Prefer to build it yourself? The dbbuild '

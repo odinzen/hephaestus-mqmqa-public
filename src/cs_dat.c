@@ -1801,7 +1801,8 @@ static void tdb_build_q_phase(Tdb *tb, Db *db, TdbPhase *tp)
             x->A = A; x->B = B; x->X = X; x->Y = Y;
             x->mix = (A != B && X == Y) ? 0 : (A == B && X != Y) ? 1 : -1;
             x->exp[0] = mq->exp_p; x->exp[1] = mq->exp_q;
-            x->exp[2] = 0; x->exp[3] = (mq->exp_r >= 0) ? mq->exp_r : 0;
+            /* the ternary exponent lives in exp[2] (see mqmqa_ph_mqmx_ternary) */
+            x->exp[2] = (mq->exp_r >= 0) ? mq->exp_r : 0; x->exp[3] = 0;
             x->add_cat = -1;
             if (mq->exp_r >= 0 && mq->n_names >= 5) {
                 t = tdb_q_name_index(tp->con[0], ncat, mq->names[4]);

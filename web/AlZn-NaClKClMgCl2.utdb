@@ -1,0 +1,147 @@
+$ Unified-dialect demonstration: ALUMINUM RECYCLING in one database.
+$
+$ The Al-Zn alloy (an Mey 1993 on Dinsdale SGTE unaries, as in AlZn.tdb) together
+$ with the NaCl-KCl-MgCl2 molten chloride family, the salt-flux chemistry used to
+$ cover and clean aluminum melts in recycling and remelting. The salt physics is
+$ the same open assessment shipped as data/nacl-kcl-mgcl2/NaCl-KCl-MgCl2.dat:
+$ three MQMQA pairs, six SNN excess terms (one true ternary), the (Na,K)Cl halite
+$ solid solution, and the MgCl2 and KMgCl3 solids. Carried by the uTDB extension
+$ statements (:Q phase, MQG/MQZETA/MQSTOI/MQZ/MQX; see docs/UNIFIED_TDB_SPEC.md);
+$ the round-trip test asserts the two containers agree at machine precision.
+$ CC BY 4.0 like the rest of the data in this repository.
+$
+ ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00 !
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00 !
+ ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8322E+01 !
+ ELEMENT ZN   HCP_A3                    6.5390E+01  5.6567E+03  4.1631E+01 !
+ ELEMENT NA   BCC_A2                    2.2990E+01  0.0000E+00  0.0000E+00 !
+ ELEMENT K    BCC_A2                    3.9098E+01  0.0000E+00  0.0000E+00 !
+ ELEMENT MG   HCP_A3                    2.4305E+01  0.0000E+00  0.0000E+00 !
+ ELEMENT CL   GAS_1/2_MOLE_CL2          3.5453E+01  0.0000E+00  0.0000E+00 !
+
+ SPECIES NA+1    NA1/+1 !
+ SPECIES K+1     K1/+1 !
+ SPECIES MG+2    MG1/+2 !
+ SPECIES CL-1    CL1/-1 !
+ SPECIES MGCL2   MG1CL2 !
+ SPECIES KMGCL3  K1MG1CL3 !
+
+$ ------------------------- Al-Zn alloy (plain TDB) -------------------------
+
+ FUNCTION GHSERAL  298.0
+    -7976.15+137.0715*T-24.36720*T*LN(T)
+    -1.884662E-3*T**2-0.877664E-6*T**3+74092*T**(-1);          700.00 Y
+    -11276.24+223.0269*T-38.58443*T*LN(T)
+    +18.531982E-3*T**2-5.764227E-6*T**3+74092*T**(-1);          933.6 Y
+    -11277.68+188.6620*T-31.74819*T*LN(T)
+    -1234.26E25*T**(-9);                                      2900.00 N !
+
+ FUNCTION GALLIQ   298.0
+    +3029.403+125.2307*T-24.36720*T*LN(T)
+    -1.884662E-3*T**2-0.877664E-6*T**3
+    +74092*T**(-1)+79.401E-21*T**7;                            700.00 Y
+    -270.6860+211.1861*T-38.58443*T*LN(T)
+    +18.53198E-3*T**2-5.764227E-6*T**3
+    +74092*T**(-1)+79.401E-21*T**7;                             933.6 Y
+    -795.7090+177.4100*T-31.74819*T*LN(T);                    2900.00 N !
+
+ FUNCTION GALHCP   298.0   +5481-1.8*T+GHSERAL#;              6000.00 N !
+
+ FUNCTION GHSERZN  298.0
+    -7285.787+118.4693*T-23.70131*T*LN(T)
+    -1.712034E-3*T**2-1.264963E-6*T**3;                         692.7 Y
+    -11070.60+172.3449*T-31.38*T*LN(T)
+    +4.70657E+26*T**(-9);                                     1700.00 N !
+
+ FUNCTION GZNLIQ   298.14
+    +7157.213-10.29299*T-3.5896E-19*T**7+GHSERZN#;              692.7 Y
+    +7450.168-10.737066*T-4.7051E+26*T**(-9)+GHSERZN#;        1700.00 N !
+
+ FUNCTION GZNFCC   298.15  +2969.82-1.56968*T+GHSERZN#;       1700.00 N !
+
+ TYPE_DEFINITION % SEQ * !
+
+ PHASE ALLOY_LIQUID %  1  1.0 !
+ CONSTITUENT ALLOY_LIQUID : AL,ZN : !
+ PARAMETER G(ALLOY_LIQUID,AL;0)     298.15  +GALLIQ#;         2900.00 N !
+ PARAMETER G(ALLOY_LIQUID,ZN;0)     298.15  +GZNLIQ#;         1700.00 N !
+ PARAMETER G(ALLOY_LIQUID,AL,ZN;0)  298.15  +10465.5-3.39259*T; 6000.00 N !
+
+ PHASE FCC_A1 %  1  1.0 !
+ CONSTITUENT FCC_A1 : AL,ZN : !
+ PARAMETER G(FCC_A1,AL;0)     298.15  +GHSERAL#;              2900.00 N !
+ PARAMETER G(FCC_A1,ZN;0)     298.15  +GZNFCC#;               1700.00 N !
+ PARAMETER G(FCC_A1,AL,ZN;0)  298.15  +7297.5+0.47512*T;      6000.00 N !
+ PARAMETER G(FCC_A1,AL,ZN;1)  298.15  +6612.9-4.5911*T;       6000.00 N !
+ PARAMETER G(FCC_A1,AL,ZN;2)  298.15  -3097.2+3.30635*T;      6000.00 N !
+
+ PHASE HCP_A3 %  1  1.0 !
+ CONSTITUENT HCP_A3 : AL,ZN : !
+ PARAMETER G(HCP_A3,AL;0)     298.15  +GALHCP#;               2900.00 N !
+ PARAMETER G(HCP_A3,ZN;0)     298.15  +GHSERZN#;              1700.00 N !
+ PARAMETER G(HCP_A3,AL,ZN;0)  298.15  +18821.0-8.95255*T;     6000.00 N !
+ PARAMETER G(HCP_A3,AL,ZN;3)  298.15  -702.8;                 6000.00 N !
+
+$ ---------- NaCl-KCl-MgCl2 salt flux (uTDB :Q extension + plain TDB) ----------
+$ Same open assessment as data/nacl-kcl-mgcl2/NaCl-KCl-MgCl2.dat; per-pair Gibbs
+$ on the (1, T, T lnT, T^2, T^3, 1/T) basis, per mole of salt formula.
+
+ PHASE SALT_LIQUID:Q %  2  1.0  1.0 !
+ CONSTITUENT SALT_LIQUID:Q : NA+1,K+1,MG+2 : CL-1 : !
+
+ PARAMETER MQG(SALT_LIQUID,NA+1:CL-1;0)  298.15
+    -395680.9949185+182.9407355175*T-41.19610*T*LN(T)
+    -1.140059500000E-2*T**2-123294*T**(-1);                   6000.00 N !
+ PARAMETER MQG(SALT_LIQUID,K+1:CL-1;0)   298.15
+    -422433.4810225+169.4367694345*T-40.52540*T*LN(T)
+    -1.249404000000E-2*T**2-149195*T**(-1);                   6000.00 N !
+ PARAMETER MQG(SALT_LIQUID,MG+2:CL-1;0)  298.15
+    -627509.4567240+388.5763792485*T-76.90000*T*LN(T)
+    -4.248000000000E-3*T**2+373150*T**(-1);                   6000.00 N !
+
+ PARAMETER MQZETA(SALT_LIQUID,NA+1:CL-1)  298.15  1.3774438; 6000.00 N !
+ PARAMETER MQZETA(SALT_LIQUID,K+1:CL-1)   298.15  1.3774438; 6000.00 N !
+ PARAMETER MQZETA(SALT_LIQUID,MG+2:CL-1)  298.15  1.3774438; 6000.00 N !
+ PARAMETER MQSTOI(SALT_LIQUID,NA+1:CL-1)  298.15  1 1 0 0 0; 6000.00 N !
+ PARAMETER MQSTOI(SALT_LIQUID,K+1:CL-1)   298.15  1 1 0 0 0; 6000.00 N !
+ PARAMETER MQSTOI(SALT_LIQUID,MG+2:CL-1)  298.15  1 2 0 0 0; 6000.00 N !
+
+ PARAMETER MQZ(SALT_LIQUID,NA+1,NA+1:CL-1,CL-1)  298.15  6 6 6 6; 6000.00 N !
+ PARAMETER MQZ(SALT_LIQUID,K+1,K+1:CL-1,CL-1)    298.15  6 6 6 6; 6000.00 N !
+ PARAMETER MQZ(SALT_LIQUID,MG+2,MG+2:CL-1,CL-1)  298.15  6 6 3 3; 6000.00 N !
+
+ PARAMETER MQXQ(SALT_LIQUID,NA+1,K+1:CL-1,CL-1;0,0)   298.15
+    -715.1;                                                   6000.00 N !
+ PARAMETER MQXQ(SALT_LIQUID,K+1,MG+2:CL-1,CL-1;0,0)   298.15
+    -15895;                                                   6000.00 N !
+ PARAMETER MQXQ(SALT_LIQUID,K+1,MG+2:CL-1,CL-1;1,0)   298.15
+    -88.50;                                                   6000.00 N !
+ PARAMETER MQXTQ(SALT_LIQUID,K+1,MG+2:CL-1,CL-1;0,0,1:NA+1)  298.15
+    -8500;                                                    6000.00 N !
+ PARAMETER MQXQ(SALT_LIQUID,NA+1,MG+2:CL-1,CL-1;0,0)  298.15
+    -4749.5;                                                  6000.00 N !
+ PARAMETER MQXQ(SALT_LIQUID,NA+1,MG+2:CL-1,CL-1;1,0)  298.15
+    -4732.3;                                                  6000.00 N !
+
+$ (Na,K)Cl halite solid solution, plain TDB CEF
+ PHASE HALITE %  2  1.0  1.0 !
+ CONSTITUENT HALITE : K,NA : CL : !
+ PARAMETER G(HALITE,K:CL;0)   298.15
+    -448750.4810225+194.6446238406*T-40.52540*T*LN(T)
+    -1.249404000000E-2*T**2-149195*T**(-1);                   6000.00 N !
+ PARAMETER G(HALITE,NA:CL;0)  298.15
+    -423880.9949185+209.1940520934*T-41.19610*T*LN(T)
+    -1.140059500000E-2*T**2-123294*T**(-1);                   6000.00 N !
+ PARAMETER G(HALITE,K,NA:CL;0)  298.15  +12773.56635;         6000.00 N !
+
+ PHASE MGCL2_SOLID %  1  1.0 !
+ CONSTITUENT MGCL2_SOLID : MGCL2 : !
+ PARAMETER G(MGCL2_SOLID,MGCL2;0)  298.15
+    -670604.4567240+432.2389932303*T-76.90000*T*LN(T)
+    -4.248000000000E-3*T**2+373150*T**(-1);                   6000.00 N !
+
+ PHASE KMGCL3_SOLID %  1  1.0 !
+ CONSTITUENT KMGCL3_SOLID : KMGCL3 : !
+ PARAMETER G(KMGCL3_SOLID,KMGCL3;0)  298.15
+    -1122214.237746+600.6836170709*T-117.4254*T*LN(T)
+    -1.674204000000E-2*T**2+223955*T**(-1);                   6000.00 N !

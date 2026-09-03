@@ -264,7 +264,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       Two dialects, one engine: <b>ChemSage .dat</b> (the FactSage / ChemApp / Thermochimica
       family; the only format that carries the MQMQA melt model, so slags and salts live here)
       and <b>Thermo-Calc .tdb</b> (the Thermo-Calc / OpenCalphad / pycalphad family; alloy
-      solid-solution systems). Uploaded .tdb files pin in teal, .dat files in purple/blue.
+      solid-solution systems). Uploaded .tdb files pin in teal/pink, .dat files in purple/blue; up to three at once, either mix.
     </div>
     <div id="temp-note" class="muted" hidden style="margin-top:.6rem; font-size:var(--fs-xs)">
       Uploaded databases are temporary &mdash; they live only in this tab and vanish when you refresh.
@@ -638,7 +638,7 @@ Hephaestus().then(M => {
 // can flip between the .dat files you have uploaded. Kept only in memory - gone on refresh, never
 // saved. A fourth at once is a paid feature.
 const TEMP_COLORS = ['#bf83e0', '#5b8fd0'];   // .dat pins: purple / blue alternating
-const TDB_COLOR = '#3fb0a0';                  // .tdb pins: always teal, so the dialect reads at a glance
+const TDB_COLORS  = ['#3fb0a0', '#cf5f9c'];   // .tdb pins: teal / pink alternating - the dialect reads at a glance
 const MAX_TEMP = 3;
 let uploadedDBs = [];   // [{name, text}], this session only
 
@@ -649,12 +649,13 @@ function escHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<'
 function renderUploadedButtons(){
   document.querySelectorAll('.filebtn.uploaded').forEach(b => b.remove());
   let anchor = document.getElementById('example-salt');
-  let datCount = 0;
+  let datCount = 0, tdbCount = 0;
   uploadedDBs.forEach((u, i) => {
     const btn = document.createElement('button');
     btn.type = 'button'; btn.className = 'filebtn uploaded';
     const isTdb = /\.tdb$/i.test(u.name);
-    const col = isTdb ? TDB_COLOR : TEMP_COLORS[(datCount++) % TEMP_COLORS.length];
+    const col = isTdb ? TDB_COLORS[(tdbCount++) % TDB_COLORS.length]
+                      : TEMP_COLORS[(datCount++) % TEMP_COLORS.length];
     btn.style.color = col; btn.style.borderColor = col;
     btn.textContent = u.name;
     btn.title = (isTdb ? 'Thermo-Calc TDB' : 'ChemSage dat')

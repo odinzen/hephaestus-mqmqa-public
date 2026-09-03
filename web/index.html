@@ -1669,6 +1669,7 @@ async function runScheil(){
   try{
     const nT=110, dT=(Tmax-Tmin)/(nT-1);
     let fL=1.0, xL=x0, started=false, xlPrev=x0;
+    let Tfirst=null, Tfreeze=null, fLfrz=0;
     const sch=[], lever=[], events=[];
     for(let j=nT-1;j>=0;j--){
       const T=Tmin+dT*j;
@@ -1685,9 +1686,10 @@ async function runScheil(){
       if(t.state==='liq'){ sch.push([T,1-fL]); xlPrev=xL; continue; }
       if(t.state==='sol'){
         events.push('residual liquid ('+(100*fL).toFixed(1)+'%) freezes at '+Math.round(T+dT)+' K as '+(t.names||[]).filter(Boolean).join(' + '));
+        Tfreeze=T+dT; fLfrz=fL;
         sch.push([T,1]); fL=0; continue;
       }
-      if(!started){ started=true; events.push('first solid '+t.solName+' at '+Math.round(T)+' K'); }
+      if(!started){ started=true; Tfirst=T; events.push('first solid '+t.solName+' at '+Math.round(T)+' K'); }
       const xlNew=t.xl;
       const denomOld=t.xs-xlPrev, denomNew=t.xs-xlNew;
       if(Math.abs(denomNew)>1e-9 && Math.abs(denomOld)>1e-9){
@@ -1735,6 +1737,33 @@ async function runScheil(){
       c2.stroke(); c2.setLineDash([]); };
     drawCurve(leverP, rgba(col.muted,0.9), [5,4]);
     drawCurve(schP, rgba(col.brand,1), []);
+    // annotate the story: where solid first appears, the eutectic plateau, the final freeze
+    c2.font='11px system-ui,sans-serif';
+    const mark=(fs,T)=>{ const x=X2(fs), y=Y2(T);
+      c2.beginPath(); c2.arc(x,y,3.5,0,2*Math.PI);
+      c2.fillStyle=rgba(col.brand,1); c2.fill();
+      c2.lineWidth=1.5; c2.strokeStyle=rgba(col.card,1); c2.stroke(); return [x,y]; };
+    if(Tfirst!=null){
+      const [x,y]=mark(0,Tfirst);
+      c2.fillStyle=rgba(col.ink,0.95); c2.textAlign='left'; c2.textBaseline='middle';
+      c2.fillText('first solid appears ('+Math.round(Tfirst)+' K)', x+9, Math.max(mT2+8,y-10));
+    }
+    if(Tfreeze!=null){
+      const [x,y]=mark(1,Tfreeze);
+      c2.fillStyle=rgba(col.ink,0.95); c2.textAlign='right'; c2.textBaseline='middle';
+      c2.fillText('last liquid freezes ('+Math.round(Tfreeze)+' K)', x-9, Math.min(mT2+PH2-8,y-12));
+      if(fLfrz>0.25){
+        const midX=X2(1-fLfrz/2);
+        c2.textAlign='center';
+        c2.fillStyle=rgba(col.muted,0.95);
+        c2.fillText('eutectic plateau: the remaining '+Math.round(100*fLfrz)+'% freezes here',
+          Math.min(Math.max(midX,mL2+140),mL2+PW2-150), Y2(Tfreeze)-16);
+      }
+    }
+    // temperature axis label, rotated up the left margin
+    c2.save(); c2.translate(13, mT2+PH2/2); c2.rotate(-Math.PI/2);
+    c2.fillStyle=rgba(col.ink,0.85); c2.textAlign='center'; c2.textBaseline='middle';
+    c2.fillText('temperature (K)', 0, 0); c2.restore();
     read.textContent=events.length?('Scheil: '+events.join('  ·  ')
       +'   (solid line: Scheil; dashed: equilibrium lever rule)')
       :'No solidification within the diagram temperature range.';

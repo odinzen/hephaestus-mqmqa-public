@@ -44,11 +44,17 @@ salt from the 2023 pycalphad paper). Nothing is claimed working until it matches
 The C core is complete and validated to machine precision against pycalphad: the full
 MQMQA energy path (reference, ideal mixing, excess, recursive coordination numbers), a
 ChemSage `.dat` reader (SUBQ/SUBG liquids, SUBL solid solutions, stoichiometric
-compounds), a compound-energy-formalism Gibbs kernel, and equilibrium solving up to
+compounds), a Thermo-Calc `.tdb` reader (CEF phases with vacancies, any-order
+Redlich-Kister, and the Inden magnetic model real steel files require), the openly
+specified `.utdb` unified dialect (MQMQA statements inside TDB grammar; spec in
+`docs/UNIFIED_TDB_SPEC.md`, with shipped aluminum-recycling and steelmaking
+demonstrations), a compound-energy-formalism Gibbs kernel, and equilibrium solving up to
 full ternary isothermal sections by grid sampling plus lower convex hull. An open,
-literature-only slag database family lives in `data/` (CaO-SiO2, MgO-SiO2, FeO-SiO2,
-and the FeO-MgO-SiO2 ternary with olivine and orthopyroxene solid solutions), every
-parameter traced to published measurements in the per-system provenance notes.
+literature-only database family lives in `data/`: the slags (CaO-SiO2, MgO-SiO2,
+FeO-SiO2, and the FeO-MgO-SiO2 ternary with olivine and orthopyroxene solid
+solutions) and a chloride molten-salt family (LiCl-KCl through the NaCl-KCl-MgCl2
+ternary with its halite solid solution), every parameter traced to published
+measurements in the per-system provenance notes.
 `python/mqmqa/dbbuild.py` turns a user's own measured data into a loadable `.dat`
 (free up to four components). See `docs/DESIGN.md`.
 
@@ -56,8 +62,9 @@ parameter traced to published measurements in the per-system provenance notes.
 
 `web/index.html` is the zero-install face of the engine: the C core compiled to
 WebAssembly (`scripts/build_wasm.sh`, committed as `web/hephaestus.js`) with a live
-melt calculator, the assessed FeO-MgO-SiO2 phase-diagram viewer, a live
-isothermal-section solver, and a multicomponent eutectic builder. Everything runs in
+melt calculator, binary and ternary phase-diagram solvers for any loaded .dat, .tdb,
+or .utdb file (the steelmaking demo computes the real Fe-C diagram), Scheil
+solidification, and a multicomponent eutectic builder. Everything runs in
 the page: a loaded database never leaves the visitor's machine, the CSP blocks every
 third-party request, and the fonts are self-hosted. Serve it from any static host, or
 locally:

@@ -82,10 +82,13 @@ excess interpolation.
 
 The Hephaestus reader (`src/cs_dat.c`, TDB front-end) parses these statements into
 the same internal database the `.dat` reader builds, so the engine, Python binding,
-and WASM browser build behave identically for either container. The round-trip gate
-(`tests/test_utdb_roundtrip.py`) asserts that the shipped unified demo
-(`web/AlZn-LiClKCl.utdb`, an alloy and a molten salt in one file) reproduces the
-`.dat` physics exactly: pair Gibbs, coordination rows, SNN excess, single-phase
+and WASM browser build behave identically for either container. The round-trip gates
+(`tests/test_utdb_roundtrip.py`, `tests/test_utdb_recycling_roundtrip.py`,
+`tests/test_utdb_steel_roundtrip.py`) assert that the three shipped unified files
+(`web/AlZn-LiClKCl.utdb`; `web/AlZn-NaClKClMgCl2.utdb`, aluminum recycling with the
+salt flux, its ternary excess term, and the halite CEF solution;
+`web/FeC-FeOMgOSiO2.utdb`, steelmaking with the magnetic Fe-C steel and the
+FeO-MgO-SiO2 slag) reproduce the `.dat` physics exactly: pair Gibbs, coordination rows, SNN excess, single-phase
 equilibria, and stoichiometric solids agree at machine precision across temperature,
 and the alloy phases match the reference `AlZn.tdb`. A `write_utdb` emitter in
 dbbuild, so every dbbuild-built system ships in both containers automatically, is

@@ -82,6 +82,11 @@ typedef struct {
 
 typedef struct {
     int n_subl;
+    int magnetic;               /* Inden-Hillert-Jarl contribution active */
+    double mag_afm, mag_p;      /* antiferromagnetic factor, structure p */
+    double *tc_em, *bm_em;      /* [n_em*6] TC / BMAGN endmember coeffs (excess basis) */
+    int n_tcx; CefExcess *tc_ex;    /* TC Redlich-Kister interactions */
+    int n_bmx; CefExcess *bm_ex;    /* BMAGN Redlich-Kister interactions */
     double *site_ratio;         /* [n_subl] site multiplicity a_s */
     int *subl_ncon;             /* [n_subl] constituents per sublattice */
     int *subl_off;              /* [n_subl] offset of each sublattice into the flat arrays */
@@ -714,6 +719,10 @@ static void free_db(Db *db)
             free(cf->con_name); free(cf->con_atoms); free(cf->em_con);
             for (int k = 0; k < cf->n_ex; ++k) { free(cf->ex[k].coeff); free(cf->ex[k].other); }
             free(cf->ex);
+            free(cf->tc_em); free(cf->bm_em);
+            for (int k = 0; k < cf->n_tcx; ++k) { free(cf->tc_ex[k].coeff); free(cf->tc_ex[k].other); }
+            for (int k = 0; k < cf->n_bmx; ++k) { free(cf->bm_ex[k].coeff); free(cf->bm_ex[k].other); }
+            free(cf->tc_ex); free(cf->bm_ex);
             free(cf);
         }
     }
@@ -977,7 +986,62 @@ double mqmqa_ph_cef_gibbs(const mqmqa_db *db, int p, const double *Y, double T,
         T, cf->n_subl, cf->site_ratio, cf->subl_ncon, cf->subl_off, Y, cf->con_atoms,
         cf->n_em, cf->em_con, em_G,
         n_ex, ex_subl, ex_i, ex_j, ex_order, ex_L, ex_other,
-        per_mole_atoms);
+        0);
+
+    /* Inden-Hillert-Jarl magnetic contribution, per mole of formula: TC(Y) and
+     * beta(Y) mix exactly like the excess terms, then G_mag = R T ln(1+beta) f(tau). */
+    if (cf->magnetic) {
+        double TC = 0.0, B = 0.0;
+        for (int e = 0; e < cf->n_em; ++e) {
+            double prod = 1.0;
+            for (int s = 0; s < cf->n_subl; ++s)
+                prod *= Y[cf->subl_off[s] + cf->em_con[e * cf->n_subl + s]];
+            TC += prod * excess_coeff_gibbs(d, cf->tc_em + e * 6, T);
+            B  += prod * excess_coeff_gibbs(d, cf->bm_em + e * 6, T);
+        }
+        for (int pass = 0; pass < 2; ++pass) {
+            int nk = pass ? cf->n_bmx : cf->n_tcx;
+            const CefExcess *xs = pass ? cf->bm_ex : cf->tc_ex;
+            for (int k = 0; k < nk; ++k) {
+                const CefExcess *xe = &xs[k];
+                int s = xe->subl;
+                double yi = Y[cf->subl_off[s] + xe->i];
+                double yj = Y[cf->subl_off[s] + xe->j];
+                double other = 1.0;
+                for (int s2 = 0; s2 < cf->n_subl; ++s2)
+                    if (s2 != s) other *= Y[cf->subl_off[s2] + xe->other[s2]];
+                double v = other * yi * yj * excess_coeff_gibbs(d, xe->coeff, T)
+                           * pow(yi - yj, (double)xe->order);
+                if (pass) B += v; else TC += v;
+            }
+        }
+        if (TC < 0.0 && cf->mag_afm != 0.0) TC /= cf->mag_afm;
+        if (B  < 0.0 && cf->mag_afm != 0.0) B  /= cf->mag_afm;
+        if (TC > 1e-10 && B > -1.0 + 1e-12) {
+            double pm = cf->mag_p;
+            double tau = T / TC;
+            double A = 518.0 / 1125.0 + (11692.0 / 15975.0) * (1.0 / pm - 1.0);
+            double f;
+            if (tau < 1.0)
+                f = 1.0 - (79.0 / (140.0 * pm * tau)
+                    + (474.0 / 497.0) * (1.0 / pm - 1.0)
+                      * (pow(tau, 3) / 6.0 + pow(tau, 9) / 135.0 + pow(tau, 15) / 600.0)) / A;
+            else
+                f = -(pow(tau, -5) / 10.0 + pow(tau, -15) / 315.0 + pow(tau, -25) / 1500.0) / A;
+            g += 8.3145 * T * log(B + 1.0) * f;
+        }
+    }
+
+    if (per_mole_atoms) {
+        double tot = 0.0;
+        for (int s = 0; s < cf->n_subl; ++s) {
+            double ssum = 0.0;
+            for (int i = 0; i < cf->subl_ncon[s]; ++i)
+                ssum += Y[cf->subl_off[s] + i] * cf->con_atoms[cf->subl_off[s] + i];
+            tot += cf->site_ratio[s] * ssum;
+        }
+        if (tot > 0.0) g /= tot;
+    }
 
     free(em_G); free(ex_subl); free(ex_i); free(ex_j);
     free(ex_order); free(ex_L); free(ex_other);
@@ -1086,6 +1150,7 @@ typedef struct {
     int ncon[TDB_MAX_SUBL];
     char con[TDB_MAX_SUBL][TDB_MAX_CON][NAME_MAX];
     int flags_magnetic, flags_order;
+    double mag_afm, mag_p;    /* from the phase's MAGNETIC type definition */
     int is_q;                 /* :Q model suffix - the MQMQA quadruplet liquid */
 } TdbPhase;
 
@@ -1094,6 +1159,7 @@ typedef struct {
     int con[TDB_MAX_SUBL][2]; /* up to two constituents per sublattice (local idx) */
     int ncon[TDB_MAX_SUBL];
     int order;                /* Redlich-Kister order */
+    int kind;                 /* 0 G/L, 1 TC, 2 BMAGN */
     TdbSeg *expr;             /* heap, TDB_MAX_SEG entries (WASM-friendly) */
     int n_seg;
 } TdbParam;
@@ -1124,6 +1190,7 @@ typedef struct {
     int n_par;   TdbParam *par; int cap_par;
     int n_mq;    TdbMq *mq;     int cap_mq;
     char magnetic_typedefs[16]; int n_mag_td;
+    double mag_td_afm[16], mag_td_p[16];
     char order_typedefs[16];    int n_ord_td;
 } Tdb;
 
@@ -1858,8 +1925,6 @@ static Db *tdb_build_db(Tdb *tb)
         TdbPhase *tp = &tb->ph[p];
         int is_stoich = 1;
         if (tp->is_q) { tdb_build_q_phase(tb, db, tp); continue; }
-        if (tp->flags_magnetic)
-            tdb_fail(tb, "magnetic phase model is outside the v1 subset");
         if (tp->flags_order)
             tdb_fail(tb, "order-disorder phase model is outside the v1 subset");
         for (s = 0; s < tp->n_subl; ++s)
@@ -1891,6 +1956,7 @@ static Db *tdb_build_db(Tdb *tb)
             for (q = 0; q < tb->n_par; ++q) {
                 int n;
                 if (strcmp(tb->par[q].phase, tp->name) != 0) continue;
+                if (tb->par[q].kind != 0) continue;
                 n = tdb_resolve_param(tb, tb->par[q].expr, tb->par[q].n_seg,
                                       out, TDB_MAX_SEG);
                 tdb_fill_endmember(tb, em, out, n);
@@ -1943,23 +2009,35 @@ static Db *tdb_build_db(Tdb *tb)
                 cf->con_atoms[fi] = sp->atoms;
             }
         }
+        {
+        int n_tcx = 0, n_bmx = 0;
         for (q = 0; q < tb->n_par; ++q) {
             int mixing = 0;
             if (strcmp(tb->par[q].phase, tp->name) != 0) continue;
             for (s = 0; s < tp->n_subl; ++s)
                 if (tb->par[q].ncon[s] == 2) mixing++;
-            if (mixing == 0) n_em++;
-            else if (mixing == 1) n_ex++;
-            else tdb_fail(tb, "interaction on two sublattices at once is outside the v1 subset");
+            if (mixing > 1) tdb_fail(tb, "interaction on two sublattices at once is outside the v1 subset");
+            if (tb->par[q].kind == 0) { if (mixing == 0) n_em++; else n_ex++; }
+            else if (mixing == 1) { if (tb->par[q].kind == 1) n_tcx++; else n_bmx++; }
         }
         cf->em = calloc((size_t)(n_em > 0 ? n_em : 1), sizeof(Endmember));
         cf->em_con = calloc((size_t)(n_em > 0 ? n_em : 1) * (size_t)tp->n_subl, sizeof(int));
         cf->ex = calloc((size_t)(n_ex > 0 ? n_ex : 1), sizeof(CefExcess));
-        if (!cf->em || !cf->em_con || !cf->ex) tdb_fail(tb, "out of memory");
+        cf->tc_em = calloc((size_t)(n_em > 0 ? n_em : 1) * 6, sizeof(double));
+        cf->bm_em = calloc((size_t)(n_em > 0 ? n_em : 1) * 6, sizeof(double));
+        cf->tc_ex = calloc((size_t)(n_tcx > 0 ? n_tcx : 1), sizeof(CefExcess));
+        cf->bm_ex = calloc((size_t)(n_bmx > 0 ? n_bmx : 1), sizeof(CefExcess));
+        if (!cf->em || !cf->em_con || !cf->ex || !cf->tc_em || !cf->bm_em ||
+            !cf->tc_ex || !cf->bm_ex) tdb_fail(tb, "out of memory");
+        cf->magnetic = tp->flags_magnetic;
+        cf->mag_afm = tp->flags_magnetic ? (tp->mag_afm != 0.0 ? tp->mag_afm : -1.0) : -1.0;
+        cf->mag_p = tp->flags_magnetic ? (tp->mag_p > 0.0 ? tp->mag_p : 0.4) : 0.4;
+        }
         for (q = 0; q < tb->n_par; ++q) {
             TdbParam *pa = &tb->par[q];
             int mixing_subl = -1, n;
             if (strcmp(pa->phase, tp->name) != 0) continue;
+            if (pa->kind != 0) continue;   /* TC / BMAGN routed in the second pass */
             for (s = 0; s < tp->n_subl; ++s)
                 if (pa->ncon[s] == 2) { mixing_subl = s; break; }
             n = tdb_resolve_param(tb, pa->expr, pa->n_seg, out, TDB_MAX_SEG);
@@ -1996,6 +2074,50 @@ static Db *tdb_build_db(Tdb *tb)
                 for (s = 0; s < tp->n_subl; ++s)
                     ex->other[s] = (s == mixing_subl) ? -1 : pa->con[s][0];
                 cf->n_ex++;
+            }
+        }
+        /* second pass: TC and BMAGN parameters onto the built endmember/excess frame */
+        for (q = 0; q < tb->n_par; ++q) {
+            TdbParam *pa = &tb->par[q];
+            int mixing_subl = -1, n, e;
+            double *slot6 = NULL;
+            if (strcmp(pa->phase, tp->name) != 0 || pa->kind == 0) continue;
+            for (s = 0; s < tp->n_subl; ++s)
+                if (pa->ncon[s] == 2) { mixing_subl = s; break; }
+            n = tdb_resolve_param(tb, pa->expr, pa->n_seg, out, TDB_MAX_SEG);
+            if (mixing_subl < 0) {
+                for (e = 0; e < cf->n_em; ++e) {
+                    int match = 1;
+                    for (s = 0; s < tp->n_subl; ++s)
+                        if (cf->em_con[e * tp->n_subl + s] != pa->con[s][0]) { match = 0; break; }
+                    if (match) { slot6 = (pa->kind == 1 ? cf->tc_em : cf->bm_em) + e * 6; break; }
+                }
+                if (!slot6) continue;   /* TC/BMAGN for an endmember with no G: inert */
+                tdb_fill_excess(tb, slot6, out, n);
+            } else {
+                CefExcess *ex = (pa->kind == 1) ? &cf->tc_ex[cf->n_tcx] : &cf->bm_ex[cf->n_bmx];
+                int ci = pa->con[mixing_subl][0], cj = pa->con[mixing_subl][1];
+                memset(ex, 0, sizeof *ex);
+                ex->subl = mixing_subl;
+                if (strcmp(tp->con[mixing_subl][ci], tp->con[mixing_subl][cj]) > 0) {
+                    int t2 = ci; int k2, m2;
+                    ci = cj; cj = t2;
+                    if (pa->order % 2 == 1) {
+                        for (k2 = 0; k2 < pa->n_seg; ++k2)
+                            for (m2 = 0; m2 < pa->expr[k2].n; ++m2)
+                                pa->expr[k2].t[m2].c = -pa->expr[k2].t[m2].c;
+                        n = tdb_resolve_param(tb, pa->expr, pa->n_seg, out, TDB_MAX_SEG);
+                    }
+                }
+                ex->i = ci; ex->j = cj;
+                ex->order = pa->order;
+                ex->coeff = calloc(6, sizeof(double));
+                ex->other = calloc((size_t)tp->n_subl, sizeof(int));
+                if (!ex->coeff || !ex->other) tdb_fail(tb, "out of memory");
+                tdb_fill_excess(tb, ex->coeff, out, n);
+                for (s = 0; s < tp->n_subl; ++s)
+                    ex->other[s] = (s == mixing_subl) ? -1 : pa->con[s][0];
+                if (pa->kind == 1) cf->n_tcx++; else cf->n_bmx++;
             }
         }
         free(out);
@@ -2131,7 +2253,14 @@ static Db *read_tdb(char *text_owned)
                 char ch[NAME_MAX];
                 if (!tdb_word(&s, ch, sizeof ch)) continue;
                 if (strstr(s, "MAGNETIC")) {
-                    if (tb.n_mag_td < 15) tb.magnetic_typedefs[tb.n_mag_td++] = ch[0];
+                    if (tb.n_mag_td < 15) {
+                        double afm = -1.0, pv = 0.4;
+                        sscanf(strstr(s, "MAGNETIC") + 8, "%lf %lf", &afm, &pv);
+                        tb.magnetic_typedefs[tb.n_mag_td] = ch[0];
+                        tb.mag_td_afm[tb.n_mag_td] = afm;
+                        tb.mag_td_p[tb.n_mag_td] = pv;
+                        tb.n_mag_td++;
+                    }
                 } else if (strstr(s, "DISORD") || strstr(s, "DIS_PART")) {
                     if (tb.n_ord_td < 15) tb.order_typedefs[tb.n_ord_td++] = ch[0];
                 }
@@ -2163,7 +2292,11 @@ static Db *read_tdb(char *text_owned)
                 if (!tdb_word(&s, code, sizeof code)) tdb_fail(&tb, "PHASE without a model code");
                 for (c = code; *c; ++c) {
                     for (m = 0; m < tb.n_mag_td; ++m)
-                        if (*c == tb.magnetic_typedefs[m]) ph->flags_magnetic = 1;
+                        if (*c == tb.magnetic_typedefs[m]) {
+                            ph->flags_magnetic = 1;
+                            ph->mag_afm = tb.mag_td_afm[m];
+                            ph->mag_p = tb.mag_td_p[m];
+                        }
                     for (m = 0; m < tb.n_ord_td; ++m)
                         if (*c == tb.order_typedefs[m]) ph->flags_order = 1;
                 }
@@ -2212,6 +2345,7 @@ static Db *read_tdb(char *text_owned)
                 int depth;
                 char *comma, *phname, *pcolon, *arr, *semi, *tokp;
                 int order = 0, subl;
+                int pending_kind = 0;
                 TdbPhase *ph = NULL;
                 TdbParam *pa;
                 int i2;
@@ -2229,9 +2363,6 @@ static Db *read_tdb(char *text_owned)
                     s++;
                 }
                 desc[dn] = '\0';
-                if (strcmp(type, "TC") == 0 || strcmp(type, "BMAGN") == 0 ||
-                    strcmp(type, "BM") == 0)
-                    tdb_fail(&tb, "magnetic parameters (TC/BMAGN) are outside the v1 subset");
                 if (strncmp(type, "MQ", 2) == 0) {
                     /* uTDB extension statements (docs/UNIFIED_TDB_SPEC.md) */
                     TdbMq *mq;
@@ -2313,8 +2444,10 @@ static Db *read_tdb(char *text_owned)
                     tb.n_mq++;
                     continue;
                 }
-                if (strcmp(type, "G") != 0 && strcmp(type, "L") != 0)
-                    continue;   /* VS, diffusion etc.: ignored, energies unaffected */
+                if (strcmp(type, "G") == 0 || strcmp(type, "L") == 0) pending_kind = 0;
+                else if (strcmp(type, "TC") == 0) pending_kind = 1;
+                else if (strcmp(type, "BMAGN") == 0 || strcmp(type, "BM") == 0) pending_kind = 2;
+                else continue;   /* VS, diffusion etc.: ignored, energies unaffected */
                 comma = strchr(desc, ',');
                 if (!comma) tdb_fail(&tb, "PARAMETER without a constituent array");
                 *comma = '\0';
@@ -2332,6 +2465,7 @@ static Db *read_tdb(char *text_owned)
                 memset(pa, 0, sizeof *pa);
                 snprintf(pa->phase, NAME_MAX, "%s", phname);
                 pa->order = order;
+                pa->kind = pending_kind;
                 pa->expr = calloc(TDB_MAX_SEG, sizeof(TdbSeg));
                 if (!pa->expr) tdb_fail(&tb, "out of memory");
                 subl = 0;

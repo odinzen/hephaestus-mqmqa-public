@@ -4,8 +4,9 @@ The reader parses the Thermo-Calc TDB dialect into the same internal database
 the ChemSage reader builds. These tests load pycalphad's own shipped test TDBs
 and compare every solution phase's Gibbs energy, and the line compounds, against
 pycalphad at random site fractions and temperatures to machine precision. The
-negative tests pin the v1 scope: models outside the subset (magnetic, ionic
-liquid) must fail loudly, never compute silently wrong.
+negative tests pin the scope: models outside the subset (the ionic
+two-sublattice liquid) must fail loudly, never compute silently wrong; the
+magnetic Inden-Hillert-Jarl contribution is in the subset and oracle-checked.
 """
 import os
 import sys
@@ -31,7 +32,8 @@ def _oracle_db(fname):
     return Database.read(path), PDatabase(path), path
 
 
-@pytest.mark.parametrize("fname", ["alzn_mey.tdb", "pbsn.tdb", "Al-Mg_Zhong.tdb"])
+@pytest.mark.parametrize("fname", ["alzn_mey.tdb", "pbsn.tdb", "Al-Mg_Zhong.tdb",
+                                   "crfe_bcc_magnetic.tdb"])
 def test_solution_phases_match_pycalphad(fname):
     db, pdb, _ = _oracle_db(fname)
     comps = [e for e, m in db.elements] + ["VA"]
@@ -83,7 +85,6 @@ def test_extrapolates_above_last_interval_like_pycalphad():
 
 
 @pytest.mark.parametrize("fname,needle", [
-    ("crfe_bcc_magnetic.tdb", "magnetic"),
     ("al2o3_nd2o3_zro2.tdb", "ionic"),
 ])
 def test_out_of_subset_models_fail_loudly(fname, needle):

@@ -400,7 +400,9 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
             <span id="scheil-msg" class="muted"></span>
           </div>
           <div class="pdwrap"><canvas id="scheilcanvas" style="display:none"></canvas></div>
+          <div class="tern-read" id="scheil-hover">&nbsp;</div>
           <div class="tern-read" id="scheil-read">&nbsp;</div>
+          <div id="scheilhist"></div>
         </div>
       </div>
     </div>
@@ -1764,6 +1766,10 @@ async function runScheil(){
     c2.save(); c2.translate(13, mT2+PH2/2); c2.rotate(-Math.PI/2);
     c2.fillStyle=rgba(col.ink,0.85); c2.textAlign='center'; c2.textBaseline='middle';
     c2.fillText('temperature (K)', 0, 0); c2.restore();
+    // keep the finished plot + its coordinate mapping so hover/click can read values off it
+    window._scheilPlot={Tlo,Thi,mL2,mT2,PW2,PH2,cssW,cssH,dpr,x0,
+      sch:schP.slice(),lever:leverP.slice(),
+      snap:c2.getImageData(0,0,cvS.width,cvS.height)};
     read.textContent=events.length?('Scheil: '+events.join('  ·  ')
       +'   (solid line: Scheil; dashed: equilibrium lever rule)')
       :'No solidification within the diagram temperature range.';
@@ -1949,6 +1955,52 @@ function renderLegend(){
 
 document.getElementById('pdgen').addEventListener('click', generateDiagram);
 document.getElementById('scheil-go').addEventListener('click', runScheil);
+
+// Hover reads fraction/temperature off the Scheil curves; click pins the point to a
+// comparison list below, like every other calculator on the page.
+(function(){
+  const cv=document.getElementById('scheilcanvas');
+  const hoverEl=document.getElementById('scheil-hover');
+  const histEl=document.getElementById('scheilhist');
+  const hist=[];
+  function renderHist(){ renderCalcHist(histEl, hist.slice(),
+    ()=>{ hist.length=0; renderHist(); }); }
+  function interpT(arr,f){ if(!arr||!arr.length) return null;
+    if(f<=arr[0][1]) return arr[0][0];
+    for(let i=1;i<arr.length;i++){ const T1=arr[i-1][0],f1=arr[i-1][1],T2=arr[i][0],f2=arr[i][1];
+      if(f<=f2+1e-12){ const w=(f2>f1)?Math.min(1,Math.max(0,(f-f1)/(f2-f1))):1;
+        return T1+(T2-T1)*w; } }
+    return arr[arr.length-1][0]; }
+  function at(ev){ const P=window._scheilPlot; if(!P) return null;
+    const r=cv.getBoundingClientRect();
+    const px=(ev.clientX-r.left)*P.cssW/r.width;
+    const f=(px-P.mL2)/P.PW2;
+    if(f<-0.01||f>1.01) return null;
+    const fc=Math.min(1,Math.max(0,f));
+    return {f:fc, Ts:interpT(P.sch,fc), Te:interpT(P.lever,fc)}; }
+  function redraw(pt){ const P=window._scheilPlot; if(!P) return;
+    const c2=cv.getContext('2d');
+    c2.putImageData(P.snap,0,0);
+    if(pt&&pt.Ts!=null){
+      c2.setTransform(P.dpr,0,0,P.dpr,0,0);
+      const x=P.mL2+pt.f*P.PW2, y=P.mT2+P.PH2*(1-(pt.Ts-P.Tlo)/(P.Thi-P.Tlo));
+      const col=pdThemeColors();
+      c2.beginPath(); c2.moveTo(x,P.mT2); c2.lineTo(x,P.mT2+P.PH2);
+      c2.lineWidth=1; c2.strokeStyle=rgba(col.muted,0.45); c2.setLineDash([3,3]); c2.stroke(); c2.setLineDash([]);
+      c2.beginPath(); c2.arc(x,y,4,0,2*Math.PI);
+      c2.fillStyle=rgba(col.ink,1); c2.fill();
+    } }
+  function text(pt){ return Math.round(100*pt.f)+'% solid  ·  Scheil '+Math.round(pt.Ts)+' K'
+    +(pt.Te!=null?'  ·  equilibrium '+Math.round(pt.Te)+' K':''); }
+  cv.addEventListener('mousemove',ev=>{ const pt=at(ev);
+    if(!pt||pt.Ts==null){ hoverEl.innerHTML='&nbsp;'; redraw(null); return; }
+    hoverEl.textContent=text(pt); redraw(pt); });
+  cv.addEventListener('mouseleave',()=>{ hoverEl.innerHTML='&nbsp;'; redraw(null); });
+  cv.addEventListener('click',ev=>{ const pt=at(ev); const P=window._scheilPlot;
+    if(!pt||pt.Ts==null||!P) return;
+    hist.push('start '+Math.round(100*P.x0)+'%  ·  '+text(pt));
+    renderHist(); redraw(pt); });
+})();
 // re-bracket the temperature axis whenever the join changes
 ['pdA','pdB','pdCommon'].forEach(id=>document.getElementById(id).addEventListener('change', ()=>window.alloyMode?pdAlloyAutoRange():pdAutoRange()));
 // tap-to-read + pin points on the binary diagram (the main salt tool; also serves slag binaries)

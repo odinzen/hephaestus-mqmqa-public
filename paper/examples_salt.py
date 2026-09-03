@@ -7,13 +7,13 @@ import numpy as np
 from mqmqa import Database
 from mqmqa.equilibrium import build_inputs, multiphase_binary
 
-db  = Database.read("web/LiCl-KCl.dat")            # the file the browser app ships
+db  = Database.read("web/LiCl-KCl.dat")         # the file the browser app ships
 liq = db.phase_index("LICL-KCL-LIQUID")
-LiCl, KCl = {"LI": 1, "CL": 1}, {"K": 1, "CL": 1}  # endmember element compositions
+LiCl, KCl = {"LI": 1, "CL": 1}, {"K": 1, "CL": 1}  # endmember compositions
 
 diagram = []
 for T in np.arange(500.0, 1101.0, 10.0):
-    inp    = build_inputs(db, liq, T)              # liquid model at this temperature
+    inp    = build_inputs(db, liq, T)         # liquid model at this temperature
     solids = [(0.0, db.stoich_gibbs(0, T), "LiCl(s)"),
               (1.0, db.stoich_gibbs(1, T), "KCl(s)")]
     for xi in np.arange(0.025, 1.0, 0.025):        # xi = mole fraction KCl
@@ -21,7 +21,7 @@ for T in np.arange(500.0, 1101.0, 10.0):
         diagram.append((xi, T, "+".join(sorted(state["phases"]))))
 
 liquid_only = [(T, xi) for xi, T, ph in diagram if ph == "LIQUID"]
-Te, xe = min(liquid_only)                          # coldest all-liquid point = eutectic
+Te, xe = min(liquid_only)                  # coldest all-liquid point = eutectic
 print(f"eutectic near x_KCl = {xe:.3f}, T = {Te:.0f} K   (measured: 0.415, 626 K)")
 # --- END paper listing ---------------------------------------------------
 

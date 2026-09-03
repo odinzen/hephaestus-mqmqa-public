@@ -6,7 +6,7 @@ import numpy as np
 # --- BEGIN paper listing -------------------------------------------------
 from mqmqa import Database
 
-db = Database.read("web/AlZn.tdb")                 # Thermo-Calc dialect, same reader
+db = Database.read("web/AlZn.tdb")            # Thermo-Calc dialect, same reader
 phases = [(db.phase_index(n), n) for n in db.phase_names]
 
 def lower_hull(pts):                               # 2-D lower convex hull of (x, G)
@@ -21,10 +21,11 @@ def lower_hull(pts):                               # 2-D lower convex hull of (x
 diagram = []
 for T in np.arange(300.0, 1001.0, 5.0):
     pts = []
-    for p, name in phases:                         # every CEF phase along the join
+    for p, name in phases:                      # every CEF phase along the join
         for y in np.linspace(1e-4, 1-1e-4, 60):    # y = site fraction of Zn
-            pts.append((y, db.cef_gibbs(p, [1.0-y, y], T, per_mole_atoms=True), name))
-    hull = lower_hull(pts)                         # 2-D lower convex hull of (x, G)
+            g = db.cef_gibbs(p, [1.0-y, y], T, per_mole_atoms=True)
+            pts.append((y, g, name))
+    hull = lower_hull(pts)                     # 2-D lower convex hull of (x, G)
     for edge_a, edge_b in zip(hull, hull[1:]):
         xa, _ga, name_a = edge_a
         xb, _gb, name_b = edge_b

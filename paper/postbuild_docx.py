@@ -43,19 +43,59 @@ def left_align_code(styles_xml: str) -> str:
     def fix(m):
         st = m.group(0)
         if "<w:jc " in st:
-            return re.sub(r'<w:jc w:val="[^"]*"/>', '<w:jc w:val="left"/>', st)
-        if "<w:pPr>" in st:
-            return st.replace("</w:pPr>", '<w:jc w:val="left"/></w:pPr>', 1)
-        return st.replace("</w:style>", '<w:pPr><w:jc w:val="left"/></w:pPr></w:style>', 1)
+            st = re.sub(r'<w:jc w:val="[^"]*"\s*/>', '<w:jc w:val="left"/>', st)
+        elif "<w:pPr>" in st:
+            st = st.replace("</w:pPr>", '<w:jc w:val="left"/></w:pPr>', 1)
+        else:
+            st = st.replace("</w:style>", '<w:pPr><w:jc w:val="left"/></w:pPr></w:style>', 1)
+        # 9 pt code so a 90-character listing line fits without wrapping
+        if "<w:sz " in st:
+            st = re.sub(r'<w:sz w:val="[^"]*"\s*/>', '<w:sz w:val="18"/>', st)
+            st = re.sub(r'<w:szCs w:val="[^"]*"\s*/>', '<w:szCs w:val="18"/>', st)
+        elif "<w:rPr>" in st:
+            st = st.replace("</w:rPr>", '<w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr>', 1)
+        else:
+            st = st.replace("</w:style>",
+                            '<w:rPr><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr></w:style>', 1)
+        return st
 
-    return re.sub(
+    out = re.sub(
         r'<w:style [^>]*w:styleId="SourceCode".*?</w:style>', fix, styles_xml, flags=re.S
     )
+    # the VerbatimChar character style carries its own w:sz, which overrides the
+    # paragraph style on every code run; shrink it too or nothing changes
+    def fix_char(m):
+        st = m.group(0)
+        st = re.sub(r'<w:sz w:val="[^"]*"\s*/>', '<w:sz w:val="18"/>', st)
+        st = re.sub(r'<w:szCs w:val="[^"]*"\s*/>', '<w:szCs w:val="18"/>', st)
+        return st
+    return re.sub(
+        r'<w:style [^>]*w:styleId="VerbatimChar".*?</w:style>', fix_char, out, flags=re.S
+    )
+
+
+def left_align_table_cells(xml: str) -> str:
+    """Justified body text inside narrow table cells stretches into rivers of
+    space; force every table-cell paragraph to left alignment."""
+    def fix_ppr(m2):
+        blk = m2.group(0)
+        if "<w:jc " in blk:
+            return re.sub(r'<w:jc w:val="[^"]*"\s*/>', '<w:jc w:val="left"/>', blk)
+        return blk.replace("</w:pPr>", '<w:jc w:val="left"/></w:pPr>', 1)
+
+    def fix_table(m):
+        tbl = m.group(0)
+        tbl = re.sub(r"<w:pPr>.*?</w:pPr>", fix_ppr, tbl, flags=re.S)
+        tbl = re.sub(r"<w:p\b([^>]*)>(?=<w:r)",
+                     r'<w:p\1><w:pPr><w:jc w:val="left"/></w:pPr>', tbl)
+        return tbl
+
+    return re.sub(r"<w:tbl\b.*?</w:tbl>", fix_table, xml, flags=re.S)
 
 
 def main(path: str) -> None:
     z = zipfile.ZipFile(path)
-    xml = keep_tables_together(z.read("word/document.xml").decode("utf-8"))
+    xml = left_align_table_cells(keep_tables_together(z.read("word/document.xml").decode("utf-8")))
     styles = left_align_code(z.read("word/styles.xml").decode("utf-8"))
     with zipfile.ZipFile(path + ".new", "w", zipfile.ZIP_DEFLATED) as out:
         for item in z.namelist():

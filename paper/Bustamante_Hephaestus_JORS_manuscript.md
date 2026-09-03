@@ -92,7 +92,7 @@ That asymmetry is the economics of the field in miniature: implementations of th
 
 ### Quality control
 
-pycalphad is the validation oracle throughout, on the principle that nothing is claimed working until it matches an independent implementation; Table 3 lists the checks. The test suite, 104 tests run with pytest, checks every energy contribution against pycalphad on shared parameters to machine precision, near 10^-10^ J per mole of atoms. The reader is tested by loading pycalphad's open test databases and reproducing their energies with no pycalphad at runtime. The compound energy formalism kernel matches pycalphad on a real multicomponent industrial file with charged species, vacancies, and logarithmic temperature terms. The multiphase construction is tested end to end: a combined file holding the MQMQA liquid, both solid solutions, and three stoichiometric oxides runs through pycalphad's own equilibrium calculation. The stable phase sets agree at 15 of 16 probe points, with Gibbs energies within about 10 J per mole of atoms; the one disagreement is a facet-resolution sliver at a field boundary. The WebAssembly build is validated in the browser against the same oracle values to machine precision. The TDB front-end is validated the same way, with pycalphad's own shipped test databases as the corpus: the subset-compatible alloy systems (Al-Zn, Pb-Sn, Al-Mg) load, and every solution phase matches pycalphad's Gibbs energy at random site fractions and temperatures to about 10^-10^ J per mole of atoms, line compounds included, while out-of-subset files must fail with the stated reason, and the suite asserts those failures too. The magnetic model is checked twice over: pycalphad parity on its own magnetic test database and on an own-transcribed Fe-C system, whose pure-iron transitions, carried almost entirely by the magnetic term, come out at 1185, 1668, and 1811 K against the measured 1184.8, 1667.5, and 1811. The Scheil panel is checked against known invariants: for Al-Zn at 30 mol% Zn it nucleates FCC_A1 at 836 K and freezes the 12.5% residue within one temperature step of the assessed 654 K eutectic [34]; for LiCl-KCl the residue freezes at 629 K against the measured 626 K.
+Validation rests on one principle: a number is trusted only when an independent implementation reproduces it. pycalphad plays that role throughout, and Table 3 lists the checks. The pytest suite, 104 tests, compares every energy contribution on shared parameters and agrees to about 10^-10^ J per mole of atoms. The reader proves itself the hard way, by loading pycalphad's own test databases and reproducing their energies with no pycalphad at runtime. The compound energy formalism kernel matches pycalphad on a real multicomponent industrial file with charged species, vacancies, and logarithmic temperature terms. The multiphase construction is tested end to end: a combined file holding the MQMQA liquid, both solid solutions, and three stoichiometric oxides runs through pycalphad's own equilibrium calculation. The stable phase sets agree at 15 of 16 probe points, with Gibbs energies within about 10 J per mole of atoms; the one disagreement is a facet-resolution sliver at a field boundary. The WebAssembly build is validated in the browser against the same oracle values to machine precision. The TDB front-end is validated the same way, with pycalphad's own shipped test databases as the corpus: the subset-compatible alloy systems (Al-Zn, Pb-Sn, Al-Mg) load, and every solution phase matches pycalphad's Gibbs energy at random site fractions and temperatures to about 10^-10^ J per mole of atoms, line compounds included, while out-of-subset files must fail with the stated reason, and the suite asserts those failures too. The magnetic model is checked twice over: pycalphad parity on its own magnetic test database and on an own-transcribed Fe-C system, whose pure-iron transitions, carried almost entirely by the magnetic term, come out at 1185, 1668, and 1811 K against the measured 1184.8, 1667.5, and 1811. The Scheil panel is checked against known invariants: for Al-Zn at 30 mol% Zn it nucleates FCC_A1 at 836 K and freezes the 12.5% residue within one temperature step of the assessed 654 K eutectic [34]; for LiCl-KCl the residue freezes at 629 K against the measured 626 K.
 
 | Check | Scope | Agreement |
 |---|---|---|
@@ -155,7 +155,7 @@ English.
 
 ## (3) Reuse potential
 
-The nearest reuse is interoperation. Hephaestus reads the same ChemSage format pycalphad reads, and files written by dbbuild load in both, which the tests enforce. A group already working in pycalphad can treat the database as input data and ignore the engine. A group that needs a small embeddable solver can take the C core, two source directories with no dependencies, and call it from C, Python, or anything with a C foreign-function interface.
+The nearest reuse is interoperation, and it is concrete. Every database in the repository's data directory is a standard ChemSage file: pycalphad opens the same files this engine ships, files written by dbbuild load in both tools, and the test suite enforces that compatibility on every run, so a group already working in pycalphad can adopt the databases alone and ignore the engine. The reverse path holds too: a TDB an OpenCalphad or Thermo-Calc user already has loads in the browser unchanged, within the documented subset. A group that needs an embeddable solver can take the C core, two source directories of C99 with no dependencies, compiled by any C compiler; its flat ABI covers database reading, phase and parameter access, Gibbs evaluation, and liquid equilibration, callable from C, Python, or anything with a C foreign-function interface, and the WebAssembly build is that same ABI passed through emscripten. Adopting uTDB is a reuse path of its own: the open specification together with the three shipped demonstration files and their round-trip suites amounts to a conformance kit for any implementation that wants to carry MQMQA inside TDB grammar.
 
 The browser application makes the lowest barrier the default. A lecture on slag thermodynamics, a plant metallurgist screening a composition, or a reviewer checking a claimed equilibrium can load the database and calculate in seconds, with confidential inputs never leaving the machine. The same property makes it a practical template for other groups who want to publish a model as a zero-install tool.
 
@@ -167,13 +167,13 @@ Two complete sessions show the public API end to end; both run against the shipp
 from mqmqa import Database
 from mqmqa.equilibrium import build_inputs, multiphase_binary
 
-db  = Database.read("web/LiCl-KCl.dat")            # the file the browser app ships
+db  = Database.read("web/LiCl-KCl.dat")         # the file the browser app ships
 liq = db.phase_index("LICL-KCL-LIQUID")
-LiCl, KCl = {"LI": 1, "CL": 1}, {"K": 1, "CL": 1}  # endmember element compositions
+LiCl, KCl = {"LI": 1, "CL": 1}, {"K": 1, "CL": 1}  # endmember compositions
 
 diagram = []
 for T in np.arange(500.0, 1101.0, 10.0):
-    inp    = build_inputs(db, liq, T)              # liquid model at this temperature
+    inp    = build_inputs(db, liq, T)         # liquid model at this temperature
     solids = [(0.0, db.stoich_gibbs(0, T), "LiCl(s)"),
               (1.0, db.stoich_gibbs(1, T), "KCl(s)")]
     for xi in np.arange(0.025, 1.0, 0.025):        # xi = mole fraction KCl
@@ -181,7 +181,7 @@ for T in np.arange(500.0, 1101.0, 10.0):
         diagram.append((xi, T, "+".join(sorted(state["phases"]))))
 
 liquid_only = [(T, xi) for xi, T, ph in diagram if ph == "LIQUID"]
-Te, xe = min(liquid_only)                          # coldest all-liquid point = eutectic
+Te, xe = min(liquid_only)                  # coldest all-liquid point = eutectic
 ```
 
 In plain terms: the session sweeps a grid of temperatures and compositions, and at each point multiphase_binary compares the liquid solution against the two solid salts and reports which phases coexist. The two stoich_gibbs lines fetch the Gibbs energies of solid LiCl and solid KCl at that temperature. The closing lines only search the results: among all points where the melt is entirely liquid, the coldest is the eutectic.
@@ -195,16 +195,17 @@ The alloy session reads the Thermo-Calc dialect through the same API and compute
 ```
 from mqmqa import Database
 
-db = Database.read("web/AlZn.tdb")                 # Thermo-Calc dialect, same reader
+db = Database.read("web/AlZn.tdb")            # Thermo-Calc dialect, same reader
 phases = [(db.phase_index(n), n) for n in db.phase_names]
 
 diagram = []
 for T in np.arange(300.0, 1001.0, 5.0):
     pts = []
-    for p, name in phases:                         # every CEF phase along the join
+    for p, name in phases:                      # every CEF phase along the join
         for y in np.linspace(1e-4, 1-1e-4, 60):
-            pts.append((y, db.cef_gibbs(p, [1.0-y, y], T, per_mole_atoms=True), name))
-    hull = lower_hull(pts)                         # 2-D lower convex hull of (x, G)
+            g = db.cef_gibbs(p, [1.0-y, y], T, per_mole_atoms=True)
+            pts.append((y, g, name))
+    hull = lower_hull(pts)                     # 2-D lower convex hull of (x, G)
     for edge_a, edge_b in zip(hull, hull[1:]):
         xa, _ga, name_a = edge_a
         xb, _gb, name_b = edge_b
@@ -218,6 +219,8 @@ It locates the eutectic at x~Zn~ = 0.890 and 660 K against the assessed 0.885 an
 ![Figure 5: The Al-Zn phase diagram computed by the alloy listing from the shipped open TDB. Light to dark: liquid, liquid plus solid, and solid fields. The dot is the computed eutectic (0.890, 660 K); the star is the assessed eutectic (0.885, 654 K).](figures/fig5_alloy_example.png){width=4.6in}
 
 The database is a starting point rather than an endpoint, and the file format rewards growth: new components, new phases, and refits against new measurements accumulate in the same database. A system is therefore extended release by release rather than rebuilt, and archived versions keep results calculated against earlier releases reproducible. Because every value carries its source and every judgment is written down, another assessor can reweight the data, swap an endmember, or extend a system without reverse-engineering anything; dbbuild turns a table of measured activities into a loadable file in a few lines. The in-browser multiphase hull already covers any loaded three-cation file and any loaded alloy TDB join, so a new system becomes a browser phase diagram the moment its file loads. Natural extensions are further oxide systems, the remaining ChemSage solution models, the ionic-liquid TDB model, and multicomponent Scheil on the same hull machinery. The repository also publishes an openly specified unified dialect (uTDB) that carries the MQMQA statements inside TDB grammar, with two shipped demonstration files chosen to be processes rather than curiosities: an aluminum-recycling database holding the Al-Zn alloy with its NaCl-KCl-MgCl2 salt flux, and a steelmaking database holding a basic Fe-C steel, magnetic phases included, with the FeO-MgO-SiO2 slag and its silicate solid solutions. Round-trip tests assert both reproduce their source-file physics at machine precision. Relative to the XML road of XTDB [15] (Table 1), uTDB is the on-ramp from the installed base, extending files as they are and running in this engine today, with mechanical conversion to XTDB elements the natural bridge once that schema settles. Making the calculator multilingual across the field's file dialects is the direction of travel. Contributions and issues are handled through the GitHub repository.
+
+To close where the paper began: the gap was never the model, which has been published for two decades, but an open, runnable pairing of model and parameters. Hephaestus supplies both halves under open licenses, speaks the field's three database containers, and puts the result behind a browser page that asks nothing of its user. The claims are checkable end to end. Release v0.4.0 archives the exact version described, the 104-test suite reruns the pycalphad comparisons on any machine, the worked examples print the figures shown, and every parameter in every shipped database traces to a published measurement through its provenance file. A reader who doubts a number can recompute it; one who needs a system that is missing can build it with the same open tools, or ask.
 
 ## Data availability
 

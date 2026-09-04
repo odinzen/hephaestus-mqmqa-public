@@ -87,11 +87,13 @@ def read_nasa_thermo(path: str) -> dict:
 
 
 def gas_equilibrium(species: dict, names, T: float, P: float, elem_moles: dict,
-                    p_ref: float = P_REF):
+                    p_ref: float = P_REF, return_potentials: bool = False):
     """Ideal-gas equilibrium mole fractions at fixed T and P.
 
     Element-potential (RAND/CEA) Newton on the element balance, with an outer
-    fixed point on total moles for the pressure term. Returns {species: X}.
+    fixed point on total moles for the pressure term. Returns {species: X}; with
+    return_potentials, also returns the element chemical potentials pi (mu_e / RT)
+    as {element: value}, which drives the condensed active set in the coupled solver.
     """
     # every element the candidate species span must appear, so a species built
     # from an element that is not fed (b_e = 0) is driven to zero by its balance
@@ -105,19 +107,30 @@ def gas_equilibrium(species: dict, names, T: float, P: float, elem_moles: dict,
     g_rt = np.array([species[s].g_rt(T) for s in names])
     xt = max(b.sum(), 1e-12)
     pi = np.zeros(len(els))
-    for _ in range(200):
+    tol = 1e-12 * max(1.0, b.sum())
+    for _ in range(60):
         c = g_rt + math.log(P / p_ref) - math.log(xt)
-        for _ in range(100):
+        for _ in range(40):
             x = np.exp(np.clip(A @ pi - c, -80, 80))
             resid = A.T @ x - b
             if np.max(np.abs(resid)) < 1e-13 * max(1.0, b.sum()):
                 break
             jac = A.T @ (x[:, None] * A)
-            step = np.linalg.solve(jac + 1e-14 * np.eye(len(els)), -resid)
+            # ridge scaled to the diagonal so a trace element (near-zero row) does
+            # not make the Gram singular; least squares as a final fallback
+            ridge = 1e-10 * max(jac.diagonal().max(), 1.0)
+            try:
+                step = np.linalg.solve(jac + ridge * np.eye(len(els)), -resid)
+            except np.linalg.LinAlgError:
+                step = np.linalg.lstsq(jac, -resid, rcond=None)[0]
             pi = pi + np.clip(step, -2.0, 2.0)
         xt_new = x.sum()
         if abs(xt_new - xt) < 1e-12 * xt:
             break
         xt = xt_new
     x = np.exp(np.clip(A @ pi - (g_rt + math.log(P / p_ref) - math.log(xt)), -80, 80))
-    return dict(zip(names, x / x.sum()))
+    frac = dict(zip(names, x / x.sum()))
+    if return_potentials:
+        return frac, dict(zip(els, pi))
+    return frac
+

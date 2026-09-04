@@ -78,6 +78,24 @@ six-coefficient basis (1, T, T ln T, T^2, T^3, 1/T).
 Integer group id per constituent (cations and anions), for the group-dependent
 excess interpolation.
 
+### Ideal-gas phase (NASA polynomials)
+
+A `:G` phase is an ideal-gas mixture whose species carry NASA 7-coefficient
+polynomials, the combustion school's native thermochemistry (NASA CEA, Burcat,
+GRI-Mech). The species may be declared inline or, preferably, resolved by name against
+a companion NASA/CHEMKIN `thermo.dat`, so the gas keeps its standard, portable form.
+
+    PHASE <name>:G  G  1  1.0 !
+    CONSTITUENT <name>:G : <sp>,<sp>,... : !
+    GAS_THERMO "<file>.dat"                                  ! external NASA cards
+
+Gas species mix ideally and feel the pressure term, mu_i = G_i(T) + RT ln(x_i P / P0),
+with the standard-state reference pressure P0 = 1 atm of the NASA polynomials. Ideal-gas
+equilibrium at fixed temperature and pressure is solved by the element-potential
+(RAND/CEA) method and validated against Cantera to machine precision. This phase makes
+uTDB a four-model container, an alloy, a slag or salt, its stoichiometric solids, and a
+gas, in one file. The reference gas thermochemistry ships as `data/gas/nasa_gas.dat`.
+
 ## Reference implementation and proof
 
 The Hephaestus reader (`src/cs_dat.c`, TDB front-end) parses these statements into

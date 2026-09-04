@@ -76,7 +76,7 @@ The built-in buttons cover the open slag, chloride salt, and Al-Zn alloy databas
 
 ### 9. What this calculator will not do
 
-Honesty about scope saves your time. The engine handles condensed phases (liquids, solid solutions, stoichiometric compounds); it does not calculate gas equilibria. Kinetics beyond the Scheil approximation is out of scope. The shipped slag database documents its known limits in the files themselves, the largest being silica-rich miscibility gaps that sit too high in temperature. And the static ternary showcase images on the page exist only for the assessed built-in systems; a newly loaded file drives the live calculators, not the showcases.
+Honesty about scope saves your time. The engine handles condensed phases (liquids, solid solutions, stoichiometric compounds). It also calculates ideal-gas equilibria from NASA polynomials, though for now that runs in the software library rather than on this web page, and the gas is not yet coupled to a molten slag. Kinetics beyond the Scheil approximation is out of scope. The shipped slag database documents its known limits in the files themselves, the largest being silica-rich miscibility gaps that sit too high in temperature. And the static ternary showcase images on the page exist only for the assessed built-in systems; a newly loaded file drives the live calculators, not the showcases.
 
 ### 10. Your first assessment, as a non-expert
 

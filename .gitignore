@@ -22,6 +22,7 @@ web/hephaestus.wasm
 
 # Local demo data (not committed)
 web/*.dat
+!web/nasa_gas.dat
 web/*.png
 # ...except the open databases the live calculator ships (open data)
 !web/FeO-MgO-SiO2-combined.dat

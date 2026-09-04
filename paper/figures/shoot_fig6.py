@@ -62,9 +62,12 @@ def rect_of(ws, mid, selector):
     return json.loads(r["result"]["value"])
 
 
-def shoot(ws, mid, clip, scale=2):
+def shoot(ws, mid, clip):
+    # clip scale MUST be 1: the deviceScaleFactor=2 metrics override already renders
+    # the canvas at 2x native pixels. A clip scale > 1 resamples on top of that and
+    # bands the flat fills. dsf=2 + clip scale=1 = one clean 2x capture.
     r = cdp(ws, mid, "Page.captureScreenshot",
-            {"format": "png", "clip": {**clip, "scale": scale}, "captureBeyondViewport": True})
+            {"format": "png", "clip": {**clip, "scale": 1}, "captureBeyondViewport": True})
     return base64.b64decode(r["data"])
 
 
@@ -72,7 +75,7 @@ def main():
     proc = subprocess.Popen(
         [CHROME, "--headless=new", f"--remote-debugging-port={PORT}",
          "--remote-allow-origins=*", "--hide-scrollbars",
-         "--window-size=1200,2000", "--force-device-scale-factor=1", URL],
+         "--window-size=1800,2200", "--force-device-scale-factor=1", URL],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         time.sleep(3)
@@ -87,7 +90,7 @@ def main():
         cdp(ws, 1, "Page.enable")
         cdp(ws, 2, "Runtime.enable")
         cdp(ws, 3, "Emulation.setDeviceMetricsOverride",
-            {"width": 1200, "height": 2000, "deviceScaleFactor": 2, "mobile": False})
+            {"width": 1800, "height": 2200, "deviceScaleFactor": 3, "mobile": False})
         # run the setup and wait for 'ready'
         cdp(ws, 10, "Runtime.evaluate",
             {"expression": SETUP, "awaitPromise": True, "returnByValue": True})

@@ -68,6 +68,8 @@ static void trim(char *s)
 static int getline_at(const char *text, int pos, char *buf, int cap)
 {
     int i = 0;
+    memset(buf, 0, (size_t)cap);   /* fixed-column reads on short lines see zeros,
+                                      never uninitialized stack */
     if (!text[pos]) return -1;
     while (text[pos + i] && text[pos + i] != '\n' && i < cap - 1) {
         buf[i] = text[pos + i];

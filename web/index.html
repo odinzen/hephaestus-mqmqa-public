@@ -2274,7 +2274,7 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
   }
   function legendProjection(){ legEl.innerHTML='';
     for(const p of proj.phases){ const s=document.createElement('span');
-      s.innerHTML='<span class="swatch" style="background:'+PHASE_FILL[p]+'"></span>'+cap(p); legEl.appendChild(s); }
+      s.innerHTML='<span class="swatch" style="background:'+PHASE_FILL[p]+'"></span>'+escHtml(cap(p)); legEl.appendChild(s); }
     const t=document.createElement('span'); t.style.color='var(--muted)'; t.textContent='isotherms in °C'; legEl.appendChild(t);
   }
 
@@ -2298,7 +2298,7 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
     const idxs=[...s.assemblages.keys()].sort((a,b)=>{ const A=s.assemblages[a],C=s.assemblages[b];
       return A.length-C.length || A.join().localeCompare(C.join()); });
     for(const k of idxs){ const ph=s.assemblages[k],[r,g,b]=asmRGB(ph), sp=document.createElement('span');
-      sp.innerHTML='<span class="swatch" style="background:rgb('+r+','+g+','+b+')"></span>'+asmLabel(ph);
+      sp.innerHTML='<span class="swatch" style="background:rgb('+r+','+g+','+b+')"></span>'+escHtml(asmLabel(ph));
       legEl.appendChild(sp); }
   }
 
@@ -3216,6 +3216,8 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
                 O:+document.getElementById('gas-O').value||0, N:+document.getElementById('gas-N').value||0};
     if(feed.C+feed.H+feed.O+feed.N<=0){ msg.textContent='Enter at least one element amount.'; return; }
     const T=+document.getElementById('gas-T').value, P=(+document.getElementById('gas-P').value)*101325.0;
+    if(!isFinite(T)||T<300||T>6000){ msg.textContent='Temperature must be 300-6000 K.'; return; }
+    if(!isFinite(P)||P<=0){ msg.textContent='Pressure must be positive.'; return; }
     const b=gels.map(e=>feed[e]||0);
     const x=api.gasEquil(gdb,T,P,b);
     if(!x){ msg.textContent='Gas solve did not converge for these conditions.'; return; }

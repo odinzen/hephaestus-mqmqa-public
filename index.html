@@ -577,6 +577,34 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
     </div>
   </div>
 
+  <div class="card" id="gascard">
+    <h2>Gas equilibrium &middot; NASA polynomials<span class="tern-badge">gas engine</span></h2>
+    <p class="tern-note">The ideal-gas equilibrium at a chosen temperature and pressure, solved in
+      your browser from an open NASA-polynomial database (the combustion school's format: NASA CEA,
+      GRI-Mech). Enter how many moles of each element you start with, pick temperature and pressure,
+      and the engine returns the equilibrium gas made of C, H, O, and N species. Validated against
+      Cantera to a part in a million. A separate engine from the slag and alloy calculators above;
+      coupling gas to a molten slag is in progress.</p>
+    <div class="row" style="gap:1.1rem; align-items:flex-end; flex-wrap:wrap">
+      <label>C <input type="number" id="gas-C" value="1" min="0" step="0.1" style="width:4.2rem"></label>
+      <label>H <input type="number" id="gas-H" value="4" min="0" step="0.1" style="width:4.2rem"></label>
+      <label>O <input type="number" id="gas-O" value="2" min="0" step="0.1" style="width:4.2rem"></label>
+      <label>N <input type="number" id="gas-N" value="0" min="0" step="0.1" style="width:4.2rem"></label>
+      <label>T (K) <input type="number" id="gas-T" value="1800" min="300" max="6000" step="50" style="width:5.5rem"></label>
+      <label>P (atm) <input type="number" id="gas-P" value="1" min="0.01" step="0.1" style="width:5rem"></label>
+      <button id="gas-go" type="button" class="seg-btn on" style="border-radius:8px">Compute</button>
+      <span id="gas-msg" class="muted"></span>
+    </div>
+    <div class="row" style="gap:.5rem; margin-top:.5rem; flex-wrap:wrap">
+      <span class="muted" style="font-size:var(--fs-xs)">Presets:</span>
+      <button class="filebtn ghost gas-preset" data-c="1" data-h="4" data-o="2" data-n="0" type="button">CH&#8324; + O&#8322;</button>
+      <button class="filebtn ghost gas-preset" data-c="1" data-h="4" data-o="4" data-n="0" type="button">CH&#8324; + 2 O&#8322;</button>
+      <button class="filebtn ghost gas-preset" data-c="1" data-h="2" data-o="2" data-n="0" type="button">CO&#8322; + H&#8322;</button>
+      <button class="filebtn ghost gas-preset" data-c="1" data-h="0" data-o="1" data-n="0" type="button">C + &#189; O&#8322;</button>
+    </div>
+    <div id="gas-out" class="bld-hint" hidden style="margin-top:.8rem"></div>
+  </div>
+
   <div class="card" id="litcard">
     <h2>Request a database for your system<span class="tern-badge">concierge</span></h2>
     <p class="tern-note">Have a stack of published papers on a system the open database does not
@@ -676,6 +704,24 @@ Hephaestus().then(M => {
     cefSublNcon: M.cwrap('mqmqa_ph_cef_subl_ncon',null,['number','number','number']),
     cefSiteRatio: M.cwrap('mqmqa_ph_cef_site_ratio',null,['number','number','number']),
     cefCon: M.cwrap('mqmqa_ph_cef_constituent','string',['number','number','number','number']),
+    // ---- ideal-gas (NASA polynomial) engine ----
+    gasRead: txt => { const n=M.lengthBytesUTF8(txt)+1, p=M._malloc(n); M.stringToUTF8(txt,p,n);
+                      const g=M.ccall('mqmqa_gas_read_string','number',['number'],[p]); M._free(p); return g; },
+    gasErr:  M.cwrap('mqmqa_gas_error','string',[]),
+    gasFree: M.cwrap('mqmqa_gas_free',null,['number']),
+    gasNsp:  M.cwrap('mqmqa_gas_num_species','number',['number']),
+    gasSp:   M.cwrap('mqmqa_gas_species_name','string',['number','number']),
+    gasNel:  M.cwrap('mqmqa_gas_num_elements','number',['number']),
+    gasEl:   M.cwrap('mqmqa_gas_element','string',['number','number']),
+    gasEquil: (g,T,P,belems) => {
+      const nel=api.gasNel(g), nsp=api.gasNsp(g);
+      const bp=M._malloc(nel*8), xp=M._malloc(nsp*8);
+      for(let e=0;e<nel;e++) M.setValue(bp+e*8, belems[e]||0, 'double');
+      const rc=M.ccall('mqmqa_gas_equilibrium','number',
+        ['number','number','number','number','number'],[g,T,P,bp,xp]);
+      const x=[]; for(let i=0;i<nsp;i++) x.push(M.getValue(xp+i*8,'double'));
+      M._free(bp); M._free(xp); return rc===0 ? x : null;
+    },
   };
   api.M = M;
 });
@@ -3145,6 +3191,48 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
     b.addEventListener('click', () => openZoom(cv));
     wrap.appendChild(b);
   });
+})();
+</script>
+<script>
+/* Gas-equilibrium card: an independent NASA-polynomial ideal-gas engine (the C core
+   compiled to WASM), separate from the condensed .dat/.tdb calculators. */
+(function(){
+  let gdb = 0, gels = [];
+  async function ensureDB(){
+    if (gdb || typeof api==="undefined" || !api) return gdb;
+    try {
+      const txt = await (await fetch('./nasa_gas.dat')).text();
+      gdb = api.gasRead(txt);
+      if (!gdb) throw new Error(api.gasErr());
+      gels = []; for (let e=0;e<api.gasNel(gdb);e++) gels.push(api.gasEl(gdb,e));
+    } catch(err){ gdb = 0; }
+    return gdb;
+  }
+  function esc(s){ return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+  async function compute(){
+    const msg=document.getElementById('gas-msg'), out=document.getElementById('gas-out');
+    if(!(await ensureDB())){ msg.textContent='Gas database not found next to this page.'; return; }
+    const feed={C:+document.getElementById('gas-C').value||0, H:+document.getElementById('gas-H').value||0,
+                O:+document.getElementById('gas-O').value||0, N:+document.getElementById('gas-N').value||0};
+    if(feed.C+feed.H+feed.O+feed.N<=0){ msg.textContent='Enter at least one element amount.'; return; }
+    const T=+document.getElementById('gas-T').value, P=(+document.getElementById('gas-P').value)*101325.0;
+    const b=gels.map(e=>feed[e]||0);
+    const x=api.gasEquil(gdb,T,P,b);
+    if(!x){ msg.textContent='Gas solve did not converge for these conditions.'; return; }
+    msg.textContent='';
+    const rows=[]; for(let i=0;i<api.gasNsp(gdb);i++){ const nm=api.gasSp(gdb,i); if(x[i]>1e-6) rows.push([nm,x[i]]); }
+    rows.sort((a,b)=>b[1]-a[1]);
+    out.innerHTML='<b>Equilibrium gas at '+T+' K, '+(P/101325).toFixed(2)+' atm</b> (mole fractions, species &gt; 1e-6):<br>'
+      + '<div style="font-family:var(--font-mono);font-size:var(--fs-sm);margin-top:.4rem;columns:2;max-width:26rem">'
+      + rows.map(([n,v])=>esc(n).padEnd(6)+'  '+v.toFixed(5)).join('<br>') + '</div>';
+    out.hidden=false;
+  }
+  document.getElementById('gas-go').addEventListener('click', compute);
+  document.querySelectorAll('.gas-preset').forEach(btn=>btn.addEventListener('click',()=>{
+    document.getElementById('gas-C').value=btn.dataset.c; document.getElementById('gas-H').value=btn.dataset.h;
+    document.getElementById('gas-O').value=btn.dataset.o; document.getElementById('gas-N').value=btn.dataset.n;
+    compute();
+  }));
 })();
 </script>
 <script>

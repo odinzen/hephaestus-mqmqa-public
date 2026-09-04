@@ -1,9 +1,10 @@
 """Paper worked example (salt): the LiCl-KCl phase diagram from the shipped open database.
 The listing in the manuscript is the code between BEGIN/END; the figure code follows it."""
 import sys; sys.path.insert(0, "python")
-import numpy as np
 
 # --- BEGIN paper listing -------------------------------------------------
+import numpy as np
+
 from mqmqa import Database
 from mqmqa.equilibrium import build_inputs, multiphase_binary
 
@@ -28,7 +29,6 @@ print(f"eutectic near x_KCl = {xe:.3f}, T = {Te:.0f} K   (measured: 0.415, 626 K
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import numpy as np2
 
 # category grid -> greyscale field plot (0 liquid, 1 two-phase, 2 subsolidus)
 xis = sorted({d[0] for d in diagram}); Ts = sorted({d[1] for d in diagram})
@@ -43,5 +43,6 @@ ax.plot(0.415, 626.0, marker="*", ms=12, mfc="white", mec="black", mew=0.9, ls="
 ax.plot(xe, Te, marker="o", ms=5, mfc="black", mec="black", ls="none")
 ax.set_xlabel(r"$x_\mathrm{KCl}$"); ax.set_ylabel("T (K)")
 for sp in ("top","right"): ax.spines[sp].set_visible(False)
-fig.tight_layout(); fig.savefig("paper/figures/fig4_salt_example.png")
+# preview only; the canonical 600 DPI Figure 4 is drawn by figures/make_fig45.py
+fig.tight_layout(); fig.savefig("paper/figures/preview_fig4.png")
 print("phase sets seen:", sorted({ph for _,_,ph in diagram}))

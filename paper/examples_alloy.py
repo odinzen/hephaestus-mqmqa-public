@@ -1,9 +1,10 @@
 """Paper worked example (alloy TDB): the Al-Zn phase diagram from the shipped open TDB.
 The manuscript listing is the code between BEGIN/END; the figure code follows it."""
 import sys; sys.path.insert(0, "python")
-import numpy as np
 
 # --- BEGIN paper listing -------------------------------------------------
+import numpy as np
+
 from mqmqa import Database
 
 db = Database.read("web/AlZn.tdb")            # Thermo-Calc dialect, same reader
@@ -72,5 +73,6 @@ ax.plot(0.885, 654.0, marker="*", ms=12, mfc="white", mec="black", mew=0.9, ls="
 ax.plot(xe, Te, marker="o", ms=5, mfc="black", mec="black", ls="none")
 ax.set_xlabel(r"$x_\mathrm{Zn}$"); ax.set_ylabel("T (K)")
 for sp in ("top", "right"): ax.spines[sp].set_visible(False)
-fig.tight_layout(); fig.savefig("paper/figures/fig5_alloy_example.png")
+# preview only; the canonical 600 DPI Figure 5 is drawn by figures/make_fig45.py
+fig.tight_layout(); fig.savefig("paper/figures/preview_fig5.png")
 print("phase sets seen:", sorted({str(ph) for _, _, ph in diagram})[:8])

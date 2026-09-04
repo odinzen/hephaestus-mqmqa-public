@@ -291,8 +291,13 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       family; the only format that carries the MQMQA melt model, so slags and salts live here)
       and <b>Thermo-Calc .tdb</b> (the Thermo-Calc / OpenCalphad / pycalphad family; alloy
       solid-solution systems). The <b>.utdb</b> unified dialect, a documented open extension of
-      TDB, holds both at once: one file can carry an alloy, a slag, and a salt together (see the
-      recycling and steelmaking demos). Uploaded .tdb/.utdb files pin in teal/pink, .dat files in purple/blue; up to
+      TDB (<a href="https://github.com/odinzen/hephaestus-mqmqa-public/blob/main/docs/UNIFIED_TDB_SPEC.md">open specification</a>),
+      holds both at once: one file can carry an alloy, a slag, and a salt together (see the
+      recycling and steelmaking demos). Every shipped system's sources, modeling judgments,
+      and known limits are in its PROVENANCE file in the
+      <a href="https://github.com/odinzen/hephaestus-mqmqa-public/tree/main/data">open data directory</a>;
+      code and databases live in the
+      <a href="https://github.com/odinzen/hephaestus-mqmqa-public">GitHub repository</a>. Uploaded .tdb/.utdb files pin in teal/pink, .dat files in purple/blue; up to
       three at once, either mix.
     </div>
     <div id="temp-note" class="muted" hidden style="margin-top:.6rem; font-size:var(--fs-xs)">

@@ -125,7 +125,7 @@ None of note. The engine and database together are a few megabytes.
 
 ### Dependencies
 
-Python interface: cffi, NumPy, SciPy. Validation suite additionally requires pycalphad. WebAssembly build requires emscripten. The C core and the browser application have no dependencies.
+Python interface: cffi, NumPy, SciPy (developed and tested with cffi 2.0, NumPy 2.4, and SciPy 1.17). The validation suite additionally requires pycalphad; every oracle comparison reported here ran against pycalphad 0.11.1, and the tests that read pycalphad's own shipped test databases skip cleanly if a later version relocates them. The WebAssembly build requires emscripten. The C core and the browser application have no dependencies.
 
 ### List of contributors
 

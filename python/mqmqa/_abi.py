@@ -138,6 +138,17 @@ _ffi.cdef(
     int mqmqa_num_quadruplets(int n_cat, int n_an);
     void mqmqa_enumerate_quadruplets(int n_cat, int n_an,
                                      int *ca, int *cb, int *ax, int *ay);
+
+    void *mqmqa_gas_read_string(const char *text);
+    void mqmqa_gas_free(void *g);
+    const char *mqmqa_gas_error(void);
+    int mqmqa_gas_num_species(const void *g);
+    const char *mqmqa_gas_species_name(const void *g, int i);
+    int mqmqa_gas_num_elements(const void *g);
+    const char *mqmqa_gas_element(const void *g, int e);
+    double mqmqa_gas_species_grt(const void *g, int i, double T);
+    int mqmqa_gas_equilibrium(const void *g, double T, double P,
+                              const double *b, double *out_x);
     """
 )
 

@@ -28,7 +28,7 @@ for f in $FUNCS; do EXPORTS="$EXPORTS,\"_$f\""; done
 "$CONDA" run -n wasm emcc \
     -O0 -std=c11 -Wall \
     -I"$ROOT/src" \
-    "$ROOT/src/mqmqa.c" "$ROOT/src/cs_dat.c" "$ROOT/src/cef.c" \
+    "$ROOT/src/mqmqa.c" "$ROOT/src/cs_dat.c" "$ROOT/src/cef.c" "$ROOT/src/gas.c" \
     -s "EXPORTED_FUNCTIONS=[$EXPORTS]" \
     -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap","UTF8ToString","stringToUTF8","lengthBytesUTF8","getValue","setValue"]' \
     -s ALLOW_MEMORY_GROWTH=1 \

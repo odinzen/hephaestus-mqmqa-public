@@ -843,7 +843,7 @@ function loadDatabase(text, name) {
   document.getElementById('results').classList.remove('hidden');
 
   const els = []; for (let i=0;i<api.nEl(db);i++) els.push(api.el(db,i));
-  document.getElementById('els').textContent = els.join(', ');
+  document.getElementById('els').textContent = els.map(elSym).join(', ');
   {
     const names=[];
     for (let p2 = 0; p2 < api.nPh(db); p2++) {
@@ -857,12 +857,12 @@ function loadDatabase(text, name) {
   catNames = []; const catEl = document.getElementById('cats'); catEl.innerHTML='';
   for (let i=0;i<api.nCat(db,phase);i++){
     catNames.push(api.cat(db,phase,i));
-    catEl.appendChild(chip(api.cat(db,phase,i)+' (+'+api.catQ(db,phase,i)+')'));
+    catEl.appendChild(chip(spDisp(api.cat(db,phase,i))+' (+'+api.catQ(db,phase,i)+')'));
   }
   anNames = []; const anEl = document.getElementById('ans'); anEl.innerHTML='';
   for (let k=0;k<api.nAn(db,phase);k++){
     anNames.push(api.an(db,phase,k));
-    anEl.appendChild(chip(api.an(db,phase,k)+' (−'+api.anQ(db,phase,k)+')'));
+    anEl.appendChild(chip(spDisp(api.an(db,phase,k))+' (−'+api.anQ(db,phase,k)+')'));
   }
   if (window.alloyMode) {
     // no cation/anion sublattices: show the CEF constituents instead
@@ -955,6 +955,10 @@ function chip(t){ const s=document.createElement('span'); s.className='chip'; s.
 // leading element symbol of a constituent name; falls back to the raw name so a hostile or
 // malformed file degrades gracefully instead of throwing mid-load
 function elementOf(name){ const m=String(name).match(/^[A-Z]+/i); return m ? m[0].toUpperCase() : String(name); }
+// display only: proper element-symbol case (NA->Na, MG->Mg, CL->Cl); never used in logic
+function elSym(e){ e=String(e); return e.charAt(0).toUpperCase()+e.slice(1).toLowerCase(); }
+// format the leading element token of a species/charged name (NA+1->Na+1, CL-1->Cl-1)
+function spDisp(s){ return String(s).replace(/^[A-Za-z]+/, m=>elSym(m)); }
 
 // typed-array marshaling to/from the WASM heap
 function iArr(a){ const M=api.M, p=M._malloc(Math.max(a.length,1)*4);
@@ -1342,7 +1346,7 @@ let pdVary = [], pdCommon = []; // ion menus for the loaded system
 const PD_FLOOR = 0.0015;      // keep the liquid sampling off the pure end members
 
 function pdGcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ const t=a%b; a=b; b=t; } return a||1; }
-function pdFormula(els){ return Object.entries(els).map(([e,n])=>n===1?e:e+n).join(''); }
+function pdFormula(els){ return Object.entries(els).map(([e,n])=>n===1?elSym(e):elSym(e)+n).join(''); }
 
 // Neutral salt of one cation and one anion, reduced to smallest integers. `vary`
 // is the element that changes along the join; the other is shared with the partner.
@@ -1587,7 +1591,7 @@ function populateDiagram(){
     pdVary = cats; pdCommon = [];
     const A=document.getElementById('pdA'), B=document.getElementById('pdB'), C=document.getElementById('pdCommon');
     const fill=(sel,ions)=>{ sel.innerHTML=''; ions.forEach((ion,i)=>{ const o=document.createElement('option');
-      o.value=i; o.textContent=ion.sym; sel.appendChild(o); }); };
+      o.value=i; o.textContent=elSym(ion.sym); sel.appendChild(o); }); };
     fill(A,pdVary); fill(B,pdVary);
     A.value=0; B.value=Math.min(1,pdVary.length-1);
     document.getElementById('pdCommonLab').style.display='none'; C.style.display='none';
@@ -1607,7 +1611,7 @@ function populateDiagram(){
 
   const A=document.getElementById('pdA'), B=document.getElementById('pdB'), C=document.getElementById('pdCommon');
   const fill=(sel,ions)=>{ sel.innerHTML=''; ions.forEach((ion,i)=>{ const o=document.createElement('option');
-    o.value=i; o.textContent=ion.sym; sel.appendChild(o); }); };
+    o.value=i; o.textContent=elSym(ion.sym); sel.appendChild(o); }); };
   fill(A,pdVary); fill(B,pdVary); fill(C,pdCommon);
   A.value=0; B.value=Math.min(1,pdVary.length-1); C.value=0;
   const commonRow = pdCommon.length>1;
@@ -1797,8 +1801,8 @@ async function generateAlloyDiagram(){
   phs.forEach(c=>api.M._free(c.Yp));
   document.getElementById('pdgen').disabled=false;
   msg.textContent='';
-  const endA={label:pdVary[ia].sym, els:{[pdVary[ia].sym]:1}, atoms:1, vary:pdVary[ia].sym, common:''};
-  const endB={label:pdVary[ib].sym, els:{[pdVary[ib].sym]:1}, atoms:1, vary:pdVary[ib].sym, common:''};
+  const endA={label:elSym(pdVary[ia].sym), els:{[pdVary[ia].sym]:1}, atoms:1, vary:pdVary[ia].sym, common:''};
+  const endB={label:elSym(pdVary[ib].sym), els:{[pdVary[ib].sym]:1}, atoms:1, vary:pdVary[ib].sym, common:''};
   const melts=[];
   if(meltTs[0]) melts.push({xi:0, T:meltTs[0], solid:endA.label});
   if(meltTs[1]) melts.push({xi:1, T:meltTs[1], solid:endB.label});

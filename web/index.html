@@ -478,12 +478,13 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
     <p class="tern-note">The full phase assemblage, solved live in your browser at the temperature you
       choose &mdash; not a precomputed picture. The engine computes the equilibrium liquid across the
       whole composition field (the WASM MQMQA solver), pools it with the system's solid solutions and
-      stoichiometric compounds, and takes the lower convex hull to find which phases coexist. Pick a
-      system, press <b>Compute</b>, then hover to read a composition and its stable phases. The
-      iron&ndash;magnesium slag reproduces the assessed section above (validated against pycalphad);
-      the lime&ndash;alumina&ndash;silica system is the assessed CAS ternary, its liquid anchored to
-      45 published KEMS activities. A live section is a touch coarser at the field boundaries
-      because it is sampled on the fly.</p>
+      stoichiometric compounds, and takes the lower convex hull to find which phases coexist. When you
+      load a database above, its three-cation system appears here automatically and replaces the
+      built-in demos; otherwise pick a demo. Press <b>Compute</b>, then hover to read a composition and
+      its stable phases. The built-in iron&ndash;magnesium slag reproduces the assessed section above
+      (validated against pycalphad), and the lime&ndash;alumina&ndash;silica demo is anchored to 45
+      published KEMS activities. A live section is a touch coarser at the field boundaries because it is
+      sampled on the fly.</p>
     <div class="tern-ctl">
       <label>System
         <select id="live-sys">
@@ -2728,13 +2729,18 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
       document.getElementById('livelegend').innerHTML='';
       read.textContent='Press Compute to solve '+(s.loaded?'the loaded database':'the diagram')+' at the chosen temperature.';
       render(); };
+    // the built-in showcases are the default state; once a user loads their own
+    // 3-cation file, show only that system so the card is unambiguously theirs
+    const showcase = [...sysSel.options].filter(o=>o.value==='slag'||o.value==='cas');
     if(ls){
       SYSTEMS.loaded = ls;
       if(!opt){ opt=document.createElement('option'); opt.value='loaded'; sysSel.insertBefore(opt, sysSel.firstChild); }
       opt.hidden=false; opt.textContent='Loaded: '+ls.corners.join('–');
+      showcase.forEach(o=>o.hidden=true);              // hide the demos for a loaded file
       sysSel.value='loaded'; reset(ls);                 // follow the newly loaded system
     } else if(opt){
       opt.hidden=true;
+      showcase.forEach(o=>o.hidden=false);             // no file loaded: offer the demos again
       if(sysSel.value==='loaded'){ sysSel.value='slag'; reset(SYSTEMS.slag); }
     }
   };

@@ -593,6 +593,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <label>T (K) <input type="number" id="gas-T" value="1800" min="300" max="6000" step="50" style="width:5.5rem"></label>
       <label>P (atm) <input type="number" id="gas-P" value="1" min="0.01" step="0.1" style="width:5rem"></label>
       <button id="gas-go" type="button" class="seg-btn on" style="border-radius:8px">Compute</button>
+      <label style="font-size:var(--fs-sm)"><input type="checkbox" id="gas-real"> real gas (Peng-Robinson)</label>
       <span id="gas-msg" class="muted"></span>
     </div>
     <div class="row" style="gap:.5rem; margin-top:.5rem; flex-wrap:wrap">
@@ -713,12 +714,12 @@ Hephaestus().then(M => {
     gasSp:   M.cwrap('mqmqa_gas_species_name','string',['number','number']),
     gasNel:  M.cwrap('mqmqa_gas_num_elements','number',['number']),
     gasEl:   M.cwrap('mqmqa_gas_element','string',['number','number']),
-    gasEquil: (g,T,P,belems) => {
+    gasEquil: (g,T,P,belems,nonideal) => {
       const nel=api.gasNel(g), nsp=api.gasNsp(g);
       const bp=M._malloc(nel*8), xp=M._malloc(nsp*8);
       for(let e=0;e<nel;e++) M.setValue(bp+e*8, belems[e]||0, 'double');
-      const rc=M.ccall('mqmqa_gas_equilibrium','number',
-        ['number','number','number','number','number'],[g,T,P,bp,xp]);
+      const rc=M.ccall('mqmqa_gas_equilibrium_ex','number',
+        ['number','number','number','number','number','number'],[g,T,P,bp,nonideal?1:0,xp]);
       const x=[]; for(let i=0;i<nsp;i++) x.push(M.getValue(xp+i*8,'double'));
       M._free(bp); M._free(xp); return rc===0 ? x : null;
     },
@@ -3219,7 +3220,8 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
     if(!isFinite(T)||T<300||T>6000){ msg.textContent='Temperature must be 300-6000 K.'; return; }
     if(!isFinite(P)||P<=0){ msg.textContent='Pressure must be positive.'; return; }
     const b=gels.map(e=>feed[e]||0);
-    const x=api.gasEquil(gdb,T,P,b);
+    const real=document.getElementById('gas-real').checked;
+    const x=api.gasEquil(gdb,T,P,b,real);
     if(!x){ msg.textContent='Gas solve did not converge for these conditions.'; return; }
     msg.textContent='';
     const rows=[]; for(let i=0;i<api.gasNsp(gdb);i++){ const nm=api.gasSp(gdb,i); if(x[i]>1e-6) rows.push([nm,x[i]]); }

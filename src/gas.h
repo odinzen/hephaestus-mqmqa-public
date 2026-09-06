@@ -43,6 +43,11 @@ MQMQA_API double mqmqa_gas_species_grt(const gas_db *g, int i, double T);
 MQMQA_API int mqmqa_gas_equilibrium(const gas_db *g, double T, double P,
                                     const double *b, double *out_x);
 
+/* As above, with nonideal=1 selecting the Peng-Robinson real-gas fugacity model
+ * (species that carry critical constants); nonideal=0 is the ideal-gas result. */
+MQMQA_API int mqmqa_gas_equilibrium_ex(const gas_db *g, double T, double P,
+                                       const double *b, int nonideal, double *out_x);
+
 #ifdef __cplusplus
 }
 #endif

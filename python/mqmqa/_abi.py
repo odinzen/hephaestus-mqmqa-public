@@ -149,6 +149,8 @@ _ffi.cdef(
     double mqmqa_gas_species_grt(const void *g, int i, double T);
     int mqmqa_gas_equilibrium(const void *g, double T, double P,
                               const double *b, double *out_x);
+    int mqmqa_gas_equilibrium_ex(const void *g, double T, double P,
+                                 const double *b, int nonideal, double *out_x);
     """
 )
 

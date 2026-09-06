@@ -744,7 +744,7 @@ function escHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<'
 
 function renderUploadedButtons(){
   document.querySelectorAll('.filebtn.uploaded').forEach(b => b.remove());
-  let anchor = document.getElementById('example-salt');
+  let anchor = document.getElementById('example-steel');   // append after all built-in buttons
   let datCount = 0, tdbCount = 0;
   uploadedDBs.forEach((u, i) => {
     const btn = document.createElement('button');

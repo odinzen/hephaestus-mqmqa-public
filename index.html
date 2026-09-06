@@ -178,16 +178,18 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
   .tern-liveout { display:block; margin-top:.4rem; font-family:var(--font-mono);
                   color:var(--ink); min-height:1.2em; }
   .calc-hist { margin-top:.75rem; }
-  .calc-hist .chist-head { display:flex; align-items:center; gap:.5rem; margin-bottom:.25rem;
+  /* the shared saved-points renderer emits these classes; style them wherever it
+     renders, not only inside a .calc-hist container, so every card's list matches */
+  .chist-head { display:flex; align-items:center; gap:.5rem; margin:.6rem 0 .25rem;
                   font-size:var(--fs-sm); color:var(--muted); }
-  .calc-hist .chist-clear { margin-left:auto; background:none; border:1px solid var(--line);
+  .chist-clear { margin-left:auto; background:none; border:1px solid var(--line);
                   color:var(--muted); font:inherit; font-size:var(--fs-xs); padding:.12rem .55rem;
                   border-radius:6px; cursor:pointer; }
-  .calc-hist .chist-clear:hover { color:var(--ink); border-color:var(--muted); }
-  .calc-hist .chist-row { display:flex; gap:.55rem; padding:.3rem 0; border-top:1px dashed var(--line);
+  .chist-clear:hover { color:var(--ink); border-color:var(--muted); }
+  .chist-row { display:flex; gap:.55rem; padding:.3rem 0; border-top:1px dashed var(--line);
                   font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--ink); }
-  .calc-hist .chist-n { color:var(--pointer); font-weight:700; min-width:1.5rem; text-align:right; }
-  .calc-hist .chist-txt { overflow-wrap:anywhere; }
+  .chist-n { color:var(--pointer); font-weight:700; min-width:1.5rem; text-align:right; }
+  .chist-txt { overflow-wrap:anywhere; }
   .bld-save-row { max-width:40rem; margin:.7rem auto 0; }
   .bld-save-row button { background:var(--field); border:1px solid var(--line); color:var(--ink);
                   font:inherit; font-size:var(--fs-sm); padding:.35rem .85rem; border-radius:8px; cursor:pointer; }

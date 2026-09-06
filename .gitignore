@@ -62,3 +62,7 @@ data/cao-feo-mgo-sio2/_chunks/
 data/olivine/_dft/runs/
 data/olivine/_dft/runs_u/
 paper/figures/preview_*.png
+
+# local session tooling and working notes, never for the public repo
+.claude/
+data/olivine/_dft/HANDOFF.md

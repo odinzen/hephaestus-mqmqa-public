@@ -65,7 +65,7 @@ Below the binary phase diagram sits **Scheil solidification**. Equilibrium freez
 
 ### 7. Loading a file someone sent you
 
-Press **Choose a .dat or .tdb file** and pick the file. It loads exactly like the built-in buttons and every calculator on the page switches to it. Uploaded files are temporary; they live only in the open tab and vanish on refresh, and up to three can be loaded at once, each pinned with its own color so you can switch between them. That also means systems from different sources sit side by side in one page, and the unified .utdb dialect goes further by holding, for example, an alloy and a molten salt in a single file; your systems are never split across separate products. Nothing is uploaded anywhere; the file is read inside your browser and stays on your machine, which also means confidential files are safe to load.
+Press **Choose a .dat or .tdb file** and pick the file. It loads exactly like the built-in buttons and every calculator on the page switches to it. Uploaded files are temporary; they live only in the open tab and vanish on refresh, and up to three can be loaded at once, each pinned as a button whose color marks its dialect, so you can switch between them. That also means systems from different sources sit side by side in one page, and the unified .utdb dialect goes further by holding, for example, an alloy and a molten salt in a single file; your systems are never split across separate products. Nothing is uploaded anywhere; the file is read inside your browser and stays on your machine, which also means confidential files are safe to load.
 
 ### 8. When your system is not on the page
 

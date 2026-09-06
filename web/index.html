@@ -250,13 +250,14 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
                src:url(fonts/VT323-latin.woff2) format("woff2"); }
   :root { --radius:0px; --pix-tri:#4a4a4a; }
   [data-theme="dark"] { --pix-tri:#c6c6c6; }
-  .pixmark { flex:none; color:var(--pix-tri); shape-rendering:crispEdges; }
+  .pixmark { flex:none; color:var(--pix-tri); shape-rendering:crispEdges; width:46px; height:46px; }
   .hero h1 { font-family:"VT323", var(--font-mono); font-weight:400; letter-spacing:0;
              font-size:2.5rem; color:#151a1f;
              -webkit-text-stroke:0.7px currentColor; paint-order:stroke fill; }
   [data-theme="dark"] .hero h1 { color:#ffffff; }
-  .card h2 { font-family:"VT323", var(--font-mono); font-weight:400; font-size:1.05rem;
-             text-transform:none; letter-spacing:.01em; }
+  /* calculator titles: a clean professional heading, distinct from the pixel wordmark */
+  .card h2 { font-family:"Chakra Petch", var(--font-ui); font-weight:600; font-size:1.12rem;
+             text-transform:none; letter-spacing:.005em; color:var(--ink); }
   .card { border-width:2px; }
   .wrap p, .bld-caution, .tern-note, .bld-note { text-align:justify; hyphens:auto; }
   button, .theme-toggle, .seg, .chip, .tern-badge, input, select, textarea,

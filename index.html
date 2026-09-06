@@ -1099,6 +1099,39 @@ function selectedComponentIdx(){
   return [...document.querySelectorAll('#complist input:checked')].map(c=>+c.value);
 }
 
+function fmtFrac(v){ return String(+Math.max(0, v).toFixed(4)); }
+
+function updateCompTotal(){
+  const el=document.getElementById('comptotal');
+  if(!el) return;
+  const inputs=[...document.querySelectorAll('#compfields input')];
+  const s=inputs.reduce((a,i)=>a+(parseFloat(i.value)||0),0);
+  el.textContent='Total '+s.toFixed(3);
+  el.style.color = Math.abs(s-1)<5e-4 ? 'var(--muted)' : 'var(--neg)';
+}
+
+// Editing one mole fraction rebalances the others so the set always sums to 1,
+// distributing the remainder in proportion to their current values (equal split
+// if they are all zero). The solver normalizes too, but the fields should read true.
+function rebalanceComp(changed){
+  const inputs=[...document.querySelectorAll('#compfields input')];
+  if(inputs.length===1){ inputs[0].value='1'; updateCompTotal(); return; }
+  const v=Math.min(1, Math.max(0, parseFloat(changed.value)||0));
+  const others=inputs.filter(i=>i!==changed);
+  const rem=1-v;
+  const sumOthers=others.reduce((s,i)=>s+(parseFloat(i.value)||0),0);
+  others.forEach(i=>{
+    const cur=parseFloat(i.value)||0;
+    i.value=fmtFrac(sumOthers>1e-9 ? rem*cur/sumOthers : rem/others.length);
+  });
+  changed.value=fmtFrac(v);
+  // put any rounding residual on the last other field so the sum is exactly 1
+  const s=inputs.reduce((a,i)=>a+(parseFloat(i.value)||0),0);
+  const last=others[others.length-1];
+  last.value=fmtFrac((parseFloat(last.value)||0)+(1-s));
+  updateCompTotal();
+}
+
 function renderCompFields(){
   const box=document.getElementById('compfields'); box.innerHTML='';
   const sel=selectedComponentIdx();
@@ -1108,11 +1141,26 @@ function renderCompFields(){
     const dt=document.createElement('dt'); dt.textContent=c.label+' mole fraction';
     const dd=document.createElement('dd');
     const inp=document.createElement('input'); inp.type='number'; inp.step='0.01';
-    inp.min='0'; inp.value=val.toFixed(2); inp.dataset.idx=String(idx);
+    inp.min='0'; inp.max='1'; inp.value=val.toFixed(3); inp.dataset.idx=String(idx);
     inp.style.cssText='width:6rem;font:inherit;padding:.3rem .45rem;border:1px solid var(--line);'+
                       'border-radius:6px;background:var(--field);color:var(--fg)';
+    inp.addEventListener('change', ()=>rebalanceComp(inp));
     dd.appendChild(inp); box.appendChild(dt); box.appendChild(dd);
   }
+  // absorb the rounding residual into the last field so the initial set sums to 1
+  const inps=[...box.querySelectorAll('input')];
+  if(inps.length>1){
+    let s=0; for(let k=0;k<inps.length-1;k++) s+=parseFloat(inps[k].value)||0;
+    inps[inps.length-1].value=fmtFrac(1-s);
+  }
+  if(sel.length>1){
+    const dt=document.createElement('dt'); dt.textContent='';
+    const dd=document.createElement('dd');
+    const tot=document.createElement('span'); tot.id='comptotal';
+    tot.style.cssText='font-size:var(--fs-sm);color:var(--muted)';
+    dd.appendChild(tot); box.appendChild(dt); box.appendChild(dd);
+  }
+  updateCompTotal();
 }
 
 // Assemble the solver inputs for the selected element subsystem at temperature T.

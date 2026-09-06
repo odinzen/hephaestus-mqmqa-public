@@ -46,6 +46,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
   :root { --fg: var(--ink); --accent: var(--brand); --neg:#e5484d; --pointer:#bf83e0; }
 
   * { box-sizing: border-box; }
+  html { font-size: 118%; }   /* scale the whole rem-based UI up for readability */
   body { margin:0; background:var(--bg); color:var(--ink);
          font-family:var(--font-ui); font-size:var(--fs-md); line-height:1.6;
          -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }

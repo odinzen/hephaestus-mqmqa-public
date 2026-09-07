@@ -164,10 +164,16 @@ int tq_compute_equilibrium(tq_ctx *c)
     double qa = c->amount[elem_a] / catsum;
     double qb = c->amount[elem_b] / catsum;
 
+    /* suspended stoichiometric compounds (unified index nph + j) */
+    int nst = mqmqa_db_num_stoich(c->db);
+    int *ssusp = malloc((size_t)(nst ? nst : 1) * sizeof(int));
+    for (int j = 0; j < nst; ++j) ssusp[j] = (c->status[nph + j] < 0) ? 1 : 0;
+
     int po[8]; double am[8]; double gm = NAN;
-    int m = mqmqa_equilibrium_ternary(c->db, liq, cefs, ncef, c->T, 120, 60,
-                                      elem_a, elem_b, qa, qb, po, am, 8, &gm);
-    free(cefs);
+    int m = mqmqa_equilibrium_ternary_ex(c->db, liq, cefs, ncef, c->T, 120, 60,
+                                         elem_a, elem_b, qa, qb, ssusp, 1,
+                                         po, am, 8, &gm);
+    free(cefs); free(ssusp);
     if (m < 0) { snprintf(c->err, sizeof c->err, "equilibrium failed (%d)", m); return 5; }
 
     free(c->stable_ph); free(c->stable_amt);

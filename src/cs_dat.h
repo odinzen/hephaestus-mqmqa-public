@@ -144,6 +144,18 @@ MQMQA_API int mqmqa_equilibrium_ternary(const mqmqa_db *db, int liq_phase,
                                         double qa, double qb, int *phase_out,
                                         double *amt_out, int max_out, double *gm_out);
 
+/* As above with two conditions: stoich_suspend (may be NULL) is a per-compound mask,
+ * 1 = that stoichiometric phase is suspended and excluded from the hull, giving the
+ * metastable equilibrium without it; refine (>=0) runs that many adaptive passes that
+ * densify the liquid sampling around the liquid hull vertices, sharpening the liquid
+ * boundaries from grid resolution toward the true tie-line endpoints. */
+MQMQA_API int mqmqa_equilibrium_ternary_ex(const mqmqa_db *db, int liq_phase,
+                                           const int *cef_phases, int n_cef, double T,
+                                           int nliq, int ncef, int elem_a, int elem_b,
+                                           double qa, double qb, const int *stoich_suspend,
+                                           int refine, int *phase_out, double *amt_out,
+                                           int max_out, double *gm_out);
+
 #ifdef __cplusplus
 }
 #endif

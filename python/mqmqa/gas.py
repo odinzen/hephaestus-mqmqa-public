@@ -108,12 +108,12 @@ def gas_equilibrium(species: dict, names, T: float, P: float, elem_moles: dict,
     xt = max(b.sum(), 1e-12)
     pi = np.zeros(len(els))
     tol = 1e-12 * max(1.0, b.sum())
-    for _ in range(60):
+    for _ in range(120):
         c = g_rt + math.log(P / p_ref) - math.log(xt)
-        for _ in range(40):
+        for _ in range(200):
             x = np.exp(np.clip(A @ pi - c, -80, 80))
             resid = A.T @ x - b
-            if np.max(np.abs(resid)) < 1e-13 * max(1.0, b.sum()):
+            if np.max(np.abs(resid)) < 1e-14 * max(1.0, b.sum()):
                 break
             jac = A.T @ (x[:, None] * A)
             # ridge scaled to the diagonal so a trace element (near-zero row) does

@@ -325,12 +325,12 @@ static int gas_solve(const gas_db *g, double T, double P, const double *b,
     for (int e = 0; e < nel; ++e) bsum += b[e];
     if (bsum <= 0.0) bsum = 1e-12;
     double xt = bsum, lnPP = log(P / P_REF);
-    double tol = 1e-13 * (bsum > 1.0 ? bsum : 1.0);
+    double tol = 1e-14 * (bsum > 1.0 ? bsum : 1.0);
     for (int i = 0; i < nsp; ++i) grt[i] = mqmqa_gas_species_grt(g, i, T) + lnphi[i];
     for (int e = 0; e < nel; ++e) pi[e] = 0.0;
-    for (int outer = 0; outer < 60; ++outer) {
+    for (int outer = 0; outer < 120; ++outer) {
         double lnxt = log(xt);
-        for (int inner = 0; inner < 40; ++inner) {
+        for (int inner = 0; inner < 200; ++inner) {
             for (int i = 0; i < nsp; ++i) {
                 double lnx = -grt[i] - lnPP + lnxt;
                 for (int k = 0; k < g->sp[i].nel; ++k) lnx += g->sp[i].cnt[k] * pi[g->sp[i].el[k]];

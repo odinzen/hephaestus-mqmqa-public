@@ -1,0 +1,19 @@
+{
+  "components": ["AL", "ZN", "VA"],
+  "phases": ["LIQUID", "FCC_A1"],
+  "conditions": {"P": 101325, "T": [908, 880, 848, 812, 771, 727, 690, 665, 654]},
+  "output": "ZPF",
+  "values": [
+    [["LIQUID", ["ZN"], [0.10]], ["FCC_A1", ["ZN"], [null]]],
+    [["LIQUID", ["ZN"], [0.20]], ["FCC_A1", ["ZN"], [null]]],
+    [["LIQUID", ["ZN"], [0.30]], ["FCC_A1", ["ZN"], [null]]],
+    [["LIQUID", ["ZN"], [0.40]], ["FCC_A1", ["ZN"], [null]]],
+    [["LIQUID", ["ZN"], [0.50]], ["FCC_A1", ["ZN"], [null]]],
+    [["LIQUID", ["ZN"], [0.60]], ["FCC_A1", ["ZN"], [null]]],
+    [["LIQUID", ["ZN"], [0.70]], ["FCC_A1", ["ZN"], [null]]],
+    [["LIQUID", ["ZN"], [0.80]], ["FCC_A1", ["ZN"], [null]]],
+    [["LIQUID", ["ZN"], [0.887]], ["FCC_A1", ["ZN"], [null]]]
+  ],
+  "reference": "massalski1990_alzn",
+  "comment": "Al-Zn liquidus, LIQUID+FCC_A1 branch, from the assessed Al-Zn diagram in Massalski, Binary Alloy Phase Diagrams, 2nd ed. (1990). Eutectic at 654 K, x_Zn=0.887. Coordinates read from the standard diagram; to be replaced by an Mey (1993) digitization in the Option-1 upgrade."
+}

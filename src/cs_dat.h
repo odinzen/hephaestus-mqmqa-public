@@ -130,6 +130,20 @@ MQMQA_API double mqmqa_equilibrate_db(const mqmqa_db *db, int phase, double T,
                                       const double *target_elem,
                                       double *X_out, double *err_out);
 
+/* Self-contained multiphase equilibrium (src/equilibrium.c) for a 3-cation MQMQA
+ * system: generates candidates from the liquid (`liq_phase`), the CEF solid solutions
+ * `cef_phases`, and all stoichiometric compounds, then reads the stable assemblage
+ * under the bulk cation composition (qa, qb) - the cation fractions of elements
+ * elem_a, elem_b (database element indices). nliq/ncef set grid density. Writes stable
+ * phase tags to phase_out (>=0 a database phase index; <0 the compound -(j+1)) and
+ * their molar amounts to amt_out; *gm_out is the Gibbs energy per mole cation.
+ * Returns the number of stable phases, or negative on failure. */
+MQMQA_API int mqmqa_equilibrium_ternary(const mqmqa_db *db, int liq_phase,
+                                        const int *cef_phases, int n_cef, double T,
+                                        int nliq, int ncef, int elem_a, int elem_b,
+                                        double qa, double qb, int *phase_out,
+                                        double *amt_out, int max_out, double *gm_out);
+
 #ifdef __cplusplus
 }
 #endif

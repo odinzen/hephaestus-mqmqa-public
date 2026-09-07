@@ -721,6 +721,30 @@ Hephaestus().then(M => {
     cefSublNcon: M.cwrap('mqmqa_ph_cef_subl_ncon',null,['number','number','number']),
     cefSiteRatio: M.cwrap('mqmqa_ph_cef_site_ratio',null,['number','number','number']),
     cefCon: M.cwrap('mqmqa_ph_cef_constituent','string',['number','number','number','number']),
+    // ---- C multiphase equilibrium engine (same code validated against pycalphad) ----
+    nStoichDb: M.cwrap('mqmqa_db_num_stoich','number',['number']),
+    stoichNm: M.cwrap('mqmqa_db_stoich_name','string',['number','number']),
+    nElDb:  M.cwrap('mqmqa_db_num_elements','number',['number']),
+    elDb:   M.cwrap('mqmqa_db_element','string',['number','number']),
+    phIndex: M.cwrap('mqmqa_db_phase_index','number',['number','string']),
+    equilTern: M.cwrap('mqmqa_equilibrium_ternary','number',Array(15).fill('number')),
+    // Solve the equilibrium assemblage at cation fractions (qa,qb) of elements
+    // (elemA,elemB) for a 3-cation MQMQA system. Returns {phases:[name], amts:[], gm}.
+    cEquilibrium(db, liq, cefs, T, elemA, elemB, qa, qb){
+      const cp=M._malloc(Math.max(1,cefs.length)*4);
+      for(let i=0;i<cefs.length;i++) M.setValue(cp+i*4, cefs[i], 'i32');
+      const po=M._malloc(8*4), am=M._malloc(8*8), gm=M._malloc(8);
+      const m=api.equilTern(db, liq, cp, cefs.length, T, 120, 60, elemA, elemB, qa, qb, po, am, 8, gm);
+      const nph=api.nPh(db);
+      const out={phases:[], amts:[], gm:M.getValue(gm,'double')};
+      for(let k=0;k<m;k++){
+        const tag=M.getValue(po+k*4,'i32'), amt=M.getValue(am+k*8,'double');
+        const name = tag>=0 ? api.phName(db,tag) : api.stoichNm(db, -tag-1);
+        out.phases.push(name); out.amts.push(amt);
+      }
+      M._free(cp); M._free(po); M._free(am); M._free(gm);
+      return m>=0 ? out : null;
+    },
     // ---- ideal-gas (NASA polynomial) engine ----
     gasRead: txt => { const n=M.lengthBytesUTF8(txt)+1, p=M._malloc(n); M.stringToUTF8(txt,p,n);
                       const g=M.ccall('mqmqa_gas_read_string','number',['number'],[p]); M._free(p); return g; },

@@ -23,6 +23,17 @@ MQMQA_API int mqmqa_lower_hull_1d(const double *pts, int n, int *verts, int max_
  * 3*max_facets ints); returns the facet count, or -1 on overflow/failure. */
 MQMQA_API int mqmqa_lower_hull_2d(const double *pts, int n, int *facets, int max_facets);
 
+/* Assemblage at a bulk composition. Given pts (n*3: x,y,g), the lower facets from
+ * mqmqa_lower_hull_2d (nf index triples), and a query point (qx,qy): finds the facet
+ * whose triangle in (x,y) contains the query, writes its three vertex indices to
+ * tri_out[3] and their barycentric weights (the phase amounts by the lever rule) to
+ * w_out[3], and the interpolated hull Gibbs energy to *g_out. Returns 1 if a facet
+ * contains the query, 0 otherwise. */
+MQMQA_API int mqmqa_hull_assemblage_2d(const double *pts, int n,
+                                       const int *facets, int nf,
+                                       double qx, double qy,
+                                       int *tri_out, double *w_out, double *g_out);
+
 #ifdef __cplusplus
 }
 #endif

@@ -224,3 +224,30 @@ int mqmqa_lower_hull_2d(const double *pts, int n, int *facets, int max_facets)
     free(H->F); free(assigned); free(P);
     return rc;
 }
+
+/* ---- assemblage query: the facet under a bulk composition (see hull.h) ---- */
+int mqmqa_hull_assemblage_2d(const double *pts, int n, const int *facets, int nf,
+                             double qx, double qy, int *tri_out, double *w_out,
+                             double *g_out)
+{
+    (void)n;
+    const double tol = 1e-9;
+    for (int f = 0; f < nf; ++f) {
+        int a = facets[3*f], b = facets[3*f+1], c = facets[3*f+2];
+        double ax = pts[3*a], ay = pts[3*a+1];
+        double bx = pts[3*b], by = pts[3*b+1];
+        double cx = pts[3*c], cy = pts[3*c+1];
+        double det = (ax - cx) * (by - cy) - (bx - cx) * (ay - cy);
+        if (fabs(det) < 1e-15) continue;
+        double l1 = ((by - cy) * (qx - cx) + (cx - bx) * (qy - cy)) / det;
+        double l2 = ((cy - ay) * (qx - cx) + (ax - cx) * (qy - cy)) / det;
+        double l3 = 1.0 - l1 - l2;
+        if (l1 >= -tol && l2 >= -tol && l3 >= -tol) {
+            tri_out[0]=a; tri_out[1]=b; tri_out[2]=c;
+            w_out[0]=l1; w_out[1]=l2; w_out[2]=l3;
+            if (g_out) *g_out = l1*pts[3*a+2] + l2*pts[3*b+2] + l3*pts[3*c+2];
+            return 1;
+        }
+    }
+    return 0;
+}

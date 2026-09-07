@@ -121,6 +121,15 @@ MQMQA_API int mqmqa_num_quadruplets(int n_cat, int n_an);
 MQMQA_API void mqmqa_enumerate_quadruplets(int n_cat, int n_an,
                                            int *ca, int *cb, int *ax, int *ay);
 
+/* Convenience over mqmqa_equilibrate (src/equil.c): equilibrate MQMQA phase `phase`
+ * at T and a target composition over the database elements (length
+ * mqmqa_db_num_elements). Assembles all model inputs from the parsed database.
+ * Writes quadruplet fractions to X_out and the max composition error to err_out
+ * (may be NULL). Returns GM per mole of atoms, or NaN on failure. */
+MQMQA_API double mqmqa_equilibrate_db(const mqmqa_db *db, int phase, double T,
+                                      const double *target_elem,
+                                      double *X_out, double *err_out);
+
 #ifdef __cplusplus
 }
 #endif

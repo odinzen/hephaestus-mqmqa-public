@@ -73,6 +73,9 @@ _ffi.cdef(
         const double *target,
         double *X_out, double *comp_err_out);
 
+    double mqmqa_equilibrate_db(const void *db, int phase, double T,
+        const double *target_elem, double *X_out, double *err_out);
+
     void *mqmqa_db_read_file(const char *path);
     void *mqmqa_db_read_string(const char *text);
     void mqmqa_db_free(void *db);

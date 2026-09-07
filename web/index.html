@@ -399,6 +399,12 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
           <span class="muted">to</span>
           <input type="number" id="pdTmax" value="1700" min="200" max="6000" step="10" style="width:5.5rem">
         </span>
+        <label for="pdXmin">Composition window (mol% B)</label>
+        <span class="row" style="gap:.4rem">
+          <input type="number" id="pdXmin" value="0" min="0" max="100" step="1" style="width:5.5rem">
+          <span class="muted">to</span>
+          <input type="number" id="pdXmax" value="100" min="0" max="100" step="1" style="width:5.5rem">
+        </span>
       </div>
       <div class="row">
         <button id="pdgen" type="button">Generate diagram</button>
@@ -897,6 +903,7 @@ function loadDatabase(text, name) {
   document.getElementById('crystcard').classList.toggle('hidden', !isFMS);
   document.getElementById('livecard').classList.toggle('hidden', cats3.length !== 3);
   if (window._liveSyncLoaded) window._liveSyncLoaded();     // point the live engine at this system
+  document.getElementById('pdXmin').value=0; document.getElementById('pdXmax').value=100;   // fresh file, full join
   const solids=[]; for(let i=0;i<api.nStoich(db);i++) solids.push(api.stName(db,i));
   document.getElementById('solids').textContent = solids.length ? solids.join(', ') : '—';
 
@@ -2034,7 +2041,8 @@ function pdReadAt(clientX, clientY){
   const cssW=cv.clientWidth||640, cssH=420, mL=54, mR=16, mT=34, mB=48;
   const L=mL, BP=cssH-mB, PW=cssW-mR-L, PH=BP-mT;
   const px=(clientX-r.left)*cssW/r.width, py=(clientY-r.top)*cssH/r.height;
-  const f=(px-L)/PW; if(f<0||f>1) return null;
+  const {xlo,xhi}=pdXWindow();
+  const f=xlo+(px-L)/PW*(xhi-xlo); if(f<xlo-1e-9||f>xhi+1e-9) return null;
   const {Tmin,Tmax,cols,xiCells,endA,endB}=pdResult;
   const T=Tmin+(BP-py)/PH*(Tmax-Tmin); if(T<Tmin||T>Tmax) return null;
   const c=Math.min(xiCells-1,Math.max(0,Math.floor(f*xiCells)));
@@ -2059,6 +2067,16 @@ function pdThemeColors(){
 }
 const rgba=(c,a)=>`rgba(${c.r},${c.g},${c.b},${a})`;
 
+// composition window (mol% of end member B) for the binary diagram. The physics is
+// always computed over the whole join (the convex hull needs both ends: a tie-line can
+// connect a windowed composition to a phase outside it); only the rendering windows.
+function pdXWindow(){
+  let lo=parseFloat(document.getElementById('pdXmin').value), hi=parseFloat(document.getElementById('pdXmax').value);
+  lo=isFinite(lo)?Math.min(100,Math.max(0,lo)):0; hi=isFinite(hi)?Math.min(100,Math.max(0,hi)):100;
+  if(hi-lo<1){ lo=0; hi=100; }
+  return {xlo:lo/100, xhi:hi/100};
+}
+
 function drawDiagram(){
   if(!pdResult) return;
   const {endA, endB, Tmin, Tmax, cols, xiCells, melts}=pdResult;
@@ -2072,8 +2090,10 @@ function drawDiagram(){
 
   const mL=54, mR=16, mT=34, mB=48;
   const L=mL, R=cssW-mR, TP=mT, BP=cssH-mB, PW=R-L, PH=BP-TP;
-  const X=f=>L+f*PW;                       // f = mole fraction of B in [0,1]
+  const {xlo,xhi}=pdXWindow();
+  const X=f=>L+(f-xlo)/(xhi-xlo)*PW;       // f = mole fraction of B in [0,1]
   const Y=t=>BP-(t-Tmin)/(Tmax-Tmin)*PH;
+  ctx.save(); ctx.beginPath(); ctx.rect(L,TP,PW,PH); ctx.clip();   // window everything in plot space
 
   // T-band edges so each column paints a contiguous horizontal strip
   const Tedge=[Tmin];
@@ -2101,20 +2121,24 @@ function drawDiagram(){
   ctx.setLineDash([4,3]); ctx.lineWidth=1.2; ctx.strokeStyle=rgba(col.ink,0.6);
   for(const m of melts){
     if(m.T<Tmin||m.T>Tmax) continue;
+    if(m.xi<xlo-1e-9||m.xi>xhi+1e-9) continue;   // end member outside the window
     const yy=Y(m.T), xx=X(m.xi);
-    ctx.beginPath(); ctx.moveTo(X(m.xi>0.5?0.72:0.0), yy); ctx.lineTo(xx, yy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(X(m.xi>0.5?xhi-0.28*(xhi-xlo):xlo), yy); ctx.lineTo(xx, yy); ctx.stroke();
     ctx.setLineDash([]); ctx.beginPath(); ctx.arc(xx, yy, 4, 0, 2*Math.PI);
     ctx.fillStyle=rgba(col.card,1); ctx.fill();
     ctx.lineWidth=1.4; ctx.strokeStyle=rgba(col.ink,0.85); ctx.stroke();
     ctx.setLineDash([4,3]); ctx.lineWidth=1.2; ctx.strokeStyle=rgba(col.ink,0.6);
   }
   ctx.setLineDash([]);
+  ctx.restore();   // lift the plot-space clip before axes and labels
 
   // axes frame and ticks
   ctx.strokeStyle=rgba(col.line,1); ctx.lineWidth=1; ctx.strokeRect(L,TP,PW,PH);
   ctx.fillStyle=rgba(col.ink,0.9); ctx.font='11px system-ui,sans-serif';
   ctx.textAlign='center'; ctx.textBaseline='top';
-  for(let p=0;p<=100;p+=20){ const px=X(p/100);
+  const span=(xhi-xlo)*100;
+  const xstep = span>50?20:span>25?10:span>12?5:span>5?2:1;
+  for(let p=Math.ceil(xlo*100/xstep)*xstep; p<=xhi*100+1e-9; p+=xstep){ const px=X(p/100);
     ctx.strokeStyle=rgba(col.line,0.7); ctx.beginPath(); ctx.moveTo(px,TP); ctx.lineTo(px,BP); ctx.stroke();
     ctx.fillText(p+'', px, BP+5); }
   ctx.textAlign='right'; ctx.textBaseline='middle';
@@ -2132,12 +2156,13 @@ function drawDiagram(){
   ctx.fillStyle=rgba(col.ink,1); ctx.font='600 13px system-ui,sans-serif'; ctx.textBaseline='bottom';
   ctx.fillText(endA.label+' - '+endB.label+' phase diagram', L+PW/2, TP-8);
   ctx.font='11px system-ui,sans-serif'; ctx.fillStyle=rgba(col.muted,1); ctx.textBaseline='top';
-  ctx.textAlign='left';  ctx.fillText(endA.label, L, BP+20);
-  ctx.textAlign='right'; ctx.fillText(endB.label, R, BP+20);
+  if(xlo<1e-9){ ctx.textAlign='left';  ctx.fillText(endA.label, L, BP+20); }
+  if(xhi>1-1e-9){ ctx.textAlign='right'; ctx.fillText(endB.label, R, BP+20); }
 
   // pinned tap-to-read points, numbered to the saved-points list
   if(pdPins.length){ const pointer=getComputedStyle(document.documentElement).getPropertyValue('--pointer').trim();
-    ctx.save(); ctx.lineWidth=2; ctx.strokeStyle=pointer; ctx.fillStyle=pointer;
+    ctx.save(); ctx.beginPath(); ctx.rect(L-1,TP-1,PW+2,PH+2); ctx.clip();
+    ctx.lineWidth=2; ctx.strokeStyle=pointer; ctx.fillStyle=pointer;
     ctx.font='700 12px system-ui,sans-serif'; ctx.textAlign='left'; ctx.textBaseline='bottom';
     for(let i=0;i<pdPins.length;i++){ const px=X(pdPins[i].xi), py=Y(pdPins[i].T);
       ctx.beginPath(); ctx.arc(px,py,6,0,2*Math.PI); ctx.stroke();
@@ -2160,6 +2185,9 @@ function renderLegend(){
 }
 
 document.getElementById('pdgen').addEventListener('click', generateDiagram);
+// window change re-renders the already computed result, no recompute needed
+for(const id of ['pdXmin','pdXmax'])
+  document.getElementById(id).addEventListener('change', ()=>{ if(pdResult) drawDiagram(); });
 document.getElementById('scheil-go').addEventListener('click', runScheil);
 
 // Unified files: flip the diagram machinery between the melt joins and the alloy joins.

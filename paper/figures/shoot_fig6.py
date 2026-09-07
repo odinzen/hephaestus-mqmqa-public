@@ -29,13 +29,18 @@ SETUP = r"""
   await new Promise(r=>setTimeout(r,4500));
   document.querySelector('#pdmode .seg-btn[data-m="alloy"]').click();
   await new Promise(r=>setTimeout(r,1500));
-  document.getElementById('pdTmin').value=800;
-  document.getElementById('pdTmax').value=1900;
+  // classic steel framing: composition windowed to 0-25 mol% C, T trimmed to the
+  // liquidus-and-eutectic region (the physics still solves the whole join)
+  const Tlo=1150, Thi=1850, Xlo=0, Xhi=0.25;
+  document.getElementById('pdTmin').value=Tlo;
+  document.getElementById('pdTmax').value=Thi;
+  document.getElementById('pdXmin').value=Xlo*100;
+  document.getElementById('pdXmax').value=Xhi*100;
   document.getElementById('pdgen').click();
   let t=0; while(t++<60 && document.getElementById('pdout').classList.contains('hidden')){ await new Promise(r=>setTimeout(r,1000)); }
   const cv=document.getElementById('pdcanvas'), r=cv.getBoundingClientRect();
   const W=cv.clientWidth,H=420,mL=54,mT=34,PW=W-16-mL,PH=H-48-mT;
-  const clk=(f,T)=>cv.dispatchEvent(new MouseEvent('click',{clientX:r.left+(mL+f*PW)*r.width/W,clientY:r.top+(mT+PH*(1-(T-800)/(1900-800)))*r.height/H,bubbles:true}));
+  const clk=(f,T)=>cv.dispatchEvent(new MouseEvent('click',{clientX:r.left+(mL+(f-Xlo)/(Xhi-Xlo)*PW)*r.width/W,clientY:r.top+(mT+PH*(1-(T-Tlo)/(Thi-Tlo)))*r.height/H,bubbles:true}));
   clk(0.05,1400); await new Promise(r=>setTimeout(r,300));
   clk(0.17,1500); await new Promise(r=>setTimeout(r,300));
   document.getElementById('scheil-x').value=4;

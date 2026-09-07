@@ -18,7 +18,7 @@ mkdir -p "$OUT"
 # Export exactly the public API (every MQMQA_API declaration), plus malloc/free for
 # marshaling arrays from JS. Generated from the headers so it never drifts.
 FUNCS=$(grep -hE 'MQMQA_API' "$ROOT"/src/*.h \
-        | grep -oE 'mqmqa_[A-Za-z0-9_]+\(' | tr -d '(' | sort -u)
+        | grep -oE '(mqmqa|tq)_[A-Za-z0-9_]+\(' | tr -d '(' | sort -u)
 EXPORTS='"_malloc","_free"'
 for f in $FUNCS; do EXPORTS="$EXPORTS,\"_$f\""; done
 
@@ -29,6 +29,7 @@ for f in $FUNCS; do EXPORTS="$EXPORTS,\"_$f\""; done
     -O0 -std=c11 -Wall \
     -I"$ROOT/src" \
     "$ROOT/src/mqmqa.c" "$ROOT/src/cs_dat.c" "$ROOT/src/cef.c" "$ROOT/src/gas.c" \
+    "$ROOT/src/equil.c" "$ROOT/src/hull.c" "$ROOT/src/equilibrium.c" "$ROOT/src/tq.c" \
     -s "EXPORTED_FUNCTIONS=[$EXPORTS]" \
     -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap","UTF8ToString","stringToUTF8","lengthBytesUTF8","getValue","setValue"]' \
     -s ALLOW_MEMORY_GROWTH=1 \

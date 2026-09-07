@@ -800,6 +800,7 @@ async function loadShipped(file) {
   try {
     const text = await (await fetch('./' + file)).text();
     loadDatabase(text, file);
+    window._pdPreset = PD_PRESETS[file] || null; applyPdPreset();
   } catch (err) {
     document.getElementById('loadmsg').textContent = 'Database not found next to this page.';
   }
@@ -903,7 +904,7 @@ function loadDatabase(text, name) {
   document.getElementById('crystcard').classList.toggle('hidden', !isFMS);
   document.getElementById('livecard').classList.toggle('hidden', cats3.length !== 3);
   if (window._liveSyncLoaded) window._liveSyncLoaded();     // point the live engine at this system
-  document.getElementById('pdXmin').value=0; document.getElementById('pdXmax').value=100;   // fresh file, full join
+  window._pdPreset = null; pdSetXWindow(0, 100);   // fresh file, neutral full join (demos preset below)
   const solids=[]; for(let i=0;i<api.nStoich(db);i++) solids.push(api.stName(db,i));
   document.getElementById('solids').textContent = solids.length ? solids.join(', ') : '—';
 
@@ -2077,6 +2078,33 @@ function pdXWindow(){
   return {xlo:lo/100, xhi:hi/100};
 }
 
+// the Scheil composition follows the same window, so a windowed view cannot be paired
+// with an out-of-window solidification run
+function pdSyncXWindow(){
+  const {xlo,xhi}=pdXWindow();
+  const sx=document.getElementById('scheil-x');
+  sx.min=Math.max(1, Math.round(xlo*100)); sx.max=Math.min(99, Math.round(xhi*100));
+  const v=parseFloat(sx.value);
+  if(!isFinite(v)||v<+sx.min) sx.value=sx.min;
+  else if(v>+sx.max) sx.value=sx.max;
+  if(typeof pdResult!=='undefined' && pdResult) drawDiagram();
+}
+function pdSetXWindow(lo, hi){
+  document.getElementById('pdXmin').value=lo; document.getElementById('pdXmax').value=hi;
+  pdSyncXWindow();
+}
+
+// shipped demos preset the window that shows their classic diagram (per view mode);
+// uploaded files always start on the neutral full join
+const PD_PRESETS = {
+  'FeC-FeOMgOSiO2.utdb': { alloy: { x:[0,25], T:[1150,1850] } },
+};
+function applyPdPreset(){
+  const pre = (window._pdPreset||{})[window.alloyMode?'alloy':'melt'];
+  if(pre&&pre.T){ document.getElementById('pdTmin').value=pre.T[0]; document.getElementById('pdTmax').value=pre.T[1]; }
+  pdSetXWindow(pre&&pre.x?pre.x[0]:0, pre&&pre.x?pre.x[1]:100);
+}
+
 function drawDiagram(){
   if(!pdResult) return;
   const {endA, endB, Tmin, Tmax, cols, xiCells, melts}=pdResult;
@@ -2185,9 +2213,9 @@ function renderLegend(){
 }
 
 document.getElementById('pdgen').addEventListener('click', generateDiagram);
-// window change re-renders the already computed result, no recompute needed
+// window change re-renders the already computed result (no recompute) and re-bounds Scheil
 for(const id of ['pdXmin','pdXmax'])
-  document.getElementById(id).addEventListener('change', ()=>{ if(pdResult) drawDiagram(); });
+  document.getElementById(id).addEventListener('change', pdSyncXWindow);
 document.getElementById('scheil-go').addEventListener('click', runScheil);
 
 // Unified files: flip the diagram machinery between the melt joins and the alloy joins.
@@ -2208,6 +2236,7 @@ document.getElementById('pdmode').addEventListener('click', e => {
   cvS2.style.display = 'none';
   document.getElementById('scheil-read').innerHTML = '&nbsp;';
   populateDiagram();
+  applyPdPreset();   // each view mode gets its own relevant window
 });
 
 // Hover reads fraction/temperature off the Scheil curves; click pins the point to a

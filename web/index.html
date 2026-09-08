@@ -627,6 +627,28 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
     <div id="gas-out" class="bld-hint" hidden style="margin-top:.8rem"></div>
   </div>
 
+  <div class="card" id="slaggascard">
+    <h2>Slag &harr; furnace gas &middot; iron-saturated<span class="tern-badge">coupled</span></h2>
+    <p class="tern-note">The furnace atmosphere and the melt settle at one oxygen potential. For the
+      assessed FeO-SiO~2~ slag held at iron saturation, the engine gives the FeO activity, and the
+      gas engine turns it into the CO&#8322;/CO ratio the melt sits under. Add silica and the FeO
+      activity falls, so a more reducing gas is needed to keep iron from oxidising, exactly as
+      slag-gas equilibration is measured. The pure-FeO limit is the iron-wustite buffer, within a
+      percent of Cantera. Drag the silica content to read it off.</p>
+    <div class="row" style="gap:1.1rem; align-items:flex-end; flex-wrap:wrap">
+      <label style="flex:1; min-width:14rem">SiO&#8322; content x(SiO&#8322;)
+        <input type="range" id="sg-x" min="20" max="550" value="200" style="width:100%">
+      </label>
+      <span id="sg-xval" style="font-family:var(--font-mono)">0.20</span>
+      <span class="seg" id="sg-temp" style="display:inline-flex">
+        <button class="seg-btn on" data-t="1873" type="button">1873 K</button>
+        <button class="seg-btn" data-t="1973" type="button">1973 K</button>
+      </span>
+    </div>
+    <div id="sg-out" class="bld-hint" style="margin-top:.7rem"></div>
+    <canvas id="sg-canvas" width="640" height="240" style="width:100%;max-width:34rem;margin-top:.6rem"></canvas>
+  </div>
+
   <div class="card" id="litcard">
     <h2>Request a database for your system<span class="tern-badge">concierge</span></h2>
     <p class="tern-note">Have a stack of published papers on a system the open database does not
@@ -3491,6 +3513,65 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
     document.getElementById('gas-couple').checked=true;
     compute();
   });
+})();
+</script>
+<script>
+/* Slag <-> furnace gas readout (iron-saturated). The FeO activity of the assessed FeO-SiO2 slag
+   and the equilibrium CO2/CO and oxygen pressure are precomputed by the validated engine
+   (python/mqmqa/gas_slag.py: activity from the MQMQA solver, oxygen potential from the gas
+   engine) at two steelmaking temperatures, and read back here. Same pattern as the other assessed
+   showcases: the numbers are the engine's, shown without a live re-solve. */
+(function(){
+  // rows: [x_SiO2, a_FeO, CO2/CO, log10 pO2]
+  const SG = {"1873":[[0.02,0.9795,0.1099,-8.66],[0.051,0.9458,0.1061,-8.69],[0.082,0.9101,0.1021,-8.73],[0.114,0.8728,0.0979,-8.76],[0.145,0.8343,0.0936,-8.8],[0.176,0.7949,0.0892,-8.84],[0.207,0.7551,0.0847,-8.89],[0.238,0.7152,0.0802,-8.93],[0.269,0.6755,0.0758,-8.98],[0.301,0.6363,0.0714,-9.04],[0.332,0.5978,0.0671,-9.09],[0.363,0.5601,0.0628,-9.15],[0.394,0.5235,0.0587,-9.21],[0.425,0.4879,0.0547,-9.27],[0.456,0.4535,0.0509,-9.33],[0.488,0.4202,0.0471,-9.4],[0.519,0.388,0.0435,-9.47],[0.55,0.3569,0.04,-9.54]],
+    "1973":[[0.02,0.9796,0.1023,-7.94],[0.051,0.9463,0.0988,-7.97],[0.082,0.9116,0.0952,-8.0],[0.114,0.8756,0.0915,-8.03],[0.145,0.8388,0.0876,-8.07],[0.176,0.8013,0.0837,-8.11],[0.207,0.7636,0.0798,-8.15],[0.238,0.7258,0.0758,-8.2],[0.269,0.6881,0.0719,-8.24],[0.301,0.6509,0.068,-8.29],[0.332,0.6141,0.0641,-8.34],[0.363,0.578,0.0604,-8.4],[0.394,0.5426,0.0567,-8.45],[0.425,0.508,0.0531,-8.51],[0.456,0.4742,0.0495,-8.57],[0.488,0.4413,0.0461,-8.63],[0.519,0.4092,0.0427,-8.7],[0.55,0.3779,0.0395,-8.76]]};
+  let T = '1873';
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim() || '#333';
+  function interp(x){
+    const r = SG[T]; if(x<=r[0][0]) return r[0]; if(x>=r[r.length-1][0]) return r[r.length-1];
+    for(let i=0;i<r.length-1;i++){ if(x<=r[i+1][0]){ const t=(x-r[i][0])/(r[i+1][0]-r[i][0]);
+      return r[i].map((v,k)=>v+t*(r[i+1][k]-v)); } }
+    return r[r.length-1];
+  }
+  function draw(xcur){
+    const cv=document.getElementById('sg-canvas'); if(!cv) return; const ctx=cv.getContext('2d');
+    const W=cv.width,H=cv.height,PADL=64,PADR=16,PADT=14,PADB=34; ctx.clearRect(0,0,W,H);
+    const r=SG[T], xs=r.map(p=>p[0]), ys=r.map(p=>p[2]);
+    const xmin=xs[0],xmax=xs[xs.length-1],ymin=0,ymax=Math.max(...ys)*1.08;
+    const X=x=>PADL+(x-xmin)/(xmax-xmin)*(W-PADL-PADR), Y=y=>H-PADB-(y-ymin)/(ymax-ymin)*(H-PADT-PADB);
+    ctx.strokeStyle=css('--line')||'#ccc'; ctx.lineWidth=1; ctx.beginPath();
+    ctx.moveTo(PADL,PADT); ctx.lineTo(PADL,H-PADB); ctx.lineTo(W-PADR,H-PADB); ctx.stroke();
+    ctx.fillStyle=css('--muted')||'#666'; ctx.font='12px '+(css('--font-ui')||'system-ui');
+    ctx.textAlign='center'; ctx.fillText('x(SiO₂)',(PADL+W-PADR)/2,H-8);
+    ctx.save(); ctx.translate(16,(PADT+H-PADB)/2); ctx.rotate(-Math.PI/2); ctx.fillText('CO₂ / CO',0,0); ctx.restore();
+    ctx.textAlign='right'; for(let k=0;k<=4;k++){ const yv=ymax*k/4; ctx.fillText(yv.toFixed(2),PADL-6,Y(yv)+4); }
+    ctx.strokeStyle=css('--ink')||'#222'; ctx.lineWidth=2; ctx.beginPath();
+    r.forEach((p,i)=>{ const px=X(p[0]),py=Y(p[2]); i?ctx.lineTo(px,py):ctx.moveTo(px,py); }); ctx.stroke();
+    const c=interp(xcur), px=X(c[0]),py=Y(c[2]);
+    ctx.fillStyle=css('--pointer')||'#c0392b'; ctx.beginPath(); ctx.arc(px,py,5,0,2*Math.PI); ctx.fill();
+    ctx.strokeStyle=css('--pointer')||'#c0392b'; ctx.setLineDash([3,3]); ctx.beginPath();
+    ctx.moveTo(px,H-PADB); ctx.lineTo(px,py); ctx.moveTo(PADL,py); ctx.lineTo(px,py); ctx.stroke(); ctx.setLineDash([]);
+  }
+  function refresh(){
+    const x=(+document.getElementById('sg-x').value)/1000;
+    document.getElementById('sg-xval').textContent=x.toFixed(3);
+    const [xv,a,ratio,lpo2]=interp(x);
+    const feo=(1-x), pct=(100*feo).toFixed(0);
+    document.getElementById('sg-out').innerHTML=
+      '<div style="font-family:var(--font-mono);font-size:var(--fs-sm);line-height:1.7">'
+      +'slag &asymp; '+pct+' mol% FeO, '+(100*x).toFixed(0)+' mol% SiO₂ &middot; '+T+' K<br>'
+      +'a(FeO) = <b>'+a.toFixed(3)+'</b><br>'
+      +'equilibrium furnace gas: CO₂/CO = <b>'+ratio.toFixed(4)+'</b><br>'
+      +'oxygen pressure: log₁₀ p(O₂) = <b>'+lpo2.toFixed(2)+'</b> (bar)</div>'
+      +'<div class="muted" style="font-size:var(--fs-xs);margin-top:.3rem">More silica lowers a(FeO), so the melt stays iron-saturated only under a more reducing (lower CO₂/CO) gas.</div>';
+    draw(x);
+  }
+  document.getElementById('sg-x').addEventListener('input',refresh);
+  document.getElementById('sg-temp').addEventListener('click',e=>{ const b=e.target.closest('.seg-btn'); if(!b) return;
+    document.querySelectorAll('#sg-temp .seg-btn').forEach(x=>x.classList.toggle('on',x===b)); T=b.dataset.t; refresh(); });
+  new MutationObserver(()=>draw((+document.getElementById('sg-x').value)/1000))
+    .observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  refresh();
 })();
 </script>
 <script>

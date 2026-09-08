@@ -53,6 +53,12 @@ def test_pure_feo_limit_matches_cantera_buffer():
     assert abs(mine - ref) / ref < 0.01, (mine, ref)
 
 
+def test_iron_wustite_pO2_matches_the_known_buffer():
+    # pure-FeO iron saturation is the iron-wustite buffer; its 1873 K oxygen pressure is a
+    # textbook value near log10 pO2 = -8.5 (bar). A third, independent physical check.
+    assert abs(gas_slag.log10_pO2_iron_saturated(1.0, T) - (-8.5)) < 0.4
+
+
 def test_slag_activity_falls_with_silica():
     xs = [0.05, 0.15, 0.25, 0.35, 0.45]
     a = [gas_slag.feo_sio2_activity(T, x) for x in xs]

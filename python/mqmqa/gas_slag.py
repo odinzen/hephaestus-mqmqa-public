@@ -77,6 +77,14 @@ def gas_ratio_for_oxygen_potential(mu_o_rt, T, gasdb=None):
     return math.exp(g["CO"].g_rt(T) - g["CO2"].g_rt(T) + mu_o_rt)
 
 
+def log10_pO2_iron_saturated(a_feo, T, gasdb=None):
+    """Base-10 log of the oxygen partial pressure (bar) of an iron-saturated slag of FeO activity
+    a_feo. At a_feo = 1 this is the iron-wustite buffer; the pure-FeO value at 1873 K is about
+    -8.6, in line with the measured buffer."""
+    g = gasdb or _gasdb()
+    return (2.0 * oxygen_potential_iron_saturated(a_feo, T) - g["O2"].g_rt(T)) / math.log(10.0)
+
+
 def iron_saturated_gas_ratio(a_feo, T, gasdb=None):
     """CO2/CO ratio of the furnace gas in equilibrium with an iron-saturated slag of FeO activity
     a_feo, at T (K). The slag composition enters only through a_feo, so this couples any slag the

@@ -395,7 +395,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
         <label for="pdA">End member A</label><select id="pdA"></select>
         <label for="pdB">End member B</label><select id="pdB"></select>
         <label for="pdCommon" id="pdCommonLab">Shared ion</label><select id="pdCommon"></select>
-        <label for="pdTmin">Temperature range (K)</label>
+        <label for="pdTmin" id="pdT-label">Temperature range (K)</label>
         <span class="row" style="gap:.4rem">
           <input type="number" id="pdTmin" value="400" min="200" max="6000" step="10" style="width:5.5rem">
           <span class="muted">to</span>
@@ -611,7 +611,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <label>O <input type="number" id="gas-O" value="2" min="0" step="0.1" style="width:4.2rem"></label>
       <label>N <input type="number" id="gas-N" value="0" min="0" step="0.1" style="width:4.2rem"></label>
       <label>Fe <input type="number" id="gas-Fe" value="0" min="0" step="0.1" style="width:4.2rem"></label>
-      <label>T (K) <input type="number" id="gas-T" value="1800" min="300" max="6000" step="50" style="width:5.5rem"></label>
+      <label>T <span id="gasT-unit">(K)</span> <input type="number" id="gas-T" value="1800" min="300" max="6000" step="50" style="width:5.5rem"></label>
       <label>P (atm) <input type="number" id="gas-P" value="1" min="0.01" step="0.1" style="width:5rem"></label>
       <button id="gas-go" type="button" class="seg-btn on" style="border-radius:8px">Compute</button>
       <label style="font-size:var(--fs-sm)"><input type="checkbox" id="gas-real"> real gas (Peng-Robinson)</label>
@@ -714,6 +714,16 @@ window.uToK = v => window.tUnit==='C' ? v+273.15 : v;      // displayed number -
 window.tLabel = (K,dp=0)=> (isFinite(K) ? window.kToU(K).toFixed(dp).replace(/\.0+$/,'') : '—') + ' ' + window.tSym();
 window.onTUnit = fn => window.addEventListener('hmqmqa-tunit', fn);
 window.onTUnit(()=>{ const el=document.getElementById('temp'); if(el) document.getElementById('tval').textContent=window.tLabel(+el.value); });
+window.onTUnit(()=>{
+  ['pdTmin','pdTmax','gas-T','c0-Tm','c1-Tm','c2-Tm','c3-Tm','c4-Tm','c5-Tm'].forEach(id=>{
+    const el=document.getElementById(id); if(!el||el.value==='') return;
+    el.value = String(Math.round(window.tUnit==='C' ? (+el.value)-273.15 : (+el.value)+273.15));
+  });
+  const sym=window.tSym();
+  const pl=document.getElementById('pdT-label'); if(pl) pl.textContent='Temperature range ('+sym+')';
+  const gl=document.getElementById('gasT-unit'); if(gl) gl.textContent='('+sym+')';
+  document.querySelectorAll('.tm-unit').forEach(x=>x.textContent='('+sym+')');
+});
 
 Hephaestus().then(M => {
   api = {
@@ -1601,8 +1611,8 @@ function pdAutoRange(){
   const melts=pdEndMeltT(comps,endA,endB,pdDiscretes(endA,endB));
   if(!melts.length) return;
   const Ts=melts.map(m=>m.T), hi=Math.max(...Ts), lo=Math.min(...Ts);
-  document.getElementById('pdTmin').value=Math.max(300, Math.floor((lo-400)/50)*50);
-  document.getElementById('pdTmax').value=Math.ceil((hi+150)/50)*50;
+  document.getElementById('pdTmin').value=Math.round(window.kToU(Math.max(300, Math.floor((lo-400)/50)*50)));
+  document.getElementById('pdTmax').value=Math.round(window.kToU(Math.ceil((hi+150)/50)*50));
 }
 
 function pdBuildHull(pts){
@@ -1870,15 +1880,15 @@ function pdAlloyAutoRange(){
   const Ts=[pdAlloyEndMelt(phs,0), pdAlloyEndMelt(phs,1)].filter(t=>t);
   phs.forEach(c=>api.M._free(c.Yp));
   if(!Ts.length) return;
-  document.getElementById('pdTmin').value=Math.max(300, Math.floor((Math.min(...Ts)-350)/50)*50);
-  document.getElementById('pdTmax').value=Math.ceil((Math.max(...Ts)+150)/50)*50;
+  document.getElementById('pdTmin').value=Math.round(window.kToU(Math.max(300, Math.floor((Math.min(...Ts)-350)/50)*50)));
+  document.getElementById('pdTmax').value=Math.round(window.kToU(Math.ceil((Math.max(...Ts)+150)/50)*50));
 }
 
 async function generateAlloyDiagram(){
   const msg=document.getElementById('pdmsg'), out=document.getElementById('pdout');
   const ia=+document.getElementById('pdA').value, ib=+document.getElementById('pdB').value;
   if(ia===ib){ msg.textContent='Pick two different elements.'; return; }
-  let Tmin=+document.getElementById('pdTmin').value, Tmax=+document.getElementById('pdTmax').value;
+  let Tmin=window.uToK(+document.getElementById('pdTmin').value), Tmax=window.uToK(+document.getElementById('pdTmax').value);
   if(!(Tmax>Tmin)){ msg.textContent='Temperature max must exceed min.'; return; }
   const phs=pdAlloyPhases(ia,ib), sto=pdAlloyStoich(ia,ib);
   if(!phs.length){ msg.textContent='No solution phase spans this join in the loaded file.'; return; }
@@ -2088,7 +2098,7 @@ async function generateDiagram(){
   const common=pdCommon[ic]||pdCommon[0];
   const endA=pdEnd(pdVary[ia], common), endB=pdEnd(pdVary[ib], common);
   const comps=[pdVary[ia].sym, pdVary[ib].sym, common.sym];
-  let Tmin=+document.getElementById('pdTmin').value, Tmax=+document.getElementById('pdTmax').value;
+  let Tmin=window.uToK(+document.getElementById('pdTmin').value), Tmax=window.uToK(+document.getElementById('pdTmax').value);
   if(!(Tmax>Tmin)){ msg.textContent='Temperature max must exceed min.'; return; }
 
   const disc=pdDiscretes(endA,endB);
@@ -2186,7 +2196,7 @@ const PD_PRESETS = {
 };
 function applyPdPreset(){
   const pre = (window._pdPreset||{})[window.alloyMode?'alloy':'melt'];
-  if(pre&&pre.T){ document.getElementById('pdTmin').value=pre.T[0]; document.getElementById('pdTmax').value=pre.T[1]; }
+  if(pre&&pre.T){ document.getElementById('pdTmin').value=Math.round(window.kToU(pre.T[0])); document.getElementById('pdTmax').value=Math.round(window.kToU(pre.T[1])); }
   pdSetXWindow(pre&&pre.x?pre.x[0]:0, pre&&pre.x?pre.x[1]:100);
 }
 
@@ -3048,14 +3058,14 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
   grid.innerHTML=DEFAULTS.map((d,k)=>
     '<div class="bld-comp" id="comp'+k+'">'
     +'<label>Component '+(k+1)+' name<input type="text" id="c'+k+'-name" value="'+d[0]+'"></label>'
-    +'<label>Melting point (K)<input type="number" id="c'+k+'-Tm" value="'+d[1]+'" step="10"></label>'
+    +'<label>Melting point <span class="tm-unit">(K)</span><input type="number" id="c'+k+'-Tm" value="'+d[1]+'" step="10"></label>'
     +'<label>Heat of fusion (kJ/mol)<input type="number" id="c'+k+'-dH" value="'+d[2]+'" step="1"></label>'
     +'</div>').join('');
 
   function readComps(n){
     const C=[];
     for(let k=0;k<n;k++) C.push({ name:$('c'+k+'-name').value||String.fromCharCode(65+k),
-      Tm:(+$('c'+k+'-Tm').value), dH:(+$('c'+k+'-dH').value)*1000 });
+      Tm:window.uToK(+$('c'+k+'-Tm').value), dH:(+$('c'+k+'-dH').value)*1000 });
     return C;
   }
   const Wvals=()=>({Wa:(+$('bW-a').value)*1000, Wb:(+$('bW-b').value)});
@@ -3261,7 +3271,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     [...$('bld-nseg').children].forEach(b=>b.classList.toggle('on',+b.dataset.n===n)); draw(); }
 
   function loadPreset(k){ const s=PRESETS[k]; if(!s) return;
-    s.C.forEach((c,i)=>{ $('c'+i+'-name').value=c[0]; $('c'+i+'-Tm').value=c[1]; $('c'+i+'-dH').value=c[2]; });
+    s.C.forEach((c,i)=>{ $('c'+i+'-name').value=c[0]; $('c'+i+'-Tm').value=Math.round(window.kToU(c[1])); $('c'+i+'-dH').value=c[2]; });
     $('bW-a').value=s.Wa; $('bW-b').value=s.Wb; setN(s.N); }
 
   // Track genuine user edits so the automatic context seed (below) never clobbers typed-in data.
@@ -3310,7 +3320,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     const use=(comps||[]).slice(0,4);
     if(use.length<2) return;                  // not enough to build a diagram - keep the generic seed
     use.forEach((c,i)=>{ $('c'+i+'-name').value=c.name;
-      if(c.TmC!=null) $('c'+i+'-Tm').value=Math.round(c.TmC);
+      if(c.TmC!=null) $('c'+i+'-Tm').value=Math.round(window.kToU(c.TmC));
       if(c.dHf!=null) $('c'+i+'-dH').value=(+c.dHf).toFixed(1); });
     setN(use.length);
   };
@@ -3477,7 +3487,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     const feed={C:+document.getElementById('gas-C').value||0, H:+document.getElementById('gas-H').value||0,
                 O:+document.getElementById('gas-O').value||0, N:+document.getElementById('gas-N').value||0};
     if(feed.C+feed.H+feed.O+feed.N<=0){ msg.textContent='Enter at least one element amount.'; return; }
-    const T=+document.getElementById('gas-T').value, P=(+document.getElementById('gas-P').value)*101325.0;
+    const T=window.uToK(+document.getElementById('gas-T').value), P=(+document.getElementById('gas-P').value)*101325.0;
     if(!isFinite(T)||T<300||T>6000){ msg.textContent='Temperature must be 300-6000 K.'; return; }
     if(!isFinite(P)||P<=0){ msg.textContent='Pressure must be positive.'; return; }
     const b=gels.map(e=>feed[e]||0);
@@ -3534,7 +3544,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     // a carbon-rich (reducing) furnace gas over iron oxide: the coupled solve reduces FeO to Fe
     document.getElementById('gas-C').value='2'; document.getElementById('gas-H').value='0';
     document.getElementById('gas-O').value='2'; document.getElementById('gas-N').value='0';
-    document.getElementById('gas-Fe').value='1'; document.getElementById('gas-T').value='1100';
+    document.getElementById('gas-Fe').value='1'; document.getElementById('gas-T').value=String(Math.round(window.kToU(1100)));
     document.getElementById('gas-couple').checked=true;
     compute();
   });

@@ -110,7 +110,7 @@ Table 3: Validation against the independent oracle. Every check runs in the pyte
 | Gas-condensed coupling | shared-element-potential solve, gas + stoichiometric metals/oxides (Boudouard, FeO reduction) | Cantera multiphase parity to 10^-3^ mole fraction, to 10^-10^ on shared thermodynamic data |
 | Gas-slag coupling (iron-saturated) | gas + MQMQA slag through the FeO activity; equilibrium CO~2~/CO vs slag composition | pure-FeO limit within 1% of the Cantera Fe/FeO buffer; slag activity matches the fitted iron-saturated data |
 
-The database is tested against measurements rather than against other software. Endmember fusion points reproduce their sources exactly. The fitted FeO-SiO~2~ liquid reproduces 23 measured activity points with a root-mean-square deviation of 0.067 in ln a [23], and the fitting route itself is regression-tested by re-deriving those published parameters from the raw data. Congruent melting of fayalite and forsterite lands within a few degrees of measurement, assessed MgO-SiO~2~ invariants sit within about 40 °C, and the ternary liquidus projection reproduces the measured field topology [24]. Development practice is plain: the repository is version controlled with tagged releases (v0.1.0 through the v0.5.0 described here), the full suite runs before every release, and a fixed bug lands together with the regression test that would have caught it. The suite runs on Windows 11 under CPython 3.11 and 3.12; the browser application is exercised in Chromium- and Gecko-based browsers. A user can confirm a working installation by running pytest against the bundled test databases, or with no installation at all by opening the web application and loading the shipped ternary database.
+The database is tested against measurements rather than against other software. Endmember fusion points reproduce their sources exactly. The fitted FeO-SiO~2~ liquid reproduces 23 measured activity points with a root-mean-square deviation of 0.067 in ln a [23], and the fitting route itself is regression-tested by re-deriving those published parameters from the raw data. Congruent melting of fayalite and forsterite lands within a few degrees of measurement, assessed MgO-SiO~2~ invariants sit within about 40 °C, and the ternary liquidus projection reproduces the measured field topology [24]. Development practice is plain: the repository is version controlled with tagged releases (v0.1.0 through the v0.5.1 described here), the full suite runs before every release, and a fixed bug lands together with the regression test that would have caught it. The suite runs on Windows 11 under CPython 3.11 and 3.12; the browser application is exercised in Chromium- and Gecko-based browsers. A user can confirm a working installation by running pytest against the bundled test databases, or with no installation at all by opening the web application and loading the shipped ternary database.
 
 ## (2) Availability
 
@@ -139,10 +139,10 @@ Michael E. Bustamante (design, implementation, validation, data curation).
 **Archive**
 
 - Name: GitHub Releases (release archive of the code repository)
-- Persistent identifier: https://github.com/odinzen/hephaestus-mqmqa-public/releases/tag/v0.5.0
+- Persistent identifier: https://github.com/odinzen/hephaestus-mqmqa-public/releases/tag/v0.5.1
 - Licence: MIT (code), CC BY 4.0 (database)
 - Publisher: Michael E. Bustamante
-- Version published: v0.5.0
+- Version published: v0.5.1
 - Date published: 2026-09-02
 
 **Code repository**
@@ -233,11 +233,11 @@ The database is a starting point rather than an endpoint, and the file format re
 
 ![Figure 8: Al-Zn phase diagram with ESPEI parameter uncertainty. The liquid and face-centred-cubic (fcc) excess parameters were refit by Markov-chain Monte Carlo to the measured liquid enthalpy of mixing (Debski et al., digitised from Dinsdale et al. [44]) and the assessed phase boundaries (Massalski [45]; Mey [39]), and the posterior was propagated through the engine. The solid line is the median liquidus and the dashed line the median fcc solvus; the shaded region is the 90 percent posterior band on each. The band is narrow on the liquidus, which the calorimetry constrains, and wider on the fcc solvus, which only the diagram constrains. The open circle is the assessed eutectic.](figures/fig8_uq_alzn.png){width=5.0in}
 
-The gap this work addresses was never the model, which has been published for two decades, but an open, runnable pairing of model and parameters. Hephaestus supplies both halves under open licenses and puts them behind a browser page that asks nothing of its user. The claims are checkable end to end. Release v0.5.0 archives the exact version described, and the 131-test suite reruns the pycalphad comparisons on any machine. The worked examples print the figures shown, and every parameter in every shipped database traces to a published measurement through its provenance file. A reader who doubts a number can recalculate it; one who needs a system that is missing can build it with the same open tools, or ask.
+The gap this work addresses was never the model, which has been published for two decades, but an open, runnable pairing of model and parameters. Hephaestus supplies both halves under open licenses and puts them behind a browser page that asks nothing of its user. The claims are checkable end to end. Release v0.5.1 archives the exact version described, and the 131-test suite reruns the pycalphad comparisons on any machine. The worked examples print the figures shown, and every parameter in every shipped database traces to a published measurement through its provenance file. A reader who doubts a number can recalculate it; one who needs a system that is missing can build it with the same open tools, or ask.
 
 ## Data availability
 
-The engine, the database, the browser application, and the validation suite are openly available in the code repository listed above; the version described here is archived as release v0.5.0. The database files and their provenance records are in the repository's data directory under CC BY 4.0.
+The engine, the database, the browser application, and the validation suite are openly available in the code repository listed above; the version described here is archived as release v0.5.1. The database files and their provenance records are in the repository's data directory under CC BY 4.0.
 
 ## Acknowledgements
 

@@ -599,17 +599,21 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       your browser from an open NASA-polynomial database (the combustion school's format: NASA CEA,
       GRI-Mech). Enter how many moles of each element you start with, pick temperature and pressure,
       and the engine returns the equilibrium gas made of C, H, O, and N species. Validated against
-      Cantera to a part in a million. A separate engine from the slag and alloy calculators above;
-      coupling gas to a molten slag is in progress.</p>
+      Cantera to a part in a million. Tick <b>couple to condensate</b> and the same solve holds the
+      gas and a steelmaking condensate (graphite, wustite FeO, iron) at one shared oxygen potential,
+      so a reducing gas pulls FeO down to iron and an oxidising one holds it as FeO, checked against
+      Cantera's own multiphase equilibrium.</p>
     <div class="row" style="gap:1.1rem; align-items:flex-end; flex-wrap:wrap">
       <label>C <input type="number" id="gas-C" value="1" min="0" step="0.1" style="width:4.2rem"></label>
       <label>H <input type="number" id="gas-H" value="4" min="0" step="0.1" style="width:4.2rem"></label>
       <label>O <input type="number" id="gas-O" value="2" min="0" step="0.1" style="width:4.2rem"></label>
       <label>N <input type="number" id="gas-N" value="0" min="0" step="0.1" style="width:4.2rem"></label>
+      <label>Fe <input type="number" id="gas-Fe" value="0" min="0" step="0.1" style="width:4.2rem"></label>
       <label>T (K) <input type="number" id="gas-T" value="1800" min="300" max="6000" step="50" style="width:5.5rem"></label>
       <label>P (atm) <input type="number" id="gas-P" value="1" min="0.01" step="0.1" style="width:5rem"></label>
       <button id="gas-go" type="button" class="seg-btn on" style="border-radius:8px">Compute</button>
       <label style="font-size:var(--fs-sm)"><input type="checkbox" id="gas-real"> real gas (Peng-Robinson)</label>
+      <label style="font-size:var(--fs-sm)"><input type="checkbox" id="gas-couple"> couple to condensate (Fe/FeO/C)</label>
       <span id="gas-msg" class="muted"></span>
     </div>
     <div class="row" style="gap:.5rem; margin-top:.5rem; flex-wrap:wrap">
@@ -618,6 +622,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <button class="filebtn ghost gas-preset" data-c="1" data-h="4" data-o="4" data-n="0" type="button">CH&#8324; + 2 O&#8322;</button>
       <button class="filebtn ghost gas-preset" data-c="1" data-h="2" data-o="2" data-n="0" type="button">CO&#8322; + H&#8322;</button>
       <button class="filebtn ghost gas-preset" data-c="1" data-h="0" data-o="1" data-n="0" type="button">C + &#189; O&#8322;</button>
+      <button class="filebtn ghost" id="gas-preset-steel" type="button" style="border-color:var(--accent)">steel: Fe + reducing gas (coupled)</button>
     </div>
     <div id="gas-out" class="bld-hint" hidden style="margin-top:.8rem"></div>
   </div>
@@ -762,6 +767,25 @@ Hephaestus().then(M => {
         ['number','number','number','number','number','number'],[g,T,P,bp,nonideal?1:0,xp]);
       const x=[]; for(let i=0;i<nsp;i++) x.push(M.getValue(xp+i*8,'double'));
       M._free(bp); M._free(xp); return rc===0 ? x : null;
+    },
+    // Coupled gas + pure-condensed equilibrium. elemVals is the combined element feed with the
+    // gas elements first (indices 0..gasNel-1), then any condensate-only element; condGrt[i] and
+    // condStoich (nCond x nElem, row-major) describe the condensed species. Returns the gas mole
+    // fractions and the condensed amounts, or null on failure.
+    gasCoupled: (g,T,P,elemVals,condGrt,condStoich) => {
+      const nsp=api.gasNsp(g), nElem=elemVals.length, nCond=condGrt.length;
+      const bp=M._malloc(nElem*8), cg=M._malloc((nCond||1)*8), cs=M._malloc((nCond*nElem||1)*8);
+      const xp=M._malloc(nsp*8), cp=M._malloc((nCond||1)*8), pip=M._malloc(nElem*8);
+      for(let e=0;e<nElem;e++) M.setValue(bp+e*8, elemVals[e]||0, 'double');
+      for(let i=0;i<nCond;i++) M.setValue(cg+i*8, condGrt[i], 'double');
+      for(let i=0;i<nCond*nElem;i++) M.setValue(cs+i*8, condStoich[i], 'double');
+      const rc=M.ccall('mqmqa_gas_condensed_equilibrium','number',
+        ['number','number','number','number','number','number','number','number','number','number','number'],
+        [g,nElem,bp,T,P,nCond,cg,cs,xp,cp,pip]);
+      const x=[], cond=[]; for(let i=0;i<nsp;i++) x.push(M.getValue(xp+i*8,'double'));
+      for(let i=0;i<nCond;i++) cond.push(M.getValue(cp+i*8,'double'));
+      [bp,cg,cs,xp,cp,pip].forEach(p=>M._free(p));
+      return rc===0 ? {x,cond} : null;
     },
   };
   api.M = M;
@@ -3362,6 +3386,33 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
    compiled to WASM), separate from the condensed .dat/.tdb calculators. */
 (function(){
   let gdb = 0, gels = [];
+  // Steelmaking condensate for the coupled solve: graphite, wustite and metallic iron, with their
+  // published NASA standard-state polynomials (graphite and FeO NASA7; alpha-iron NASA9). Read, not
+  // fitted; the same values the Cantera-validated engine uses. g_rt(T) = H/RT - S/R.
+  const CONDENSATES = [
+    {name:'C(gr)', label:'graphite', comp:{C:1}, model:7, ranges:[200,1000,5000], data:[
+      [-0.310872072,0.00440353686,1.90394118e-06,-6.38546966e-09,2.98964248e-12,-108.650794,1.11382953],
+      [1.45571829,0.00171702216,-6.97562786e-07,1.35277032e-10,-9.67590652e-15,-695.138814,-8.52583033]]},
+    {name:'FeO(s)', label:'wustite FeO', comp:{FE:1,O:1}, model:7, ranges:[300,1000,1650], data:[
+      [5.3195475,0.0022096591,1.0721775e-06,-2.7929729e-09,1.3320733e-12,-34407.165,-23.686034],
+      [5.8316489,0.0014275156,-9.3208143e-08,-6.5997763e-12,-2.2512143e-14,-34566.902,-26.44699]]},
+    {name:'Fe(a)', label:'iron', comp:{FE:1}, model:9, ranges:[200,1000,1042,1184], data:[
+      [0,0,2.41337476,-0.00157780744,2.14701339e-05,-3.80171438e-08,2.20426984e-11,-774.380998,-10.6560296],
+      [0,0,4690.80173,-9.90659991,0.00269427446,5.54445321e-06,-3.01659823e-09,-1415475.86,-24929.4387],
+      [0,0,659.678809,-1.14058217,0.000496306997,0,0,-252106.802,-3656.65236]]},
+  ];
+  function condGrt(spec, T){
+    const r=spec.ranges; let k=r.length-2; for(let i=0;i<r.length-1;i++){ if(T<=r[i+1]){ k=i; break; } }
+    const a=spec.data[k], L=Math.log(T);
+    if(spec.model===7){
+      const h=a[0]+a[1]*T/2+a[2]*T*T/3+a[3]*T*T*T/4+a[4]*T*T*T*T/5+a[5]/T;
+      const s=a[0]*L+a[1]*T+a[2]*T*T/2+a[3]*T*T*T/3+a[4]*T*T*T*T/4+a[6];
+      return h-s;
+    }
+    const h=-a[0]/(T*T)+a[1]*L/T+a[2]+a[3]*T/2+a[4]*T*T/3+a[5]*T*T*T/4+a[6]*T*T*T*T/5+a[7]/T;
+    const s=-a[0]/(2*T*T)-a[1]/T+a[2]*L+a[3]*T+a[4]*T*T/2+a[5]*T*T*T/3+a[6]*T*T*T*T/4+a[8];
+    return h-s;
+  }
   async function ensureDB(){
     if (gdb || typeof api==="undefined" || !api) return gdb;
     try {
@@ -3384,8 +3435,37 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
     if(!isFinite(P)||P<=0){ msg.textContent='Pressure must be positive.'; return; }
     const b=gels.map(e=>feed[e]||0);
     const real=document.getElementById('gas-real').checked;
+    const coupled=document.getElementById('gas-couple').checked;
     msg.innerHTML='<span class="spinner"></span> Solving…';
     await new Promise(r=>setTimeout(r, 20));   // let the spinner paint before the solve
+
+    if(coupled){
+      // couple the gas to the steelmaking condensate at a shared oxygen potential
+      if(!isFinite(T)||T<300||T>1650){ msg.textContent='Coupled mode covers 300-1650 K (the condensate range).'; return; }
+      const feCoupled=+document.getElementById('gas-Fe').value||0;
+      const els=gels.slice(); if(!els.includes('FE')) els.push('FE');   // gas elements first, then Fe
+      const bc=els.map(e=> e==='FE' ? feCoupled : (feed[e]||0));
+      const cg=CONDENSATES.map(c=>condGrt(c,T));
+      const cstoich=[]; for(const c of CONDENSATES) for(const e of els) cstoich.push(c.comp[e]||0);
+      const res=api.gasCoupled(gdb,T,P,bc,cg,cstoich);
+      if(!res){ msg.textContent='Coupled solve did not converge for these conditions.'; return; }
+      msg.textContent='';
+      const grows=[]; for(let i=0;i<api.gasNsp(gdb);i++){ const nm=api.gasSp(gdb,i); if(res.x[i]>1e-6) grows.push([nm,res.x[i]]); }
+      grows.sort((a,b)=>b[1]-a[1]);
+      const crows=CONDENSATES.map((c,i)=>[c.label,res.cond[i]]).filter(r=>r[1]>1e-6);
+      out.innerHTML='<b>Coupled gas + condensate at '+T+' K, '+(P/101325).toFixed(2)+' atm</b><br>'
+        + '<span class="muted" style="font-size:var(--fs-xs)">the furnace gas and the solid metal/oxide share one oxygen potential</span>'
+        + '<div style="font-family:var(--font-mono);font-size:var(--fs-sm);margin-top:.5rem">'
+        + '<u>gas</u> (mole fractions):<br>'
+        + grows.map(([n,v])=>'&nbsp;'+esc(n).padEnd(6)+'  '+v.toFixed(5)).join('<br>')
+        + '<br><u>condensate</u> (moles):<br>'
+        + (crows.length ? crows.map(([n,v])=>'&nbsp;'+esc(n).padEnd(12)+'  '+v.toFixed(4)).join('<br>')
+                        : '&nbsp;none (all in the gas)')
+        + '</div>';
+      out.hidden=false;
+      return;
+    }
+
     const x=api.gasEquil(gdb,T,P,b,real);
     if(!x){ msg.textContent='Gas solve did not converge for these conditions.'; return; }
     msg.textContent='';
@@ -3400,8 +3480,17 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
   document.querySelectorAll('.gas-preset').forEach(btn=>btn.addEventListener('click',()=>{
     document.getElementById('gas-C').value=btn.dataset.c; document.getElementById('gas-H').value=btn.dataset.h;
     document.getElementById('gas-O').value=btn.dataset.o; document.getElementById('gas-N').value=btn.dataset.n;
+    document.getElementById('gas-Fe').value='0'; document.getElementById('gas-couple').checked=false;
     compute();
   }));
+  document.getElementById('gas-preset-steel').addEventListener('click',()=>{
+    // a carbon-rich (reducing) furnace gas over iron oxide: the coupled solve reduces FeO to Fe
+    document.getElementById('gas-C').value='2'; document.getElementById('gas-H').value='0';
+    document.getElementById('gas-O').value='2'; document.getElementById('gas-N').value='0';
+    document.getElementById('gas-Fe').value='1'; document.getElementById('gas-T').value='1100';
+    document.getElementById('gas-couple').checked=true;
+    compute();
+  });
 })();
 </script>
 <script>

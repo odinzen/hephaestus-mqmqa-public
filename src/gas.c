@@ -413,3 +413,298 @@ int mqmqa_gas_equilibrium(const gas_db *g, double T, double P,
 {
     return mqmqa_gas_equilibrium_ex(g, T, P, b, 0, out_x);
 }
+
+/* ---- coupled gas + pure-condensed equilibrium (see gas.h) ---------------------------
+ * Primal element-potential method with the gas closure sum(X)=1 and each present
+ * condensed species on its saturation line a_k.pi = g_k, so pi are the true element
+ * potentials shared by gas and condensate. A damped Newton over [pi, nt, condensed
+ * amounts] solves one present set; the stable assemblage is the lowest-Gibbs valid set,
+ * enumerated over condensed subsets up to the phase-rule limit. This is the C port of the
+ * validated python/mqmqa/gas.py:gas_condensed_equilibrium. */
+
+/* gas mole fractions X_j = exp(a_j.pi - g_j - ln(P/P0)); makes mu_j/RT = a_j.pi exactly */
+static void gc_Xgas(const gas_db *g, const double *grt, double lnPP,
+                    const double *pi, double *X)
+{
+    for (int i = 0; i < g->n_sp; ++i) {
+        const GasSpecies *s = &g->sp[i];
+        double lnx = -grt[i] - lnPP;
+        for (int k = 0; k < s->nel; ++k) lnx += s->cnt[k] * pi[s->el[k]];
+        X[i] = exp(clip(lnx, -300.0, 300.0));
+    }
+}
+
+/* residual F = [element balance (nE); gas closure sum(X)-1; saturation lines (m)] and
+ * its max-abs; X is filled as a side effect */
+static double gc_residual(const gas_db *g, const double *grt, double lnPP,
+                          const double *Ac, const double *gcv, const double *b, int nE,
+                          const int *active, int m, const double *pi, double nt,
+                          const double *nk, double *X, double *F)
+{
+    int nsp = g->n_sp, n = nE + 1 + m;
+    gc_Xgas(g, grt, lnPP, pi, X);
+    for (int e = 0; e < nE; ++e) F[e] = -b[e];
+    double sX = 0.0;
+    for (int i = 0; i < nsp; ++i) {
+        const GasSpecies *s = &g->sp[i];
+        sX += X[i];
+        for (int k = 0; k < s->nel; ++k) F[s->el[k]] += nt * s->cnt[k] * X[i];
+    }
+    for (int j = 0; j < m; ++j) {
+        const double *row = &Ac[active[j] * nE];
+        for (int e = 0; e < nE; ++e) F[e] += row[e] * nk[j];
+    }
+    F[nE] = sX - 1.0;
+    for (int j = 0; j < m; ++j) {
+        const double *row = &Ac[active[j] * nE];
+        double q = -gcv[active[j]];
+        for (int e = 0; e < nE; ++e) q += row[e] * pi[e];
+        F[nE + 1 + j] = q;
+    }
+    double mx = 0.0;
+    for (int i = 0; i < n; ++i) if (fabs(F[i]) > mx) mx = fabs(F[i]);
+    return mx;
+}
+
+/* Newton solve for one present set; returns 0 on convergence, non-zero otherwise. */
+static int gc_solve_active(const gas_db *g, const double *grt, double lnPP,
+                           const double *Ac, const double *gcv, const double *b,
+                           double bscale, int nE, const int *active, int m,
+                           double *pi, double *ntp, double *nk)
+{
+    int nsp = g->n_sp, n = nE + 1 + m;
+    double *X = malloc((size_t)nsp * sizeof(double));
+    double *F = malloc((size_t)n * sizeof(double));
+    double *J = malloc((size_t)n * n * sizeof(double));
+    double *dz = malloc((size_t)n * sizeof(double));
+    double *aX = malloc((size_t)nE * sizeof(double));
+    double *pin = malloc((size_t)nE * sizeof(double));
+    double *nkn = malloc((size_t)(m ? m : 1) * sizeof(double));
+    if (!X || !F || !J || !dz || !aX || !pin || !nkn) {
+        free(X); free(F); free(J); free(dz); free(aX); free(pin); free(nkn); return 2;
+    }
+    double nt = *ntp;
+    for (int j = 0; j < m; ++j) nk[j] = 0.0;
+    int rc = 1;
+    for (int iter = 0; iter < 200; ++iter) {
+        double f0 = gc_residual(g, grt, lnPP, Ac, gcv, b, nE, active, m, pi, nt, nk, X, F);
+        if (f0 < 1e-12 * bscale) { rc = 0; break; }
+        memset(J, 0, (size_t)n * n * sizeof(double));
+        for (int e = 0; e < nE; ++e) aX[e] = 0.0;
+        for (int i = 0; i < nsp; ++i) {
+            const GasSpecies *s = &g->sp[i];
+            double xi = X[i];
+            for (int a = 0; a < s->nel; ++a) {
+                aX[s->el[a]] += s->cnt[a] * xi;
+                for (int c = 0; c < s->nel; ++c)
+                    J[s->el[a] * n + s->el[c]] += nt * s->cnt[a] * s->cnt[c] * xi;   /* nt*G */
+            }
+        }
+        double dmax = 1.0;
+        for (int e = 0; e < nE; ++e) if (J[e * n + e] > dmax) dmax = J[e * n + e];
+        double ridge = 1e-12 * dmax;
+        for (int e = 0; e < nE; ++e) {
+            J[e * n + e] += ridge;
+            J[e * n + nE] = aX[e];                       /* dRe/dnt */
+            J[nE * n + e] = aX[e];                       /* dR0/dpi */
+        }
+        for (int j = 0; j < m; ++j) {
+            const double *row = &Ac[active[j] * nE];
+            for (int e = 0; e < nE; ++e) {
+                J[e * n + (nE + 1 + j)] = row[e];        /* dRe/dnk */
+                J[(nE + 1 + j) * n + e] = row[e];        /* dQk/dpi */
+            }
+        }
+        for (int i = 0; i < n; ++i) dz[i] = -F[i];
+        if (lin_solve(J, dz, n)) break;
+        double alpha = 1.0; int ok = 0;
+        for (int ls = 0; ls < 60; ++ls) {
+            for (int e = 0; e < nE; ++e) pin[e] = pi[e] + alpha * dz[e];
+            double ntn = nt + alpha * dz[nE];
+            for (int j = 0; j < m; ++j) nkn[j] = nk[j] + alpha * dz[nE + 1 + j];
+            if (ntn > 0.0) {
+                double fn = gc_residual(g, grt, lnPP, Ac, gcv, b, nE, active, m,
+                                        pin, ntn, nkn, X, F);
+                if (isfinite(fn) && fn <= (1.0 - 1e-4 * alpha) * f0) {
+                    for (int e = 0; e < nE; ++e) pi[e] = pin[e];
+                    nt = ntn;
+                    for (int j = 0; j < m; ++j) nk[j] = nkn[j];
+                    ok = 1; break;
+                }
+            }
+            alpha *= 0.5;
+        }
+        if (!ok) break;
+    }
+    *ntp = nt;
+    free(X); free(F); free(J); free(dz); free(aX); free(pin); free(nkn);
+    return rc;
+}
+
+/* total Gibbs over RT of a converged assemblage (the arbiter between phase choices) */
+static double gc_gibbs(const gas_db *g, const double *grt, double lnPP,
+                       const double *gcv, int nE, const int *active, int m,
+                       const double *pi, double nt, const double *nk, double *X)
+{
+    (void)nE;
+    int nsp = g->n_sp;
+    gc_Xgas(g, grt, lnPP, pi, X);
+    double sX = 0.0;
+    for (int i = 0; i < nsp; ++i) sX += X[i];
+    double gas_g = 0.0;
+    for (int i = 0; i < nsp; ++i) {
+        double Xn = X[i] / sX;
+        if (Xn > 1e-300) gas_g += nt * Xn * (grt[i] + lnPP + log(Xn));
+    }
+    double cg = 0.0;
+    for (int j = 0; j < m; ++j) cg += nk[j] * gcv[active[j]];
+    return gas_g + cg;
+}
+
+/* solve the given present set from the seed and return its Gibbs if it is a valid
+ * equilibrium (converged, non-negative amounts, no supersaturated absentee), else HUGE_VAL */
+static double gc_evaluate(const gas_db *g, const double *grt, double lnPP,
+                          const double *Ac, const double *gcv, const double *b,
+                          double bscale, int nE, int n_cond, const int *active, int m,
+                          const double *pi_seed, double nt_seed,
+                          double *pi_out, double *nt_out, double *nk_out, double *X)
+{
+    for (int e = 0; e < nE; ++e) pi_out[e] = pi_seed[e];
+    double nt = nt_seed;
+    if (gc_solve_active(g, grt, lnPP, Ac, gcv, b, bscale, nE, active, m, pi_out, &nt, nk_out))
+        return HUGE_VAL;
+    *nt_out = nt;
+    for (int j = 0; j < m; ++j) if (nk_out[j] < -1e-7 * bscale) return HUGE_VAL;
+    for (int i = 0; i < n_cond; ++i) {
+        int in = 0;
+        for (int j = 0; j < m; ++j) if (active[j] == i) { in = 1; break; }
+        if (in) continue;
+        const double *row = &Ac[i * nE];
+        double drive = -gcv[i];
+        for (int e = 0; e < nE; ++e) drive += row[e] * pi_out[e];
+        double sc = fabs(gcv[i]); if (sc < 1.0) sc = 1.0;
+        if (drive > 1e-6 * sc) return HUGE_VAL;
+    }
+    return gc_gibbs(g, grt, lnPP, gcv, nE, active, m, pi_out, nt, nk_out, X);
+}
+
+int mqmqa_gas_condensed_equilibrium(
+    const gas_db *g, int n_elem, const double *b, double T, double P,
+    int n_cond, const double *cond_grt, const double *cond_stoich,
+    double *out_x, double *out_cond, double *out_pi)
+{
+    if (!g || g->n_sp == 0 || n_elem < g->n_el) return 1;
+    int nsp = g->n_sp, nE = n_elem;
+    double lnPP = log(P / P_REF);
+    double bscale = 0.0;
+    for (int e = 0; e < nE; ++e) bscale += b[e];
+    if (bscale < 1.0) bscale = 1.0;
+
+    double *grt = malloc((size_t)nsp * sizeof(double));
+    double *X = malloc((size_t)nsp * sizeof(double));
+    double *pi_seed = calloc((size_t)nE, sizeof(double));
+    double *pi_best = malloc((size_t)nE * sizeof(double));
+    double *pi_try = malloc((size_t)nE * sizeof(double));
+    double *nk_best = calloc((size_t)(n_cond ? n_cond : 1), sizeof(double));
+    double *nk_try = calloc((size_t)(n_cond ? n_cond : 1), sizeof(double));
+    int *active = malloc((size_t)(n_cond ? n_cond : 1) * sizeof(int));
+    int *best_active = malloc((size_t)(n_cond ? n_cond : 1) * sizeof(int));
+    if (!grt || !X || !pi_seed || !pi_best || !pi_try || !nk_best || !nk_try
+        || !active || !best_active) {
+        free(grt); free(X); free(pi_seed); free(pi_best); free(pi_try);
+        free(nk_best); free(nk_try); free(active); free(best_active); return 2;
+    }
+    for (int i = 0; i < nsp; ++i) grt[i] = mqmqa_gas_species_grt(g, i, T);
+
+    /* seed pi from the gas-only element potentials (gas elements are combined 0..n_el-1) */
+    {
+        double *xg = malloc((size_t)nsp * sizeof(double));
+        double *pig = calloc((size_t)g->n_el, sizeof(double));
+        double *lnphi0 = calloc((size_t)nsp, sizeof(double));
+        if (xg && pig && lnphi0 && gas_solve(g, T, P, b, lnphi0, xg, pig) == 0) {
+            for (int e = 0; e < g->n_el; ++e)
+                if (isfinite(pig[e])) pi_seed[e] = pig[e];
+        }
+        free(xg); free(pig); free(lnphi0);
+    }
+    double nt_seed = bscale, nt_best = bscale, nt_try = bscale;
+
+    int kmax = n_cond < nE ? n_cond : nE;
+    /* count subsets up to kmax to decide enumeration vs a greedy fallback */
+    double ncombo = 0.0; { double c = 1.0;
+        for (int k = 0; k <= kmax; ++k) { ncombo += c; c = c * (n_cond - k) / (k + 1); } }
+    double gbest = HUGE_VAL; int mbest = -1;
+
+    if (n_cond == 0 || ncombo <= 60000.0) {
+        int *idx = malloc((size_t)(kmax + 1) * sizeof(int));
+        for (int k = 0; k <= kmax; ++k) {
+            for (int j = 0; j < k; ++j) idx[j] = j;
+            while (1) {
+                for (int j = 0; j < k; ++j) active[j] = idx[j];
+                double gv = gc_evaluate(g, grt, lnPP, cond_stoich, cond_grt, b, bscale,
+                                        nE, n_cond, active, k, pi_seed, nt_seed,
+                                        pi_try, &nt_try, nk_try, X);
+                if (gv < gbest) {
+                    gbest = gv; mbest = k;
+                    for (int e = 0; e < nE; ++e) pi_best[e] = pi_try[e];
+                    for (int j = 0; j < k; ++j) { best_active[j] = active[j]; nk_best[j] = nk_try[j]; }
+                    nt_best = nt_try;
+                }
+                if (k == 0) break;
+                int j = k - 1;
+                while (j >= 0 && idx[j] == n_cond - k + j) --j;
+                if (j < 0) break;
+                ++idx[j];
+                for (int t = j + 1; t < k; ++t) idx[t] = idx[t - 1] + 1;
+            }
+        }
+        free(idx);
+    } else {
+        /* greedy add-most-supersaturated / drop-negative, then single-toggle local search */
+        int m = 0;
+        for (int outer = 0; outer < 4 * n_cond + 4; ++outer) {
+            if (gc_solve_active(g, grt, lnPP, cond_stoich, cond_grt, b, bscale,
+                                nE, active, m, pi_best, &nt_best, nk_best)) break;
+            int neg = -1; double negv = -1e-7 * bscale;
+            for (int j = 0; j < m; ++j) if (nk_best[j] < negv) { negv = nk_best[j]; neg = j; }
+            if (neg >= 0) { for (int j = neg; j < m - 1; ++j) active[j] = active[j + 1]; --m; continue; }
+            int add = -1; double amax = 1e-9;
+            for (int i = 0; i < n_cond; ++i) {
+                int in = 0; for (int j = 0; j < m; ++j) if (active[j] == i) in = 1;
+                if (in) continue;
+                const double *row = &cond_stoich[i * nE];
+                double drive = -cond_grt[i];
+                for (int e = 0; e < nE; ++e) drive += row[e] * pi_best[e];
+                if (drive > amax) { amax = drive; add = i; }
+            }
+            if (add >= 0) { active[m++] = add; continue; }
+            break;
+        }
+        mbest = m; for (int j = 0; j < m; ++j) best_active[j] = active[j];
+        gbest = gc_evaluate(g, grt, lnPP, cond_stoich, cond_grt, b, bscale, nE, n_cond,
+                            best_active, mbest, pi_seed, nt_seed, pi_best, &nt_best, nk_best, X);
+    }
+
+    int rc = 0;
+    if (mbest < 0 || gbest == HUGE_VAL) {
+        /* no valid assemblage converged: fall back to the pure-gas result */
+        int z[1];
+        gbest = gc_evaluate(g, grt, lnPP, cond_stoich, cond_grt, b, bscale, nE, n_cond,
+                            z, 0, pi_seed, nt_seed, pi_best, &nt_best, nk_best, X);
+        mbest = 0;
+        if (gbest == HUGE_VAL) rc = 3;
+    }
+    gc_Xgas(g, grt, lnPP, pi_best, X);
+    double sX = 0.0; for (int i = 0; i < nsp; ++i) sX += X[i];
+    for (int i = 0; i < nsp; ++i) out_x[i] = X[i] / sX;
+    for (int i = 0; i < n_cond; ++i) out_cond[i] = 0.0;
+    for (int j = 0; j < mbest; ++j) {
+        double v = nk_best[j];
+        out_cond[best_active[j]] = v > 0.0 ? v : 0.0;
+    }
+    for (int e = 0; e < nE; ++e) out_pi[e] = pi_best[e];
+
+    free(grt); free(X); free(pi_seed); free(pi_best); free(pi_try);
+    free(nk_best); free(nk_try); free(active); free(best_active);
+    return rc;
+}

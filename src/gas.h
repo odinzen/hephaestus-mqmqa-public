@@ -48,6 +48,24 @@ MQMQA_API int mqmqa_gas_equilibrium(const gas_db *g, double T, double P,
 MQMQA_API int mqmqa_gas_equilibrium_ex(const gas_db *g, double T, double P,
                                        const double *b, int nonideal, double *out_x);
 
+/* Coupled ideal-gas + pure-condensed equilibrium at fixed T, P and element feed. The gas
+ * and every condensed species share one set of element potentials, so they settle to a
+ * common oxygen potential; the stable assemblage is the set of lowest total Gibbs energy.
+ *
+ * Elements are a caller-supplied combined list of length n_elem whose first
+ * mqmqa_gas_num_elements(g) entries ARE the gas elements in the database's own order (so a
+ * gas species' element indices are combined indices directly); any further entries are
+ * condensed-only elements. b[e] is the feed of element e. Condensed species i has molar
+ * Gibbs over RT cond_grt[i] at T and stoichiometry cond_stoich[i*n_elem + e] (atoms of
+ * element e). Fills out_x (gas mole fractions, length num_species), out_cond (moles of each
+ * condensed species, 0 when absent, length n_cond) and out_pi (element potentials mu_e/RT,
+ * length n_elem). Returns 0 on success, non-zero on failure. Mirrors and is validated
+ * against python/mqmqa/gas.py:gas_condensed_equilibrium. */
+MQMQA_API int mqmqa_gas_condensed_equilibrium(
+    const gas_db *g, int n_elem, const double *b, double T, double P,
+    int n_cond, const double *cond_grt, const double *cond_stoich,
+    double *out_x, double *out_cond, double *out_pi);
+
 #ifdef __cplusplus
 }
 #endif

@@ -130,3 +130,75 @@ def test_iron_oxide_reduction_vs_cantera(gas_co):
                 assert abs(cmm.get(n, 0.0) - cmc[n]) < 2e-3, (feed, T, n)
             checked += 1
     assert checked >= 8
+
+
+def test_c_port_matches_python(gas_co):
+    """The C core's mqmqa_gas_condensed_equilibrium must reproduce the Python reference to
+    machine precision on identical inputs (same gas thermo, same condensed g_rt), confirming
+    the WebAssembly/native port is faithful. Skips if the shared library is not built."""
+    try:
+        from mqmqa._abi import _ffi, _lib
+    except Exception:
+        pytest.skip("mqmqa shared library not built")
+    _, names, db = gas_co
+    gasf = os.path.join(os.path.dirname(__file__), "..", "data", "gas", "nasa_gas.dat")
+    text = open(gasf, encoding="utf-8").read()
+    cdb = _lib.mqmqa_gas_read_string(text.encode())
+    try:
+        nsp = _lib.mqmqa_gas_num_species(cdb)
+        csp = [_ffi.string(_lib.mqmqa_gas_species_name(cdb, i)).decode() for i in range(nsp)]
+        ngel = _lib.mqmqa_gas_num_elements(cdb)
+        gas_els = [_ffi.string(_lib.mqmqa_gas_element(cdb, e)).decode() for e in range(ngel)]
+        from mqmqa.gas import read_nasa_thermo
+        pdb = read_nasa_thermo(gasf)
+        pnames = list(pdb.keys())
+
+        grph = ct.Solution("graphite.yaml")
+        sp = {s.name: s for s in ct.Species.list_from_file("nasa_condensed.yaml")}
+        cph = {n: ct.Solution(thermo="fixed-stoichiometry", species=[sp[n]])
+               for n in ("C(gr)", "FeO(s)", "Fe(a)")}
+        comp = {"C(gr)": {"C": 1}, "FeO(s)": {"FE": 1, "O": 1}, "Fe(a)": {"FE": 1}}
+
+        def g_cond(n, T):
+            p = grph if n == "C(gr)" else cph[n]
+            p.TP = T, ct.one_atm
+            return p.standard_gibbs_RT[0]
+
+        cases = [
+            ({"C": 2.0, "O": 1.0}, ["C(gr)"]),
+            ({"FE": 1.0, "C": 1.5, "O": 1.5}, ["C(gr)", "FeO(s)", "Fe(a)"]),
+            ({"FE": 1.0, "C": 3.0, "O": 1.15}, ["C(gr)", "FeO(s)", "Fe(a)"]),
+            ({"FE": 2.0, "C": 1.0, "O": 2.2}, ["C(gr)", "FeO(s)", "Fe(a)"]),
+        ]
+        for feed, cnames in cases:
+            for T in (900.0, 1100.0, 1400.0):
+                P = ct.one_atm
+                els = list(gas_els)
+                for n in cnames:
+                    for e in comp[n]:
+                        if e not in els:
+                            els.append(e)
+                nE = len(els)
+                b = np.zeros(nE)
+                for e, v in feed.items():
+                    b[els.index(e)] = v
+                cgrt = np.array([g_cond(n, T) for n in cnames])
+                cstoich = np.zeros((len(cnames), nE))
+                for i, n in enumerate(cnames):
+                    for e, v in comp[n].items():
+                        cstoich[i, els.index(e)] = v
+                ox = np.zeros(nsp); oc = np.zeros(max(len(cnames), 1)); op = np.zeros(nE)
+                rc = _lib.mqmqa_gas_condensed_equilibrium(
+                    cdb, nE, _ffi.cast("double*", b.ctypes.data), T, P, len(cnames),
+                    _ffi.cast("double*", cgrt.ctypes.data), _ffi.cast("double*", cstoich.ctypes.data),
+                    _ffi.cast("double*", ox.ctypes.data), _ffi.cast("double*", oc.ctypes.data),
+                    _ffi.cast("double*", op.ctypes.data))
+                assert rc == 0
+                cxf = {csp[i]: ox[i] for i in range(nsp)}
+                cond = [Condensed(n, dict(comp[n]), g_cond(n, T)) for n in cnames]
+                pxf, pcf, _ = gas_condensed_equilibrium(pdb, pnames, cond, T, P, feed)
+                assert max(abs(cxf[s] - pxf[s]) for s in pnames) < 1e-9, (feed, T)
+                for i, n in enumerate(cnames):
+                    assert abs(oc[i] - pcf.get(n, 0.0)) < 1e-9, (feed, T, n)
+    finally:
+        _lib.mqmqa_gas_free(cdb)

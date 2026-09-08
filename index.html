@@ -1346,26 +1346,29 @@ document.getElementById('solve').addEventListener('click', () => {
   }
   const T=parseFloat(document.getElementById('eqT').value)||1873;
 
-  msg.textContent='Solving…';
-  const inp=buildInputs([...elems], T);
-  const res=solveEquilibrium(inp, target);
-  if(!isFinite(res.GM)){
-    msg.textContent='The solver did not converge at '+T+' K. Try another temperature or composition.';
-    return;
-  }
-  msg.textContent='';
-
-  document.getElementById('gm').textContent =
-    res.GM.toLocaleString(undefined,{maximumFractionDigits:2})+' J/mol';
-  document.getElementById('cerr').textContent = res.comp_error.toExponential(1);
-  const tb=document.getElementById('quadtab'); tb.innerHTML='';
-  inp.qca.map((_,q)=>q).sort((a,b)=>res.X[b]-res.X[a]).forEach(q=>{
-    if(res.X[q]<1e-9) return;
-    const tr=document.createElement('tr');
-    tr.innerHTML='<td>'+escHtml(inp.quadLabel(q))+'</td><td class="num">'+res.X[q].toFixed(5)+'</td>';
-    tb.appendChild(tr);
-  });
-  out.classList.remove('hidden');
+  // show the spinner and let it paint before the (blocking) solve, so the card never
+  // looks frozen during a slow equilibrium
+  msg.innerHTML='<span class="spinner"></span> Solving…';
+  setTimeout(()=>{
+    const inp=buildInputs([...elems], T);
+    const res=solveEquilibrium(inp, target);
+    if(!isFinite(res.GM)){
+      msg.textContent='The solver did not converge at '+T+' K. Try another temperature or composition.';
+      return;
+    }
+    msg.textContent='';
+    document.getElementById('gm').textContent =
+      res.GM.toLocaleString(undefined,{maximumFractionDigits:2})+' J/mol';
+    document.getElementById('cerr').textContent = res.comp_error.toExponential(1);
+    const tb=document.getElementById('quadtab'); tb.innerHTML='';
+    inp.qca.map((_,q)=>q).sort((a,b)=>res.X[b]-res.X[a]).forEach(q=>{
+      if(res.X[q]<1e-9) return;
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+escHtml(inp.quadLabel(q))+'</td><td class="num">'+res.X[q].toFixed(5)+'</td>';
+      tb.appendChild(tr);
+    });
+    out.classList.remove('hidden');
+  }, 20);
 });
 
 // ---- binary phase diagram (liquid convex hull vs stoichiometric compounds) ----
@@ -3164,8 +3167,11 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
     cv.style.display=useCanvas?'block':'none';
     $('bld-result').hidden=useCanvas;
     $('bld-save').closest('.bld-save-row').style.display=(n<=4)?'':'none';
+    // the 4-component eutectic search is the one heavy case; show a spinner and give it
+    // a moment to paint before the blocking find, so the builder never looks frozen
+    if(n>=4) $('bldread').innerHTML='<span class="spinner"></span> Finding the eutectic…';
     if(pending) return;
-    pending=setTimeout(()=>{ pending=0; render(); }, 0);
+    pending=setTimeout(()=>{ pending=0; render(); }, n>=4?20:0);
   }
 
   function showComps(n){ for(let k=0;k<6;k++) $('comp'+k).style.display=(k<n)?'':'none'; }
@@ -3366,6 +3372,8 @@ new MutationObserver(()=>{ if(pdResult) drawDiagram(); }).observe(document.docum
     if(!isFinite(P)||P<=0){ msg.textContent='Pressure must be positive.'; return; }
     const b=gels.map(e=>feed[e]||0);
     const real=document.getElementById('gas-real').checked;
+    msg.innerHTML='<span class="spinner"></span> Solving…';
+    await new Promise(r=>setTimeout(r, 20));   // let the spinner paint before the solve
     const x=api.gasEquil(gdb,T,P,b,real);
     if(!x){ msg.textContent='Gas solve did not converge for these conditions.'; return; }
     msg.textContent='';

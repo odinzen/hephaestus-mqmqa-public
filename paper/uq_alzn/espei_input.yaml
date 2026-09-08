@@ -11,6 +11,6 @@ mcmc:
   save_interval: 100
   input_db: alzn_espei.tdb
   approximate_equilibrium: true
-  symbols: [VV0001, VV0002]
+  symbols: [VV0001, VV0002, VV0003]
   chain_std_deviation: 0.02
   scheduler: null

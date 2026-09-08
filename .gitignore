@@ -66,3 +66,7 @@ paper/figures/preview_*.png
 # local session tooling and working notes, never for the public repo
 .claude/
 data/olivine/_dft/HANDOFF.md
+
+# ESPEI UQ analysis: NIMS-derived reference TDB and regenerable MCMC outputs stay local
+paper/uq_alzn/alzn_espei.tdb
+paper/uq_alzn/output/

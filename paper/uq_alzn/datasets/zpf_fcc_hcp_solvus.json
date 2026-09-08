@@ -1,0 +1,126 @@
+{
+  "components": [
+    "AL",
+    "ZN",
+    "VA"
+  ],
+  "phases": [
+    "FCC_A1",
+    "HCP_A3"
+  ],
+  "conditions": {
+    "P": 101325,
+    "T": [
+      654,
+      600,
+      550,
+      500,
+      450
+    ]
+  },
+  "output": "ZPF",
+  "values": [
+    [
+      [
+        "FCC_A1",
+        [
+          "ZN"
+        ],
+        [
+          0.665
+        ]
+      ],
+      [
+        "HCP_A3",
+        [
+          "ZN"
+        ],
+        [
+          0.972
+        ]
+      ]
+    ],
+    [
+      [
+        "FCC_A1",
+        [
+          "ZN"
+        ],
+        [
+          0.55
+        ]
+      ],
+      [
+        "HCP_A3",
+        [
+          "ZN"
+        ],
+        [
+          0.985
+        ]
+      ]
+    ],
+    [
+      [
+        "FCC_A1",
+        [
+          "ZN"
+        ],
+        [
+          0.42
+        ]
+      ],
+      [
+        "HCP_A3",
+        [
+          "ZN"
+        ],
+        [
+          0.99
+        ]
+      ]
+    ],
+    [
+      [
+        "FCC_A1",
+        [
+          "ZN"
+        ],
+        [
+          0.3
+        ]
+      ],
+      [
+        "HCP_A3",
+        [
+          "ZN"
+        ],
+        [
+          0.993
+        ]
+      ]
+    ],
+    [
+      [
+        "FCC_A1",
+        [
+          "ZN"
+        ],
+        [
+          0.2
+        ]
+      ],
+      [
+        "HCP_A3",
+        [
+          "ZN"
+        ],
+        [
+          0.995
+        ]
+      ]
+    ]
+  ],
+  "reference": "massalski_dinsdale_alzn",
+  "comment": "Al-Zn FCC+HCP two-phase boundary (Al-rich fcc solvus and Zn-rich hcp boundary) vs T, from the assessed diagram Fig.10 of Dinsdale et al. Calphad 68 (2020) 101723 and Massalski (1990). Eutectic 654 K: x_FCC=0.665, x_HCP=0.972. Constrains the fcc excess (miscibility gap)."
+}

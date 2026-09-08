@@ -995,6 +995,7 @@ function loadDatabase(text, name) {
   document.getElementById('terncard').classList.toggle('hidden', !isFMS);
   document.getElementById('crystcard').classList.toggle('hidden', !isFMS);
   document.getElementById('livecard').classList.toggle('hidden', cats3.length !== 3);
+  document.getElementById('slaggascard').classList.toggle('hidden', !hasO);   // oxide-slag showcase: hide for salts/alloys
   if (window._liveSyncLoaded) window._liveSyncLoaded();     // point the live engine at this system
   window._pdPreset = null; pdSetXWindow(0, 100);   // fresh file, neutral full join (demos preset below)
   const solids=[]; for(let i=0;i<api.nStoich(db);i++) solids.push(api.stName(db,i));
@@ -2343,6 +2344,7 @@ document.getElementById('pdmode').addEventListener('click', e => {
   document.getElementById('terncard').classList.toggle('hidden', wantAlloy || !isFMS);
   document.getElementById('crystcard').classList.toggle('hidden', wantAlloy || !isFMS);
   document.getElementById('livecard').classList.toggle('hidden', !liveOn);
+  document.getElementById('slaggascard').classList.toggle('hidden', wantAlloy || !meltHasO);
   if (liveOn && window._liveSyncLoaded) window._liveSyncLoaded();
 });
 

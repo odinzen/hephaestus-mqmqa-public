@@ -2264,9 +2264,16 @@ document.getElementById('pdmode').addEventListener('click', e => {
   document.getElementById('scheil-read').innerHTML = '&nbsp;';
   populateDiagram();
   applyPdPreset();   // each view mode gets its own relevant window
-  // The live ternary card is a 3-cation tool; the alloy side of a unified file is a binary
-  // (e.g. Al-Zn), which has no triangle, so hide it in alloy mode and restore it for the melt.
-  const liveOn = !wantAlloy && api.nCat(db, phase) === 3 && api.nAn(db, phase) === 1;
+  // The live ternary, the assessed-projection and the crystallization cards are all melt-side
+  // (slag/salt) tools decided once at load by the melt chemistry. The alloy side of a unified file
+  // is a binary (Al-Zn, Fe-C) with no triangle, so the toggle must re-apply them or a slag tool
+  // lingers over the alloy view. Hide in alloy mode; restore for the melt by the load-time rule.
+  const meltCats = []; for (let i = 0; i < api.nCat(db, phase); i++) meltCats.push(elementOf(api.cat(db, phase, i)));
+  const meltHasO = anNames.some(a => elementOf(a) === 'O');
+  const isFMS = meltHasO && meltCats.length === 3 && ['FE', 'MG', 'SI'].every(c => meltCats.includes(c));
+  const liveOn = !wantAlloy && meltCats.length === 3 && api.nAn(db, phase) === 1;
+  document.getElementById('terncard').classList.toggle('hidden', wantAlloy || !isFMS);
+  document.getElementById('crystcard').classList.toggle('hidden', wantAlloy || !isFMS);
   document.getElementById('livecard').classList.toggle('hidden', !liveOn);
   if (liveOn && window._liveSyncLoaded) window._liveSyncLoaded();
 });

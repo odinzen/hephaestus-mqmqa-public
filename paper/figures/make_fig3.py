@@ -1,4 +1,4 @@
-"""Regenerate fig3_ternary.png: (a) liquidus projection, (b) 1600 degC isothermal section.
+"""Regenerate fig3_ternary.png: (a) liquidus projection, (b) 1873 K isothermal section.
 
 Readability rules: large in-field labels with white halos (dark fills cannot eat them),
 contour labels at 9 pt with halos, greyscale house fills, no baked caption.
@@ -65,7 +65,7 @@ d = np.load(DATA / "_liquidus_projection.npz", allow_pickle=True)
 fe, si = d["comps"][:, 0], d["comps"][:, 1]
 Xa, Ya = tri_xy(fe, si)
 prim = [str(p) for p in d["prim"]]
-liqC = d["liqT"] - 273.15
+liqK = d["liqT"]                # Kelvin throughout (Kristina Rule #1)
 
 GREY = {"OLIVINE": "0.78", "ORTHOPYROXENE": "0.88", "PERICLASE": "0.55",
         "WUSTITE": "0.42", "CRISTOBALITE": "0.68", "": "1.0"}
@@ -73,7 +73,7 @@ cats = sorted(set(prim))
 code = np.array([cats.index(p) for p in prim], float)
 
 fig, (axa, axb) = plt.subplots(1, 2, figsize=(12.6, 5.6), dpi=600)
-ok = np.array([p != "" for p in prim]) & ~np.isnan(liqC)
+ok = np.array([p != "" for p in prim]) & ~np.isnan(liqK)
 axa.scatter(Xa[ok], Ya[ok], c=[GREY[p] for p in np.array(prim)[ok]], s=4.5,
             marker="s", linewidths=0)
 # the cache is a regular barycentric grid: contour it as a 2-D field so no
@@ -82,7 +82,7 @@ fu = np.unique(np.round(fe, 9)); step = fu[1] - fu[0]
 n = len(fu)
 T2 = np.full((n, n), np.nan)
 I = np.rint(fe / step).astype(int); J = np.rint(si / step).astype(int)
-T2[J, I] = np.where(ok, liqC, np.nan)
+T2[J, I] = np.where(ok, liqK, np.nan)
 # NaN-aware Gaussian smoothing: the cached scan quantizes the liquidus in 10 K
 # steps, which staircases raw contours; smooth the field, not the physics
 from scipy.ndimage import gaussian_filter
@@ -92,7 +92,7 @@ num = gaussian_filter(T0, 1.8); den = gaussian_filter(w, 1.8)
 T2s = np.where(w > 0, num / np.maximum(den, 1e-9), np.nan)
 FE2, SI2 = np.meshgrid(fu, fu)
 X2 = FE2 + 0.5 * SI2; Y2 = S3 * SI2
-cs = axa.contour(X2, Y2, T2s, levels=[1300, 1400, 1500, 1600, 1700, 1800],
+cs = axa.contour(X2, Y2, T2s, levels=[1600, 1700, 1800, 1900, 2000, 2100],
                  colors="black", linewidths=1.0)
 cl = axa.clabel(cs, fmt="%.0f", fontsize=9)
 for t in cl:
@@ -102,13 +102,13 @@ label_regions(axa, Xa[ok], Ya[ok], [ABBR[p] for p in np.array(prim)[ok]],
 frame(axa)
 axa.set_title("(a)", fontsize=13)
 
-# ---------- panel (b): isothermal section at 1600 degC ----------
+# ---------- panel (b): isothermal section at 1873 K ----------
 _spec = importlib.util.spec_from_file_location("td", DATA / "ternary_diagram.py")
 td = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(td)
 from mqmqa import ternary as tern
 
-TK = 1600 + 273.15
+TK = 1873.0
 pts, facets = td.build(TK, nsamp=9000)
 N = 95
 gx, gy, nsol, names = [], [], [], []

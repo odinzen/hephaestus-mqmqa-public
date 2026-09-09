@@ -59,7 +59,7 @@ mirror OCASI so an application written against it can bind Hephaestus instead.
 | TQ entry | Meaning | Backed by |
 |---|---|---|
 | `tqini` | initialise a workspace | new equilibrium context struct |
-| `tqrfil` / `tqrpfil` | read a database (optionally select phases) | existing `.dat` / `.tdb` / `.utdb` / `.xtdb` readers |
+| `tqrfil` / `tqrpfil` | read a database (optionally select phases) | existing `.dat` / `.tdb` / `.utdb` readers (XTDB is roadmap S6) |
 | `tqgcom` | get system components | `mqmqa_db_element` |
 | `tqgnp` / `tqgpn` / `tqgpi` | number, name, index of phases | existing introspection |
 | `tqgnsubl` / `tqgccf` | sublattices and constituents of a phase | existing CEF/MQMQA getters |

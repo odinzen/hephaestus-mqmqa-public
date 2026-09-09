@@ -73,3 +73,7 @@ START_HERE_Hephaestus.md
 # ESPEI UQ analysis: NIMS-derived reference TDB and regenerable MCMC outputs stay local
 paper/uq_alzn/alzn_espei.tdb
 paper/uq_alzn/output/
+
+# Bo Sundman's XTDB example is GPL-3.0 - keep it as a LOCAL validation reference only,
+# never redistribute it from this MIT/CC-BY repo. We ship our own transcription (data/xtdb/).
+data/xtdb-alc/AlC-database.XTDB

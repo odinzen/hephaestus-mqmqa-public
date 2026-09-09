@@ -1,8 +1,29 @@
 # JORS submission checklist (Hephaestus metapaper)
 
-Updated 2026-09-09 (sixth pass, v0.5.1). Two authors, the gas couplings and the full
-system set are described, references verified and citations renumbered, gates re-run green.
-Ready for the two submission clicks below.
+Updated 2026-09-09 (seventh pass, v0.6.0). The XTDB third-generation reader is now built and
+described, two authors, the gas couplings and the full system set are described, references
+verified and citations renumbered, gates re-run green. Ready for the two submission clicks below.
+
+## Done (2026-09-09, seventh pass - v0.6.0)
+
+- XTDB reader built and shipped (src/xtdb.c, src/xtdb.h): parses the open XML CALPHAD format
+  and assembles third-generation Gibbs energies, an Einstein heat capacity valid to 0 K
+  (weighted by atom count per formula unit) and a two-state liquid. Compiled into the
+  WebAssembly core; a dedicated browser card reads an .xtdb file and computes its binary
+  phase diagram live by lower-convex-hull common-tangent construction.
+- Two databases ship: data/xtdb/AlC.xtdb (third-generation Al-C, He et al. 2021, our own
+  transcription; reproduces Al melting 933.47 K and the Al4C3 peritectic 2429 K) and
+  web/PbSn.xtdb (classic assessment in XTDB, Ngai & Chang 1981; eutectic 456 K, x(Sn) 0.74).
+- Validated: C engine matches an independent Python evaluator to < 1e-6 J/mol-atom across the
+  Einstein, two-state, and excess terms; heat capacities physical (graphite ~8.5, Al ~3R,
+  Al4C3 -> 7*3R); reproduced in-browser (WASM). The Al4C3 Cp/atom-count convention was flagged
+  to Michael as a science tie and confirmed against the XTDB spec and the He 2021 diagram.
+- Manuscript: abstract, Table 1, and reuse section updated (engine reads XTDB directly with
+  third-generation models); Figure 10 added (Al-C and Pb-Sn); three registry-verified
+  references added (Chen & Sundman 2001, He et al. 2021, Ngai & Chang 1981; argus check 3/3
+  ok, canonical numbering 50 total); version bumped v0.5.1 -> v0.6.0; argus order green
+  (50 citations, tables 1-3, figures 1-10 all resolve).
+- OPEN: cut the v0.6.0 git tag/release (the paper references it); then the two submission clicks.
 
 ## Done (2026-09-09, sixth pass - v0.5.1)
 
@@ -26,7 +47,6 @@ Ready for the two submission clicks below.
   db/phase global swap guarded with finally; gas-card HTML escaper hardened; a load during
   WASM init now reports instead of silently doing nothing). Flux-vapour curve labels de-collided.
 - CONTRIBUTING.md added to the remote with the code/science boundary rule.
-- OPEN: cut the v0.5.1 git tag/release (the paper references it); then the two submission clicks.
 
 ## Done (2026-09-03, fifth pass - v0.4.0)
 

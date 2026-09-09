@@ -14,7 +14,7 @@ contribution.
 - `Cover_Letter.docx`
 - `SUBMISSION_CHECKLIST.{md,docx}`
 - `Supplementary_S1_primer.{md,docx,pdf}` — S1 primer for non-coders
-- `figures/` — fig1 architecture, fig2 browser app, fig3 ternary, fig4 salt listing (LiCl-KCl), fig5 alloy listing (Al-Zn), fig6 uTDB steel demo, fig7 gas-steel worked example, fig8 gas-flux (chloride fume), fig9 Al-Zn ESPEI uncertainty
+- `figures/` — fig1 architecture, fig2 browser app, fig3 ternary, fig4 salt listing (LiCl-KCl), fig5 alloy listing (Al-Zn), fig6 uTDB steel demo, fig7 gas-steel worked example, fig8 gas-flux (chloride fume), fig9 Al-Zn ESPEI uncertainty, fig10 XTDB third-generation diagrams (Al-C, Pb-Sn)
 
 The paper describes only the public model and this open implementation; the proprietary
 Odinzen equilibrium kernel and its method are not part of this work.

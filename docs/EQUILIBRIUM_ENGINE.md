@@ -59,7 +59,7 @@ mirror OCASI so an application written against it can bind Hephaestus instead.
 | TQ entry | Meaning | Backed by |
 |---|---|---|
 | `tqini` | initialise a workspace | new equilibrium context struct |
-| `tqrfil` / `tqrpfil` | read a database (optionally select phases) | existing `.dat` / `.tdb` / `.utdb` readers (XTDB is roadmap S6) |
+| `tqrfil` / `tqrpfil` | read a database (optionally select phases) | existing `.dat` / `.tdb` / `.utdb` readers (XTDB has its own self-contained `src/xtdb.c` reader, separate from this path) |
 | `tqgcom` | get system components | `mqmqa_db_element` |
 | `tqgnp` / `tqgpn` / `tqgpi` | number, name, index of phases | existing introspection |
 | `tqgnsubl` / `tqgccf` | sublattices and constituents of a phase | existing CEF/MQMQA getters |
@@ -91,8 +91,9 @@ and the new minimiser.
   hull; verify parity in the app.
 - **S4** conditions beyond composition (activity, fixed phase).
 - **S5** optional Newton refinement for mapping-grade phase boundaries.
-- **S6** XTDB reader as a file front-end; docs; paper update (the two-oracle validation
-  story, the OCASI-compatible embedding claim).
+- **S6** (done) XTDB reader (`src/xtdb.c`) built as a self-contained third-generation
+  front-end (Einstein + two-state) with a live browser diagram card; validated against a
+  Python reference and the He 2021 Al-C diagram; docs and paper updated.
 
 ## Licensing
 

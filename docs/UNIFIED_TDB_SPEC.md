@@ -46,15 +46,18 @@ uTDB is the on-ramp from the installed base (extend the files you already have, 
 is where the standard is going. Converting uTDB statements to XTDB elements is mechanical once
 that schema settles.
 
-**Status in this engine:** `.dat`, `.tdb`, and `.utdb` are read today. An **XTDB reader is a
-roadmap item, not yet implemented** (see `docs/EQUILIBRIUM_ENGINE.md`, step S6). It is a clean,
-self-contained piece of work: XTDB is an openly documented format, and every existing reader
-already parses into the same in-memory database structure, so an XTDB front-end would parse the
-XML into that same structure and the rest of the engine would work unchanged. Because XTDB's
-schema carries MQMQA and this engine already models MQMQA, the reader is the one missing bridge
-between the emerging standard and a working open engine. Implement it clean-room from the
-published XTDB spec and schema (no GPL source), and validate it the way `.utdb` is validated -
-round-trip and parity against the same system in `.dat`/`.utdb` form.
+**Status in this engine:** `.dat`, `.tdb`, and `.utdb` are read today, and an **XTDB reader is
+now built** (`src/xtdb.c`), including the third-generation models the format standardises: an
+Einstein heat capacity valid to 0 K (weighted by the atom count of the formula unit) and a
+two-state liquid. It is a self-contained subsystem with its own `xtdb_*` ABI, compiled into the
+WebAssembly build, and a dedicated browser card computes an `.xtdb` file's binary phase diagram
+live by lower-convex-hull common-tangent construction. Two databases ship as worked examples:
+third-generation Al-C (He et al., Calphad 72 (2021) 102250) and a classic Pb-Sn assessment
+written in XTDB. It was implemented clean-room from the published XTDB spec and the model
+equations (no GPL source), and validated against an independent Python reference to
+< 1e-6 J/mol-atom, reproducing Al melting 933.47 K, the Al4C3 peritectic 2429 K, and the Pb-Sn
+eutectic (456 K, x(Sn) 0.74). Converting uTDB statements to XTDB elements remains mechanical
+once that schema's wider tooling settles.
 
 ## Grammar
 

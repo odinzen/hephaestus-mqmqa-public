@@ -11,9 +11,11 @@ contribution.
 ## Contents
 
 - `Bustamante_Hephaestus_JORS_manuscript.{md,docx,pdf}` — manuscript (md is the source, docx/pdf the reading copies)
-- `Cover_Letter.docx`
+- `Highlights.{md,docx}` — five submission highlights
+- `Cover_Letter.{docx,pdf}`
 - `SUBMISSION_CHECKLIST.{md,docx}`
 - `Supplementary_S1_primer.{md,docx,pdf}` — S1 primer for non-coders
+- `examples_alloy.py`, `examples_salt.py` — minimal scripted-use examples
 - `figures/` — fig1 architecture, fig2 browser app, fig3 ternary, fig4 salt listing (LiCl-KCl), fig5 alloy listing (Al-Zn), fig6 uTDB steel demo, fig7 gas-steel worked example, fig8 gas-flux (chloride fume), fig9 Al-Zn ESPEI uncertainty, fig10 XTDB third-generation diagrams (Al-C, Pb-Sn)
 
 The paper describes only the public model and this open implementation; the proprietary

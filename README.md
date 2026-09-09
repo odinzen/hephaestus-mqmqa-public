@@ -64,7 +64,10 @@ measurements in the per-system provenance notes.
 WebAssembly (`scripts/build_wasm.sh`, committed as `web/hephaestus.js`) with a live
 melt calculator, binary and ternary phase-diagram solvers for any loaded .dat, .tdb,
 or .utdb file (the steelmaking demo computes the real Fe-C diagram), Scheil
-solidification, and a multicomponent eutectic builder. Everything runs in
+solidification, and a multicomponent eutectic builder. A separate card reads the open
+XML `.xtdb` format (`src/xtdb.c`) and its third-generation models, an Einstein heat
+capacity valid to 0 K and a two-state liquid, computing an `.xtdb` file's binary diagram
+live; a third-generation Al-C database and a classic Pb-Sn assessment ship as examples. Everything runs in
 the page: a loaded database never leaves the visitor's machine, the CSP blocks every
 third-party request, and the fonts are self-hosted. Serve it from any static host, or
 locally:

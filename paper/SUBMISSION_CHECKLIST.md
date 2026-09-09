@@ -25,7 +25,16 @@ verified and citations renumbered, gates re-run green. Ready for the two submiss
   (50 citations, tables 1-3, figures 1-10 all resolve).
 - v0.6.0 tag and GitHub release cut (2026-09-09), published on main; the paper's persistent
   identifier https://github.com/odinzen/hephaestus-mqmqa-public/releases/tag/v0.6.0 resolves.
-- OPEN: the two submission clicks (and refresh the desktop submission zip to v0.6.0).
+- Figure 1 (architecture) corrected to show .xtdb alongside .dat/.tdb/.utdb, caption updated.
+- Submission-wide staleness pass across every artifact:
+  - Cover letter: four containers incl. XTDB third-generation; archive line v0.4.0 + Zenodo
+    replaced with release v0.6.0; letterhead/footer preserved (edited in place).
+  - Supplementary S1 primer: XTDB row + third-generation glossary entries added; the
+    third-generation card described in the file-loading section.
+  - Manuscript: residual counts fixed (132/137 -> 142 tests; "either of two dialects" -> any).
+  - Highlights file added (five points, <=85 chars each), current at v0.6.0.
+  - Desktop submission zip rebuilt at v0.6.0 (now includes Highlights + fig10, 10 figures).
+- OPEN: the two submission clicks.
 
 ## Done (2026-09-09, sixth pass - v0.5.1)
 

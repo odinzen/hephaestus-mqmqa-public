@@ -18,17 +18,18 @@ Once such a file exists, a calculation engine can answer questions no single exp
 
 You never need to open or edit a database file to use this calculator. The open databases are behind one-click buttons, and if a colleague sends you a file, you load it with a file-picker like attaching a document to an email.
 
-### 2. The three file names you will meet
+### 2. The file names you will meet
 
-Different software families historically wrote their databases in different text layouts, so a file from one program is unreadable to another even when the science inside is the same. Hephaestus reads the two major layouts and a unified extension of them:
+Different software families historically wrote their databases in different text layouts, so a file from one program is unreadable to another even when the science inside is the same. Hephaestus reads the two major layouts, a unified extension of them, and the field's emerging XML successor:
 
 | File ending | Where it comes from | What it carries here |
 |---|---|---|
 | .dat | The FactSage / ChemApp family | Slags and molten salts (the short-range-ordering liquid model lives in this format) |
 | .tdb | The Thermo-Calc / OpenCalphad / pycalphad family | Alloy systems |
 | .utdb | This project's documented open extension of .tdb | Alloys, slags, and salts together in one file |
+| .xtdb | The emerging open XML standard, from the OpenCalphad and NIST circle | The same models, plus newer "third-generation" data that stays accurate all the way down to absolute zero |
 
-For using the calculator, the distinction hardly matters; the page detects the format when a file loads. It matters only when you ask where a file came from or which software a collaborator uses.
+For the main calculator the distinction hardly matters; the page detects a .dat, .tdb, or .utdb file when it loads. The newest format, .xtdb, is read in a dedicated card of its own (Section 7), because it carries a more modern description of how materials behave at very low temperatures.
 
 ### 3. Your first calculation, in five clicks
 
@@ -66,6 +67,8 @@ Below the binary phase diagram sits **Scheil solidification**. Equilibrium freez
 ### 7. Loading a file someone sent you
 
 Press **Choose a .dat or .tdb file** and pick the file. It loads exactly like the built-in buttons and every calculator on the page switches to it. Uploaded files are temporary; they live only in the open tab and vanish on refresh, and up to three can be loaded at once, each pinned as a button whose color marks its dialect, so you can switch between them. That also means systems from different sources sit side by side in one page, and the unified .utdb dialect goes further by holding, for example, an alloy and a molten salt in a single file; your systems are never split across separate products. Nothing is uploaded anywhere; the file is read inside your browser and stays on your machine, which also means confidential files are safe to load.
+
+One newer format has its own home on the page. An .xtdb file (the emerging XML standard from Section 2) opens in the **third-generation** card near the bottom, which reads it and draws its phase diagram the same way, computed live in your browser. Two worked examples sit there ready to click without a file of your own: an aluminum-carbon system and a lead-tin solder alloy. What sets this format apart is that its heat-capacity description stays physically correct down to absolute zero, where the older databases were only ever fitted above room temperature; for everyday high-temperature work the two agree, and the difference matters when a calculation reaches toward cryogenic conditions.
 
 ### 8. When your system is not on the page
 
@@ -116,5 +119,7 @@ A tool that is easy to start and a tool you can grow with are different things, 
 - **Parser (reader).** The piece of code that turns a database text file into numbers an engine can use. You never interact with it; it runs when a file loads.
 - **Phase.** A physically distinct, homogeneous part of the system: a melt, a particular solid solution, a compound.
 - **Tie-line / tie-triangle.** The line (binary) or triangle (ternary) connecting the compositions of phases in equilibrium with each other.
-- **TDB / .dat / .utdb.** Database file layouts; see Section 2. The container is ordinary text; the contents are years of measurement.
+- **TDB / .dat / .utdb / .xtdb.** Database file layouts; see Section 2. The container is ordinary text (or, for .xtdb, XML); the contents are years of measurement.
+- **Third generation.** A modern form of CALPHAD data whose heat-capacity model stays physically valid from high temperature down to absolute zero (0 K), instead of being fitted only above room temperature; carried by .xtdb files here.
+- **XTDB.** The emerging open XML successor to the TDB layout, from the OpenCalphad and NIST circle; it carries both the MQMQA model and third-generation data, and Hephaestus reads it in a dedicated card.
 - **WebAssembly.** The browser's way of running compiled programs at near-native speed; it is why the full engine runs on the page with nothing installed.

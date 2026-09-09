@@ -1,12 +1,12 @@
 # Hephaestus: an in-browser open-source engine and databases for the thermodynamics and phase diagrams of slags, molten salts, and alloys
 
-Michael E. Bustamante
+Michael E. Bustamante, Gabriel Bustamante
 
 Odinzen LLC, Houston, TX, United States
 
-Corresponding author: michaelbusta@odinzen.io
+Corresponding author: Michael E. Bustamante (michaelbusta@odinzen.io)
 
-ORCID: 0009-0009-9001-8151
+ORCID: Michael E. Bustamante, 0009-0009-9001-8151; Gabriel Bustamante, 0009-0005-3269-024X
 
 **Abstract**
 
@@ -137,7 +137,7 @@ Python interface: cffi, NumPy, SciPy (developed and tested with cffi 2.0, NumPy 
 
 ### List of contributors
 
-Michael E. Bustamante (design, implementation, validation, data curation).
+Michael E. Bustamante (design, implementation, validation, data curation, writing - original draft). Gabriel Bustamante (software, software validation, writing - review and editing).
 
 ### Software location
 
@@ -248,7 +248,7 @@ The engine, the database, the browser application, and the validation suite are 
 
 ## Acknowledgements
 
-During the development of this software the author used Claude Code (Anthropic) to assist with implementation, validation scripting, and manuscript preparation. This assistance was agentic, not autonomous: it operated under author direction and supervision at every step and was never a closed loop that produced or accepted results without review. Every parameter was traced by the author to its primary source before entering the database, and every reference was verified against its registry record. The author reviewed and approved all output and takes full responsibility for this article.
+During the development of this software the authors used Claude Code (Anthropic) to assist with implementation, validation scripting, and manuscript preparation. This assistance was agentic, not autonomous: it operated under author direction and supervision at every step and was never a closed loop that produced or accepted results without review. Every parameter was traced by the authors to its primary source before entering the database, and every reference was verified against its registry record. The authors reviewed and approved all output and take full responsibility for this article.
 
 ## Funding statement
 
@@ -256,7 +256,7 @@ The development of this software received no external funding.
 
 ## Competing interests
 
-The author founded Odinzen LLC, which provides commercial thermodynamic modeling services, and declares this as a competing interest. The software and database published here are released in full under open licenses, and no proprietary Odinzen assets are included.
+Both authors are affiliated with Odinzen LLC, which provides commercial thermodynamic modeling services, and declare this as a competing interest; Michael E. Bustamante founded the company. The software and database published here are released in full under open licenses, and no proprietary Odinzen assets are included.
 
 ## References
 

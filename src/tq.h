@@ -35,7 +35,7 @@ typedef struct tq_ctx tq_ctx;
 MQMQA_API tq_ctx *tq_init(void);
 
 /* Read a database into the workspace, format auto-detected from the text
- * (.dat / .tdb / .utdb / .xtdb). Returns 0 on success; on failure returns non-zero
+ * (.dat / .tdb / .utdb). Returns 0 on success; on failure returns non-zero
  * and tq_error() gives the reason. (OCASI: tqrfil / tqrpfil) */
 MQMQA_API int tq_read_string(tq_ctx *c, const char *text);
 

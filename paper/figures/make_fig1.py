@@ -39,9 +39,10 @@ def arrow(x1, y1, x2, y2, dashed=False, both=False):
 
 
 # top row
-b_files = box(2, 51, 44, 12, "Database files: .dat / .tdb / .utdb",
-              ["ChemSage · Thermo-Calc · unified dialect",
-               "MQMQA liquids, CEF solids, stoichiometric"], size=12.5)
+b_files = box(2, 51, 44, 12, "Database files: .dat / .tdb / .utdb / .xtdb",
+              ["ChemSage · Thermo-Calc · unified · XTDB (XML)",
+               "MQMQA & CEF · stoichiometric · third-generation"],
+              title_size=12.5, size=11.5)
 b_dbb = box(53, 51, 38, 12, "dbbuild (Python)",
             ["measured data + fitted excess", "written as a valid ChemSage file"])
 

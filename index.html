@@ -288,7 +288,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
     <h2>1 &middot; Load a thermodynamic database</h2>
     <div class="row">
       <label class="filebtn">Choose a .dat or .tdb file
-        <input type="file" id="file" accept=".dat,.DAT,.tdb,.TDB,.utdb,.UTDB,text/plain">
+        <input type="file" id="file" accept=".dat,.DAT,.tdb,.TDB,.utdb,.UTDB,.xtdb,.XTDB,text/plain">
       </label>
       <button class="filebtn ghost" id="example" type="button">Load the open slag database</button>
       <button class="filebtn ghost" id="example-salt" type="button">Load the open salt database</button>
@@ -651,6 +651,27 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
     <canvas id="sg-canvas" width="640" height="240" style="width:100%;max-width:34rem;margin-top:.6rem"></canvas>
   </div>
 
+  <div class="card" id="xtdbcard">
+    <h2>Third-generation diagram &middot; XTDB<span class="tern-badge">3rd-gen</span></h2>
+    <p class="tern-note">A separate reader for the open XML <b>XTDB</b> format (Sundman et al.,
+      Calphad 90 (2025) 102849), the format the CALPHAD community is standardising on. It assembles
+      <b>third-generation</b> Gibbs energies down to 0&nbsp;K: an Einstein heat-capacity term in place
+      of the old polynomial, and a two-state description of the liquid, so a single function spans
+      cryogenic to superheated temperatures. This is a distinct engine from the ChemSage .dat /
+      Thermo-Calc .tdb calculator above; it reads XTDB files and computes their binary phase diagram
+      live in your browser by common-tangent construction, no server.</p>
+    <div class="row">
+      <label class="filebtn">Choose an .xtdb file
+        <input type="file" id="xtdb-file" accept=".xtdb,.XTDB,text/xml,application/xml">
+      </label>
+      <button class="filebtn ghost" id="xtdb-alc" type="button">Al&ndash;C example (3rd-gen, .xtdb)</button>
+      <button class="filebtn ghost" id="xtdb-pbsn" type="button">Pb&ndash;Sn example (classic, .xtdb)</button>
+      <span id="xtdb-msg" class="muted">Al&ndash;C is the third-generation assessment of He et&nbsp;al. (2021); Pb&ndash;Sn is a classic assessment written in the XTDB format.</span>
+    </div>
+    <div id="xtdb-info" class="bld-hint" style="margin-top:.7rem" hidden></div>
+    <div class="pdwrap" style="margin-top:.6rem"><canvas id="xtdb-canvas"></canvas></div>
+  </div>
+
   <div class="card" id="litcard">
     <h2>Request a database for your system<span class="tern-badge">concierge</span></h2>
     <p class="tern-note">Have a stack of published papers on a system the open database does not
@@ -701,7 +722,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
 
 </div>
 
-<script src="./hephaestus.js?v=20260903c"></script>
+<script src="./hephaestus.js?v=20260909b"></script>
 <script>
 let api = null, db = 0, phase = 0, nPairs = 0, catNames = [], anNames = [];
 // Temperature unit: the engine works in Kelvin; the display defaults to Kelvin and a header
@@ -831,6 +852,28 @@ Hephaestus().then(M => {
       [bp,cg,cs,xp,cp,pip].forEach(p=>M._free(p));
       return rc===0 ? {x,cond} : null;
     },
+    // ---- third-generation XTDB engine (Einstein GEIN + two-state liquid) ----
+    // Separate reader from the .dat/.tdb condensed calculator: reads the open XML XTDB format
+    // and assembles 3rd-gen Gibbs energies. Marshal through the heap for the same reason as read().
+    xtdbRead: txt => { const n=M.lengthBytesUTF8(txt)+1, p=M._malloc(n); M.stringToUTF8(txt,p,n);
+                       const h=M.ccall('xtdb_read_string','number',['number'],[p]); M._free(p); return h; },
+    xtdbErr:  M.cwrap('xtdb_error','string',[]),
+    xtdbFree: M.cwrap('xtdb_free',null,['number']),
+    xtdbNEl:  M.cwrap('xtdb_n_elements','number',['number']),
+    xtdbEl:   M.cwrap('xtdb_element','string',['number','number']),
+    xtdbNPh:  M.cwrap('xtdb_n_phases','number',['number']),
+    xtdbPh:   M.cwrap('xtdb_phase','string',['number','number']),
+    // Gibbs per mole-atom of phase p at overall mole fraction xB of element B; returns
+    // {g, fixed, ok} where fixed>=0 for a stoichiometric phase (else -1).
+    xtdbPhaseG(h, p, B, xB, T){
+      const fx=M._malloc(8), ok=M._malloc(4);
+      const g=M.ccall('xtdb_phase_gibbs','number',
+        ['number','number','string','number','number','number','number'],
+        [h, p, B, xB, T, fx, ok]);
+      const fixed=M.getValue(fx,'double'), good=M.getValue(ok,'i32');
+      M._free(fx); M._free(ok);
+      return {g, fixed, ok:!!good};
+    },
   };
   api.M = M;
 });
@@ -848,7 +891,11 @@ function escHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<'
 
 function renderUploadedButtons(){
   document.querySelectorAll('.filebtn.uploaded').forEach(b => b.remove());
-  let anchor = document.getElementById('example-steel');   // append after all built-in buttons
+  // Anchor after the LAST built-in button in the load row, so session uploads always pin last
+  // (never ahead of the shipped examples), whatever the built-in set is.
+  const builtins = [...document.getElementById('example-steel').parentElement
+    .querySelectorAll('.filebtn:not(.uploaded)')];
+  let anchor = builtins[builtins.length - 1] || document.getElementById('example-steel');
   uploadedDBs.forEach((u, i) => {
     const btn = document.createElement('button');
     btn.type = 'button'; btn.className = 'filebtn uploaded';
@@ -882,6 +929,13 @@ document.getElementById('file').addEventListener('change', async e => {
   if (!f) return;
   if (!api) { document.getElementById('loadmsg').textContent = 'Engine still loading, please try again in a moment.'; return; }
   const text = await f.text();
+  if (/\.xtdb$/i.test(f.name) || /^\s*<XTDB/.test(text)) {   // XTDB is a separate engine (card below)
+    document.getElementById('loadmsg').innerHTML = escHtml(f.name) +
+      ' is an XTDB file - opening it in the third-generation card below.';
+    window.loadXtdb(text, f.name);
+    document.getElementById('xtdbcard').scrollIntoView({behavior:'smooth', block:'nearest'});
+    return;
+  }
   loadDatabase(text, f.name);
   if (db) addUploadedDB(f.name, text);   // only pin after it parsed successfully
 });
@@ -3768,6 +3822,229 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
 
   document.getElementById('lit-dir').addEventListener('change', e => show(e.target.files));
   document.getElementById('lit-pdfs').addEventListener('change', e => show(e.target.files));
+})();
+</script>
+
+<script>
+/* Third-generation XTDB card. A separate engine from the .dat/.tdb calculator: it reads the open
+   XML XTDB format and computes a binary phase diagram live by lower-convex-hull (common-tangent)
+   construction over the 3rd-generation Gibbs energies (Einstein GEIN + two-state liquid). */
+(function(){
+  const card = document.getElementById('xtdbcard');
+  const msg  = document.getElementById('xtdb-msg');
+  const info = document.getElementById('xtdb-info');
+  const cv   = document.getElementById('xtdb-canvas');
+  const esc  = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const css  = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  // translucent phase fills, assigned by order of appearance; LIQUID pinned to the accent green
+  const PALETTE = ['#7d9bd6','#e0a15c','#8fbf7f','#c98fca','#d98c8c','#6fc0c0','#b9b46a'];
+
+  let handle = 0, elems = [], phases = [], elemB = '', win = [300, 3000], name = '';
+  const uploads = [];   // session-only uploaded .xtdb files, this card
+
+  // T window per system: good defaults for the shipped examples, generic fallback otherwise.
+  function pickWindow(els){
+    const set = els.map(e => e.toUpperCase()).sort().join('-');
+    if (set === 'AL-C')  return [300, 3000];
+    if (set === 'PB-SN') return [300, 620];
+    return [300, 2500];
+  }
+
+  function loadXtdb(text, fname, pin){
+    if (pin === undefined) pin = true;                   // uploads pin; shipped demos pass false
+    if (!api || !api.xtdbRead){ msg.textContent = 'Engine still loading, try again in a moment.'; return; }
+    if (handle){ api.xtdbFree(handle); handle = 0; }
+    handle = api.xtdbRead(text);
+    if (!handle){ msg.textContent = 'Could not read this XTDB file: ' + api.xtdbErr(); info.hidden = true; return; }
+    name = fname;
+    elems = []; for (let i=0;i<api.xtdbNEl(handle);i++) elems.push(api.xtdbEl(handle,i));
+    phases = []; for (let p=0;p<api.xtdbNPh(handle);p++) phases.push(api.xtdbPh(handle,p));
+    if (elems.length < 2){ msg.textContent = fname + ': need a binary (2-element) system to draw a diagram.'; info.hidden = true; return; }
+    elemB = elems[1];
+    win = pickWindow(elems);
+    msg.textContent = fname + ' loaded.';
+    info.hidden = false;
+    info.innerHTML = '<b>' + esc(fname) + '</b> &middot; elements ' + esc(elems.join(', '))
+      + ' &middot; ' + phases.length + ' phases: ' + esc(phases.join(', '))
+      + '<br>Diagram: mole fraction x(' + esc(elemB) + ') vs temperature, '
+      + win[0] + '&ndash;' + win[1] + ' K, computed live from the third-generation Gibbs energies.';
+    if (pin) pinUpload(fname, text);
+    draw();
+  }
+  window.loadXtdb = loadXtdb;
+
+  // ---- diagram: stable-phase map by lower convex hull at each temperature ----
+  function stableMap(W, H){
+    const M = api.M, fx = M._malloc(8), ok = M._malloc(4);
+    const B = elemB;
+    const pg = (p, x, T) => {   // Gibbs per mole-atom; {g, fixed, ok} reusing scratch
+      const g = M.ccall('xtdb_phase_gibbs','number',
+        ['number','number','string','number','number','number','number'],
+        [handle, p, B, x, T, fx, ok]);
+      return { g, fixed: M.getValue(fx,'double'), ok: !!M.getValue(ok,'i32') };
+    };
+    const NS = 96;                       // composition samples per solution phase
+    const grid = new Int16Array(W*H);    // phase index, or -1 for a two-phase region
+    for (let r=0; r<H; r++){
+      const T = win[0] + (win[1]-win[0]) * (H-1-r) / (H-1);   // row 0 = top = hottest
+      // collect points (x, G, phase)
+      const px=[], pgv=[], pp=[];
+      for (let p=0; p<phases.length; p++){
+        const probe = pg(p, 1e-6, T);
+        if (probe.fixed >= 0){                       // stoichiometric: single point
+          const s = pg(p, probe.fixed, T);
+          if (s.ok && isFinite(s.g)){ px.push(probe.fixed); pgv.push(s.g); pp.push(p); }
+          continue;
+        }
+        for (let i=0;i<=NS;i++){
+          let x = i/NS; if (x<1e-6) x=1e-6; if (x>1-1e-6) x=1-1e-6;
+          const s = pg(p, x, T);
+          if (s.ok && isFinite(s.g)){ px.push(x); pgv.push(s.g); pp.push(p); }
+        }
+      }
+      // sort by x
+      const idx=[...px.keys()].sort((a,b)=>px[a]-px[b]);
+      const X=idx.map(i=>px[i]), G=idx.map(i=>pgv[i]), P=idx.map(i=>pp[i]);
+      // collapse duplicate x to lowest G (drops metastable endpoints, e.g. diamond)
+      const cx=[],cg=[],cp=[];
+      for (let i=0;i<X.length;i++){
+        if (cx.length && Math.abs(X[i]-cx[cx.length-1])<1e-9){
+          if (G[i]<cg[cg.length-1]){ cg[cg.length-1]=G[i]; cp[cp.length-1]=P[i]; }
+        } else { cx.push(X[i]); cg.push(G[i]); cp.push(P[i]); }
+      }
+      // monotone-chain lower hull
+      const hv=[];
+      for (let i=0;i<cx.length;i++){
+        while (hv.length>=2){
+          const a=hv[hv.length-2], b=hv[hv.length-1];
+          const cross=(cx[b]-cx[a])*(cg[i]-cg[a])-(cg[b]-cg[a])*(cx[i]-cx[a]);
+          if (cross<=1e-6) hv.pop(); else break;
+        }
+        hv.push(i);
+      }
+      // for each column x, find the hull segment and whether its ends are the same phase
+      for (let c=0;c<W;c++){
+        const x = c/(W-1);
+        let k=0; while (k<hv.length-1 && cx[hv[k+1]] < x) k++;
+        if (k>=hv.length-1){ grid[r*W+c] = cp[hv[hv.length-1]]; continue; }
+        const pa=cp[hv[k]], pb=cp[hv[k+1]];
+        grid[r*W+c] = (pa===pb) ? pa : -1;      // -1: two-phase (tie-line) region
+      }
+    }
+    M._free(fx); M._free(ok);
+    return grid;
+  }
+
+  function draw(){
+    if (!handle) return;
+    const cssW = Math.max(320, Math.min(card.clientWidth - 4, 640));
+    const cssH = Math.round(cssW * 0.66);
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = cssW*dpr; cv.height = cssH*dpr;
+    cv.style.width = cssW+'px'; cv.style.height = cssH+'px';
+    const g = cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0);
+    g.clearRect(0,0,cssW,cssH);
+
+    const mL=54, mR=12, mT=30, mB=42;                 // plot margins
+    const PW=cssW-mL-mR, PH=cssH-mT-mB;
+    const ink=css('--ink')||'#1b1f24', muted=css('--muted')||'#5b6470',
+          line=css('--line')||'#e3e6ea', bg=css('--card')||'#fff';
+
+    const grid = stableMap(Math.max(160,Math.round(PW)), Math.max(140,Math.round(PH)));
+    const GW = Math.max(160,Math.round(PW)), GH = Math.max(140,Math.round(PH));
+    // phase -> color
+    const color = {}; let ci=0;
+    phases.forEach((nm,p)=>{ color[p] = (nm.toUpperCase().startsWith('LIQ')) ? (css('--accent')||'#2a9d4f') : PALETTE[ci++ % PALETTE.length]; });
+
+    // fill region map into an offscreen buffer, then blit scaled to the plot rect
+    const off = document.createElement('canvas'); off.width=GW; off.height=GH;
+    const og = off.getContext('2d'); const img = og.createImageData(GW,GH);
+    const hex2rgb = h => { h=h.replace('#',''); if(h.length===3) h=h.split('').map(c=>c+c).join(''); return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; };
+    const bgc = hex2rgb(bg.startsWith('#')?bg:'#ffffff');
+    for (let i=0;i<GW*GH;i++){
+      const v=grid[i]; let rr,gg,bb;
+      if (v<0){ rr=bgc[0]; gg=bgc[1]; bb=bgc[2]; }         // two-phase: card background
+      else { const c=hex2rgb(color[v]); const a=0.30;      // single phase: translucent fill over bg
+             rr=Math.round(c[0]*a+bgc[0]*(1-a)); gg=Math.round(c[1]*a+bgc[1]*(1-a)); bb=Math.round(c[2]*a+bgc[2]*(1-a)); }
+      img.data[i*4]=rr; img.data[i*4+1]=gg; img.data[i*4+2]=bb; img.data[i*4+3]=255;
+    }
+    // phase-boundary lines: darken pixels where the stable state changes
+    const bd=hex2rgb(ink);
+    for (let r=0;r<GH;r++) for (let c=0;c<GW;c++){
+      const v=grid[r*GW+c];
+      const rt = c+1<GW ? grid[r*GW+c+1] : v, dn = r+1<GH ? grid[(r+1)*GW+c] : v;
+      if (v!==rt || v!==dn){ const i=(r*GW+c)*4; img.data[i]=bd[0]; img.data[i+1]=bd[1]; img.data[i+2]=bd[2]; }
+    }
+    og.putImageData(img,0,0);
+    g.imageSmoothingEnabled=false;
+    g.drawImage(off, 0,0,GW,GH, mL,mT,PW,PH);
+
+    // frame + axes
+    g.strokeStyle=line; g.lineWidth=1; g.strokeRect(mL,mT,PW,PH);
+    g.fillStyle=muted; g.font='12px system-ui,sans-serif';
+    g.textAlign='center'; g.textBaseline='top';
+    for (let t=0;t<=10;t++){ const x=mL+PW*t/10; g.strokeStyle=line;
+      g.beginPath(); g.moveTo(x,mT+PH); g.lineTo(x,mT+PH+4); g.stroke();
+      g.fillText((t/10).toFixed(1), x, mT+PH+6); }
+    g.textAlign='right'; g.textBaseline='middle';
+    const t0=win[0], t1=win[1]; const nTicks=6;
+    for (let t=0;t<=nTicks;t++){ const T=t0+(t1-t0)*t/nTicks; const y=mT+PH-PH*(T-t0)/(t1-t0);
+      g.beginPath(); g.moveTo(mL-4,y); g.lineTo(mL,y); g.stroke();
+      g.fillText(Math.round(T), mL-6, y); }
+    g.fillStyle=ink; g.textAlign='center'; g.textBaseline='alphabetic';
+    g.font='13px system-ui,sans-serif';
+    g.fillText('x('+elemB+')', mL+PW/2, cssH-8);
+    g.save(); g.translate(14, mT+PH/2); g.rotate(-Math.PI/2);
+    g.fillText('Temperature / K', 0, 0); g.restore();
+    g.textAlign='left'; g.font='600 13px system-ui,sans-serif';
+    g.fillText(elems.join('–')+'  (XTDB, third generation)', mL, mT-10);
+
+    // legend of single-phase colors
+    let lx=mL, ly=mT+6;
+    g.font='11px system-ui,sans-serif'; g.textBaseline='middle';
+    phases.forEach((nm,p)=>{
+      g.fillStyle=color[p]; g.globalAlpha=0.55; g.fillRect(lx,ly-5,10,10); g.globalAlpha=1;
+      g.strokeStyle=line; g.strokeRect(lx,ly-5,10,10);
+      g.fillStyle=ink; g.textAlign='left'; g.fillText(nm, lx+14, ly);
+      lx += 16 + g.measureText(nm).width + 12;
+      if (lx > mL+PW-60){ lx=mL; ly+=15; }
+    });
+  }
+
+  // ---- uploaded .xtdb pins: always appended AFTER the built-in example buttons ----
+  function pinUpload(fname, text){
+    if (!/\.xtdb$/i.test(fname)) return;                 // only real uploads pin, not the shipped demos
+    const i = uploads.findIndex(u=>u.name===fname);
+    if (i>=0) uploads[i]={name:fname,text}; else uploads.push({name:fname,text});
+    renderPins();
+  }
+  function renderPins(){
+    card.querySelectorAll('.filebtn.xtdb-uploaded').forEach(b=>b.remove());
+    let anchor = document.getElementById('xtdb-pbsn');   // last built-in example button
+    uploads.forEach(u=>{
+      const btn=document.createElement('button');
+      btn.type='button'; btn.className='filebtn ghost xtdb-uploaded';
+      btn.style.color='#5b8fd0'; btn.style.borderColor='#5b8fd0';
+      btn.textContent=u.name; btn.title='reload this uploaded XTDB file (this session only)';
+      btn.addEventListener('click', ()=>loadXtdb(u.text, u.name));
+      anchor.insertAdjacentElement('afterend', btn); anchor=btn;
+    });
+  }
+
+  async function loadShippedXtdb(file){
+    if (!api){ msg.textContent='Engine still loading, try again in a moment.'; return; }
+    msg.textContent='Loading '+file+'…';
+    try { loadXtdb(await (await fetch('./'+file)).text(), file, false); }   // shipped demo: do not pin
+    catch(e){ msg.textContent='Could not load '+file+' next to this page.'; }
+  }
+  document.getElementById('xtdb-alc').addEventListener('click', ()=>loadShippedXtdb('AlC.xtdb'));
+  document.getElementById('xtdb-pbsn').addEventListener('click', ()=>loadShippedXtdb('PbSn.xtdb'));
+  document.getElementById('xtdb-file').addEventListener('change', async e=>{
+    const f=e.target.files[0]; if(!f) return; loadXtdb(await f.text(), f.name);
+  });
+  // redraw on resize and theme change
+  let rz; window.addEventListener('resize', ()=>{ clearTimeout(rz); rz=setTimeout(draw,150); });
+  new MutationObserver(()=>{ if(handle) draw(); }).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 })();
 </script>
 </body>

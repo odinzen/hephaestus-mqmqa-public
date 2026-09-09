@@ -3637,11 +3637,20 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
       ctx.strokeStyle=css('--ink')||'#222'; ctx.globalAlpha=alpha[si];
       ctx.lineWidth=styles[si].w; ctx.setLineDash(styles[si].dash); ctx.beginPath();
       r.forEach((p,i)=>{ const px=X(p[0]),py=Y(p[s.col]); i?ctx.lineTo(px,py):ctx.moveTo(px,py); }); ctx.stroke();
-      const yend=Y(r[r.length-1][s.col]);
-      ctx.setLineDash([]); ctx.textAlign='left'; ctx.fillStyle=css('--ink')||'#222';
-      ctx.fillText(s.name,W-PADR+4,yend+4);
     });
-    ctx.globalAlpha=1;
+    ctx.setLineDash([]); ctx.globalAlpha=1;
+    // right-edge labels, de-collided so bunched curves (total/NaCl/KCl at high T) do not overlap
+    ctx.font='12px '+(css('--font-ui')||'system-ui'); ctx.textAlign='left';
+    const LH=13, topL=PADT+8, botL=H-PADB-2;
+    const labs=SPECIES.map(s=>({name:s.name, y0:Y(r[r.length-1][s.col])})).sort((a,b)=>a.y0-b.y0);
+    labs.forEach((l,i)=>{ l.y = i ? Math.max(l.y0, labs[i-1].y+LH) : l.y0; });
+    if(labs[labs.length-1].y>botL){ const sh=labs[labs.length-1].y-botL; labs.forEach(l=>l.y-=sh); }
+    if(labs[0].y<topL){ const sh=topL-labs[0].y; labs.forEach(l=>l.y+=sh); }
+    labs.forEach(l=>{
+      if(Math.abs(l.y-l.y0)>2){ ctx.strokeStyle=css('--line')||'#ccc'; ctx.globalAlpha=0.55; ctx.lineWidth=0.8;
+        ctx.beginPath(); ctx.moveTo(W-PADR,l.y0); ctx.lineTo(W-PADR+4,l.y); ctx.stroke(); ctx.globalAlpha=1; }
+      ctx.fillStyle=css('--ink')||'#222'; ctx.fillText(l.name, W-PADR+6, l.y+4);
+    });
     // marker on the dominant-at-Tcur curve (NaCl, the reference alkali chloride)
     const c=lerp(r,0,Tcur), px=X(c[0]);
     ctx.strokeStyle=css('--pointer')||'#c0392b'; ctx.setLineDash([3,3]); ctx.beginPath();

@@ -630,15 +630,15 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
   </div>
 
   <div class="card" id="slaggascard">
-    <h2>Slag &harr; furnace gas &middot; iron-saturated<span class="tern-badge">coupled</span></h2>
-    <p class="tern-note">The furnace atmosphere and the melt settle at one oxygen potential. For the
+    <h2 id="sg-title">Slag &harr; furnace gas &middot; iron-saturated<span class="tern-badge">coupled</span></h2>
+    <p class="tern-note" id="sg-note">The furnace atmosphere and the melt settle at one oxygen potential. For the
       assessed FeO-SiO~2~ slag held at iron saturation, the engine gives the FeO activity, and the
       gas engine turns it into the CO&#8322;/CO ratio the melt sits under. Add silica and the FeO
       activity falls, so a more reducing gas is needed to keep iron from oxidising, exactly as
       slag-gas equilibration is measured. The pure-FeO limit is the iron-wustite buffer, within a
       percent of Cantera. Drag the silica content to read it off.</p>
     <div class="row" style="gap:1.1rem; align-items:flex-end; flex-wrap:wrap">
-      <label style="flex:1; min-width:14rem">SiO&#8322; content x(SiO&#8322;)
+      <label style="flex:1; min-width:14rem"><span id="sg-slabel">SiO&#8322; content x(SiO&#8322;)</span>
         <input type="range" id="sg-x" min="20" max="550" value="200" style="width:100%">
       </label>
       <span id="sg-xval" style="font-family:var(--font-mono)">0.20</span>
@@ -991,11 +991,14 @@ function loadDatabase(text, name) {
   // whatever is loaded, so it shows for any 3-cation system and computes it.
   const cats3 = []; for (let i = 0; i < api.nCat(db, phase); i++) cats3.push(elementOf(api.cat(db, phase, i)));
   const hasO = anNames.some(a => elementOf(a) === 'O');
+  const hasCl = anNames.some(a => elementOf(a) === 'CL');
   const isFMS = hasO && cats3.length === 3 && ['FE','MG','SI'].every(c => cats3.includes(c));
   document.getElementById('terncard').classList.toggle('hidden', !isFMS);
   document.getElementById('crystcard').classList.toggle('hidden', !isFMS);
   document.getElementById('livecard').classList.toggle('hidden', cats3.length !== 3);
-  document.getElementById('slaggascard').classList.toggle('hidden', !hasO);   // oxide-slag showcase: hide for salts/alloys
+  // Coupling showcase: oxide slag -> CO2/CO oxygen potential; chloride flux -> chloride vapour.
+  window._sgSetMode(hasO);
+  document.getElementById('slaggascard').classList.toggle('hidden', !(hasO || hasCl));
   if (window._liveSyncLoaded) window._liveSyncLoaded();     // point the live engine at this system
   window._pdPreset = null; pdSetXWindow(0, 100);   // fresh file, neutral full join (demos preset below)
   const solids=[]; for(let i=0;i<api.nStoich(db);i++) solids.push(api.stName(db,i));
@@ -2339,12 +2342,13 @@ document.getElementById('pdmode').addEventListener('click', e => {
   // lingers over the alloy view. Hide in alloy mode; restore for the melt by the load-time rule.
   const meltCats = []; for (let i = 0; i < api.nCat(db, phase); i++) meltCats.push(elementOf(api.cat(db, phase, i)));
   const meltHasO = anNames.some(a => elementOf(a) === 'O');
+  const meltHasCl = anNames.some(a => elementOf(a) === 'CL');
   const isFMS = meltHasO && meltCats.length === 3 && ['FE', 'MG', 'SI'].every(c => meltCats.includes(c));
   const liveOn = !wantAlloy && meltCats.length === 3 && api.nAn(db, phase) === 1;
   document.getElementById('terncard').classList.toggle('hidden', wantAlloy || !isFMS);
   document.getElementById('crystcard').classList.toggle('hidden', wantAlloy || !isFMS);
   document.getElementById('livecard').classList.toggle('hidden', !liveOn);
-  document.getElementById('slaggascard').classList.toggle('hidden', wantAlloy || !meltHasO);
+  document.getElementById('slaggascard').classList.toggle('hidden', wantAlloy || !(meltHasO || meltHasCl));
   if (liveOn && window._liveSyncLoaded) window._liveSyncLoaded();
 });
 
@@ -3553,24 +3557,37 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
 })();
 </script>
 <script>
-/* Slag <-> furnace gas readout (iron-saturated). The FeO activity of the assessed FeO-SiO2 slag
-   and the equilibrium CO2/CO and oxygen pressure are precomputed by the validated engine
-   (python/mqmqa/gas_slag.py: activity from the MQMQA solver, oxygen potential from the gas
-   engine) at two steelmaking temperatures, and read back here. Same pattern as the other assessed
-   showcases: the numbers are the engine's, shown without a live re-solve. */
+/* Coupling readout, two modes chosen by the loaded chemistry.
+   Oxide slag: the FeO activity of the assessed FeO-SiO2 slag and the equilibrium CO2/CO and oxygen
+   pressure, precomputed by the validated engine (python/mqmqa/gas_slag.py: activity from the MQMQA
+   solver, oxygen potential from the gas engine) at two steelmaking temperatures. Validated to under
+   a percent against Cantera.
+   Chloride flux: the fume partial pressure of each salt, p_i = a_i * p_i^o. The activities a_i are
+   the validated engine output (python/mqmqa/gas_flux.py: partial molar on the C equilibrium solver,
+   checked against the pure limit and the near-ideal NaCl-KCl binary); the pure-component vapour
+   pressures p_i^o are measured data (NaCl, KCl NIST Antoine fits (Stull 1947); MgCl2 NIST-JANAF gas
+   and liquid Gibbs of formation (Chase 1998)), each reproducing its boiling point. The physical
+   result: MgCl2 is a fifth of the flux but a few percent of the fume, chlorocomplexing holding its
+   activity far below its mole fraction. Precomputed and read back here, like the oxide showcase. */
 (function(){
-  // rows: [x_SiO2, a_FeO, CO2/CO, log10 pO2]
+  // Oxide slag mode. rows: [x_SiO2, a_FeO, CO2/CO, log10 pO2]
   const SG = {"1873":[[0.02,0.9795,0.1099,-8.66],[0.051,0.9458,0.1061,-8.69],[0.082,0.9101,0.1021,-8.73],[0.114,0.8728,0.0979,-8.76],[0.145,0.8343,0.0936,-8.8],[0.176,0.7949,0.0892,-8.84],[0.207,0.7551,0.0847,-8.89],[0.238,0.7152,0.0802,-8.93],[0.269,0.6755,0.0758,-8.98],[0.301,0.6363,0.0714,-9.04],[0.332,0.5978,0.0671,-9.09],[0.363,0.5601,0.0628,-9.15],[0.394,0.5235,0.0587,-9.21],[0.425,0.4879,0.0547,-9.27],[0.456,0.4535,0.0509,-9.33],[0.488,0.4202,0.0471,-9.4],[0.519,0.388,0.0435,-9.47],[0.55,0.3569,0.04,-9.54]],
     "1973":[[0.02,0.9796,0.1023,-7.94],[0.051,0.9463,0.0988,-7.97],[0.082,0.9116,0.0952,-8.0],[0.114,0.8756,0.0915,-8.03],[0.145,0.8388,0.0876,-8.07],[0.176,0.8013,0.0837,-8.11],[0.207,0.7636,0.0798,-8.15],[0.238,0.7258,0.0758,-8.2],[0.269,0.6881,0.0719,-8.24],[0.301,0.6509,0.068,-8.29],[0.332,0.6141,0.0641,-8.34],[0.363,0.578,0.0604,-8.4],[0.394,0.5426,0.0567,-8.45],[0.425,0.508,0.0531,-8.51],[0.456,0.4742,0.0495,-8.57],[0.488,0.4413,0.0461,-8.63],[0.519,0.4092,0.0427,-8.7],[0.55,0.3779,0.0395,-8.76]]};
-  let T = '1873';
+  // Chloride flux fume (bar): partial pressure of each salt over the NaCl-KCl-MgCl2 = 40/40/20
+  // mol% flux, p_i = a_i * p_i^o. Activities a_i are the validated engine output (python/mqmqa/
+  // gas_flux.py: partial molar on the C equilibrium solver, pure limit and NaCl-KCl binary
+  // checked); pure-component vapour pressures p_i^o from measured data (NaCl, KCl NIST Antoine;
+  // MgCl2 NIST-JANAF), each reproducing its boiling point. rows: [T(K), p_NaCl, p_KCl, p_MgCl2, p_total]
+  const FLUX = [[1000,3.316e-05,4.526e-05,1.03e-06,7.945e-05],[1050,9.844e-05,0.00013307,3.76e-06,0.00023526],[1100,0.00026258,0.00035054,1.217e-05,0.00062529],[1150,0.00063891,0.00084069,3.506e-05,0.00151466],[1200,0.00143572,0.00185963,9.228e-05,0.00338762],[1250,0.00301018,0.00383494,0.00022174,0.00706687],[1300,0.00593908,0.00743873,0.00049747,0.01387528],[1350,0.01110636,0.01367368,0.00103927,0.02581932],[1400,0.01980625,0.02396901,0.00205785,0.04583312]];
+  let mode = 'oxide';     // 'oxide' | 'chloride'
+  let T = '1873';         // oxide temperature toggle
   const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim() || '#333';
-  function interp(x){
-    const r = SG[T]; if(x<=r[0][0]) return r[0]; if(x>=r[r.length-1][0]) return r[r.length-1];
-    for(let i=0;i<r.length-1;i++){ if(x<=r[i+1][0]){ const t=(x-r[i][0])/(r[i+1][0]-r[i][0]);
-      return r[i].map((v,k)=>v+t*(r[i+1][k]-v)); } }
-    return r[r.length-1];
-  }
-  function draw(xcur){
+  function lerp(r,key,val){ if(val<=r[0][key]) return r[0]; if(val>=r[r.length-1][key]) return r[r.length-1];
+    for(let i=0;i<r.length-1;i++){ if(val<=r[i+1][key]){ const t=(val-r[i][key])/(r[i+1][key]-r[i][key]);
+      return r[i].map((v,k)=>v+t*(r[i+1][k]-v)); } } return r[r.length-1]; }
+  function interp(x){ return lerp(SG[T],0,x); }
+
+  function drawOxide(xcur){
     const cv=document.getElementById('sg-canvas'); if(!cv) return; const ctx=cv.getContext('2d');
     const W=cv.width,H=cv.height,PADL=64,PADR=16,PADT=14,PADB=34; ctx.clearRect(0,0,W,H);
     const r=SG[T], xs=r.map(p=>p[0]), ys=r.map(p=>p[2]);
@@ -3589,11 +3606,46 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     ctx.strokeStyle=css('--pointer')||'#c0392b'; ctx.setLineDash([3,3]); ctx.beginPath();
     ctx.moveTo(px,H-PADB); ctx.lineTo(px,py); ctx.moveTo(PADL,py); ctx.lineTo(px,py); ctx.stroke(); ctx.setLineDash([]);
   }
-  function refresh(){
+  const SPECIES=[{col:4,name:'total'},{col:1,name:'NaCl'},{col:2,name:'KCl'},{col:3,name:'MgCl₂'}];
+  function drawChloride(Tcur){
+    const cv=document.getElementById('sg-canvas'); if(!cv) return; const ctx=cv.getContext('2d');
+    const W=cv.width,H=cv.height,PADL=64,PADR=64,PADT=14,PADB=34; ctx.clearRect(0,0,W,H);
+    const r=FLUX, Tmin=r[0][0],Tmax=r[r.length-1][0];
+    const lg=v=>Math.log10(v);
+    let ymin=Infinity,ymax=-Infinity;
+    r.forEach(p=>SPECIES.forEach(s=>{ymin=Math.min(ymin,lg(p[s.col]));ymax=Math.max(ymax,lg(p[s.col]));}));
+    const X=t=>PADL+(t-Tmin)/(Tmax-Tmin)*(W-PADL-PADR), Y=v=>H-PADB-(lg(v)-ymin)/(ymax-ymin)*(H-PADT-PADB);
+    ctx.strokeStyle=css('--line')||'#ccc'; ctx.lineWidth=1; ctx.beginPath();
+    ctx.moveTo(PADL,PADT); ctx.lineTo(PADL,H-PADB); ctx.lineTo(W-PADR,H-PADB); ctx.stroke();
+    ctx.fillStyle=css('--muted')||'#666'; ctx.font='12px '+(css('--font-ui')||'system-ui');
+    ctx.textAlign='center'; ctx.fillText(window.tSym()==='K'?'Temperature (K)':'Temperature',(PADL+W-PADR)/2,H-8);
+    ctx.save(); ctx.translate(16,(PADT+H-PADB)/2); ctx.rotate(-Math.PI/2); ctx.fillText('vapour pressure (bar)',0,0); ctx.restore();
+    ctx.textAlign='right';
+    for(let e=Math.ceil(ymin);e<=Math.floor(ymax);e++){ const yv=Math.pow(10,e); ctx.fillText('1e'+e,PADL-6,Y(yv)+4); }
+    // total (dark, solid) then NaCl, KCl, MgCl2 in decreasing greyscale weight; MgCl2 dashed
+    const styles=[{w:2.6,dash:[]},{w:1.5,dash:[]},{w:1.5,dash:[]},{w:1.5,dash:[5,3]}];
+    const alpha=[1,0.78,0.6,0.42];
+    SPECIES.forEach((s,si)=>{
+      ctx.strokeStyle=css('--ink')||'#222'; ctx.globalAlpha=alpha[si];
+      ctx.lineWidth=styles[si].w; ctx.setLineDash(styles[si].dash); ctx.beginPath();
+      r.forEach((p,i)=>{ const px=X(p[0]),py=Y(p[s.col]); i?ctx.lineTo(px,py):ctx.moveTo(px,py); }); ctx.stroke();
+      const yend=Y(r[r.length-1][s.col]);
+      ctx.setLineDash([]); ctx.textAlign='left'; ctx.fillStyle=css('--ink')||'#222';
+      ctx.fillText(s.name,W-PADR+4,yend+4);
+    });
+    ctx.globalAlpha=1;
+    // marker on the dominant-at-Tcur curve (NaCl, the reference alkali chloride)
+    const c=lerp(r,0,Tcur), px=X(c[0]);
+    ctx.strokeStyle=css('--pointer')||'#c0392b'; ctx.setLineDash([3,3]); ctx.beginPath();
+    ctx.moveTo(px,PADT); ctx.lineTo(px,H-PADB); ctx.stroke(); ctx.setLineDash([]);
+    SPECIES.forEach(s=>{ const py=Y(c[s.col]); ctx.fillStyle=css('--pointer')||'#c0392b';
+      ctx.beginPath(); ctx.arc(px,py,4,0,2*Math.PI); ctx.fill(); });
+  }
+  function refreshOxide(){
     const x=(+document.getElementById('sg-x').value)/1000;
     document.getElementById('sg-xval').textContent=x.toFixed(3);
-    const [xv,a,ratio,lpo2]=interp(x);
-    const feo=(1-x), pct=(100*feo).toFixed(0);
+    const [,a,ratio,lpo2]=interp(x);
+    const pct=(100*(1-x)).toFixed(0);
     document.getElementById('sg-out').innerHTML=
       '<div style="font-family:var(--font-mono);font-size:var(--fs-sm);line-height:1.7">'
       +'slag &asymp; '+pct+' mol% FeO, '+(100*x).toFixed(0)+' mol% SiO₂ &middot; '+window.tLabel(+T)+'<br>'
@@ -3601,14 +3653,63 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
       +'equilibrium furnace gas: CO₂/CO = <b>'+ratio.toFixed(4)+'</b><br>'
       +'oxygen pressure: log₁₀ p(O₂) = <b>'+lpo2.toFixed(2)+'</b> (bar)</div>'
       +'<div class="muted" style="font-size:var(--fs-xs);margin-top:.3rem">More silica lowers a(FeO), so the melt stays iron-saturated only under a more reducing (lower CO₂/CO) gas.</div>';
-    draw(x);
+    drawOxide(x);
   }
+  function refreshChloride(){
+    const Tk=+document.getElementById('sg-x').value;             // slider is Kelvin-native
+    document.getElementById('sg-xval').textContent=window.tLabel(Tk);
+    const [,pNa,pK,pMg,ptot]=lerp(FLUX,0,Tk);
+    const mbar=v=>(v*1000).toFixed(v*1000<1?2:1);   // bar -> mbar
+    const pct=v=>(100*v/ptot).toFixed(0);
+    document.getElementById('sg-out').innerHTML=
+      '<div style="font-family:var(--font-mono);font-size:var(--fs-sm);line-height:1.7">'
+      +'flux &asymp; 40 mol% NaCl, 40 mol% KCl, 20 mol% MgCl₂ &middot; '+window.tLabel(Tk)+'<br>'
+      +'total fume: <b>'+mbar(ptot)+' mbar</b> ('+ptot.toExponential(2)+' bar)<br>'
+      +'p(NaCl) = <b>'+mbar(pNa)+'</b> ('+pct(pNa)+'%), p(KCl) = <b>'+mbar(pK)+'</b> ('+pct(pK)+'%)<br>'
+      +'p(MgCl₂) = <b>'+mbar(pMg)+'</b> mbar &middot; only <b>'+pct(pMg)+'%</b> of the fume</div>'
+      +'<div class="muted" style="font-size:var(--fs-xs);margin-top:.3rem">Engine activities (a(NaCl) &asymp; 0.39, a(KCl) &asymp; 0.25, a(MgCl₂) &asymp; 0.01) times measured pure-salt vapour pressures. MgCl₂ is 20 mol% of the flux but a few percent of the fume: chlorocomplexing holds its activity far below its mole fraction, so the fume is alkali-chloride rich. It climbs steeply with temperature, the practical fuming and metal-loss limit for salt fluxing.</div>';
+    drawChloride(Tk);
+  }
+  function refresh(){ mode==='oxide' ? refreshOxide() : refreshChloride(); }
+  function redraw(){ mode==='oxide' ? drawOxide((+document.getElementById('sg-x').value)/1000)
+                                    : drawChloride(+document.getElementById('sg-x').value); }
+
+  // Switch the card's content to match the loaded chemistry.
+  window._sgSetMode = function(isOxide){
+    mode = isOxide ? 'oxide' : 'chloride';
+    const sl=document.getElementById('sg-x'), title=document.getElementById('sg-title'),
+          note=document.getElementById('sg-note'), lab=document.getElementById('sg-slabel'),
+          seg=document.getElementById('sg-temp');
+    if(mode==='oxide'){
+      title.innerHTML='Slag &harr; furnace gas &middot; iron-saturated<span class="tern-badge">coupled</span>';
+      note.innerHTML='The furnace atmosphere and the melt settle at one oxygen potential. For the assessed '
+        +'FeO-SiO₂ slag held at iron saturation, the engine gives the FeO activity, and the gas engine turns '
+        +'it into the CO₂/CO ratio the melt sits under. Add silica and the FeO activity falls, so a more '
+        +'reducing gas is needed to keep iron from oxidising, exactly as slag-gas equilibration is measured. '
+        +'The pure-FeO limit is the iron-wustite buffer, within a percent of Cantera. Drag the silica content to read it off.';
+      lab.innerHTML='SiO₂ content x(SiO₂)';
+      sl.min=20; sl.max=550; sl.step=1; sl.value=200;
+      seg.style.display='inline-flex';
+    } else {
+      title.innerHTML='Flux &harr; furnace vapour &middot; chloride fume<span class="tern-badge">coupled</span>';
+      note.innerHTML='A molten-salt cover fumes because its own components evaporate, each at its activity times '
+        +'its pure vapour pressure. The engine gives the NaCl-KCl-MgCl₂ flux activities, and measured pure-component '
+        +'vapour pressures (NaCl and KCl from NIST Antoine fits, MgCl₂ from NIST-JANAF, each reproducing its boiling '
+        +'point) turn them into the fume. The result: MgCl₂ is a fifth of the flux but only a few percent of the fume, '
+        +'because chlorocomplexing holds its activity far below its mole fraction. The total climbs steeply with '
+        +'temperature, the practical fuming and metal-loss limit for salt fluxing. Drag temperature to read it off.';
+      lab.innerHTML='Temperature';
+      sl.min=1000; sl.max=1400; sl.step=10; sl.value=1200;
+      seg.style.display='none';
+    }
+    refresh();
+  };
+
   document.getElementById('sg-x').addEventListener('input',refresh);
   window.onTUnit(refresh);
   document.getElementById('sg-temp').addEventListener('click',e=>{ const b=e.target.closest('.seg-btn'); if(!b) return;
     document.querySelectorAll('#sg-temp .seg-btn').forEach(x=>x.classList.toggle('on',x===b)); T=b.dataset.t; refresh(); });
-  new MutationObserver(()=>draw((+document.getElementById('sg-x').value)/1000))
-    .observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  new MutationObserver(redraw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
   refresh();
 })();
 </script>

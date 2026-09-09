@@ -1,7 +1,32 @@
 # JORS submission checklist (Hephaestus metapaper)
 
-Updated 2026-09-03 (fifth pass, v0.4.0). Title and abstract carry the full scope, gates
-re-run green. Ready for the two submission clicks below.
+Updated 2026-09-09 (sixth pass, v0.5.1). Two authors, the gas couplings and the full
+system set are described, references verified and citations renumbered, gates re-run green.
+Ready for the two submission clicks below.
+
+## Done (2026-09-09, sixth pass - v0.5.1)
+
+- Second author added: Gabriel Bustamante (Odinzen LLC, ORCID 0009-0005-3269-024X),
+  credited software, software validation, and writing (review and editing). Byline, ORCIDs,
+  list of contributors, competing-interests statement, and the AI-use disclosure updated to
+  two authors. Michael E. Bustamante's affiliation confirmed as Odinzen LLC only (ASU left
+  off for this Odinzen-product paper).
+- Gas-flux (chloride fume) coupling shipped and described: engine salt activities times
+  measured pure-component vapour pressures; new module python/mqmqa/gas_flux.py with a
+  five-check test, and Figure 8. Joins the gas-condensed and gas-slag couplings (Table 3).
+- Full shipped system set now documented (Table 2 + text): the CaO-Al2O3 and Al2O3-SiO2
+  binaries, the CaO-Al2O3-SiO2 ternary (fitted ternary term, RMS ln a 0.48 over 45 KEMS
+  points), the CaO-FeO-MgO-SiO2 quaternary, and the clinopyroxene and spinel solid solutions.
+  Two references added and Crossref-verified (Rankin & Wright 1915; Zaitsev et al. 1997);
+  citations canonically renumbered (47 total); argus order and check both green.
+- OCASI/TQ embedding interface named in the reuse section; Figure 1 gains the gas engine;
+  test count updated to 137; described release bumped to v0.5.1 (past the frozen v0.5.0 tag).
+- Browser app: five live bugs fixed and verified in-app (the slag/gas card no longer shows
+  the FeO-SiO2 chart for a non-iron oxide; live-ternary gating consistent load vs toggle;
+  db/phase global swap guarded with finally; gas-card HTML escaper hardened; a load during
+  WASM init now reports instead of silently doing nothing). Flux-vapour curve labels de-collided.
+- CONTRIBUTING.md added to the remote with the code/science boundary rule.
+- OPEN: cut the v0.5.1 git tag/release (the paper references it); then the two submission clicks.
 
 ## Done (2026-09-03, fifth pass - v0.4.0)
 

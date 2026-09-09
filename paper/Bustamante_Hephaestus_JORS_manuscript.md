@@ -148,14 +148,14 @@ Michael E. Bustamante (design, implementation, validation, data curation, writin
 - Licence: MIT (code), CC BY 4.0 (database)
 - Publisher: Michael E. Bustamante
 - Version published: v0.5.1
-- Date published: 2026-09-02
+- Date published: 2026-09-09
 
 **Code repository**
 
 - Name: GitHub
 - Identifier: https://github.com/odinzen/hephaestus-mqmqa-public
 - Licence: MIT (code), CC BY 4.0 (database, under data/)
-- Date published: 2026-09-02
+- Date published: 2026-09-09
 
 ### Language
 

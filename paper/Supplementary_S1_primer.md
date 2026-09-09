@@ -29,7 +29,7 @@ Different software families historically wrote their databases in different text
 | .utdb | This project's documented open extension of .tdb | Alloys, slags, and salts together in one file |
 | .xtdb | The emerging open XML standard, from the OpenCalphad and NIST circle | The same models, plus newer "third-generation" data that stays accurate all the way down to absolute zero |
 
-For the main calculator the distinction hardly matters; the page detects a .dat, .tdb, or .utdb file when it loads. The newest format, .xtdb, is read in a dedicated card of its own (Section 7), because it carries a more modern description of how materials behave at very low temperatures.
+You never choose a format by hand; the page reads all four and detects which one a file is when it loads. A .dat, .tdb, or .utdb opens in the main calculator, and an .xtdb opens in the third-generation card of its own (Section 7), because it carries a more modern description of how materials behave at very low temperatures. Any of the four can be one of the built-in buttons or a file you load yourself.
 
 ### 3. Your first calculation, in five clicks
 
@@ -66,13 +66,13 @@ Below the binary phase diagram sits **Scheil solidification**. Equilibrium freez
 
 ### 7. Loading a file someone sent you
 
-Press **Choose a .dat or .tdb file** and pick the file. It loads exactly like the built-in buttons and every calculator on the page switches to it. Uploaded files are temporary; they live only in the open tab and vanish on refresh, and up to three can be loaded at once, each pinned as a button whose color marks its dialect, so you can switch between them. That also means systems from different sources sit side by side in one page, and the unified .utdb dialect goes further by holding, for example, an alloy and a molten salt in a single file; your systems are never split across separate products. Nothing is uploaded anywhere; the file is read inside your browser and stays on your machine, which also means confidential files are safe to load.
+Press **Choose a .dat or .tdb file** (the same picker also accepts a .utdb or an .xtdb) and pick the file. A .dat, .tdb, or .utdb loads exactly like the built-in buttons and every calculator on the page switches to it; an .xtdb opens in the third-generation card described just below, read the same way. Uploaded files are temporary; they live only in the open tab and vanish on refresh, and up to three can be loaded at once, each pinned as a button whose color marks its dialect, so you can switch between them. That also means systems from different sources sit side by side in one page, and the unified .utdb dialect goes further by holding, for example, an alloy and a molten salt in a single file; your systems are never split across separate products. Nothing is uploaded anywhere; the file is read inside your browser and stays on your machine, which also means confidential files are safe to load.
 
 One newer format has its own home on the page. An .xtdb file (the emerging XML standard from Section 2) opens in the **third-generation** card near the bottom, which reads it and draws its phase diagram the same way, computed live in your browser. Two worked examples sit there ready to click without a file of your own: an aluminum-carbon system and a lead-tin solder alloy. What sets this format apart is that its heat-capacity description stays physically correct down to absolute zero, where the older databases were only ever fitted above room temperature; for everyday high-temperature work the two agree, and the difference matters when a calculation reaches toward cryogenic conditions.
 
 ### 8. When your system is not on the page
 
-The built-in buttons cover the open slag, chloride salt, and Al-Zn alloy databases shipped with the present work, plus the two unified demonstrations (aluminum recycling and steelmaking). If the system you need is not among them, there are two doors:
+The built-in buttons cover the open slag, chloride salt, and Al-Zn alloy databases shipped with the present work, the two unified demonstrations (aluminum recycling and steelmaking), and the two third-generation examples in the XTDB card (aluminum-carbon and lead-tin). If the system you need is not among them, there are two doors:
 
 - The **Phase diagram builder** card lets you construct a simple system yourself from melting points and mixing energies, directly on the page. It is a teaching and estimation tool, not an assessment.
 - The **Request a database** card is for real systems with real literature. Point it at your folder of collected papers and it prepares an email to us. Small, well-bounded systems may be added to the open collection free as capacity allows, with sources cited to their original authors and the contribution credited to you; larger or confidential work is a paid engagement and comes back as a quoted proposal. Either way you never touch a file format.

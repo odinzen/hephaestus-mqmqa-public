@@ -29,6 +29,33 @@ is unchanged TDB. One file can therefore hold an alloy, a slag, and a salt at on
 - Extension: `.tdb` is accepted (statements are self-describing); `.utdb` is the
   recommended extension when a file uses `MQ*` statements, so intent is visible.
 
+## Where this is heading: TDB to uTDB to XTDB
+
+uTDB is a bridge, not a destination. The database formats run along one road:
+
+- **`.tdb`** - the installed base (alloy CALPHAD, compound-energy-formalism solids); no
+  MQMQA.
+- **`.utdb`** - this extension: MQMQA carried inside TDB grammar, so one file can hold an
+  alloy, a slag, a salt and a gas today, read by the same engine.
+- **XTDB** - the community's XML successor to TDB (Sundman, Kattner, Hallstedt, van de Walle
+  et al., *XTDB, an XML based format for Calphad databases*, Calphad 90 (2025) 102849), from
+  the OpenCalphad and NIST circle. It is schema-validated, and its schema **already includes
+  the MQMQA model**.
+
+uTDB is the on-ramp from the installed base (extend the files you already have, in place); XTDB
+is where the standard is going. Converting uTDB statements to XTDB elements is mechanical once
+that schema settles.
+
+**Status in this engine:** `.dat`, `.tdb`, and `.utdb` are read today. An **XTDB reader is a
+roadmap item, not yet implemented** (see `docs/EQUILIBRIUM_ENGINE.md`, step S6). It is a clean,
+self-contained piece of work: XTDB is an openly documented format, and every existing reader
+already parses into the same in-memory database structure, so an XTDB front-end would parse the
+XML into that same structure and the rest of the engine would work unchanged. Because XTDB's
+schema carries MQMQA and this engine already models MQMQA, the reader is the one missing bridge
+between the emerging standard and a working open engine. Implement it clean-room from the
+published XTDB spec and schema (no GPL source), and validate it the way `.utdb` is validated -
+round-trip and parity against the same system in `.dat`/`.utdb` form.
+
 ## Grammar
 
 ### Phase declaration

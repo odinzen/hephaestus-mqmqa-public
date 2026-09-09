@@ -879,7 +879,8 @@ function addUploadedDB(name, text){
 
 document.getElementById('file').addEventListener('change', async e => {
   const f = e.target.files[0];
-  if (!f || !api) return;
+  if (!f) return;
+  if (!api) { document.getElementById('loadmsg').textContent = 'Engine still loading, please try again in a moment.'; return; }
   const text = await f.text();
   loadDatabase(text, f.name);
   if (db) addUploadedDB(f.name, text);   // only pin after it parsed successfully
@@ -887,7 +888,7 @@ document.getElementById('file').addEventListener('change', async e => {
 
 // Our own literature-only open databases - shipped next to the page, no third-party data.
 async function loadShipped(file) {
-  if (!api) return;
+  if (!api) { document.getElementById('loadmsg').textContent = 'Engine still loading, please try again in a moment.'; return; }
   document.getElementById('loadmsg').textContent = 'Loading the open database…';
   try {
     const text = await (await fetch('./' + file)).text();
@@ -993,12 +994,15 @@ function loadDatabase(text, name) {
   const hasO = anNames.some(a => elementOf(a) === 'O');
   const hasCl = anNames.some(a => elementOf(a) === 'CL');
   const isFMS = hasO && cats3.length === 3 && ['FE','MG','SI'].every(c => cats3.includes(c));
+  const hasFeO = hasO && cats3.includes('FE');   // the oxide coupling showcase IS the FeO-SiO2 iron-saturated slag
   document.getElementById('terncard').classList.toggle('hidden', !isFMS);
   document.getElementById('crystcard').classList.toggle('hidden', !isFMS);
-  document.getElementById('livecard').classList.toggle('hidden', cats3.length !== 3);
-  // Coupling showcase: oxide slag -> CO2/CO oxygen potential; chloride flux -> chloride vapour.
-  window._sgSetMode(hasO);
-  document.getElementById('slaggascard').classList.toggle('hidden', !(hasO || hasCl));
+  // live-ternary needs a single-anion 3-cation melt; match the melt/alloy toggle's predicate exactly
+  document.getElementById('livecard').classList.toggle('hidden', !(cats3.length === 3 && api.nAn(db, phase) === 1));
+  // Coupling showcase: iron-bearing oxide slag -> CO2/CO oxygen potential; chloride flux -> chloride vapour.
+  // A non-iron oxide (e.g. CaO-Al2O3-SiO2) must NOT show the FeO-SiO2 chart, so gate on FeO, not any O.
+  if (hasFeO) window._sgSetMode(true); else if (hasCl) window._sgSetMode(false);
+  document.getElementById('slaggascard').classList.toggle('hidden', !(hasFeO || hasCl));
   if (window._liveSyncLoaded) window._liveSyncLoaded();     // point the live engine at this system
   window._pdPreset = null; pdSetXWindow(0, 100);   // fresh file, neutral full join (demos preset below)
   const solids=[]; for(let i=0;i<api.nStoich(db);i++) solids.push(api.stName(db,i));
@@ -2344,11 +2348,13 @@ document.getElementById('pdmode').addEventListener('click', e => {
   const meltHasO = anNames.some(a => elementOf(a) === 'O');
   const meltHasCl = anNames.some(a => elementOf(a) === 'CL');
   const isFMS = meltHasO && meltCats.length === 3 && ['FE', 'MG', 'SI'].every(c => meltCats.includes(c));
+  const meltHasFeO = meltHasO && meltCats.includes('FE');
   const liveOn = !wantAlloy && meltCats.length === 3 && api.nAn(db, phase) === 1;
   document.getElementById('terncard').classList.toggle('hidden', wantAlloy || !isFMS);
   document.getElementById('crystcard').classList.toggle('hidden', wantAlloy || !isFMS);
   document.getElementById('livecard').classList.toggle('hidden', !liveOn);
-  document.getElementById('slaggascard').classList.toggle('hidden', wantAlloy || !(meltHasO || meltHasCl));
+  if (meltHasFeO) window._sgSetMode(true); else if (meltHasCl) window._sgSetMode(false);
+  document.getElementById('slaggascard').classList.toggle('hidden', wantAlloy || !(meltHasFeO || meltHasCl));
   if (liveOn && window._liveSyncLoaded) window._liveSyncLoaded();
 });
 
@@ -2680,11 +2686,12 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
   function currentT(){ const s=(document.getElementById('iso-tval').textContent||'').match(/(\d+)/);
     return s ? window.uToK(+s[1]) : 1873.15; }
   function liquidAt(xfe,xsi,t){ const xmg=1-xfe-xsi;
-    const sd=db,sp=phase; db=TDB; phase=LIQ;
-    if(!inpCache[t]) inpCache[t]=buildInputs(['FE','MG','SI','O'],t);
-    const inp=inpCache[t];
-    const r=solveEquilibrium(inp,{FE:xfe,MG:xmg,SI:xsi,O:xfe+xmg+2*xsi});
-    db=sd; phase=sp;
+    const sd=db,sp=phase; db=TDB; phase=LIQ; let inp, r;
+    try {
+      if(!inpCache[t]) inpCache[t]=buildInputs(['FE','MG','SI','O'],t);
+      inp=inpCache[t];
+      r=solveEquilibrium(inp,{FE:xfe,MG:xmg,SI:xsi,O:xfe+xmg+2*xsi});
+    } finally { db=sd; phase=sp; }   // always restore globals, even if the solve throws
     if(!isFinite(r.GM)) return null;
     const top=r.X.map((v,q)=>[v,q]).sort((a,b)=>b[0]-a[0]).slice(0,2)
       .filter(e=>e[0]>0.02).map(e=>inp.quadLabel(e[1])+' '+(100*e[0]).toFixed(0)+'%');
@@ -2879,18 +2886,19 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
   function sample(T){
     const sys=SYS, pts=[], phName=[];
     const sd=db,sp=phase; db=sys.TDB; phase=sys.LIQ;
-    if(!sys.inpCache[T]) sys.inpCache[T]=buildInputs(sys.els,T);
-    const inp=sys.inpCache[T];
-    const [cA,cB,cC]=sys.cats;
-    for(let i=0;i<=LIQ_G;i++) for(let j=0;j<=LIQ_G-i;j++){ const xb=i/LIQ_G,xc=j/LIQ_G,xa=1-xb-xc;
-      if((xa<1e-9&&xb<1e-9)||(xb<1e-9&&xc<1e-9)||(xa<1e-9&&xc<1e-9)) continue;
-      const t={}; t[cA]=xa; t[cB]=xb; t[cC]=xc;
-      const nAn=xa*sys.oxy[cA]+xb*sys.oxy[cB]+xc*sys.oxy[cC];
-      t[sys.anEl||'O']=nAn;                     // the system's own anion (O for slags, Cl for salts, ...)
-      const r=solveEquilibrium(inp,t);
-      const atoms=1+nAn;                        // per mole of cations
-      if(isFinite(r.GM)){ pts.push([xb,xc,r.GM*atoms]); phName.push('LIQUID'); } }
-    db=sd; phase=sp;
+    try {
+      if(!sys.inpCache[T]) sys.inpCache[T]=buildInputs(sys.els,T);
+      const inp=sys.inpCache[T];
+      const [cA,cB,cC]=sys.cats;
+      for(let i=0;i<=LIQ_G;i++) for(let j=0;j<=LIQ_G-i;j++){ const xb=i/LIQ_G,xc=j/LIQ_G,xa=1-xb-xc;
+        if((xa<1e-9&&xb<1e-9)||(xb<1e-9&&xc<1e-9)||(xa<1e-9&&xc<1e-9)) continue;
+        const t={}; t[cA]=xa; t[cB]=xb; t[cC]=xc;
+        const nAn=xa*sys.oxy[cA]+xb*sys.oxy[cB]+xc*sys.oxy[cC];
+        t[sys.anEl||'O']=nAn;                   // the system's own anion (O for slags, Cl for salts, ...)
+        const r=solveEquilibrium(inp,t);
+        const atoms=1+nAn;                       // per mole of cations
+        if(isFinite(r.GM)){ pts.push([xb,xc,r.GM*atoms]); phName.push('LIQUID'); } }
+    } finally { db=sd; phase=sp; }   // always restore globals, even if a solve throws
     if(sys.cef) sys.cef(sys,pts,phName,T);
     for(const st of sys.stoich){ pts.push([st.b,st.c, api.stG(sys.TDB,st.idx,T)/st.ncat]); phName.push(st.name); }
     return {pts,phName};
@@ -3486,7 +3494,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     } catch(err){ gdb = 0; }
     return gdb;
   }
-  function esc(s){ return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+  function esc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   async function compute(){
     const msg=document.getElementById('gas-msg'), out=document.getElementById('gas-out');
     if(!(await ensureDB())){ msg.textContent='Gas database not found next to this page.'; return; }

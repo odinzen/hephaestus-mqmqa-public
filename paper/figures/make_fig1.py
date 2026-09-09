@@ -46,10 +46,11 @@ b_dbb = box(53, 51, 38, 12, "dbbuild (Python)",
             ["measured data + fitted excess", "written as a valid ChemSage file"])
 
 # center core
-b_core = box(12, 29, 58, 13, "C core (C99, no dependencies)",
+b_core = box(10, 25, 62, 17, "C core (C99, no dependencies)",
              ["auto-detecting reader · MQMQA + CEF Gibbs energy",
-              "Inden magnetic model · liquid equilibrium minimizer"], size=12.5)
-b_pyc = box(78, 30, 20, 11, "pycalphad", ["independent oracle,", "machine precision"], dashed=True,
+              "Inden magnetic model · liquid equilibrium minimizer",
+              "NASA-polynomial gas engine · gas-condensed coupling"], size=12.5)
+b_pyc = box(78, 29, 20, 11, "pycalphad", ["independent oracle,", "machine precision"], dashed=True,
             title_size=14, size=12.5)
 
 # bottom row
@@ -61,14 +62,14 @@ b_wasm = box(70, 5, 28, 12, "WebAssembly",
              ["zero-install browser app,", "fully client-side"])
 
 # arrows: inputs to core
-arrow(24, 50.3, 36, 43)
-arrow(72, 50.3, 56, 43)
+arrow(24, 50.3, 34, 42.3)
+arrow(72, 50.3, 58, 42.3)
 # core to outputs
-arrow(22, 28.3, 16, 18)
-arrow(42, 28.3, 50, 18)
-arrow(62, 28.3, 84, 18)
+arrow(22, 24.3, 16, 18)
+arrow(42, 24.3, 50, 18)
+arrow(62, 24.3, 84, 18)
 # oracle
-arrow(70.9, 35.5, 77.2, 35.5, dashed=True, both=True)
+arrow(72.2, 34, 77.2, 34, dashed=True, both=True)
 
 fig.savefig("fig1_architecture.png", bbox_inches="tight", facecolor="white")
 print("fig1_architecture.png written")

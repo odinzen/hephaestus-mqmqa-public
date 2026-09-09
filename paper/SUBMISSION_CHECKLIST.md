@@ -23,7 +23,9 @@ verified and citations renumbered, gates re-run green. Ready for the two submiss
   references added (Chen & Sundman 2001, He et al. 2021, Ngai & Chang 1981; argus check 3/3
   ok, canonical numbering 50 total); version bumped v0.5.1 -> v0.6.0; argus order green
   (50 citations, tables 1-3, figures 1-10 all resolve).
-- OPEN: cut the v0.6.0 git tag/release (the paper references it); then the two submission clicks.
+- v0.6.0 tag and GitHub release cut (2026-09-09), published on main; the paper's persistent
+  identifier https://github.com/odinzen/hephaestus-mqmqa-public/releases/tag/v0.6.0 resolves.
+- OPEN: the two submission clicks (and refresh the desktop submission zip to v0.6.0).
 
 ## Done (2026-09-09, sixth pass - v0.5.1)
 

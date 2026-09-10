@@ -67,6 +67,39 @@ saturation reference) from liquid-only pycalphad equilibria on the written file
   what the binary combination gives. A systematic (not scattered) deviation of this
   kind is the classic signature of a missing ternary interaction term.
 
+## MLIP feasibility for the edge excess enthalpies (2026-09-10)
+
+A separate feasibility test asked whether foundation machine-learned interatomic potentials
+(MLIPs) agree well enough to anchor a liquid excess enthalpy, or spread too far to be useful.
+Method (`_mlip/mlip_mix.py`, the melt-quench approach from data/cao-sio2/_mlip): NVT molecular
+dynamics of the two pure oxide melts and their 50/50 oxide-fraction mix at 3000 K (1.5 ps melt
+at 4000 K, 3 ps equilibration, 6 ps sampling), with dH_mix per oxide unit from the energy
+difference so per-atom reference energies cancel. Three foundation models on CPU: SevenNet
+(7net-0), MatterSim (v1.0.0-1M), and orb (orb-v2). This is a feasibility probe only; nothing
+here is fitted into the database.
+
+dH_mix at x = 0.5 (kJ/mol-oxide):
+
+| Edge | SevenNet | MatterSim | orb | spread |
+|---|---|---|---|---|
+| CaO-Al2O3 | -24.9 +- 0.8 | -32.0 +- 0.7 | -25.9 +- 0.8 | ~7 |
+| Al2O3-SiO2 | +19.1 +- 1.1 | +9.6 +- 1.0 | +1.6 +- 1.4 | ~17 |
+| CaO-SiO2 (control) | -50.2 +- 0.9 | -55.9 +- 0.8 | -47.4 +- 0.8 | ~8 |
+
+- All three models agree on the SIGN for every edge.
+- The strongly-ordering edges (CaO-Al2O3, and the CaO-SiO2 control) cluster within ~7-8 kJ.
+  The control's ~8 kJ spread, on a system known to order deeply, sets the floor on the model
+  systematic error; MLIPs could seed the CaO-Al2O3 excess enthalpy to roughly +-5 kJ.
+- Al2O3-SiO2 is NOT anchorable from MLIPs: the values fan from +1.6 (near-ideal) to +19.1, a
+  factor of ~12. Only the positive sign (a weak demixing tendency) is robust; the magnitude
+  needs a measured calorimetric datum. No single model is the consistent outlier, so the
+  disagreement is largest where the interaction is weakest.
+
+Bearing on this database: the MLIPs confirm the qualitative excess of each edge but do not
+supply a usable magnitude for the aluminosilicate edge, so the excess terms stay fitted to the
+measurements above, not to MLIP energies. Repro: `_mlip/mlip_mix.py <model> all 3000 1.5 3.0
+6.0` (orb needs `TORCHDYNAMO_DISABLE=1` on a machine without an MSVC C++ compiler).
+
 ## Known limits
 
 - No ternary excess term (by construction in v0.1). The Zaitsev bias above IS the

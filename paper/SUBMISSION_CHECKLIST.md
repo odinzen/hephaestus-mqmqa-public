@@ -1,8 +1,16 @@
 # JORS submission checklist (Hephaestus metapaper)
 
+**STATUS: SUBMITTED to the Journal of Open Research Software (JORS) on 2026-09-16.** Version of
+record v0.6.0 (release https://github.com/odinzen/hephaestus-mqmqa-public/releases/tag/v0.6.0).
+Corresponding author Michael E. Bustamante (Odinzen LLC); second author Gabriel Bustamante.
+Submission package: Bustamante_Hephaestus_JORS_submission_2026-09-09.zip (manuscript v0.6.0,
+one-page cover letter, Highlights, Supplementary S1, 10 figures). Cover letter and five
+suggested reviewers were entered in the JORS "Comments to the Editor" box. Now awaiting editor
+assignment and peer review.
+
 Updated 2026-09-09 (seventh pass, v0.6.0). The XTDB third-generation reader is now built and
 described, two authors, the gas couplings and the full system set are described, references
-verified and citations renumbered, gates re-run green. Ready for the two submission clicks below.
+verified and citations renumbered, gates re-run green.
 
 ## Done (2026-09-09, seventh pass - v0.6.0)
 
@@ -34,7 +42,8 @@ verified and citations renumbered, gates re-run green. Ready for the two submiss
   - Manuscript: residual counts fixed (132/137 -> 142 tests; "either of two dialects" -> any).
   - Highlights file added (five points, <=85 chars each), current at v0.6.0.
   - Desktop submission zip rebuilt at v0.6.0 (now includes Highlights + fig10, 10 figures).
-- OPEN: the two submission clicks.
+- DONE (2026-09-16): submitted to JORS; cover letter + five suggested reviewers entered in the
+  Comments-to-the-Editor box. Next: editor assignment, then reviewer reports.
 
 ## Done (2026-09-09, sixth pass - v0.5.1)
 

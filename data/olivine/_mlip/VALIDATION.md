@@ -132,8 +132,8 @@ composition dependence is not resolved by any model.
    (SevenNet, TensorNet) over-state the small spinel/cpx excesses; MatterSim, which biases to
    ideal, is closest for the near-ideal joins. No model is right in both regimes.
 
-3. **Clinopyroxene: near-ideal** is robust across all models - shipped as a small excess,
-   low impact on equilibrium.
+3. **Clinopyroxene: near-ideal** is robust across all models, with low impact on equilibrium
+   either way; it ships ideal (item 5).
 
 4. **Spinel: sign leans negative (favourable), magnitude unconstrained.** Every model, both
    signs, gives complete Fe-Mg miscibility with no gap above ~1000 K (ORB's +6953 would open a

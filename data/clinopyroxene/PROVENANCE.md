@@ -54,17 +54,9 @@ excess.
   written .dat. The four-sublattice phase (with the diopside T^0.5 Cp term) round-trips
   exactly through the reader and the CEF kernel.
 - The endmembers reproduce the Robie-Hemingway Cp(298), dHf and S298.
-- The written .dat excess reproduces the MLIP-fitted Redlich-Kister to < 0.05 J/mol.
 
 ## Known limits
 
-- **The excess is small and MLIP-derived.** |H_mix| < 0.5 kJ/mol, so di-hed is near-ideal
-  either way; the MLIP resolves the *sign and asymmetry* (clean at the symmetry-locked
-  x = 0.125 / 0.875 endpoints) but the mid-composition points carry ~0.1 kJ/mol scatter.
-  A direct solution-calorimetry H_mix (if one is ever located, open) would tighten it, but
-  would not change the phase behaviour (no gap). MatterSim over-expands both endmember
-  cells by ~4 %, a systematic offset that cancels in the mixing energy.
-- **T-independent excess.** No excess-entropy evidence, so the RK terms carry no b*T.
 - **Standalone.** Clinopyroxene lives in CaO-FeO-MgO-SiO2 and slots into neither shipped
   ternary yet (FeO-MgO-SiO2 has no Ca; CaO-Al2O3-SiO2 has no Fe), so it ships as its own
   validated .dat, exactly as olivine was introduced before entering a multicomponent
@@ -80,7 +72,8 @@ excess.
   Cosmochim. Acta 40 (1976) 1281, DOI 10.1016/0016-7037(76)90162-9 (diopside formation
   enthalpy cross-check, not fitted).
 - Diopside structure COD 1000007 (Thompson & Downs 2008); hedenbergite is the all-Fe M1
-  substitution, relaxed. The mixing excess is computed (MatterSim), not from a citation.
+  substitution, relaxed. No mixing excess is shipped; the MLIP excesses behind that choice are in
+  `_mlip/` and `../solidsolutions/RESULTS.md`.
 
 Repro: `endmembers.py` (diopside/hedenbergite Gibbs coefficients, with a self-test),
 `build_dat.py` (writes Clinopyroxene-CEF.dat), `validate_cpx.py` (engine vs pycalphad),

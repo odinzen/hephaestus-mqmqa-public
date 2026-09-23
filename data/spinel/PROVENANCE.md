@@ -44,7 +44,6 @@ choice, and as the harness a future DFT or measured excess would drop into.
 
 - **The C engine's CEF Gibbs equals pycalphad's Model.GM to machine precision**
   (1.2e-10 J/mol-atom) across x and 1000-1600 K.
-- The .dat excess reproduces the MLIP-fitted Redlich-Kister to < 0.05 J/mol.
 - The endmembers reproduce their assembled dHf and S298; NK Cp298 within ~5 J/K of TKV.
 
 ## Known limits
@@ -66,7 +65,8 @@ choice, and as the harness a future DFT or measured excess would drop into.
 - TKV evaluation (chem.msu.ru) for FeAl2O4 dHf, S298, Cp; MgO/FeO/Al2O3 from the shipped
   binary builders.
 - Spinel structure COD 9010342 (ambient MgAl2O4); hercynite is the all-Fe A-site
-  substitution, relaxed. The mixing excess is computed (MatterSim), not from a citation.
+  substitution, relaxed. No mixing excess is shipped; the MLIP excesses behind that choice are in
+  `_mlip/` and `../solidsolutions/RESULTS.md`.
 
 Repro: `endmembers.py` (assembled Gibbs, with a self-test), `build_dat.py` (writes
 Spinel-CEF.dat), `_mlip/` (mlip_mix.py: the MLIP mixing pass and the Redlich-Kister fit).

@@ -1,0 +1,24 @@
+# First build. Spinel and clinopyroxene cells here are the ones used. The orthopyroxene lines
+# are the superseded unconstrained run (32-site cells drifted to an uneven M1/M2 split);
+# the cells used are in build_opx.log.
+=== spinel: 14-atom primitive, 2 mixing sites, 11 cluster functions, cutoffs [10.0, 6.0]
+   112 atoms (16 sites, min image 9.9 A) x=0.25: score 0.354, n_Fe 4, point corr [-0.5] (target -0.50)
+   112 atoms (16 sites, min image 9.9 A) x=0.50: score 0.250, n_Fe 8, point corr [0.0] (target +0.00)
+   112 atoms (16 sites, min image 9.9 A) x=0.75: score 0.354, n_Fe 12, point corr [0.5] (target +0.50)
+   224 atoms (32 sites, min image 13.9 A) x=0.25: score 0.125, n_Fe 8, point corr [-0.5] (target -0.50)
+   224 atoms (32 sites, min image 13.9 A) x=0.50: score 0.167, n_Fe 16, point corr [0.0] (target +0.00)
+   224 atoms (32 sites, min image 13.9 A) x=0.75: score 0.125, n_Fe 24, point corr [0.5] (target +0.50)
+=== clinopyroxene: 20-atom primitive, 2 mixing sites, 15 cluster functions, cutoffs [9.0, 5.5]
+   160 atoms (16 sites, min image 12.3 A) x=0.25: score 1.125, n_Fe 4, point corr [-0.5] (target -0.50)
+   160 atoms (16 sites, min image 12.3 A) x=0.50: score 0.500, n_Fe 8, point corr [0.0] (target +0.00)
+   160 atoms (16 sites, min image 12.3 A) x=0.75: score 1.125, n_Fe 12, point corr [0.5] (target +0.50)
+   320 atoms (32 sites, min image 14.7 A) x=0.25: score 0.188, n_Fe 8, point corr [-0.5] (target -0.50)
+   320 atoms (32 sites, min image 14.7 A) x=0.50: score 0.000, n_Fe 16, point corr [0.0] (target +0.00)
+   320 atoms (32 sites, min image 14.7 A) x=0.75: score 0.188, n_Fe 24, point corr [0.5] (target +0.50)
+=== orthopyroxene: 80-atom primitive, 16 mixing sites, 33 cluster functions, cutoffs [7.0, 4.5]
+    80 atoms (16 sites, min image 5.2 A) x=0.25: score 8.750, n_Fe 4, point corr [-0.5, -0.5] (target -0.50)
+    80 atoms (16 sites, min image 5.2 A) x=0.50: score 4.000, n_Fe 8, point corr [0.0, 0.0] (target +0.00)
+    80 atoms (16 sites, min image 5.2 A) x=0.75: score 8.750, n_Fe 12, point corr [0.5, 0.5] (target +0.50)
+   160 atoms (32 sites, min image 10.2 A) x=0.25: score 1.500, n_Fe 8, point corr [-0.625, -0.375] (target -0.50)
+   160 atoms (32 sites, min image 10.2 A) x=0.50: score 1.000, n_Fe 16, point corr [-0.25, 0.25] (target +0.00)
+   160 atoms (32 sites, min image 10.2 A) x=0.75: score 1.500, n_Fe 24, point corr [0.625, 0.375] (target +0.50)

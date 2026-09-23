@@ -1,0 +1,10 @@
+=== orthopyroxene: 80-atom primitive, 16 mixing sites, 33 cluster functions, cutoffs [7.0, 4.5]
+    80 atoms (16 sites, min image 5.2 A) x=0.25: score 8.750, n_Fe 4, point corr [-0.5, -0.5] (target -0.50)
+    80 atoms (16 sites, min image 5.2 A) x=0.50: score 4.000, n_Fe 8, point corr [0.0, 0.0] (target +0.00)
+    80 atoms (16 sites, min image 5.2 A) x=0.75: score 8.750, n_Fe 12, point corr [0.5, 0.5] (target +0.50)
+   160 atoms (32 sites, min image 10.2 A) x=0.25: score 1.750, n_Fe 8, point corr [-0.5, -0.5] (target -0.50)
+   160 atoms (32 sites, min image 10.2 A) x=0.50: score 1.500, n_Fe 16, point corr [0.0, 0.0] (target +0.00)
+   160 atoms (32 sites, min image 10.2 A) x=0.75: score 1.750, n_Fe 24, point corr [0.5, 0.5] (target +0.50)
+   320 atoms (64 sites, min image 13.6 A) x=0.25: score 0.625, n_Fe 16, point corr [-0.5, -0.5] (target -0.50)
+   320 atoms (64 sites, min image 13.6 A) x=0.50: score 0.250, n_Fe 32, point corr [0.0, 0.0] (target +0.00)
+   320 atoms (64 sites, min image 13.6 A) x=0.75: score 0.500, n_Fe 48, point corr [0.5, 0.5] (target +0.50)

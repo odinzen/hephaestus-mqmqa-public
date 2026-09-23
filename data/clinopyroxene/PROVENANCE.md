@@ -34,9 +34,12 @@ MLIP. A seven-model triangulation against measured olivine mixing
 (SevenNet), -576 (MatterSim), -1843 (TensorNet), -5440 (ORB). Unlike spinel (a 22 kJ spread),
 these **cluster near zero** - every model agrees di-hed is essentially ideal.
 
-Two independent checks say a nonzero value is not earned: the models put |H_mix| well under
-0.5 kJ/mol, and a direct test showed the MatterSim excess shifts the CaO-FeO-MgO-SiO2 liquidus
-by <= 20 K and never changes which phase crystallizes. So no excess is shipped - the ideal
+Two independent checks say a nonzero value is not earned: every model keeps |H_mix|
+within about 1.4 kJ/mol of ideal, and a direct test showed the MatterSim excess shifts the CaO-FeO-MgO-SiO2 liquidus
+by <= 20 K and never changes which phase crystallizes. (An SQS re-run of SevenNet on 16- and
+32-site cells, 2026-09-22, gives H_mix = +792 J/mol at x = 0.5 and +1301 at x = 0.75, a little
+above the earlier ordering average; see `../solidsolutions/RESULTS.md`. Still small next to the
++3138 measured for olivine.) So no excess is shipped - the ideal
 configurational term carries the mixing, di-hed remains a complete solid solution at all
 temperatures, and the L1 (composition dependence), which no model resolved, is not over-read.
 

@@ -51,8 +51,43 @@ three fail in three different directions. **SevenNet-0 is the model of record** 
 essentially reproducing Wood & Kleppa); ORB and TensorNet are the corroborating bracket.
 MatterSim (ideal-biased), CHGNet (wrong sign) and M3GNet (5x over) are excluded.
 
-The configurational (statistical) noise is small (per-ordering spread <= a few meV/formula);
-the error that matters is systematic model bias, and it is large and model-dependent.
+The error that matters most is systematic model bias, and it is large and model-dependent.
+Configurational noise is smaller but not negligible. For SevenNet the per-ordering spread is
+9.5-14 meV/formula (about 1 kJ/mol per ordering), and the choice of cell alone can move H_mix by
+up to 2.7 kJ/mol. See the SQS check below.
+
+## SQS check (2026-09-22)
+
+The six-ordering average above samples a few random arrangements in the 28-atom cell. It was
+re-run with special quasirandom structures from icet 3.0, whose correlations match a random
+alloy by construction, at three cell sizes (8, 16 and 32 M-sites). Same model (SevenNet-0), same
+relaxation, same end members (reproduced to 0.1 meV/formula). Scripts and structures are in
+`../_sqs/`.
+
+H_mix, J/mol per formula unit:
+
+| structure | x = 0.25 | x = 0.50 | x = 0.75 | L0 | L1 | RMS vs measured |
+|-----------|---------:|---------:|---------:|---:|---:|----------------:|
+| Wood & Kleppa 1981 (measured) | 1961 | 3138 | 2746 | 12552 | 4184 | - |
+| 6-ordering average, 28 atoms | 1236 | 3168 | 1444 | 9746 | 1107 | 861 |
+| SQS, 28 atoms (8 sites) | 2508 | 433 | 1376 | 6297 | -6041 | 1779 |
+| SQS, 56 atoms (16 sites) | 2794 | 3054 | 1870 | 12333 | -4928 | 699 |
+| SQS, 112 atoms (32 sites) | 2681 | 3001 | 1968 | 12213 | -3803 | 617 |
+
+- **The 28-atom cell cannot represent random mixing at x = 0.5.** Of its 70 arrangements, the
+  32 closest to random (including the `_dft/build_sqs.py` pick) all split Fe 3:1 or 1:3 between
+  M1 and M2; every even 2:2 split scores worse. That partial M1/M2 order lowers the energy, and
+  the SQS H_mix lands 2.7 kJ/mol below the measurement. The 16- and 32-site SQS split Fe evenly
+  and agree within 115 J/mol at every composition, so the result is converged in cell size.
+- **SevenNet-0 reproduces the measured L0 to 3%** (12213 vs 12552) and the RMS falls from 861 to
+  617 J/mol. This strengthens it as the model of record. The earlier 30 J/mol agreement at
+  x = 0.5 was partly the luck of which six orderings were drawn.
+- **SevenNet-0 gets the asymmetry wrong.** The measurement is higher on the Fe-rich side
+  (L1 = +4184). SevenNet is higher on the Mg-rich side in both converged cells (L1 = -3800 to
+  -4900). The positive L1 of the ordering average sat inside its scatter. Treat the SevenNet L1
+  on any join as unreliable in sign, not only in magnitude.
+- The unfinished DFT+U SQS run in `../_dft` used the 28-atom cell. If it is resumed, use the
+  56-atom SQS (`../_sqs/out/icet_sqs_56_x0.50.xyz`); the small cell would bias the result low.
 
 ## Does passing olivine certify a model on other joins? No.
 

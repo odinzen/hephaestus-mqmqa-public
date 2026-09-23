@@ -1,0 +1,17 @@
+endmember x=0: -48.1668 eV/fu converged=True
+endmember x=1: -50.8252 eV/fu converged=True
+  28 atoms x=0.25: H_mix    2508 J/mol  (WK  1961, 6-ord avg  1236)  converged=True
+  28 atoms x=0.50: H_mix     433 J/mol  (WK  3138, 6-ord avg  3168)  converged=True
+  28 atoms x=0.75: H_mix    1376 J/mol  (WK  2746, 6-ord avg  1444)  converged=True
+  56 atoms x=0.25: H_mix    2794 J/mol  (WK  1961, 6-ord avg  1236)  converged=True
+  56 atoms x=0.50: H_mix    3054 J/mol  (WK  3138, 6-ord avg  3168)  converged=True
+  56 atoms x=0.75: H_mix    1870 J/mol  (WK  2746, 6-ord avg  1444)  converged=True
+ 112 atoms x=0.25: H_mix    2681 J/mol  (WK  1961, 6-ord avg  1236)  converged=True
+ 112 atoms x=0.50: H_mix    3001 J/mol  (WK  3138, 6-ord avg  3168)  converged=True
+ 112 atoms x=0.75: H_mix    1968 J/mol  (WK  2746, 6-ord avg  1444)  converged=True
+cell   L0      L1     RMS vs Wood-Kleppa (J/mol formula)
+  28    6297   -6041    1779
+  56   12333   -4928     699
+ 112   12213   -3803     617
+prior 6-ord avg (28 atoms): L0 9747 L1 1109 RMS 861
+Wood-Kleppa: L0 12552 L1 4184

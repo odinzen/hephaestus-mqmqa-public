@@ -1,0 +1,22 @@
+=== spinel: end members -49.7412 / -50.9307 eV/f.u. (campaign -49.7412 / -50.9307)
+   112 atoms (16 sites) x=0.25: H_mix   -2601 J/mol  converged=True
+   112 atoms (16 sites) x=0.50: H_mix   -3380 J/mol  converged=True
+   112 atoms (16 sites) x=0.75: H_mix   -2141 J/mol  converged=True
+   224 atoms (32 sites) x=0.25: H_mix   -2611 J/mol  converged=True
+   224 atoms (32 sites) x=0.50: H_mix   -3186 J/mol  converged=True
+   224 atoms (32 sites) x=0.75: H_mix   -2257 J/mol  converged=True
+            cell   x=0.25  x=0.50  x=0.75       L0      L1
+    16 sites SQS    -2601   -3380   -2141   -13056    2454
+    32 sites SQS    -2611   -3186   -2257   -12868    1888
+   prior average    -2965   -3739   -2485   -14732    2560
+=== clinopyroxene: end members -73.4425 / -74.6303 eV/f.u. (campaign -73.4425 / -74.6303)
+   160 atoms (16 sites) x=0.25: H_mix    -748 J/mol  converged=True
+   160 atoms (16 sites) x=0.50: H_mix    1390 J/mol  converged=True
+   160 atoms (16 sites) x=0.75: H_mix    1439 J/mol  converged=True
+   320 atoms (32 sites) x=0.25: H_mix    -765 J/mol  converged=True
+   320 atoms (32 sites) x=0.50: H_mix     792 J/mol  converged=True
+   320 atoms (32 sites) x=0.75: H_mix    1301 J/mol  converged=True
+            cell   x=0.25  x=0.50  x=0.75       L0      L1
+    16 sites SQS     -748    1390    1439     3593   11662
+    32 sites SQS     -765     792    1301     2248   11014
+   prior average     -869     327     865      610    9248

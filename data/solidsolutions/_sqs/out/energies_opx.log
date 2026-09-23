@@ -1,0 +1,15 @@
+=== orthopyroxene: end members -71.8481 / -74.4394 eV/f.u. (campaign -71.8481 / -74.4394)
+    80 atoms (16 sites) x=0.25: H_mix    1459 J/mol  converged=True
+    80 atoms (16 sites) x=0.50: H_mix    2005 J/mol  converged=True
+    80 atoms (16 sites) x=0.75: H_mix    1773 J/mol  converged=True
+   160 atoms (32 sites) x=0.25: H_mix    1913 J/mol  converged=True
+   160 atoms (32 sites) x=0.50: H_mix    2876 J/mol  converged=True
+   160 atoms (32 sites) x=0.75: H_mix    1905 J/mol  converged=True
+   320 atoms (64 sites) x=0.25: H_mix    1765 J/mol  converged=True
+   320 atoms (64 sites) x=0.50: H_mix    2693 J/mol  converged=True
+   320 atoms (64 sites) x=0.75: H_mix    1898 J/mol  converged=True
+            cell   x=0.25  x=0.50  x=0.75       L0      L1
+    16 sites SQS     1459    2005    1773     8336    1674
+    32 sites SQS     1913    2876    1905    10805     -41
+    64 sites SQS     1765    2693    1898    10241     709
+   prior average     2193    1707    3128    10725    4987

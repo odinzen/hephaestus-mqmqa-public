@@ -9,9 +9,13 @@ Gibbs curves per formula unit (Mg,Fe)2SiO4:
   - olivine G(X_Fe, T): the CEF solid solution, via the C kernel mqmqa_cef_gibbs
     (data/olivine, Robie-Hemingway endmembers + Wood-Kleppa excess).
   - liquid G(X_Fe, T): the ternary MQMQA liquid at x_SiO2 = 1/3, minimized over the six
-    quadruplet fractions by the engine with a multi-start SLSQP (a single start gets stuck
-    ~700 J above the minimum in the 3-cation space; multi-start reaches within ~20 J = ~0.4 K,
-    matching pycalphad). The whole loop is thus computed with our own stack.
+    quadruplet fractions by the engine with a multi-start SLSQP. The minimization does not
+    converge. Against pycalphad's liquid minimum on the same model (FeO-MgO-SiO2-combined.dat)
+    the curve sits above it at nearly every point, by a median 0.3-0.5 kJ and up to 5 kJ per
+    formula unit at 1700 and 1900 K. The loop drawn from it is a picture of the model, not a
+    reference. At 1900 K it puts the tie-line at X_Fe 0.088 / 0.401 against the model's
+    0.0803 / 0.3696 (pycalphad equilibrium), and last-digit input changes move its liquidus
+    between 0.31 and 0.48. The whole loop is computed with our own stack.
 
 At each T the melting loop is the tie-line of the lower convex hull of the pooled curves
 whose ends fall on different phases (liquidus = its liquid end, solidus = its olivine end).
@@ -21,9 +25,9 @@ fayalite 1476 K (X_Fe=1), vs 2163 / 1478 measured. The forsterite end was reconc
 MgO(l) below-3098 K liquidus calibration (build_dat.MGO_LIQ_BETA, fit_mgo_beta below), which
 puts the liquid on the same measured (Robie-Hemingway) forsterite the olivine CEF uses; the
 fayalite end already followed from the FeO-SiO2 v0.3 FeO(l) calibration. The loop topology and
-width match Bowen & Schairer's lens. Residual limit: the interior liquidus still carries small
-facets from the few-J ternary liquid-minimizer noise (a warm-started, polynomial-smoothed
-multi-start; an exact ternary minimizer / the C multiphase hull would remove them). The solid
+width match Bowen & Schairer's lens. Residual limit: the interior liquidus inherits the
+ternary liquid-minimizer error described above (a warm-started, polynomial-smoothed
+multi-start; an exact ternary minimizer / the C multiphase hull would remove it). The solid
 side (olivine CEF) is exact.
 Run: writes olivine_join_loop.png (regenerable, not committed).
 """
@@ -77,10 +81,11 @@ def fit_mgo_beta(T_forsterite=2163.0):
 
 def _liquid_curve(db, p, T, xs, nstart=6):
     """Ternary liquid Gibbs per (Mg,Fe)2SiO4 formula along X_Fe at x_SiO2 = 1/3, minimized
-    over the six quadruplet fractions. A single SLSQP start lands ~700 J high in the
-    ternary space, so each composition is WARM-STARTED from the previous one's optimum
-    (the quad distribution varies smoothly with X_Fe) plus a few Dirichlet starts for
-    robustness; the best feasible G is kept. Reaches ~a few J of pycalphad. Returns g(xs)."""
+    over the six quadruplet fractions. Each composition is WARM-STARTED from the previous
+    one's optimum (the quad distribution varies smoothly with X_Fe) plus a few Dirichlet
+    starts; the best feasible G is kept. It is not converged. Points sit up to ~5 kJ per formula
+    above pycalphad's minimum on the same model (median 0.3-0.5 kJ at 1700-1900 K), and which
+    points miss changes with last-digit input changes. Returns g(xs)."""
     inp = eqm.build_inputs(db, p, T, components=["FE", "MG", "SI", "O"])
     n = len(inp["quads"])
     rng = np.random.default_rng(0)
@@ -146,14 +151,15 @@ def _tie_line(xs, g_ol, g_liq):
 def _fine_tie_line(xs, g_ol, g_liq, nfine=600):
     """Smooth both curves and read the olivine<->liquid tie-line off the lower convex hull
     of a fine resampling. The olivine curve is exact (cubic interpolation); the liquid
-    curve carries ~20 J multi-start noise, so it is fitted with a light smoothing spline
-    (its true shape is smooth). The fine grid removes coarse-grid snapping; smoothing
-    removes the minimizer jitter that otherwise facets the liquidus."""
+    curve from _liquid_curve sits hundreds of J to ~5 kJ per formula too high, point by
+    point, so it is fitted with a degree-5 polynomial (its true shape is smooth). The fine
+    grid removes coarse-grid snapping; the polynomial damps the minimizer error but cannot
+    remove one that large, and the tie-line read off it can be off by ~0.1 in X_Fe."""
     from scipy.interpolate import CubicSpline
     so = CubicSpline(xs, g_ol)
     # the liquid G is physically smooth (ideal mixing + a low-order excess); fit its
-    # departure from the endmember chord with a degree-5 polynomial to strip the few-J
-    # minimizer jitter without the shape distortion an over-stiff spline introduces.
+    # departure from the endmember chord with a degree-5 polynomial to damp the minimizer
+    # error without the shape distortion an over-stiff spline introduces.
     chord = g_liq[0] + (g_liq[-1] - g_liq[0]) * (xs - xs[0]) / (xs[-1] - xs[0])
     coef = np.polyfit(xs, g_liq - chord, 5)
     xf = np.linspace(xs[0], xs[-1], nfine)

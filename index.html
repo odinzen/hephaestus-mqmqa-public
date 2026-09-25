@@ -743,6 +743,10 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
 <script src="./hephaestus.js?v=20260909b"></script>
 <script>
 let api = null, db = 0, phase = 0, nPairs = 0, catNames = [], anNames = [];
+// Values of the labeled gas-constant choices, for the page's own text; calculations take
+// the value from the engine (mqmqa_gas_constant), which holds the same table.
+const GAS_R = {1: 8.3145, 2: 8.31451, 3: 8.314462618};
+window.condensedR = () => api ? api.RCondensed() : GAS_R[1];
 // Temperature unit: the engine works in Kelvin; the display defaults to Kelvin and a header
 // toggle (beside the light/dark one) switches to Celsius. Sliders and stored values stay in K;
 // only the shown number and unit change. Cards re-render their temperature text on 'hmqmqa-tunit'.
@@ -806,7 +810,14 @@ Hephaestus().then(M => {
     nQuad:  M.cwrap('mqmqa_num_quadruplets','number',['number','number']),
     enumQ:  M.cwrap('mqmqa_enumerate_quadruplets',null,Array(6).fill('number')),
     coord:  M.cwrap('mqmqa_coordination','number',Array(15).fill('number')),
-    equil:  M.cwrap('mqmqa_equilibrate','number',Array(40).fill('number')),
+    equil:  M.cwrap('mqmqa_equilibrate','number',Array(41).fill('number')),
+    // gas constant: the engine-wide mode, each database's own value, the value in use
+    setRMode: M.cwrap('mqmqa_set_gas_constant','number',['number']),
+    RMode:  M.cwrap('mqmqa_gas_constant_mode','number',[]),
+    RChoice: M.cwrap('mqmqa_gas_constant_choice','number',['number']),
+    REff:   M.cwrap('mqmqa_gas_constant','number',['number']),
+    RCondensed: M.cwrap('mqmqa_R','number',[]),
+    dbROwn: M.cwrap('mqmqa_db_R_own','number',['number']),
     phaseKind: M.cwrap('mqmqa_db_phase_kind','number',['number','number']),
     cefG:   M.cwrap('mqmqa_ph_cef_gibbs','number',['number','number','number','number','number']),
     cefNumSubl: M.cwrap('mqmqa_ph_cef_num_subl','number',['number','number']),
@@ -898,6 +909,7 @@ Hephaestus().then(M => {
     },
   };
   api.M = M;
+  if (window._bldRedraw) window._bldRedraw();   // drawn before the engine loaded
 });
 
 // Session-only uploaded databases: up to 3 pinned as reload buttons (alternating colours) so you
@@ -1477,7 +1489,7 @@ function buildInputs(comp, T){
   [pqc,pqa,pmA,pmB,pmX,pmY,pmZ].forEach(p=>M._free(p));
   const quadLabel=q=>catNm[qca[q]]+'/'+catNm[qcb[q]]+' · '+anNm[qax[q]]+'/'+anNm[qay[q]];
   return {ncat,nan,nq,qca,qcb,qax,qay,Za,Zb,Zx,Zy,zeta,soln:api.isSubq(db,phase),
-          pcat,pan,pG,pstoich,Ztab,ex,catEl,anEl,catGroup,anGroup,T,quadLabel};
+          pcat,pan,pG,pstoich,Ztab,ex,catEl,anEl,catGroup,anGroup,Rown:api.dbROwn(db),T,quadLabel};
 }
 
 function solveEquilibrium(inp, target){
@@ -1503,7 +1515,7 @@ function solveEquilibrium(inp, target){
     inp.T, inp.ncat, inp.nan, inp.nq,
     p.qca,p.qcb,p.qax,p.qay, p.Za,p.Zb,p.Zx,p.Zy, p.zeta, inp.soln,
     inp.pcat.length, p.pc,p.pa,p.G,p.st,p.Zref,
-    inp.ex.A.length, p.xm,p.xc,p.xA,p.xB,p.xX,p.xY,p.xp,p.xq,p.xL,p.xr,p.xac,p.cg,p.ag,
+    inp.ex.A.length, p.xm,p.xc,p.xA,p.xB,p.xX,p.xY,p.xp,p.xq,p.xL,p.xr,p.xac,p.cg,p.ag,inp.Rown,
     elements.length, p.ce,p.ae,p.tg, p.Xout,p.cerr);
   const X=readD(p.Xout,inp.nq), cerr=M.getValue(p.cerr,'double');
   Object.values(p).forEach(ptr=>M._free(ptr));
@@ -3156,7 +3168,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
    binary 977 °C at x_B=0.715, ternary 854 °C at x=[0.203,0.474,0.323], quaternary 782 °C. */
 (function(){
   const cv=document.getElementById('bldcanvas'); if(!cv) return;
-  const ctx=cv.getContext('2d'), R=8.3145, W=cv.width, H=cv.height;
+  const ctx=cv.getContext('2d'), W=cv.width, H=cv.height;
   const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   const $=id=>document.getElementById(id);
   const COMPCOL=['#3a8f5a','#5b8fd0','#a86fbf','#d15450','#4cae8f','#9aa0a6'];
@@ -3204,6 +3216,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
   // solid-k liquidus at composition x (array, Σ=1); NaN where solid k cannot meet this liquid.
   function solidkLiq(k,x,C,Wa,Wb){
     const xk=x[k]; if(xk<=1e-9) return NaN; const n=x.length;
+    const R=window.condensedR();
     return bisect(T=>{ const Wt=Wa+Wb*T; let sump=0;
       for(let i=0;i<n;i++) for(let j=i+1;j<n;j++) sump+=Wt*x[i]*x[j];
       return C[k].dH*(1-T/C[k].Tm)+R*T*Math.log(xk)+Wt*(1-xk)-sump; }, 50, 8000);
@@ -3451,6 +3464,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     setN(use.length);
   };
   _bldSeedFor(false);   // default (landing / slag): hide salt presets, seed the generic ternary
+  window._bldRedraw=draw;
 })();
 </script>
 <script>

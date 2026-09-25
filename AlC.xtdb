@@ -7,7 +7,7 @@
      transcribed from that primary source. The XTDB XML format is the open specification of
        B. Sundman et al., Calphad 90 (2025) 102849.
      No file, text, or layout from any GPL or other implementation is copied; only the
-     published numerical parameters (facts) are used. CC BY 4.0. -->
+     published numerical parameters (facts) are used. CC BY-SA 4.0. -->
 <Defaults LowT="10" HighT="6000" Elements="VA /-" />
 <Element Id="AL" Refstate="FCC_A1" Mass="26.982" H298="4577.3" S298="28.322" />
 <Element Id="C" Refstate="GRAPHITE" Mass="12.011" H298="1054" S298="5.7423" />

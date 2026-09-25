@@ -6,7 +6,7 @@ $ carried by the uTDB extension statements (:Q phase, MQG/MQZETA/MQSTOI/MQZ/MQX;
 $ see docs/UNIFIED_TDB_SPEC.md). The salt physics is the same open assessment
 $ shipped as web/LiCl-KCl.dat; the round-trip test asserts the two containers
 $ agree at machine precision. No other format holds both models in one file.
-$ CC BY 4.0 like the rest of the data in this repository.
+$ CC BY-SA 4.0 like the rest of the data in this repository.
 $
  ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00 !
  ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00 !

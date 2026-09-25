@@ -1,12 +1,12 @@
 """The MQMX additional-constituent (ternary) term vs pycalphad.
 
-Poschmann Eq. 25-26 with a single chemical group and r = 1: the term is the binary
-Q-code mixing term multiplied by the third cation's pair fraction Y_m. pycalphad
-implements the general form; the C engine implements the single-group r = 1 case and
-returns NaN beyond it. Here a three-cation liquid carrying one ternary-tagged term is
-written by dbbuild, read back, and the equilibrium Gibbs energy is compared between
-the C solver and pycalphad's equilibrium at ternary compositions where the factor is
-strongly active.
+Poschmann Eq. 25-26 with a single chemical group: the term is the binary Q-code mixing
+term multiplied by the third cation's pair fraction Y_m, and for r > 1 by
+(1 - Xi_AB - Xi_BA)^(r-1) as well. Here a three-cation liquid carrying one
+ternary-tagged term is written by dbbuild, read back, and the equilibrium Gibbs energy
+is compared between the C solver and pycalphad's equilibrium at ternary compositions
+where the factor is strongly active. Chemical groups are covered in
+test_chemical_groups.py.
 """
 import sys
 from pathlib import Path
@@ -27,23 +27,32 @@ pycalphad = pytest.importorskip("pycalphad")
 from pycalphad import Database as PDB, equilibrium as pyc_eq, variables as v
 
 
-@pytest.fixture(scope="module")
-def ternary_dat(tmp_path_factory):
+def _ternary_dat(tmp_path_factory, r):
     cao = dbbuild.starter_component("CaO")
     mgo = dbbuild.starter_component("MgO")
     sio2 = dbbuild.starter_component("SiO2")
     bins = [
         BinaryExcess("CaO", "SiO2", [
             ExcessTerm(a=-80000.0, b=10.0, p=0, q=0),
-            ExcessTerm(a=-50000.0, b=0.0, p=0, q=0, add_cat="MgO", r=1),
+            ExcessTerm(a=-50000.0, b=0.0, p=0, q=0, add_cat="MgO", r=r),
         ]),
         BinaryExcess("MgO", "SiO2", [ExcessTerm(a=-60000.0, b=0.0, p=0, q=0)]),
     ]
     spec = SystemSpec("CaO-MgO-SiO2", [cao, mgo, sio2], bins,
                       version="test", provenance="ternary-term regression test")
-    p = tmp_path_factory.mktemp("tern") / "tern.dat"
+    p = tmp_path_factory.mktemp("tern") / f"tern_r{r}.dat"
     p.write_text(dbbuild.write_dat(spec), encoding="ascii")
     return p
+
+
+@pytest.fixture(scope="module")
+def ternary_dat(tmp_path_factory):
+    return _ternary_dat(tmp_path_factory, 1)
+
+
+@pytest.fixture(scope="module", params=[2, 3])
+def ternary_dat_r(tmp_path_factory, request):
+    return _ternary_dat(tmp_path_factory, request.param), request.param
 
 
 def test_reader_roundtrip(ternary_dat):
@@ -56,7 +65,7 @@ def test_reader_roundtrip(ternary_dat):
     assert mx["r"][i] == 1.0
 
 
-def test_equilibrium_gm_matches_pycalphad(ternary_dat):
+def _gm_matches_pycalphad(ternary_dat):
     db = mqmqa.Database.read(str(ternary_dat))
     p = db.phase_index("CAO-MGO-SIO2-LIQUID")
     pdb = PDB(str(ternary_dat))
@@ -75,11 +84,23 @@ def test_equilibrium_gm_matches_pycalphad(ternary_dat):
             assert ours == pytest.approx(theirs, abs=0.5), (T, x_ca, x_mg, x_si)
 
 
-def test_r2_is_loud(ternary_dat):
-    """r >= 2 is not implemented in C and must return NaN, never a wrong number."""
+def test_equilibrium_gm_matches_pycalphad(ternary_dat):
+    _gm_matches_pycalphad(ternary_dat)
+
+
+def test_higher_r_matches_pycalphad(ternary_dat_r):
+    path, r = ternary_dat_r
+    db = mqmqa.Database.read(str(path))
+    p = db.phase_index("CAO-MGO-SIO2-LIQUID")
+    assert r in db.mqmx(p, 1800.0)["r"]
+    _gm_matches_pycalphad(path)
+
+
+def test_r0_is_loud(ternary_dat):
+    """An additional constituent with r < 1 has no published form: NaN, never a number."""
     db = mqmqa.Database.read(str(ternary_dat))
     p = db.phase_index("CAO-MGO-SIO2-LIQUID")
     inp = eq.build_inputs(db, p, 1800.0, components=["CA", "MG", "SI", "O"])
-    inp["ex"]["r"] = [2.0 if a >= 0 else r for r, a in zip(inp["ex"]["r"], inp["ex"]["addcat"])]
+    inp["ex"]["r"] = [0.0 if a >= 0 else r for r, a in zip(inp["ex"]["r"], inp["ex"]["addcat"])]
     gm = _abi.c_equilibrate(inp, {"CA": 0.4, "MG": 0.3, "SI": 0.3, "O": 1.3})["GM"]
     assert np.isnan(gm)

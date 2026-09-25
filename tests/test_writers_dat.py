@@ -159,11 +159,6 @@ def _mqmqa_energy_pycalphad(pdb, name, comps, db, p, T, Xkey):
 
 DAT_WRITABLE = [f for f in SHIPPED + EXTRA if not _magnetic(f)]
 
-# Ternary terms with mixed chemical groups: Hephaestus's excess routine does not
-# implement the multi-group interpolation and refuses these phases (NaN), so the written
-# file is checked against pycalphad on the source only, and the refusal is asserted.
-ENGINE_GAPS = {("MQMQA-tern-tests.dat", "TERN_XS_121"), ("MQMQA-tern-tests.dat", "TERN_XS_122")}
-
 
 @pytest.mark.parametrize("path", DAT_WRITABLE,
                          ids=[os.path.relpath(f, U.ROOT).replace("\\", "/")
@@ -214,9 +209,6 @@ def test_written_dat_matches_pycalphad(path):
                     g_po = _mqmqa_energy_pycalphad(pdb_orig, name, comps, db, p, T, Xkey)
                     assert U.rel(g_po, g_py) < U.ORACLE_TOL, (name, T, g_po, g_py)
             g_he = _mqmqa_energy_hephaestus(db, p, T, Xkey)
-            if (os.path.basename(path), name) in ENGINE_GAPS:
-                assert np.isnan(g_he), (name, T, g_he)
-                continue
             d = U.rel(g_he, g_py)
             assert d < U.ORACLE_TOL, (name, T, g_he, g_py)
             worst, n = max(worst, d), n + 1

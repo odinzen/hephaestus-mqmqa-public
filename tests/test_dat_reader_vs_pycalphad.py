@@ -119,21 +119,15 @@ def _energies_from_reader(path, phase):
                                       Za, Zb, Zx, Zy, zeta, db.is_subq(p))
 
     mx = db.mqmx(p, T)
-    # excess is validated where the C routine implements the code: Q (Xi, any
-    # exponents) and G (Chi, any exponents), cation or anion mixing, and a single
-    # chemical group per sublattice (so the nu/gamma expansion vanishes). B/H, R,
-    # reciprocal mixing, and multi-group Chi are not yet implemented.
-    single_group = (len({c["group"] for c in cats}) == 1
-                    and len({a["group"] for a in ans}) == 1)
-    supported = single_group and all(
-        mix in (0, 1) and code in (0, 1) for mix, code in zip(mx["mix"], mx["code"])
-    )
+    # excess is validated wherever the engine evaluates the phase (B/H, R, reciprocal
+    # mixing and a few chemical-group cases are refused; excess_unsupported says why)
     exc = None
-    if supported:
+    if db.excess_unsupported(p) is None:
         exc = mqmqa.excess_energy(n_cat, n_an, quad_ca, quad_cb, quad_ax, quad_ay, Xarr,
                                   Za, Zb, Zx, Zy,
                                   mx["mix"], mx["code"], mx["A"], mx["B"], mx["X"], mx["Y"],
-                                  mx["p"], mx["q"], mx["L"])
+                                  mx["p"], mx["q"], mx["L"], mx["r"], mx["addcat"],
+                                  [c["group"] for c in cats], [a["group"] for a in ans])
     reader_cat = [(_element(c["name"]), c["charge"]) for c in cats]
     reader_an = [(_element(a["name"]), a["charge"]) for a in ans]
     return db, p, Xkey, reader_cat, reader_an, (ref, ideal, exc)

@@ -29,6 +29,10 @@ The model is implemented from the published literature only:
 - Poschmann, Bajpai, Fitzpatrick, Piro, "Recent developments for molten salt
   systems in Thermochimica," Calphad 75 (2021) 102341,
   doi:10.1016/j.calphad.2021.102341.
+- Paz Soldan Palma et al., "Thermodynamic modeling with uncertainty quantification
+  using the modified quasichemical model in quadruplet approximation: Implementation
+  into PyCalphad and ESPEI," arXiv:2204.09111, Eqs 8-10 (the chemical-group excess
+  interpolation of Pelton et al., restated).
 
 No code, algorithms, or solver internals from any other implementation are used.
 
@@ -42,7 +46,8 @@ salt from the 2023 pycalphad paper). Nothing is claimed working until it matches
 ## Status
 
 The C core is complete and validated to machine precision against pycalphad: the full
-MQMQA energy path (reference, ideal mixing, excess, recursive coordination numbers), a
+MQMQA energy path (reference, ideal mixing, excess with its chemical-group interpolation
+and additional-constituent terms of any order, recursive coordination numbers), a
 ChemSage `.dat` reader (SUBQ/SUBG liquids, SUBL solid solutions, stoichiometric
 compounds), a Thermo-Calc `.tdb` reader (CEF phases with vacancies, any-order
 Redlich-Kister, and the Inden magnetic model real steel files require), the openly
@@ -57,6 +62,13 @@ ternary with its halite solid solution), every parameter traced to published
 measurements in the per-system provenance notes.
 `python/mqmqa/dbbuild.py` turns a user's own measured data into a loadable `.dat`
 (free up to four components). See `docs/DESIGN.md`.
+
+An MQMQA excess term the engine does not evaluate is refused with a message naming the
+phase (`Database.excess_unsupported`, `UnsupportedModelError`, a note in the browser),
+never computed as something else: the B and R excess codes, reciprocal mixing,
+ChemSage chemical-group override strings, and chemical groups or an
+additional-constituent exponent r > 1 in a phase whose other sublattice holds more than
+one ion.
 
 ## Converting databases
 

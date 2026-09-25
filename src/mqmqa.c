@@ -186,14 +186,36 @@ static double z_cation(int q, int s, const int *ca, const int *cb,
     return 1.0; /* unreachable when s is in the quad */
 }
 
-/* A third species k of the mixing sublattice falls in nu_ij (it is interpolated with
- * i) when it shares i's chemical group but not j's. With i and j in one group no
- * species can, and the nu/gamma sets are empty. */
+/* Chemical groups (Pelton et al. 2001; Poschmann et al. 2021; the equations as
+ * restated in Paz Soldan Palma et al., arXiv:2204.09111, Eqs 8-10). In the i-j term
+ * of a mixing sublattice, a third species k is interpolated with i (it belongs to
+ * nu_ij) when it shares i's group but not j's; a species in both groups or in neither
+ * (gamma) stays out of both sides. With i and j in one group every nu set is empty
+ * and the interpolation reduces to the plain i-j variables. */
 static int in_nu(const int *grp, int k, int i, int j)
 {
     return grp[k] == grp[i] && grp[k] != grp[j];
 }
 
+/* k is on the i side of the i-j term: i itself or a member of nu_ij. */
+static int on_side(const int *grp, int k, int i, int j)
+{
+    return k == i || (grp && k != j && in_nu(grp, k, i, j));
+}
+
+static int needs_groups(const int *grp, int n, int i, int j)
+{
+    if (!grp) return 0;
+    for (int k = 0; k < n; ++k)
+        if (k != i && k != j && (in_nu(grp, k, i, j) || in_nu(grp, k, j, i)))
+            return 1;
+    return 0;
+}
+
+/* The group interpolation and the r > 1 factor are implemented where the other
+ * sublattice holds a single species. With several, the published equations can be
+ * read with overall site fractions or with pair fractions within the fixed ion, and
+ * the G-code Chi gains reciprocal-quadruplet terms; those cases stay refused. */
 mqmqa_xs_status mqmqa_excess_term_status(int n_cat, int n_an, int mix, int code,
                                          int A, int B, int X, int Y,
                                          double r, int addcat,
@@ -201,26 +223,22 @@ mqmqa_xs_status mqmqa_excess_term_status(int n_cat, int n_an, int mix, int code,
 {
     if (code != 0 && code != 1) return XS_CODE;
     if (mix != 0 && mix != 1) return XS_MIX;
+    const int n_other = mix == 0 ? n_an : n_cat;
     if (addcat >= 0) {
         if (mix != 0) return XS_TERN_ANION;
-        if (r != 1.0) return XS_TERN_R;
+        if (r < 1.0 || (r != 1.0 && n_other > 1)) return XS_TERN_R;
     }
-    const int n = mix == 0 ? n_cat : n_an;
-    const int *grp = mix == 0 ? cat_group : an_group;
-    const int i = mix == 0 ? A : X, j = mix == 0 ? B : Y;
-    if (grp)
-        for (int k = 0; k < n; ++k)
-            if (k != i && k != j && (in_nu(grp, k, i, j) || in_nu(grp, k, j, i)))
-                return XS_GROUPS;
+    if (n_other > 1 && needs_groups(mix == 0 ? cat_group : an_group, mix == 0 ? n_cat : n_an,
+                                    mix == 0 ? A : X, mix == 0 ? B : Y))
+        return XS_GROUPS;
     return XS_OK;
 }
 
 /* Excess energy for a set of MQMX interaction parameters, J per mole of quadruplets
  * (Poschmann eqs 19,20,24 for the mixing term, eq 17 for the assembly). Handles the
- * Q mixing code (cation and anion mixing) and the G code with zero exponents
- * (mixing term = 1). Evaluates terms whose nu/gamma sets are empty (a single chemical
- * group, or groups that put no third species on either side); a term that needs the
- * mixed-group interpolation returns NaN.
+ * Q and G mixing codes (cation and anion mixing) with their chemical-group
+ * interpolation, and an additional (ternary) cation with any exponent r >= 1
+ * (Poschmann eqs 25-26). A term mqmqa_excess_term_status refuses returns NaN.
  *
  * Per parameter k: par_mix = 0 for cation mixing (A != B, single anion X = Y),
  * 1 for anion mixing (single cation A = B, anions X != Y). par_code = 0 for Q,
@@ -264,11 +282,48 @@ double mqmqa_excess_energy(
         const int A = par_A[k], B = par_B[k], Xn = par_X[k], Yn = par_Y[k];
         const double p = par_p[k], qx = par_q[k];
 
+        /* the mixing sublattice, its two species si,sj, and whether the term needs the
+         * group interpolation (status guarantees a single fixed ion on the other side) */
+        const int cmix = par_mix[k] == 0;
+        const int *grp = cmix ? cat_group : an_group;
+        const int n_mix = cmix ? n_cat : n_an;
+        const int si = cmix ? A : Xn, sj = cmix ? B : Yn;
+        const int grouped = needs_groups(grp, n_mix, si, sj);
+
         /* mixing term */
         double g;
-        if (par_code[k] == 1) {                     /* G code, Chi_mix (Poschmann eq 21/23) */
-            /* Single chemical group per sublattice, so the nu/gamma sums vanish and
-             * Chi_i = X(i,i)/[X(i,i)+X(i,j)+X(j,j)] over the two mixing constituents. */
+        if (grouped && par_code[k] == 1) {
+            /* Chi of each side: the quadruplets built only from that side's species,
+             * over those built from either side (gamma species excluded) */
+            double s_i = 0.0, s_j = 0.0, s_all = 0.0;
+            for (int a = 0; a < n_mix; ++a) {
+                const int ai = on_side(grp, a, si, sj), aj = on_side(grp, a, sj, si);
+                if (!ai && !aj) continue;
+                for (int b = a; b < n_mix; ++b) {
+                    const int bi = on_side(grp, b, si, sj), bj = on_side(grp, b, sj, si);
+                    if (!bi && !bj) continue;
+                    const int q = cmix
+                        ? find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay, a, b, Xn, Xn)
+                        : find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay, A, A, a, b);
+                    if (q < 0) continue;
+                    s_all += X[q];
+                    if (ai && bi) s_i += X[q];
+                    if (aj && bj) s_j += X[q];
+                }
+            }
+            g = par_L[k] * pow(s_i / s_all, p) * pow(s_j / s_all, qx);
+        } else if (grouped) {
+            /* Xi of each side: its species' pair fractions with the fixed ion */
+            double xi_i = 0.0, xi_j = 0.0;
+            for (int m = 0; m < n_mix; ++m) {
+                const double f = cmix ? NIK(m, Xn) / 4.0 : NIK(A, m) / 4.0;
+                if (on_side(grp, m, si, sj)) xi_i += f;
+                else if (on_side(grp, m, sj, si)) xi_j += f;
+            }
+            g = par_L[k] * pow(xi_i, p) * pow(xi_j, qx) / pow(xi_i + xi_j, p + qx);
+        } else if (par_code[k] == 1) {              /* G code, Chi_mix (Poschmann eq 21/23) */
+            /* empty nu sets: Chi_i = X(i,i)/[X(i,i)+X(i,j)+X(j,j)] over the two
+             * mixing constituents */
             int qii, qij, qjj;
             if (par_mix[k] == 0) {                  /* cation mixing over anion Xn */
                 qii = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay, A, A, Xn, Xn);
@@ -296,11 +351,31 @@ double mqmqa_excess_energy(
             g = par_L[k] * mix;
         }
 
-        /* Additional (ternary) cation constituent, Poschmann Eq 25-26. With empty
-         * nu/gamma sets the r=1 factor reduces to the third cation's pair fraction;
-         * higher r (the (1 - Xi_ij - Xi_ji)^(r-1) factor) was refused above. */
-        if (par_addcat && par_addcat[k] >= 0)
-            g *= NIK(par_addcat[k], par_X[k]) / 4.0;
+        /* Additional (ternary) cation m with exponent r, Poschmann Eq 25-26. When m
+         * is interpolated with A (or B) the factor is m's share of that side times
+         * (1 - A's (B's) share)^(r-1); otherwise m's pair fraction times
+         * (1 - Xi_AB - Xi_BA)^(r-1). Beyond r = 1 or with groups the phase has a single
+         * anion (status), whose site fraction Y_X is 1. */
+        if (par_addcat && par_addcat[k] >= 0) {
+            const int m = par_addcat[k];
+            const double r = par_r ? par_r[k] : 1.0;
+            const double xm = NIK(m, Xn) / 4.0;
+            if (!grouped && r == 1.0) {
+                g *= xm;
+            } else {
+                double xi_i = 0.0, xi_j = 0.0;
+                for (int c = 0; c < n_cat; ++c) {
+                    if (on_side(grp, c, A, B)) xi_i += NIK(c, Xn) / 4.0;
+                    else if (on_side(grp, c, B, A)) xi_j += NIK(c, Xn) / 4.0;
+                }
+                if (grouped && on_side(grp, m, B, A))
+                    g *= xm / xi_j * pow(1.0 - NIK(B, Xn) / 4.0 / xi_j, r - 1.0);
+                else if (grouped && on_side(grp, m, A, B))
+                    g *= xm / xi_i * pow(1.0 - NIK(A, Xn) / 4.0 / xi_i, r - 1.0);
+                else
+                    g *= xm * pow(1.0 - xi_i - xi_j, r - 1.0);
+            }
+        }
 
         const int qbase = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay,
                                     A, B, Xn, Yn);

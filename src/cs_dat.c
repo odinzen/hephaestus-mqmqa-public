@@ -51,7 +51,7 @@ typedef struct {
     char lossy[256];    /* first source content read past without modeling */
 } Lexer;
 
-static _Thread_local char g_error[256] = "";
+static _Thread_local char g_error[512] = "";
 
 void mqmqa_db_set_error(const char *fmt, ...)
 {
@@ -902,11 +902,15 @@ const char *mqmqa_ph_excess_unsupported(const mqmqa_db *db, int p)
             st == XS_TERN_ANION ? "has an additional constituent on an anion-mixing term, "
                                   "which is not supported" :
             st == XS_TERN_R ? "has an additional-constituent exponent r other than 1, which "
-                              "is not supported" :
-            "mixes species that the file assigns to different chemical groups; mixed "
-            "chemical groups are not supported";
+                              "is supported only for r >= 1 in a phase with a single anion" :
+            mx->mix == 1 ? "mixes species that the file assigns to different chemical groups "
+                           "in a phase with more than one cation; mixed chemical groups are "
+                           "not supported there" :
+            "mixes species that the file assigns to different chemical groups in a phase "
+            "with more than one anion; mixed chemical groups are not supported there";
         snprintf(g_xs_msg, sizeof g_xs_msg,
-                 "phase %s: the %c excess term %s-%s %s, so its energy is not computed",
+                 "phase %s: the %c excess term between %s and %s %s, so its energy is "
+                 "not computed",
                  ph->name, mx->code, a, b, why);
         return g_xs_msg;
     }

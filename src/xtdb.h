@@ -35,6 +35,15 @@ MQMQA_API double xtdb_endmember_gibbs(const xtdb_db *db, const char *phase, cons
 MQMQA_API double xtdb_phase_gibbs(const xtdb_db *db, int p, const char *B, double xB, double T,
                                   double *fixed, int *ok);
 
+/* Writers, each returning the whole file text (release with mqmqa_text_free) or NULL with
+ * xtdb_error() naming the model the target cannot hold (the third-generation Einstein and
+ * two-state models have no TDB or ChemSage form). source_name goes into the provenance
+ * header. */
+MQMQA_API char *xtdb_write_xtdb(const xtdb_db *db, const char *source_name);
+MQMQA_API char *xtdb_write_tdb(const xtdb_db *db, const char *source_name);
+MQMQA_API char *xtdb_write_utdb(const xtdb_db *db, const char *source_name);
+MQMQA_API char *xtdb_write_dat(const xtdb_db *db, const char *source_name);
+
 #ifdef __cplusplus
 }
 #endif

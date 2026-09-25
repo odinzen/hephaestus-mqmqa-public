@@ -1,9 +1,11 @@
 #include "cs_dat.h"
+#include "cs_dat_priv.h"
 #include "cef.h"
 
 #include <ctype.h>
 #include <math.h>
 #include <setjmp.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,104 +34,6 @@ static double term_value(int idx, double T)
 }
 
 /* ------------------------------------------------------------------ *
- * In-memory model
- * ------------------------------------------------------------------ */
-#define NAME_MAX 64
-#define MAX_COEFFS 16
-
-typedef struct {
-    double t_max;
-    double coeff[MAX_COEFFS];   /* n_gibbs coefficients */
-    int n_add;
-    double *add_c;              /* additional coefficient/exponent pairs */
-    double *add_e;
-} Interval;
-
-typedef struct {
-    char name[NAME_MAX];
-    double *stoich_el;          /* stoichiometry over pure elements */
-    int n_intervals;
-    Interval *intervals;
-    int magnetic;               /* eq_type > 12: carries a magnetic contribution */
-    /* SUBQ pair extras */
-    double stoich_quad[5];
-    double zeta;
-    int cat_idx, an_idx;        /* 0-based sublattice indices of this pair */
-} Endmember;
-
-typedef struct {
-    int A, B, X, Y;             /* canonical: A<=B cations, X<=Y anions (0-based) */
-    double Z[4];                /* slot coordinations [A,B,X,Y] */
-} Mqmz;
-
-typedef struct {
-    char code;                  /* 'Q','G','B','R' */
-    int mix;                    /* 0 cation, 1 anion, -1 other */
-    int A, B, X, Y;             /* 0-based sublattice indices */
-    int exp[4];
-    int add_cat;                /* additional (ternary) cation, 0-based; -1 none */
-    double *coeff;              /* n_excess coefficients */
-} Mqmx;
-
-/* --- compound-energy-formalism (SUBL) phase --- */
-typedef struct {
-    int subl;                   /* mixing sublattice (local) */
-    int i, j;                   /* mixing constituents (local, name-sorted) */
-    int order;                  /* Redlich-Kister order */
-    double *coeff;              /* n_excess coefficients -> L(T) */
-    int *other;                 /* [n_subl] pinned constituent on every other sublattice */
-} CefExcess;
-
-typedef struct {
-    int n_subl;
-    int magnetic;               /* Inden-Hillert-Jarl contribution active */
-    double mag_afm, mag_p;      /* antiferromagnetic factor, structure p */
-    double *tc_em, *bm_em;      /* [n_em*6] TC / BMAGN endmember coeffs (excess basis) */
-    int n_tcx; CefExcess *tc_ex;    /* TC Redlich-Kister interactions */
-    int n_bmx; CefExcess *bm_ex;    /* BMAGN Redlich-Kister interactions */
-    double *site_ratio;         /* [n_subl] site multiplicity a_s */
-    int *subl_ncon;             /* [n_subl] constituents per sublattice */
-    int *subl_off;              /* [n_subl] offset of each sublattice into the flat arrays */
-    int n_con;                  /* total constituents = sum(subl_ncon) */
-    char (*con_name)[NAME_MAX]; /* [n_con] constituent names, flattened by sublattice */
-    double *con_atoms;          /* [n_con] real atoms per constituent (0 for VA) */
-    int n_em;
-    Endmember *em;              /* [n_em] endmember Gibbs energies */
-    int *em_con;                /* [n_em*n_subl] constituent index of each endmember per sublattice */
-    int n_ex;
-    CefExcess *ex;              /* [n_ex] Redlich-Kister interactions */
-} SublPhase;
-
-typedef struct {
-    char name[NAME_MAX];
-    int kind;                   /* 0 MQMQA (SUBQ/SUBG), 1 CEF (SUBL) */
-    int soln_type;              /* 1 SUBQ, 0 SUBG, -1 other */
-    double subg_zeta;           /* single global zeta for SUBG */
-    int n_cat, n_an, n_pairs, n_quads;
-    char (*cat_name)[NAME_MAX];
-    char (*an_name)[NAME_MAX];
-    double *cat_charge, *an_charge;
-    int *cat_group, *an_group;
-    Endmember *pairs;
-    Mqmz *mqmz;
-    int n_mqmx;
-    Mqmx *mqmx;
-    SublPhase *cef;             /* non-NULL when kind == 1 */
-} Phase;
-
-typedef struct {
-    int n_el;
-    char (*el_name)[NAME_MAX];
-    double *el_mass;
-    int n_gibbs, gibbs_idx[MAX_COEFFS];
-    int n_excess, excess_idx[MAX_COEFFS];
-    int n_phases;
-    Phase *phases;
-    int n_stoich;
-    Endmember *stoich;
-} Db;
-
-/* ------------------------------------------------------------------ *
  * Lexer. A whitespace-tokenized view over an owned, uppercased copy of the
  * file. Parse errors longjmp back to the read entry point with a message, so
  * the recursive-descent code below stays free of error plumbing.
@@ -143,9 +47,28 @@ typedef struct {
     char peekbuf[NAME_MAX];
     jmp_buf jb;
     char err[256];
+    char lossy[256];    /* first source content read past without modeling */
 } Lexer;
 
 static _Thread_local char g_error[256] = "";
+
+void mqmqa_db_set_error(const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(g_error, sizeof g_error, fmt, ap);
+    va_end(ap);
+}
+
+/* Keep the first note only: one named example is enough to refuse a conversion. */
+static void note_lossy(char *dst, size_t cap, const char *fmt, ...)
+{
+    va_list ap;
+    if (dst[0]) return;
+    va_start(ap, fmt);
+    vsnprintf(dst, cap, fmt, ap);
+    va_end(ap);
+}
 
 static void lex_fail(Lexer *lx, const char *what)
 {
@@ -308,8 +231,14 @@ static void parse_endmember(Lexer *lx, Endmember *em, int n_el, int n_gibbs)
     em->intervals = xalloc(lx, (size_t)em->n_intervals * sizeof(Interval));
     for (int i = 0; i < em->n_intervals; ++i)
         em->intervals[i] = parse_interval(lx, n_gibbs, has_additional);
+    em->t_lo = NAN;
+    em->t_top = NAN;
 
-    if (magnetic) { (void)tok_dbl(lx); (void)tok_dbl(lx); } /* Tc, moment: unused */
+    if (magnetic) {   /* Tc, moment: not modeled for ChemSage data */
+        (void)tok_dbl(lx); (void)tok_dbl(lx);
+        note_lossy(lx->lossy, sizeof lx->lossy,
+                   "the ChemSage magnetic record (Tc, moment) of %s", em->name);
+    }
 }
 
 static double endmember_gibbs(const Db *db, const Endmember *em, double T)
@@ -426,6 +355,8 @@ static void parse_subq_phase(Lexer *lx, Db *db, Phase *ph, const char *type)
         if (mixing_type < 0) {
             for (int i = 0; i < -mixing_type; ++i)
                 for (int j = 0; j < 10; ++j) (void)tok_req(lx);
+            note_lossy(lx->lossy, sizeof lx->lossy,
+                       "the chemical-group override strings of %s", ph->name);
             break;
         }
         if (n == cap) {
@@ -437,13 +368,15 @@ static void parse_subq_phase(Lexer *lx, Db *db, Phase *ph, const char *type)
         }
         Mqmx *mx = &ph->mqmx[n++];
         memset(mx, 0, sizeof *mx);
+        mx->t_lo = mx->t_hi = NAN;
         char code[NAME_MAX];
         tok_name(lx, code);
         mx->code = code[0];
+        mx->mix_type = mixing_type;
         int li[4];
         for (int i = 0; i < 4; ++i) li[i] = tok_int(lx);
         for (int i = 0; i < 4; ++i) mx->exp[i] = tok_int(lx);
-        for (int i = 0; i < 12; ++i) (void)tok_dbl(lx);   /* metadata, always zero here */
+        for (int i = 0; i < 12; ++i) mx->meta[i] = tok_dbl(lx);   /* not modeled; kept */
         {
             /* additional (ternary) mixing constituents: a cation index is stored and
              * evaluated (Poschmann Eq 25-26); an anion one is not supported. */
@@ -603,6 +536,7 @@ static void parse_subl_phase(Lexer *lx, Db *db, Phase *ph, int num_const)
             }
             CefExcess *xe = &cf->ex[cf->n_ex++];
             memset(xe, 0, sizeof *xe);
+            xe->t_lo = xe->t_hi = NAN;
             xe->subl = mix_s;
             xe->i = ci;
             xe->j = cj;
@@ -645,6 +579,7 @@ static void parse_header(Lexer *lx, Db *db, int *soln_counts, int *n_soln_out)
 static Db *parse_db(Lexer *lx)
 {
     Db *db = xalloc(lx, sizeof(Db));
+    db->lim_lo = db->lim_hi = NAN;
 
     int soln_counts[256];
     int n_soln = 0;
@@ -664,7 +599,11 @@ static Db *parse_db(Lexer *lx)
             parse_subq_phase(lx, db, ph, type);
         } else if (strncmp(type, "SUBL", 4) == 0) {
             /* SUBL (and the magnetic SUBLM, whose two magnetic factors we skip) */
-            if (strcmp(type, "SUBLM") == 0) { (void)tok_dbl(lx); (void)tok_dbl(lx); }
+            if (strcmp(type, "SUBLM") == 0) {
+                (void)tok_dbl(lx); (void)tok_dbl(lx);
+                note_lossy(lx->lossy, sizeof lx->lossy,
+                           "the SUBLM magnetic factors of %s", ph->name);
+            }
             parse_subl_phase(lx, db, ph, soln_counts[s]);
         } else {
             snprintf(lx->err, sizeof lx->err,
@@ -731,6 +670,10 @@ static void free_db(Db *db)
     free(db->stoich);
     free(db->el_name);
     free(db->el_mass);
+    free(db->el_ref);
+    free(db->el_h298);
+    free(db->el_s298);
+    free(db->sp);
     free(db);
 }
 
@@ -742,13 +685,33 @@ static void free_db(Db *db)
 static int tdb_detect(const char *text);
 static Db *read_tdb(char *text_owned);
 
+static void tdb_leading_comments(const char *p, char *out, size_t cap);
+
 static Db *read_from_text(char *text_owned)
 {
+    /* The source's own header (a ChemSage title line, a TDB file's opening comments)
+     * is kept, in its original case, for the provenance header of a written file. */
+    char title[1024], head[1024];
+    {
+        const char *t = text_owned;
+        size_t n;
+        while (*t == ' ' || *t == '\t') t++;
+        n = strcspn(t, "\n");
+        while (n && (t[n - 1] == '\r' || t[n - 1] == ' ')) n--;
+        if (n >= sizeof title) n = sizeof title - 1;
+        memcpy(title, t, n);
+        title[n] = '\0';
+    }
+    tdb_leading_comments(text_owned, head, sizeof head);
+
     /* Uppercase in place, matching pycalphad's reader so species names align. */
     for (char *p = text_owned; *p; ++p) *p = (char)toupper((unsigned char)*p);
 
-    if (tdb_detect(text_owned))
-        return read_tdb(text_owned);
+    if (tdb_detect(text_owned)) {
+        Db *tdb = read_tdb(text_owned);
+        if (tdb) snprintf(tdb->title, sizeof tdb->title, "%s", head);
+        return tdb;
+    }
 
     Lexer lx;
     memset(&lx, 0, sizeof lx);
@@ -765,6 +728,8 @@ static Db *read_from_text(char *text_owned)
     Db *db = NULL;
     if (setjmp(lx.jb) == 0) {
         db = parse_db(&lx);
+        snprintf(db->title, sizeof db->title, "%s", title);
+        snprintf(db->lossy, sizeof db->lossy, "%s", lx.lossy);
         g_error[0] = '\0';
     } else {
         snprintf(g_error, sizeof g_error, "%s", lx.err);
@@ -1185,6 +1150,7 @@ typedef struct {
     /* symbol tables */
     int n_func;  TdbFunc  *func;
     int n_el;    char (*el_name)[NAME_MAX]; double *el_mass;
+    char (*el_ref)[NAME_MAX]; double *el_h, *el_s;
     int n_sp;    TdbSpecies *sp;
     int n_ph;    TdbPhase *ph;
     int n_par;   TdbParam *par; int cap_par;
@@ -1644,6 +1610,8 @@ static void tdb_fill_endmember(Tdb *tb, Endmember *em, const TdbSeg *seg, int n_
     int k;
     em->n_intervals = n_seg > 0 ? n_seg : 1;
     em->intervals = tdb_alloc(tb, (size_t)em->n_intervals * sizeof(Interval));
+    em->t_lo = n_seg > 0 ? seg[0].lo : NAN;
+    em->t_top = n_seg > 0 ? seg[n_seg - 1].hi : NAN;
     if (n_seg == 0) { em->intervals[0].t_max = 1e12; return; }
     for (k = 0; k < n_seg; ++k) {
         Interval *iv = &em->intervals[k];
@@ -1880,6 +1848,8 @@ static void tdb_build_q_phase(Tdb *tb, Db *db, TdbPhase *tp)
             if (!x->coeff) tdb_fail(tb, "out of memory");
             n = tdb_resolve_param(tb, mq->expr, mq->n_seg, out, TDB_MAX_SEG);
             tdb_fill_excess(tb, x->coeff, out, n);
+            x->t_lo = n ? out[0].lo : NAN;
+            x->t_hi = n ? out[n - 1].hi : NAN;
             ph->n_mqmx++;
         } else if (mq->kind == 5) {
             int t = tdb_q_name_index(tp->con[0], ncat, mq->names[0]);
@@ -1911,6 +1881,34 @@ static Db *tdb_build_db(Tdb *tb)
     for (i = 0; i < tb->n_el; ++i) {
         snprintf(db->el_name[i], NAME_MAX, "%s", tb->el_name[i]);
         db->el_mass[i] = tb->el_mass[i];
+    }
+    db->el_ref = calloc((size_t)(tb->n_el > 0 ? tb->n_el : 1), NAME_MAX);
+    db->el_h298 = calloc((size_t)(tb->n_el > 0 ? tb->n_el : 1), sizeof(double));
+    db->el_s298 = calloc((size_t)(tb->n_el > 0 ? tb->n_el : 1), sizeof(double));
+    db->sp = calloc((size_t)(tb->n_sp > 0 ? tb->n_sp : 1), sizeof(DbSpecies));
+    if (!db->el_ref || !db->el_h298 || !db->el_s298 || !db->sp) tdb_fail(tb, "out of memory");
+    for (i = 0; i < tb->n_el; ++i) {
+        snprintf(db->el_ref[i], NAME_MAX, "%s", tb->el_ref[i]);
+        db->el_h298[i] = tb->el_h[i];
+        db->el_s298[i] = tb->el_s[i];
+    }
+    db->n_sp = tb->n_sp;
+    db->lim_lo = db->lim_hi = NAN;
+    if (tb->n_par > 0 && tb->par[0].n_seg > 0) {
+        db->lim_lo = tb->par[0].expr[0].lo;
+        db->lim_hi = tb->par[0].expr[tb->par[0].n_seg - 1].hi;
+    } else if (tb->n_mq > 0 && tb->mq[0].n_seg > 0) {
+        db->lim_lo = tb->mq[0].expr[0].lo;
+        db->lim_hi = tb->mq[0].expr[tb->mq[0].n_seg - 1].hi;
+    }
+    for (i = 0; i < tb->n_sp; ++i) {
+        DbSpecies *d = &db->sp[i];
+        const TdbSpecies *sp = &tb->sp[i];
+        snprintf(d->name, NAME_MAX, "%s", sp->name);
+        d->n_el = sp->n_el;
+        memcpy(d->el, sp->el, sizeof d->el);
+        memcpy(d->n, sp->n, sizeof d->n);
+        d->charge = sp->charge;
     }
     db->n_gibbs = 6;
     for (i = 0; i < 6; ++i) db->gibbs_idx[i] = i + 1;
@@ -1953,6 +1951,10 @@ static Db *tdb_build_db(Tdb *tb)
                     has_atoms = 1;
                 }
             }
+            for (q = 0; q < tb->n_par; ++q)
+                if (strcmp(tb->par[q].phase, tp->name) == 0 && tb->par[q].kind != 0)
+                    note_lossy(tb->lx->lossy, sizeof tb->lx->lossy,
+                               "magnetic parameters of the stoichiometric phase %s", tp->name);
             for (q = 0; q < tb->n_par; ++q) {
                 int n;
                 if (strcmp(tb->par[q].phase, tp->name) != 0) continue;
@@ -2071,6 +2073,8 @@ static Db *tdb_build_db(Tdb *tb)
                 ex->other = calloc((size_t)tp->n_subl, sizeof(int));
                 if (!ex->coeff || !ex->other) tdb_fail(tb, "out of memory");
                 tdb_fill_excess(tb, ex->coeff, out, n);
+                ex->t_lo = n ? out[0].lo : NAN;
+                ex->t_hi = n ? out[n - 1].hi : NAN;
                 for (s = 0; s < tp->n_subl; ++s)
                     ex->other[s] = (s == mixing_subl) ? -1 : pa->con[s][0];
                 cf->n_ex++;
@@ -2092,7 +2096,11 @@ static Db *tdb_build_db(Tdb *tb)
                         if (cf->em_con[e * tp->n_subl + s] != pa->con[s][0]) { match = 0; break; }
                     if (match) { slot6 = (pa->kind == 1 ? cf->tc_em : cf->bm_em) + e * 6; break; }
                 }
-                if (!slot6) continue;   /* TC/BMAGN for an endmember with no G: inert */
+                if (!slot6) {           /* TC/BMAGN for an endmember with no G: inert */
+                    note_lossy(tb->lx->lossy, sizeof tb->lx->lossy,
+                               "a magnetic parameter of %s on an endmember with no G", tp->name);
+                    continue;
+                }
                 tdb_fill_excess(tb, slot6, out, n);
             } else {
                 CefExcess *ex = (pa->kind == 1) ? &cf->tc_ex[cf->n_tcx] : &cf->bm_ex[cf->n_bmx];
@@ -2115,6 +2123,8 @@ static Db *tdb_build_db(Tdb *tb)
                 ex->other = calloc((size_t)tp->n_subl, sizeof(int));
                 if (!ex->coeff || !ex->other) tdb_fail(tb, "out of memory");
                 tdb_fill_excess(tb, ex->coeff, out, n);
+                ex->t_lo = n ? out[0].lo : NAN;
+                ex->t_hi = n ? out[n - 1].hi : NAN;
                 for (s = 0; s < tp->n_subl; ++s)
                     ex->other[s] = (s == mixing_subl) ? -1 : pa->con[s][0];
                 if (pa->kind == 1) cf->n_tcx++; else cf->n_bmx++;
@@ -2129,6 +2139,34 @@ static Db *tdb_build_db(Tdb *tb)
 }
 
 /* ---- the parse driver ---- */
+
+/* The comment block a TDB file opens with (its provenance and license notes), one
+ * line per comment line, for the header of a converted file. */
+static void tdb_leading_comments(const char *p, char *out, size_t cap)
+{
+    size_t n = 0;
+    out[0] = '\0';
+    for (;;) {
+        const char *e;
+        while (*p == ' ' || *p == '\t' || *p == '\r') p++;
+        if (*p == '\n') { p++; continue; }
+        if (*p != '$') break;
+        while (*p == '$' || *p == ' ') p++;
+        e = p;
+        while (*e && *e != '\n') e++;
+        {
+            size_t len = (size_t)(e - p);
+            while (len && (p[len - 1] == '\r' || p[len - 1] == ' ')) len--;
+            if (len && n + len + 2 < cap) {
+                if (n) out[n++] = '\n';
+                memcpy(out + n, p, len);
+                n += len;
+                out[n] = '\0';
+            }
+        }
+        p = e;
+    }
+}
 
 static Db *read_tdb(char *text_owned)
 {
@@ -2148,13 +2186,17 @@ static Db *read_tdb(char *text_owned)
         tb.func = calloc(TDB_MAX_FUNCS, sizeof(TdbFunc));
         tb.el_name = calloc(64, NAME_MAX);
         tb.el_mass = calloc(64, sizeof(double));
+        tb.el_ref = calloc(64, NAME_MAX);
+        tb.el_h = calloc(64, sizeof(double));
+        tb.el_s = calloc(64, sizeof(double));
         tb.sp = calloc(4096, sizeof(TdbSpecies));
         tb.ph = calloc(512, sizeof(TdbPhase));
         tb.cap_par = 32768;
         tb.par = calloc((size_t)tb.cap_par, sizeof(TdbParam));
         tb.cap_mq = 8192;
         tb.mq = calloc((size_t)tb.cap_mq, sizeof(TdbMq));
-        if (!tb.func || !tb.el_name || !tb.el_mass || !tb.sp || !tb.ph || !tb.par || !tb.mq)
+        if (!tb.func || !tb.el_name || !tb.el_mass || !tb.el_ref || !tb.el_h || !tb.el_s ||
+            !tb.sp || !tb.ph || !tb.par || !tb.mq)
             tdb_fail(&tb, "out of memory");
 
         /* built-in: the gas constant, referenced as R# in some files */
@@ -2212,15 +2254,21 @@ static Db *read_tdb(char *text_owned)
 
             if (strncmp(kw, "ELEM", 4) == 0) {
                 char name[NAME_MAX], ref[NAME_MAX], w[NAME_MAX];
-                double mass = 0.0;
+                double mass = 0.0, h298 = 0.0, s298 = 0.0;
                 TdbSpecies *sp;
                 if (!tdb_word(&s, name, sizeof name)) tdb_fail(&tb, "ELEMENT without a name");
+                ref[0] = '\0';
                 tdb_word(&s, ref, sizeof ref);
                 if (tdb_word(&s, w, sizeof w)) mass = atof(w);
+                if (tdb_word(&s, w, sizeof w)) h298 = atof(w);
+                if (tdb_word(&s, w, sizeof w)) s298 = atof(w);
                 if (strcmp(name, "/-") == 0 || strcmp(name, "VA") == 0) continue;
                 if (tb.n_el >= 64) tdb_fail(&tb, "too many elements");
                 snprintf(tb.el_name[tb.n_el], NAME_MAX, "%s", name);
                 tb.el_mass[tb.n_el] = mass;
+                snprintf(tb.el_ref[tb.n_el], NAME_MAX, "%s", ref);
+                tb.el_h[tb.n_el] = h298;
+                tb.el_s[tb.n_el] = s298;
                 sp = &tb.sp[tb.n_sp++];
                 snprintf(sp->name, NAME_MAX, "%s", name);
                 sp->n_el = 1; sp->el[0] = tb.n_el; sp->n[0] = 1.0; sp->atoms = 1.0;
@@ -2381,7 +2429,11 @@ static Db *read_tdb(char *text_owned)
                         mq->kind = 4;
                         mq->code = (type[3] == 'T') ? type[4] : type[3];
                         if (type[3] == 'T') mq->exp_r = 0;   /* ternary form, r read below */
-                    } else continue;
+                    } else {
+                        note_lossy(lx.lossy, sizeof lx.lossy,
+                                   "PARAMETER type %s, which Hephaestus does not read", type);
+                        continue;
+                    }
                     /* descriptor: PHASE , names (comma/colon separated) ; exponents [: addcat] */
                     {
                         char *dcomma = strchr(desc, ',');
@@ -2447,7 +2499,11 @@ static Db *read_tdb(char *text_owned)
                 if (strcmp(type, "G") == 0 || strcmp(type, "L") == 0) pending_kind = 0;
                 else if (strcmp(type, "TC") == 0) pending_kind = 1;
                 else if (strcmp(type, "BMAGN") == 0 || strcmp(type, "BM") == 0) pending_kind = 2;
-                else continue;   /* VS, diffusion etc.: ignored, energies unaffected */
+                else {           /* VS, diffusion etc.: ignored, energies unaffected */
+                    note_lossy(lx.lossy, sizeof lx.lossy,
+                               "PARAMETER type %s, which Hephaestus does not read", type);
+                    continue;
+                }
                 comma = strchr(desc, ',');
                 if (!comma) tdb_fail(&tb, "PARAMETER without a constituent array");
                 *comma = '\0';
@@ -2504,6 +2560,7 @@ static Db *read_tdb(char *text_owned)
             }
         }
         db = tdb_build_db(&tb);
+        snprintf(db->lossy, sizeof db->lossy, "%s", lx.lossy);
         g_error[0] = '\0';
     } else {
         snprintf(g_error, sizeof g_error, "%s", lx.err);
@@ -2516,6 +2573,7 @@ static Db *read_tdb(char *text_owned)
         for (i = 0; i < tb.n_mq; ++i) free(tb.mq[i].expr);
     }
     free(tb.func); free(tb.el_name); free(tb.el_mass);
+    free(tb.el_ref); free(tb.el_h); free(tb.el_s);
     free(tb.sp); free(tb.ph); free(tb.par); free(tb.mq);
     free(text_owned);
     return db;

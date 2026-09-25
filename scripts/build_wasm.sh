@@ -30,7 +30,7 @@ for f in $FUNCS; do EXPORTS="$EXPORTS,\"_$f\""; done
     -I"$ROOT/src" \
     "$ROOT/src/mqmqa.c" "$ROOT/src/cs_dat.c" "$ROOT/src/cef.c" "$ROOT/src/gas.c" \
     "$ROOT/src/equil.c" "$ROOT/src/hull.c" "$ROOT/src/equilibrium.c" "$ROOT/src/tq.c" \
-    "$ROOT/src/xtdb.c" \
+    "$ROOT/src/xtdb.c" "$ROOT/src/db_write.c" \
     -s "EXPORTED_FUNCTIONS=[$EXPORTS]" \
     -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap","UTF8ToString","stringToUTF8","lengthBytesUTF8","getValue","setValue"]' \
     -s ALLOW_MEMORY_GROWTH=1 \

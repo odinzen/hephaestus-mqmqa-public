@@ -23,6 +23,10 @@
 extern "C" {
 #endif
 
+/* Engine version, recorded in the header of every file the writers produce. */
+#define HEPHAESTUS_VERSION "0.6.0+dev"
+MQMQA_API const char *mqmqa_version(void);
+
 /* Molar gas constant R (J/mol/K): the CALPHAD/SGTE conventional value 8.3145 that
  * the databases are assessed with, matching pycalphad. Not CODATA 2018. */
 MQMQA_API double mqmqa_R(void);

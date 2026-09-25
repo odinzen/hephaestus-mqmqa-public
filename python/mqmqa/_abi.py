@@ -137,6 +137,30 @@ _ffi.cdef(
     int mqmqa_db_num_stoich(const void *db);
     const char *mqmqa_db_stoich_name(const void *db, int i);
     double mqmqa_db_stoich_gibbs(const void *db, int i, double T);
+    void mqmqa_db_stoich_elems(const void *db, int i, double *out);
+
+    const char *mqmqa_version(void);
+    char *mqmqa_db_write_tdb(const void *db, const char *source_name);
+    char *mqmqa_db_write_utdb(const void *db, const char *source_name);
+    char *mqmqa_db_write_dat(const void *db, const char *source_name);
+    char *mqmqa_db_write_xtdb(const void *db, const char *source_name);
+    void mqmqa_text_free(char *text);
+
+    void *xtdb_read_string(const char *text);
+    void xtdb_free(void *db);
+    const char *xtdb_error(void);
+    int xtdb_n_elements(const void *db);
+    const char *xtdb_element(const void *db, int i);
+    int xtdb_n_phases(const void *db);
+    const char *xtdb_phase(const void *db, int p);
+    double xtdb_endmember_gibbs(const void *db, const char *phase, const char *cons,
+                                double T, int *ok);
+    double xtdb_phase_gibbs(const void *db, int p, const char *B, double xB, double T,
+                            double *fixed, int *ok);
+    char *xtdb_write_xtdb(const void *db, const char *source_name);
+    char *xtdb_write_tdb(const void *db, const char *source_name);
+    char *xtdb_write_utdb(const void *db, const char *source_name);
+    char *xtdb_write_dat(const void *db, const char *source_name);
 
     int mqmqa_num_quadruplets(int n_cat, int n_an);
     void mqmqa_enumerate_quadruplets(int n_cat, int n_an,

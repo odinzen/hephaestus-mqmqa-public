@@ -382,8 +382,9 @@ def fit_binary_excess(first: Component, second: Component, points, powers=((0, 0
 
     `powers` are the (p, q) exponents of the excess terms to fit (default one symmetric term).
     Each term contributes an enthalpy `a` and, if `fit_entropy`, a temperature part `b*T`. Returns
-    the fitted BinaryExcess. Reproduces the published assessment path (e.g. FeO-SiO2 v0.3).
-    `scratch_dir` relocates the fit's inner rebuild files for callers that must keep scratch
+    the fitted BinaryExcess. Follows the published assessment path (e.g. FeO-SiO2 v0.3).
+    `x0` is the start as (a, b) per term, or a per term without entropy. Fitting the entropy
+    part needs data at two or more temperatures. `scratch_dir` relocates the fit's inner rebuild files for callers that must keep scratch
     in-tree; default is the OS temp dir.
     """
     import numpy as np
@@ -392,20 +393,40 @@ def fit_binary_excess(first: Component, second: Component, points, powers=((0, 0
     from mqmqa import equilibrium as eq
 
     powers = list(powers)
-    nfit = len(powers) * (2 if fit_entropy else 1)
     atoms1 = first.n_cation + first.n_oxygen
     atoms2 = second.n_cation + second.n_oxygen
     tmp = _scratch_path(f"{first.cation}{second.cation}_fit", scratch_dir)
 
+    # A term's a and b are nearly collinear over the few hundred kelvin a data set spans
+    # (correlation -0.993 for FeO-SiO2), so in (a, b) the valley floor is flat to within the
+    # ~1e-11 finite-difference noise of the activities and least_squares stops wherever that
+    # noise stalls it (a00 scattered by 160 J/mol sd under 1e-14 input changes). Fitting each
+    # term's L = a + b*T at the lowest and highest data temperatures decorrelates the
+    # parameters, and the Jacobian takes a fixed 1 J/mol central step, well above the noise
+    # and small against RT. Levenberg-Marquardt, because trf's gradient test still stopped
+    # 1-2 J/mol short of the minimum from distant starts.
+    T_lo = min(pt.T for pt in points)
+    T_hi = max(pt.T for pt in points)
+    if fit_entropy and T_hi <= T_lo:
+        raise ValueError("fit_entropy=True needs activities at two or more temperatures; "
+                         "from one isotherm the enthalpy and entropy parts cannot be separated")
+
+    def ab_from(vec):
+        if not fit_entropy:
+            return [(v, 0.0) for v in vec]
+        out = []
+        for L_lo, L_hi in zip(vec[0::2], vec[1::2]):
+            b = (L_hi - L_lo) / (T_hi - T_lo)
+            out.append((L_lo - b * T_lo, b))
+        return out
+
+    def vec_from(ab):
+        if not fit_entropy:
+            return [a for a, _ in ab]
+        return [L for a, b in ab for L in (a + b * T_lo, a + b * T_hi)]
+
     def terms_from(vec):
-        terms = []
-        for i, (p, q) in enumerate(powers):
-            if fit_entropy:
-                a, b = vec[2 * i], vec[2 * i + 1]
-            else:
-                a, b = vec[i], 0.0
-            terms.append(ExcessTerm(a=a, b=b, p=p, q=q))
-        return terms
+        return [ExcessTerm(a=a, b=b, p=p, q=q) for (a, b), (p, q) in zip(ab_from(vec), powers)]
 
     def residual(vec):
         spec = SystemSpec(f"{first.name}-{second.name}", [first, second],
@@ -423,11 +444,26 @@ def fit_binary_excess(first: Component, second: Component, points, powers=((0, 0
             res.append(math.log(model) - math.log(pt.activity))
         return np.asarray(res, float)
 
+    def jacobian(vec, step=1.0):
+        cols = []
+        for i in range(len(vec)):
+            dv = np.zeros(len(vec))
+            dv[i] = step
+            cols.append((residual(vec + dv) - residual(vec - dv)) / (2.0 * step))
+        return np.column_stack(cols)
+
     if x0 is None:
         x0 = []
         for _ in powers:
             x0 += [-40000.0, 15.0] if fit_entropy else [-40000.0]
-    sol = least_squares(residual, x0, xtol=1e-12, ftol=1e-12)
+    x0 = list(x0)
+    ab0 = list(zip(x0[0::2], x0[1::2])) if fit_entropy else [(a, 0.0) for a in x0]
+    vec0 = np.asarray(vec_from(ab0), float)
+    if len(points) < len(vec0):
+        raise ValueError(f"{len(vec0)} fitted parameters need at least that many activity "
+                         f"points, got {len(points)}")
+    sol = least_squares(residual, vec0, jac=jacobian,
+                        method="lm", x_scale="jac", xtol=1e-12, ftol=1e-12)
     rms = float(np.sqrt(np.mean(sol.fun ** 2)))
     be = BinaryExcess(first.name, second.name, terms_from(sol.x),
                       source=source or f"fitted to {len(points)} measured activities (RMS ln a={rms:.3f})")

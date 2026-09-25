@@ -4,6 +4,7 @@
 *.dll
 *.dylib
 *.a
+*.pdb
 build/
 __pycache__/
 *.py[cod]

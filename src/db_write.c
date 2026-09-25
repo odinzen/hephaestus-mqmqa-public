@@ -765,6 +765,8 @@ static char *write_tdb(const Db *db, const char *source, int unified)
         tb_putf(&w->head, " SPECIES %s  %s !\n", sp->name[i], ctext);
     }
     tb_putf(&w->head, "\n TYPE_DEFINITION %% SEQ * !\n");
+    /* the database's own gas constant, stated so a reader need not assume one */
+    tb_putf(&w->head, " FUNCTION R  0.01  %s;  1E+12 N !\n", tb_num(num, db->R.own));
     for (int i = 0; i < mag.n; ++i)
         tb_putf(&w->head, " TYPE_DEFINITION %c GES A_P_D %s MAGNETIC  %s  %s !\n", mag.ch[i],
                 mag.phase[i], tb_num(a, mag.afm[i]), tb_num(b, mag.p[i]));
@@ -1114,6 +1116,8 @@ static char *write_dat(const Db *db, const char *source_name, int unused)
     tb_clean(src, sizeof src, source_name);
     tb_putf(&w->head, " Converted to ChemSage .dat by Hephaestus %s from %s. %s", HEPHAESTUS_VERSION,
             src, LICENSE_LINE);
+    /* ChemSage has no field for R; the reader takes it from this sentence */
+    tb_putf(&w->head, " Gas constant R = %s J/(mol K).", tb_num(num, db->R.own));
     if (db->title[0]) {
         tb_putf(&w->head, " Source header: ");
         source_header(&w->head, db->title, "", " / ");
@@ -1417,6 +1421,7 @@ static char *write_xtdb(const Db *db, const char *source_name, int unused)
     tb_putf(&w->head, "<Species Id=\"VA\" Stoichiometry=\"VA\" />\n");
     for (int e = 0; e < db->n_el; ++e)
         tb_putf(&w->head, "<Species Id=\"%s\" Stoichiometry=\"%s\" />\n", db->el_name[e], db->el_name[e]);
+    tb_putf(&w->head, "<TPfun Id=\"R\" Expr=\"%s;\" />\n", tb_num(num, db->R.own));
     {   /* named (non-element) constituents: their composition, for other readers */
         SpList *sp = calloc(1, sizeof *sp);
         if (!sp) { wfail(w, "out of memory"); return finish(w); }

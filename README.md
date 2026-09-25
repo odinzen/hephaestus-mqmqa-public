@@ -99,7 +99,13 @@ Each loaded database reports its own R and where it came from (`Database.gas_con
   it keeps the built-in 8.31451 there, as it always has;
 - user override: a forced mode is active; the database's own value is kept and shown.
 
-Databases loaded together each keep their own value.
+Databases loaded together each keep their own value. When a file does not state R, the
+user can declare which value it was assessed with (`declare_gas_constant("sgte")`,
+`mqmqa_db_declare_R`); the source is then "declared by user". Saving a database records
+its own R (stated, inferred, declared or convention, never a forced mode's) in every
+format: `FUNCTION R` in `.tdb` and `.utdb`, a `TPfun R` in `.xtdb`, and a sentence in the
+title line of a `.dat`, which has no field for it. A written file therefore reads back as
+"read from file".
 
 ## Converting databases
 

@@ -29,6 +29,8 @@ MQMQA_API double xtdb_R(const xtdb_db *db);
 MQMQA_API int xtdb_R_source(const xtdb_db *db);
 MQMQA_API int xtdb_R_own_source(const xtdb_db *db);
 MQMQA_API const char *xtdb_R_note(const xtdb_db *db);
+/* as mqmqa_db_declare_R (cs_dat.h); the error text is in xtdb_error() */
+MQMQA_API int xtdb_declare_R(xtdb_db *db, int choice);
 
 /* Third-generation endmember Gibbs energy (J/mol-formula) for a phase and a colon-separated
  * constituent set (e.g. "AL:VA"), including the Einstein GEIN(theta) term and, for a two-state

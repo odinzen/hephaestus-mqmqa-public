@@ -98,6 +98,9 @@ _ffi.cdef(
     int mqmqa_gas_R_source(const void *g);
     int mqmqa_gas_R_own_source(const void *g);
     const char *mqmqa_gas_R_note(const void *g);
+    int mqmqa_db_declare_R(void *db, int choice);
+    int xtdb_declare_R(void *db, int choice);
+    int mqmqa_gas_declare_R(void *g, int choice);
     void *mqmqa_db_read_file(const char *path);
     void *mqmqa_db_read_string(const char *text);
     void mqmqa_db_free(void *db);
@@ -253,6 +256,16 @@ class _GasConstantInfo:
     def gas_constant_note(self):
         """One line for the user: the R in use and where it comes from."""
         return _ffi.string(self._R_fns[4](self._db)).decode()
+
+    def declare_gas_constant(self, choice):
+        """Declare the R this database was assessed with when the file does not state it:
+        "calphad", "sgte" or "si", or "as_assessed" to withdraw a declaration. It is then
+        the database's own value, used in the as-assessed mode and recorded by the
+        writers. Raises ValueError when the file states R."""
+        if choice not in GAS_CONSTANT_MODES:
+            raise ValueError(f"gas constant choice must be one of {GAS_CONSTANT_MODES}")
+        if self._R_fns[5](self._db, GAS_CONSTANT_MODES.index(choice)) != 0:
+            raise ValueError(_ffi.string(self._R_fns[6]()).decode())
 
 
 def set_gas_constant(mode):

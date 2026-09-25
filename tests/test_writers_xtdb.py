@@ -6,13 +6,12 @@ LNTH, the two-state liquid) survive and the energies agree bit for bit. XTDB -> 
 have no form there and must be refused. .dat/.tdb/.utdb -> XTDB is compared phase by
 phase against the source.
 
-The two engines use different gas constants in the ideal mixing term: the database
-engine R = 8.3145 (src/cef.c) and the XTDB engine R = 8.31451 (src/xtdb.c), each the
-value its test suite validates against. A written file cannot reconcile them, so for
-mixed compositions the comparison adds that known difference analytically,
-(8.31451 - 8.3145) T sum_s a_s sum_i y ln y per mole of atoms, and then requires the
-same 1e-14 relative agreement as the other writers. Endmembers carry no mixing term and
-are compared directly.
+Each engine evaluates the ideal mixing term with its database's own gas constant, and
+every written file records the source's (FUNCTION R, TPfun R), so a converted database
+carries the source's R across and the two readings agree directly. For mixed
+compositions the comparison still adds the analytic difference of the two readings' R
+values, (R_xtdb - R_db) T sum_s a_s sum_i y ln y per mole of atoms, which is zero now,
+and requires the same 1e-14 relative agreement as the other writers.
 
 The independent reader is data/xtdb-alc/xtdb_ref.py, the Python XTDB evaluator the C
 engine was specified from (ElementTree XML parsing, Python arithmetic).
@@ -27,12 +26,11 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(__file__))
 import roundtrip_util as U  # noqa: E402
-from mqmqa import Database, XTDB, ConversionError, R  # noqa: E402
+from mqmqa import Database, XTDB, ConversionError  # noqa: E402
 
 sys.path.insert(0, os.path.join(U.ROOT, "data", "xtdb-alc"))
 import xtdb_ref  # noqa: E402
 
-R_XTDB = 8.31451
 T_POINTS = [float(t) for t in np.linspace(300.37, 3000.37, 13)] + [6500.37]
 XTDB_FILES = [f for f in U.shipped_databases() if f.endswith(".xtdb")]
 XTDB_IDS = [os.path.relpath(f, U.ROOT).replace("\\", "/") for f in XTDB_FILES]
@@ -166,7 +164,7 @@ def _db_endmember(db, name, cons, T):
     return db.stoich_gibbs(db.stoich.index(name), T)
 
 
-def _mixing_shift(subls, Y, T):
+def _mixing_shift(subls, Y, T, R_xtdb, R_db):
     """XTDB-engine minus database-engine G per mole of atoms from the two gas constants."""
     s, atoms, off = 0.0, 0.0, 0
     for sl in subls:
@@ -176,7 +174,7 @@ def _mixing_shift(subls, Y, T):
                 s += sl["site_ratio"] * y * math.log(y)
             atoms += sl["site_ratio"] * y * (0.0 if c == "VA" else 1.0)
             off += 1
-    return (R_XTDB - R()) * T * s / atoms
+    return (R_xtdb - R_db) * T * s / atoms
 
 
 def _y_for_x(subls, B, xB):
@@ -213,6 +211,7 @@ def _y_for_x(subls, B, xB):
 def _compare_db_xtdb(db, x):
     """A database and an XTDB reading of the same model (either direction)."""
     worst = 0.0
+    assert x.gas_constant == db.gas_constant        # the writers carry R across
     names = db.phase_names + db.stoich
     assert sorted(names) == sorted(x.phase_names)
     for p, name in enumerate(x.phase_names):
@@ -238,7 +237,8 @@ def _compare_db_xtdb(db, x):
                     if Y is None:
                         assert math.isnan(g)
                         continue
-                    a = db.cef_gibbs(dp, Y, T, per_mole_atoms=True) + _mixing_shift(subls, Y, T)
+                    a = (db.cef_gibbs(dp, Y, T, per_mole_atoms=True)
+                         + _mixing_shift(subls, Y, T, x.gas_constant, db.gas_constant))
                     d = U.rel(a, g)
                     assert d < U.REL_TOL, (name, xB, T, a, g)
                     worst = max(worst, d)

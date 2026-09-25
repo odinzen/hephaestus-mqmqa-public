@@ -36,6 +36,8 @@ MQMQA_API double mqmqa_gas_R(const gas_db *g);
 MQMQA_API int mqmqa_gas_R_source(const gas_db *g);
 MQMQA_API int mqmqa_gas_R_own_source(const gas_db *g);
 MQMQA_API const char *mqmqa_gas_R_note(const gas_db *g);
+/* as mqmqa_db_declare_R (cs_dat.h); the error text is in mqmqa_gas_error() */
+MQMQA_API int mqmqa_gas_declare_R(gas_db *g, int choice);
 
 MQMQA_API int mqmqa_gas_num_species(const gas_db *g);
 MQMQA_API const char *mqmqa_gas_species_name(const gas_db *g, int i);

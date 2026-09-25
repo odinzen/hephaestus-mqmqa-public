@@ -64,6 +64,13 @@ int mqmqa_gas_R_source(const gas_db *g) { return rinfo_source(&g->R); }
 int mqmqa_gas_R_own_source(const gas_db *g) { return g->R.src; }
 const char *mqmqa_gas_R_note(const gas_db *g) { return rinfo_note(&g->R); }
 
+int mqmqa_gas_declare_R(gas_db *g, int choice)
+{
+    const int rc = rinfo_declare(&g->R, choice);
+    if (rc == -2) snprintf(g_err, sizeof g_err, "unknown gas-constant choice %d", choice);
+    return rc;
+}
+
 static int el_index(gas_db *g, const char *sym)
 {
     for (int e = 0; e < g->n_el; ++e)

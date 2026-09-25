@@ -946,6 +946,20 @@ int mqmqa_db_R_source(const mqmqa_db *db) { return rinfo_source(&((const Db *)db
 int mqmqa_db_R_own_source(const mqmqa_db *db) { return ((const Db *)db)->R.src; }
 const char *mqmqa_db_R_note(const mqmqa_db *db) { return rinfo_note(&((const Db *)db)->R); }
 
+int mqmqa_db_declare_R(mqmqa_db *db, int choice)
+{
+    Db *d = (Db *)db;
+    const int rc = rinfo_declare(&d->R, choice);
+    if (rc == -1)
+        snprintf(g_error, sizeof g_error, "the file states R = %.10g; a stated value cannot be "
+                 "declared otherwise", d->R.own);
+    else if (rc == -2)
+        snprintf(g_error, sizeof g_error, "unknown gas-constant choice %d", choice);
+    else
+        db_reread(d);     /* R# takes a declared value */
+    return rc;
+}
+
 /* ------------------------------------------------------------------ *
  * Accessors
  * ------------------------------------------------------------------ */

@@ -41,7 +41,8 @@ def _save(text, path):
 
 class Database(_GasConstantInfo):
     _R_fns = (_lib.mqmqa_db_R_own, _lib.mqmqa_db_R, _lib.mqmqa_db_R_source,
-              _lib.mqmqa_db_R_own_source, _lib.mqmqa_db_R_note)
+              _lib.mqmqa_db_R_own_source, _lib.mqmqa_db_R_note, _lib.mqmqa_db_declare_R,
+              _lib.mqmqa_db_error)
 
     def __init__(self, handle, source=None):
         if handle == _ffi.NULL:

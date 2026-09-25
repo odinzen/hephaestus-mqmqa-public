@@ -14,7 +14,7 @@ from ._database import _s, _save, _take_text
 
 class XTDB(_GasConstantInfo):
     _R_fns = (_lib.xtdb_R_own, _lib.xtdb_R, _lib.xtdb_R_source, _lib.xtdb_R_own_source,
-              _lib.xtdb_R_note)
+              _lib.xtdb_R_note, _lib.xtdb_declare_R, _lib.xtdb_error)
 
     def __init__(self, handle, source=None):
         if handle == _ffi.NULL:

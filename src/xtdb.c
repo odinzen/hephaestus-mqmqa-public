@@ -586,6 +586,17 @@ int xtdb_R_source(const xtdb_db *db) { return rinfo_source(&db->R); }
 int xtdb_R_own_source(const xtdb_db *db) { return db->R.src; }
 const char *xtdb_R_note(const xtdb_db *db) { return rinfo_note(&db->R); }
 
+int xtdb_declare_R(xtdb_db *db, int choice)
+{
+    const int rc = rinfo_declare(&db->R, choice);
+    if (rc == -1)
+        snprintf(g_err, sizeof g_err, "the file states R = %.10g; a stated value cannot be "
+                 "declared otherwise", db->R.own);
+    else if (rc == -2)
+        snprintf(g_err, sizeof g_err, "unknown gas-constant choice %d", choice);
+    return rc;
+}
+
 void xtdb_free(xtdb_db *db) { free(db); }
 int xtdb_n_phases(const xtdb_db *db) { return db->nph; }
 const char *xtdb_phase(const xtdb_db *db, int p) { return (p >= 0 && p < db->nph) ? db->ph[p].id : ""; }
@@ -709,6 +720,10 @@ char *xtdb_write_xtdb(const xtdb_db *db, const char *source_name) {
             tb_putf(&b, " />\n");
         }
         tb_putf(&b, "</TPfun>\n");
+    }
+    if (!find_tp(db, "R")) {
+        char num[40];
+        tb_putf(&b, "<TPfun Id=\"R\" Expr=\"%s;\" />\n", tb_num(num, db->R.own));
     }
     for (int k = 0; k < db->npar; ++k) {
         const Param *pr = &db->par[k];
@@ -920,6 +935,10 @@ static char *to_tdb(const struct xtdb_db *db, const char *source_name, const cha
             tb_putf(&b, "%.*s;  %s %s", (int)ex.n, ex.s ? ex.s : "",
                     f->hi_s[r][0] ? f->hi_s[r] : hi, r + 1 < f->nr ? "Y\n    " : "N !\n");
         }
+    }
+    if (!find_tp(db, "R")) {
+        char num[40];
+        tb_putf(&b, "\n FUNCTION R  %s  %s;  %s N !\n", lo, tb_num(num, db->R.own), hi);
     }
     for (int p = 0; p < db->nph; ++p) {
         const XPhase *ph = &db->ph[p];

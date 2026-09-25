@@ -47,6 +47,12 @@ MQMQA_API double mqmqa_db_R(const mqmqa_db *db);
 MQMQA_API int mqmqa_db_R_source(const mqmqa_db *db);
 MQMQA_API int mqmqa_db_R_own_source(const mqmqa_db *db);
 MQMQA_API const char *mqmqa_db_R_note(const mqmqa_db *db);
+/* Declare which R a database that does not state one was assessed with: choice is
+ * MQMQA_R_CALPHAD, _SGTE or _SI, or MQMQA_R_AS_ASSESSED to withdraw a declaration. The
+ * declared value is the database's own from then on (source DECLARED) and is what the
+ * writers record. Returns 0; -1 when the file states R (the error text says so); -2 for
+ * an unknown choice. */
+MQMQA_API int mqmqa_db_declare_R(mqmqa_db *db, int choice);
 
 /* --- Header --- */
 MQMQA_API int mqmqa_db_num_elements(const mqmqa_db *db);
@@ -136,7 +142,9 @@ MQMQA_API void mqmqa_db_stoich_elems(const mqmqa_db *db, int i, double *out);
  * database holds a model the target cannot represent (or the source had content the
  * reader skipped); mqmqa_db_error() then names the model and a format that can hold
  * it. Nothing partial is ever returned. source_name (may be NULL) is recorded in the
- * provenance header with the engine version and the licensing note. */
+ * provenance header with the engine version and the licensing note. Every file records
+ * the database's own gas constant (never a forced mode's): FUNCTION R in .tdb/.utdb, a
+ * TPfun R in .xtdb, the title line of a .dat. */
 MQMQA_API char *mqmqa_db_write_tdb(const mqmqa_db *db, const char *source_name);
 MQMQA_API char *mqmqa_db_write_utdb(const mqmqa_db *db, const char *source_name);
 MQMQA_API char *mqmqa_db_write_dat(const mqmqa_db *db, const char *source_name);

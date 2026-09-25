@@ -42,14 +42,14 @@ zeta (quadruplets-per-pair) terms, SUBQ and SUBG variants. Build term by term.
 ## The database
 
 Seed the open oxide-slag database from our own digitized literature assessments (CaO-SiO2
-first, the classic Pelton-Blander MQM system, then the CaO-Al2O3-SiO2 ternary). CC-BY-4.0.
+first, the classic Pelton-Blander MQM system, then the CaO-Al2O3-SiO2 ternary). CC BY-SA 4.0.
 Grows as the work matures. The engine also runs the free MSTDB-TC salt database unchanged,
 giving an immediate demo without any assessment work.
 
 ## Availability and archiving (JORS requires this)
 
-- One repository, two licenses: the engine code is MIT (root `LICENSE`); the open slag
-  database lives under `data/` with its own CC-BY-4.0 license.
+- One repository, two licenses: the engine code is AGPL-3.0-only (root `LICENSE`); the open
+  slag database lives under `data/` with its own CC BY-SA 4.0 license.
 - Public GitHub repo, tagged release archived to Zenodo for a citable DOI.
 - Versioned; dependencies documented; tests runnable.
 

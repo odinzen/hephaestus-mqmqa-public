@@ -10,11 +10,13 @@ a database whose every parameter is traceable to a published, openly available s
 ## License
 
 The data in this directory (the `.dat` databases and the derived tables) are licensed
-under Creative Commons Attribution 4.0 International (CC-BY-4.0); see `LICENSE`. This is
-deliberately different from the engine's MIT license: the engine is code, this is data,
-and CC-BY is the appropriate instrument for a citable dataset. Attribution requirements
-under CC-BY are met by citing this repository and the primary sources listed in each
-system's `PROVENANCE.md`.
+under Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0); see
+`LICENSE`. The engine is code and carries AGPL-3.0-only; this is data, and CC BY-SA is the
+instrument for a citable dataset that must stay open. Attribution is met by citing this
+repository and the primary sources listed in each system's `PROVENANCE.md`. Any adapted
+version that is shared, including one converted to another file format, must be shared
+under CC BY-SA 4.0 with the same credits and without technical measures that restrict it.
+Releases up to and including v0.6.0 were published under CC BY 4.0 and keep those terms.
 
 ## Scope and status
 

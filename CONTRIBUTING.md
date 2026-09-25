@@ -2,7 +2,18 @@
 
 Thanks for your interest. Hephaestus is a small C engine for the Modified Quasichemical Model
 (MQMQA) with a Python wrapper and an in-browser WebAssembly build, plus an open database of
-assessed systems. Code is MIT; the `data/` directory is CC BY 4.0.
+assessed systems. Code is AGPL-3.0-only; the `data/` directory and the example databases
+in `web/` are CC BY-SA 4.0.
+
+## Licensing of contributions
+
+There is no contributor license agreement. A contribution is accepted under the license of
+the part it touches, AGPL-3.0-only for code and CC BY-SA 4.0 for data, and keeps that
+license for good. Sign off each commit to certify you have the right to submit it under those
+terms (the Developer Certificate of Origin, https://developercertificate.org), by committing
+with `git commit -s`, which adds a `Signed-off-by:` line with your name and email.
+Contributed data must carry per-value provenance to published sources, and never content
+taken from an encrypted or licensed commercial database.
 
 ## The one rule that matters most: don't decide the science on software grounds
 

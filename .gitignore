@@ -75,5 +75,5 @@ paper/uq_alzn/alzn_espei.tdb
 paper/uq_alzn/output/
 
 # Bo Sundman's XTDB example is GPL-3.0 - keep it as a LOCAL validation reference only,
-# never redistribute it from this MIT/CC-BY repo. We ship our own transcription (data/xtdb/).
+# never redistribute it from this repo. We ship our own transcription (data/xtdb/).
 data/xtdb-alc/AlC-database.XTDB

@@ -89,5 +89,14 @@ both the engine and the open slag database as one open-science contribution. See
 
 ## License
 
-MIT (see LICENSE). Model equations are public; this is an independent
-implementation of them.
+Copyright (C) 2026 Michael E. Bustamante (Odinzen LLC).
+
+The engine is licensed under the GNU Affero General Public License, version 3 only
+(AGPL-3.0-only; see `LICENSE`). The open databases under `data/` and the example databases
+under `web/` are licensed under Creative Commons Attribution-ShareAlike 4.0 International
+(CC BY-SA 4.0; see `data/LICENSE`). Anyone may use, study, teach with, extend, and build
+consulting work on either. Any modified version that is distributed, or offered to users
+over a network, must carry the same license and keep the credits, so the engine and the
+thermodynamics it carries stay open. Model equations are public; this is an independent,
+clean-room implementation of them. Releases up to and including v0.6.0 were published under
+MIT (engine) and CC BY 4.0 (data), and those releases keep those terms.

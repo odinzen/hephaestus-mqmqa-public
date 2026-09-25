@@ -2,7 +2,7 @@
 
 Databases in the open XML XTDB format (Sundman et al., Calphad 90 (2025) 102849), read by the
 Hephaestus XTDB engine (`src/xtdb.c`). Third-generation model: an Einstein heat capacity valid
-to 0 K and, for the liquid, a two-state description. Licensed CC BY 4.0.
+to 0 K and, for the liquid, a two-state description. Licensed CC BY-SA 4.0.
 
 ## AlC.xtdb (this directory)
 
@@ -34,5 +34,5 @@ eutectic at 456 K and x(Sn) ~ 0.74.
 
 Bo Sundman's own AlC-database.XTDB (the reference implementation's example) is GPL-3.0 and is
 kept only as a LOCAL validation reference under `../xtdb-alc/`; it is git-ignored and never
-shipped from this MIT/CC-BY repository. Our AlC.xtdb is an independent transcription from the
+shipped from this repository. Our AlC.xtdb is an independent transcription from the
 He et al. (2021) primary source.

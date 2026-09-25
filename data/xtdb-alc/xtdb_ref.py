@@ -163,7 +163,7 @@ def phase_G(tp, params, phases, phase, B, xB, T):
     return G, fixed
 
 if __name__ == '__main__':
-    # default to the repository's own CC-BY transcription (data/xtdb/AlC.xtdb); the GPL
+    # default to the repository's own CC BY-SA transcription (data/xtdb/AlC.xtdb); the GPL
     # reference file (AlC-database.XTDB) is a local-only validation copy, not shipped.
     import sys
     _here = os.path.dirname(os.path.abspath(__file__))

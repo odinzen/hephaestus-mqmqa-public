@@ -6,7 +6,7 @@ $ Fe3C, graphite. The BCC and FCC magnetic contributions use the
 $ Inden-Hillert-Jarl model (this is what puts the alpha/gamma balance right).
 $ Validated in tests/test_fec_steel.py: pycalphad parity on every phase and
 $ the measured pure-iron transition temperatures.
-$ CC BY 4.0 like the rest of the data in this repository.
+$ CC BY-SA 4.0 like the rest of the data in this repository.
 $
  ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00 !
  ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00 !

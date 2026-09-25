@@ -8,7 +8,7 @@ $ oxide solids. Steel and its slag share iron in one file; no legacy container
 $ can hold this pairing. Carried by the uTDB extension statements (:Q phase,
 $ MQG/MQZETA/MQSTOI/MQZ/MQX; see docs/UNIFIED_TDB_SPEC.md); the round-trip
 $ test asserts both halves agree with their source files at machine precision.
-$ CC BY 4.0 like the rest of the data in this repository.
+$ CC BY-SA 4.0 like the rest of the data in this repository.
 $
  ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00 !
  ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00 !

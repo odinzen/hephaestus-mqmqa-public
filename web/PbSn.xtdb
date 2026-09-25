@@ -3,7 +3,7 @@
      Classic (2nd-generation) SGTE unaries + Redlich-Kister excess, so the engine computes it.
      Parameters transcribed from the open assessment T.L. Ngai, Y.A. Chang, Calphad 5 (1981)
      267-276, as tabulated in the NIMS/pycalphad open pbsn.tdb (Abe, Hashimoto, Sawada 2011).
-     Independent XTDB transcription for this repository; CC BY 4.0. -->
+     Independent XTDB transcription for this repository; CC BY-SA 4.0. -->
 <Defaults LowT="298.15" HighT="6000" Elements="VA /-" />
 <Element Id="PB" Refstate="FCC_A1" Mass="207.2" H298="6878.5" S298="64.785" />
 <Element Id="SN" Refstate="BCT_A5" Mass="118.71" H298="6322.0" S298="51.195" />

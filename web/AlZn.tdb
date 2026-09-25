@@ -7,7 +7,7 @@ $   binary excess parameters: S. an Mey, Reevaluation of the Al-Zn system,
 $     Z. Metallkd. 84 (1993) 451-455.
 $ This file is an independent transcription with its own text and layout,
 $ verified numerically to machine precision against pycalphad
-$ (tests/test_tdb_reader_vs_pycalphad.py). CC BY 4.0 like the rest of the
+$ (tests/test_tdb_reader_vs_pycalphad.py). CC BY-SA 4.0 like the rest of the
 $ data in this repository.
 $
  ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00 !

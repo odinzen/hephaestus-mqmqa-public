@@ -10,7 +10,7 @@ of engine work:
 1. **OCASI compatibility.** OpenCalphad's application interface (OCASI/TQ) is the
    de-facto way to embed a free CALPHAD engine. Mirroring its *interface* — not its
    GPL-v3 code — lets any OCASI-driven application use Hephaestus where OC cannot go:
-   the browser, MIT-licensed and closed products, fast MQMQA.
+   the browser through WebAssembly, and fast MQMQA.
 2. **Mapping instead of sampling.** A proper conditions-driven equilibrium answers the
    standing critique that a sampled hull is coarser than a mapped diagram.
 3. **Uncertainty bands.** Drawing an ESPEI posterior as a band means computing many
@@ -97,6 +97,6 @@ and the new minimiser.
 
 ## Licensing
 
-Everything here is clean-room and MIT. OpenCalphad is read for its *interface shape and
+Everything here is clean-room and AGPL-3.0-only. OpenCalphad is read for its *interface shape and
 its published model descriptions only*; no GPL code is copied or linked. XTDB is an open
 documented format and is read directly.

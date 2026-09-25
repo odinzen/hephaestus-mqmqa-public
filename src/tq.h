@@ -6,8 +6,8 @@
  * These entry points mirror the shape and semantics of the OpenCalphad OCASI /
  * classic TQ interface (itself the de-facto embedding standard originating in
  * Thermo-Calc's TQ), so an application written against OCASI can bind Hephaestus
- * instead and run where OpenCalphad cannot: the browser (WebAssembly), and MIT- or
- * closed-licensed products. It is written clean-room from the documented interface
+ * instead and run where OpenCalphad cannot, in the browser through WebAssembly.
+ * It is written clean-room from the documented interface
  * semantics; no OpenCalphad (GPL) source or headers are copied or linked.
  *
  * Model coverage is Hephaestus's own: MQMQA liquids, compound-energy-formalism

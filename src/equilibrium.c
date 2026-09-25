@@ -18,6 +18,7 @@
  */
 #include "mqmqa.h"
 #include "cs_dat.h"
+#include "cs_dat_priv.h"
 #include "hull.h"
 
 #include <ctype.h>
@@ -89,6 +90,8 @@ int mqmqa_equilibrium_ternary_ex(const mqmqa_db *db, int liq_phase,
     int ncat = mqmqa_ph_num_cations(db, liq_phase);
     int nan  = mqmqa_ph_num_anions(db, liq_phase);
     if (ncat != 3 || nan != 1) return -2;
+    const char *unsupported = mqmqa_ph_excess_unsupported(db, liq_phase);
+    if (unsupported) { mqmqa_db_set_error("%s", unsupported); return -3; }
 
     LiqCtx L;
     L.db = db; L.liq = liq_phase; L.T = T; L.ncat = ncat; L.ndbel = ndbel;

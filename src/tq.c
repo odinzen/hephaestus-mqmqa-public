@@ -174,6 +174,7 @@ int tq_compute_equilibrium(tq_ctx *c)
                                          elem_a, elem_b, qa, qb, ssusp, 1,
                                          po, am, 8, &gm);
     free(cefs); free(ssusp);
+    if (m == -3) { snprintf(c->err, sizeof c->err, "%s", mqmqa_db_error()); return 5; }
     if (m < 0) { snprintf(c->err, sizeof c->err, "equilibrium failed (%d)", m); return 5; }
 
     free(c->stable_ph); free(c->stable_amt);

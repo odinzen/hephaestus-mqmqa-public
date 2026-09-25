@@ -90,6 +90,12 @@ MQMQA_API void mqmqa_ph_mqmx_L(const mqmqa_db *db, int p, double T, double *L);
 /* Ternary additional-constituent data per MQMX term: exponent r (exponents slot 3)
  * and the additional cation's 0-based index, -1 when none. */
 MQMQA_API void mqmqa_ph_mqmx_ternary(const mqmqa_db *db, int p, double *r_exp, int *add_cat);
+/* NULL when every excess term of MQMQA phase p can be evaluated; otherwise a message
+ * naming the phase and the first term the engine refuses (an unsupported code, an
+ * additional anion, r > 1, mixed chemical groups, chemical-group override strings).
+ * The energy routines return NaN for such a phase; this says why. The text lives in
+ * a per-thread buffer overwritten by the next call. */
+MQMQA_API const char *mqmqa_ph_excess_unsupported(const mqmqa_db *db, int p);
 
 /* --- CEF (SUBL / compound-energy-formalism) solution phases ---
  * kind is 0 for MQMQA (SUBQ/SUBG) phases and 1 for CEF (SUBL). The accessors below
@@ -138,7 +144,8 @@ MQMQA_API void mqmqa_enumerate_quadruplets(int n_cat, int n_an,
  * at T and a target composition over the database elements (length
  * mqmqa_db_num_elements). Assembles all model inputs from the parsed database.
  * Writes quadruplet fractions to X_out and the max composition error to err_out
- * (may be NULL). Returns GM per mole of atoms, or NaN on failure. */
+ * (may be NULL). Returns GM per mole of atoms, or NaN on failure; a phase whose excess
+ * the engine refuses returns NaN with the reason in mqmqa_db_error(). */
 MQMQA_API double mqmqa_equilibrate_db(const mqmqa_db *db, int phase, double T,
                                       const double *target_elem,
                                       double *X_out, double *err_out);
@@ -150,7 +157,8 @@ MQMQA_API double mqmqa_equilibrate_db(const mqmqa_db *db, int phase, double T,
  * elem_a, elem_b (database element indices). nliq/ncef set grid density. Writes stable
  * phase tags to phase_out (>=0 a database phase index; <0 the compound -(j+1)) and
  * their molar amounts to amt_out; *gm_out is the Gibbs energy per mole cation.
- * Returns the number of stable phases, or negative on failure. */
+ * Returns the number of stable phases, or negative on failure (-3 when the liquid's
+ * excess is refused, with the reason in mqmqa_db_error()). */
 MQMQA_API int mqmqa_equilibrium_ternary(const mqmqa_db *db, int liq_phase,
                                         const int *cef_phases, int n_cef, double T,
                                         int nliq, int ncef, int elem_a, int elem_b,

@@ -90,6 +90,7 @@ typedef struct {
     char (*an_name)[NAME_MAX];
     double *cat_charge, *an_charge;
     int *cat_group, *an_group;
+    int n_group_override;       /* ChemSage chemical-group override strings read (not modeled) */
     Endmember *pairs;
     Mqmz *mqmz;
     int n_mqmx;

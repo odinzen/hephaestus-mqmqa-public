@@ -23,6 +23,7 @@ from scipy.optimize import minimize
 
 import mqmqa
 from mqmqa._abi import c_equilibrate
+from mqmqa._database import UnsupportedModelError
 
 
 def _element(name):
@@ -35,7 +36,13 @@ def build_inputs(db, phase, T, components=None):
     components, if given, restricts the model to cations/anions whose element is in
     the set (a subsystem, e.g. only CaO-SiO2 out of a larger slag). Indices are
     remapped to the subsystem so the arrays feed the C routines directly.
+
+    Raises UnsupportedModelError, naming the phase, when the phase has an excess term
+    the engine does not evaluate.
     """
+    why = db.excess_unsupported(phase)
+    if why:
+        raise UnsupportedModelError(why)
     cats = db.cations(phase)
     ans = db.anions(phase)
     if components is not None:
@@ -117,6 +124,8 @@ def build_inputs(db, phase, T, components=None):
         "ex": ex, "soln_type": db.is_subq(phase), "T": T,
         "cat_el": [_element(c["name"]) for c in cats],
         "an_el": [_element(a["name"]) for a in ans],
+        "cat_group": [c["group"] for c in cats],
+        "an_group": [a["group"] for a in ans],
     }
 
 
@@ -135,7 +144,8 @@ def gibbs_per_quad(inp, X):
                               inp["Za"], inp["Zb"], inp["Zx"], inp["Zy"],
                               ex["mix"], ex["code"], ex["A"], ex["B"], ex["X"], ex["Y"],
                               ex["p"], ex["q"], ex["L"],
-                              ex.get("r"), ex.get("addcat"))
+                              ex.get("r"), ex.get("addcat"),
+                              inp.get("cat_group"), inp.get("an_group"))
     )
 
 

@@ -42,7 +42,8 @@ _ffi.cdef(
         const int *par_mix, const int *par_code,
         const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
         const double *par_p, const double *par_q, const double *par_L,
-        const double *par_r, const int *par_addcat);
+        const double *par_r, const int *par_addcat,
+        const int *cat_group, const int *an_group);
     double mqmqa_coordination(
         int sp_is_cation, int sp_idx,
         int A, int B, int X, int Y,
@@ -68,6 +69,7 @@ _ffi.cdef(
         const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
         const double *par_p, const double *par_q, const double *par_L,
         const double *par_r, const int *par_addcat,
+        const int *cat_group, const int *an_group,
         int n_elem,
         const int *cat_elem, const int *an_elem,
         const double *target,
@@ -115,6 +117,7 @@ _ffi.cdef(
                        int *p_exp, int *q_exp);
     void mqmqa_ph_mqmx_L(const void *db, int p, double T, double *L);
     void mqmqa_ph_mqmx_ternary(const void *db, int p, double *r_exp, int *add_cat);
+    const char *mqmqa_ph_excess_unsupported(const void *db, int p);
 
     int mqmqa_db_phase_kind(const void *db, int p);
     int mqmqa_ph_cef_num_subl(const void *db, int p);
@@ -236,11 +239,18 @@ def ideal_mixing_energy(T, n_cat, n_an, quad_ca, quad_cb, quad_ax, quad_ay, X,
     )
 
 
+def _groups(seq):
+    return _ffi.NULL if seq is None else _ints(seq)
+
+
 def excess_energy(n_cat, n_an, quad_ca, quad_cb, quad_ax, quad_ay, X,
                   Za, Zb, Zx, Zy, par_mix, par_code,
                   par_A, par_B, par_X, par_Y, par_p, par_q, par_L,
-                  par_r=None, par_addcat=None):
-    """Excess energy for MQMX parameters, J per mole of quadruplets."""
+                  par_r=None, par_addcat=None, cat_group=None, an_group=None):
+    """Excess energy for MQMX parameters, J per mole of quadruplets.
+
+    cat_group/an_group are the species' chemical groups; None puts a whole sublattice
+    in one group. NaN for a term the engine does not evaluate."""
     n = len(par_A)
     return _lib.mqmqa_excess_energy(
         int(n_cat), int(n_an), len(X),
@@ -253,6 +263,7 @@ def excess_energy(n_cat, n_an, quad_ca, quad_cb, quad_ax, quad_ay, X,
         _dbls(par_p), _dbls(par_q), _dbls(par_L),
         _dbls(par_r if par_r is not None else [0.0] * n),
         _ints(par_addcat if par_addcat is not None else [-1] * n),
+        _groups(cat_group), _groups(an_group),
     )
 
 
@@ -308,6 +319,7 @@ def c_equilibrate(inp, x_target):
         _dbls(ex["p"]), _dbls(ex["q"]), _dbls(ex["L"]),
         _dbls(ex.get("r", [0.0] * len(ex["A"]))),
         _ints(ex.get("addcat", [-1] * len(ex["A"]))),
+        _groups(inp.get("cat_group")), _groups(inp.get("an_group")),
         len(elements),
         _ints(cat_elem), _ints(an_elem),
         _dbls(target),

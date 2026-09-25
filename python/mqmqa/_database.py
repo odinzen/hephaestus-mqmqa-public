@@ -18,6 +18,10 @@ class ConversionError(ValueError):
     """The database holds a model the target format cannot represent."""
 
 
+class UnsupportedModelError(ValueError):
+    """A phase holds a model term the engine does not evaluate, so no energy is given."""
+
+
 def _take_text(ptr, error):
     """Copy a writer's malloc'd text into Python and release it, or raise its error."""
     if ptr == _ffi.NULL:
@@ -130,6 +134,11 @@ class Database:
         _lib.mqmqa_ph_mqmx_ternary(self._db, p, r, addcat)
         return ({k: list(v) for k, v in arrs.items()}
                 | {"L": list(L), "r": list(r), "addcat": list(addcat)})
+
+    def excess_unsupported(self, p):
+        """Why the engine refuses MQMQA phase p's excess (the phase and the first term it
+        cannot evaluate), or None when every term is evaluated."""
+        return _s(_lib.mqmqa_ph_excess_unsupported(self._db, p))
 
     # --- CEF (SUBL) solution phases ---
     def phase_kind(self, p):

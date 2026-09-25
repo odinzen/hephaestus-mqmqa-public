@@ -131,7 +131,8 @@ def _mqmqa_energy_hephaestus(db, p, T, Xkey):
     mx = db.mqmx(p, T)
     exc = mqmqa.excess_energy(nc, na, ca, cb, ax, ay, X, Za, Zb, Zx, Zy, mx["mix"],
                               mx["code"], mx["A"], mx["B"], mx["X"], mx["Y"], mx["p"],
-                              mx["q"], mx["L"], mx["r"], mx["addcat"])
+                              mx["q"], mx["L"], mx["r"], mx["addcat"],
+                              [c["group"] for c in cats], [a["group"] for a in ans])
     return ref + ideal + exc
 
 
@@ -158,10 +159,9 @@ def _mqmqa_energy_pycalphad(pdb, name, comps, db, p, T, Xkey):
 
 DAT_WRITABLE = [f for f in SHIPPED + EXTRA if not _magnetic(f)]
 
-# Ternary terms with mixed chemical groups: Hephaestus's excess routine does not yet
-# implement the multi-group interpolation, so it differs from pycalphad on the source
-# file itself (3e-3 and 4e-4 relative), a gap in the engine and not in the writer. For
-# these phases the written file is checked against pycalphad on the source only.
+# Ternary terms with mixed chemical groups: Hephaestus's excess routine does not
+# implement the multi-group interpolation and refuses these phases (NaN), so the written
+# file is checked against pycalphad on the source only, and the refusal is asserted.
 ENGINE_GAPS = {("MQMQA-tern-tests.dat", "TERN_XS_121"), ("MQMQA-tern-tests.dat", "TERN_XS_122")}
 
 
@@ -213,9 +213,10 @@ def test_written_dat_matches_pycalphad(path):
                 if pdb_orig is not None:   # pycalphad alone: the writer changed nothing
                     g_po = _mqmqa_energy_pycalphad(pdb_orig, name, comps, db, p, T, Xkey)
                     assert U.rel(g_po, g_py) < U.ORACLE_TOL, (name, T, g_po, g_py)
-            if (os.path.basename(path), name) in ENGINE_GAPS:
-                continue
             g_he = _mqmqa_energy_hephaestus(db, p, T, Xkey)
+            if (os.path.basename(path), name) in ENGINE_GAPS:
+                assert np.isnan(g_he), (name, T, g_he)
+                continue
             d = U.rel(g_he, g_py)
             assert d < U.ORACLE_TOL, (name, T, g_he, g_py)
             worst, n = max(worst, d), n + 1

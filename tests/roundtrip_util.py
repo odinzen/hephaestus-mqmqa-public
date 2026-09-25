@@ -173,6 +173,10 @@ def compare(orig, conv, rng_seed=11, T_grid=T_GRID, n_random=6):
                 d = rel(a, b)
                 assert d < REL_TOL, (name, T, a, b)
                 worst = max(worst, d)
+        # a phase the engine refuses must be refused the same way after conversion
+        assert bool(orig.excess_unsupported(p)) == bool(conv.excess_unsupported(p)), name
+        if orig.excess_unsupported(p):
+            continue
         # the single-phase equilibrium (quadruplet distribution) at a few compositions
         n = len(co)
         for T in (1273.37, 1873.37, 2273.37):

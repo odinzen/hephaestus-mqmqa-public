@@ -1,4 +1,5 @@
 #include "mqmqa.h"
+#include "mqmqa_priv.h"
 #include <math.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -185,11 +186,41 @@ static double z_cation(int q, int s, const int *ca, const int *cb,
     return 1.0; /* unreachable when s is in the quad */
 }
 
+/* A third species k of the mixing sublattice falls in nu_ij (it is interpolated with
+ * i) when it shares i's chemical group but not j's. With i and j in one group no
+ * species can, and the nu/gamma sets are empty. */
+static int in_nu(const int *grp, int k, int i, int j)
+{
+    return grp[k] == grp[i] && grp[k] != grp[j];
+}
+
+mqmqa_xs_status mqmqa_excess_term_status(int n_cat, int n_an, int mix, int code,
+                                         int A, int B, int X, int Y,
+                                         double r, int addcat,
+                                         const int *cat_group, const int *an_group)
+{
+    if (code != 0 && code != 1) return XS_CODE;
+    if (mix != 0 && mix != 1) return XS_MIX;
+    if (addcat >= 0) {
+        if (mix != 0) return XS_TERN_ANION;
+        if (r != 1.0) return XS_TERN_R;
+    }
+    const int n = mix == 0 ? n_cat : n_an;
+    const int *grp = mix == 0 ? cat_group : an_group;
+    const int i = mix == 0 ? A : X, j = mix == 0 ? B : Y;
+    if (grp)
+        for (int k = 0; k < n; ++k)
+            if (k != i && k != j && (in_nu(grp, k, i, j) || in_nu(grp, k, j, i)))
+                return XS_GROUPS;
+    return XS_OK;
+}
+
 /* Excess energy for a set of MQMX interaction parameters, J per mole of quadruplets
  * (Poschmann eqs 19,20,24 for the mixing term, eq 17 for the assembly). Handles the
  * Q mixing code (cation and anion mixing) and the G code with zero exponents
- * (mixing term = 1). Assumes each mixing sublattice is a single chemical group, so
- * the nu/gamma expansion is empty (true for the databases targeted first).
+ * (mixing term = 1). Evaluates terms whose nu/gamma sets are empty (a single chemical
+ * group, or groups that put no third species on either side); a term that needs the
+ * mixed-group interpolation returns NaN.
  *
  * Per parameter k: par_mix = 0 for cation mixing (A != B, single anion X = Y),
  * 1 for anion mixing (single cation A = B, anions X != Y). par_code = 0 for Q,
@@ -206,8 +237,18 @@ double mqmqa_excess_energy(
     const int *par_mix, const int *par_code,
     const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
     const double *par_p, const double *par_q, const double *par_L,
-    const double *par_r, const int *par_addcat)
+    const double *par_r, const int *par_addcat,
+    const int *cat_group, const int *an_group)
 {
+    for (int k = 0; k < n_params; ++k) {
+        if (mqmqa_excess_term_status(n_cat, n_an, par_mix[k], par_code[k],
+                                     par_A[k], par_B[k], par_X[k], par_Y[k],
+                                     par_r ? par_r[k] : 1.0,
+                                     par_addcat ? par_addcat[k] : -1,
+                                     cat_group, an_group) != XS_OK)
+            return NAN;
+    }
+
     double *nik = (double *)calloc((size_t)n_cat * (size_t)n_an, sizeof(double));
     for (int q = 0; q < n_quads; ++q) {
         const double xq = X[q];
@@ -222,12 +263,6 @@ double mqmqa_excess_energy(
     for (int k = 0; k < n_params; ++k) {
         const int A = par_A[k], B = par_B[k], Xn = par_X[k], Yn = par_Y[k];
         const double p = par_p[k], qx = par_q[k];
-
-        /* Only Q and G codes, and simple cation/anion mixing, are implemented.
-         * Bragg-Williams (B/H), reciprocal (R), and reciprocal mixing return NaN
-         * rather than a wrong number. */
-        if (par_code[k] != 0 && par_code[k] != 1) return NAN;
-        if (par_mix[k] != 0 && par_mix[k] != 1) return NAN;
 
         /* mixing term */
         double g;
@@ -261,17 +296,11 @@ double mqmqa_excess_energy(
             g = par_L[k] * mix;
         }
 
-        /* Additional (ternary) cation constituent, Poschmann Eq 25-26. With a single
-         * chemical group (this engine's supported case) the nu/gamma sets are empty
-         * and the r=1 factor reduces to the third cation's pair fraction Y_m; higher
-         * r needs the Xi-normalized (1 - Xi_ij - Xi_ji)^(r-1) factor, not yet
-         * implemented, so it returns NaN rather than a wrong number. */
-        if (par_addcat && par_addcat[k] >= 0) {
-            if (par_mix[k] != 0) { free(nik); return NAN; }
-            const double r = par_r ? par_r[k] : 1.0;
-            if (r != 1.0) { free(nik); return NAN; }
+        /* Additional (ternary) cation constituent, Poschmann Eq 25-26. With empty
+         * nu/gamma sets the r=1 factor reduces to the third cation's pair fraction;
+         * higher r (the (1 - Xi_ij - Xi_ji)^(r-1) factor) was refused above. */
+        if (par_addcat && par_addcat[k] >= 0)
             g *= NIK(par_addcat[k], par_X[k]) / 4.0;
-        }
 
         const int qbase = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay,
                                     A, B, Xn, Yn);
@@ -505,6 +534,7 @@ typedef struct {
     const double *par_p, *par_q, *par_L;
     const double *par_r;                             /* ternary additional-constituent */
     const int *par_addcat;                           /* exponent r and cation (-1 none) */
+    const int *cat_group, *an_group;                 /* chemical groups, NULL = one group */
     const double *x0, *N;                            /* affine subspace X = x0 + N t */
     int n_null;
     double *Xbuf;                                    /* scratch, length n_quads */
@@ -534,7 +564,8 @@ static double ctx_gibbs_per_quad(const eqctx *c, const double *X)
                                c->n_params, c->par_mix, c->par_code,
                                c->par_A, c->par_B, c->par_X, c->par_Y,
                                c->par_p, c->par_q, c->par_L,
-                               c->par_r, c->par_addcat);
+                               c->par_r, c->par_addcat,
+                               c->cat_group, c->an_group);
 }
 
 #define EQ_XMIN 1e-11
@@ -664,11 +695,22 @@ double mqmqa_equilibrate(
     const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
     const double *par_p, const double *par_q, const double *par_L,
     const double *par_r, const int *par_addcat,
+    const int *cat_group, const int *an_group,
     int n_elem,
     const int *cat_elem, const int *an_elem,
     const double *target,
     double *X_out, double *comp_err_out)
 {
+    /* An excess term the engine cannot evaluate makes every energy NaN; stop here
+     * rather than hand the minimizer a NaN landscape. */
+    for (int k = 0; k < n_params; ++k)
+        if (mqmqa_excess_term_status(n_cat, n_an, par_mix[k], par_code[k],
+                                     par_A[k], par_B[k], par_X[k], par_Y[k],
+                                     par_r ? par_r[k] : 1.0,
+                                     par_addcat ? par_addcat[k] : -1,
+                                     cat_group, an_group) != XS_OK)
+            return NAN;
+
     /* per-element linear coefficients E[e][q] and atoms-per-quadruplet A[q] */
     double *E = (double *)calloc((size_t)n_elem * n_quads, sizeof(double));
     double *A = (double *)calloc((size_t)n_quads, sizeof(double));
@@ -713,6 +755,7 @@ double mqmqa_equilibrate(
         n_pairs, pair_c, pair_a, Gax, stoich, Zref,
         n_params, par_mix, par_code, par_A, par_B, par_X, par_Y,
         par_p, par_q, par_L, par_r, par_addcat,
+        cat_group, an_group,
         x0, N, n_null,
         (double *)malloc((size_t)n_quads * sizeof(double)),
     };

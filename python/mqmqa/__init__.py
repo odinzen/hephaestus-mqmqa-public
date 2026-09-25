@@ -13,7 +13,7 @@ from ._abi import (
     coordination,
     c_equilibrate,
 )
-from ._database import ConversionError, Database, enumerate_quadruplets
+from ._database import ConversionError, Database, UnsupportedModelError, enumerate_quadruplets
 from ._xtdb import XTDB
 
 __all__ = [
@@ -26,6 +26,7 @@ __all__ = [
     "c_equilibrate",
     "ConversionError",
     "Database",
+    "UnsupportedModelError",
     "XTDB",
     "enumerate_quadruplets",
 ]

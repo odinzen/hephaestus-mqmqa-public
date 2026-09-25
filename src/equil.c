@@ -12,6 +12,7 @@
  */
 #include "mqmqa.h"
 #include "cs_dat.h"
+#include "cs_dat_priv.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -49,6 +50,8 @@ MQMQA_API double mqmqa_equilibrate_db(const mqmqa_db *db, int phase, double T,
     int ncat = mqmqa_ph_num_cations(db, phase);
     int nan  = mqmqa_ph_num_anions(db, phase);
     if (ncat < 1 || nan < 1) return NAN;
+    const char *unsupported = mqmqa_ph_excess_unsupported(db, phase);
+    if (unsupported) { mqmqa_db_set_error("%s", unsupported); return NAN; }
 
     double *q_cat = malloc((size_t)ncat * sizeof(double));
     double *q_an  = malloc((size_t)nan  * sizeof(double));
@@ -147,6 +150,9 @@ MQMQA_API double mqmqa_equilibrate_db(const mqmqa_db *db, int phase, double T,
     mqmqa_ph_mqmx(db, phase, xm, xc, xA, xB, xX, xY, xp, xq);
     mqmqa_ph_mqmx_L(db, phase, T, xL);
     mqmqa_ph_mqmx_ternary(db, phase, xr, xac);
+    int *cgrp = malloc((size_t)ncat*sizeof(int)), *agrp = malloc((size_t)nan*sizeof(int));
+    for (int i = 0; i < ncat; ++i) cgrp[i] = mqmqa_ph_cation_group(db, phase, i);
+    for (int k = 0; k < nan; ++k) agrp[k] = mqmqa_ph_anion_group(db, phase, k);
     double *xpp = malloc((size_t)nx*sizeof(double));  /* p,q as double for the core */
     double *xqp = malloc((size_t)nx*sizeof(double));
     for (int i = 0; i < nx; ++i) { xpp[i] = xp[i]; xqp[i] = xq[i]; }
@@ -156,7 +162,7 @@ MQMQA_API double mqmqa_equilibrate_db(const mqmqa_db *db, int phase, double T,
         T, ncat, nan, nq, qca, qcb, qax, qay,
         Za, Zb, Zx, Zy, zeta, soln,
         np, pc, pa, pG, pst, Ztab,
-        nx, xm, xc, xA, xB, xX, xY, xpp, xqp, xL, xr, xac,
+        nx, xm, xc, xA, xB, xX, xY, xpp, xqp, xL, xr, xac, cgrp, agrp,
         nel, cat_elem, an_elem, target, X_out, err_out);
 
     #undef ZC
@@ -166,6 +172,7 @@ MQMQA_API double mqmqa_equilibrate_db(const mqmqa_db *db, int phase, double T,
     free(pc); free(pa); free(pG); free(pst); free(pz); free(Ztab); free(zeta);
     free(xm); free(xc); free(xA); free(xB); free(xX); free(xY);
     free(xp); free(xq); free(xL); free(xr); free(xac); free(xpp); free(xqp);
+    free(cgrp); free(agrp);
 
 done:
     free(q_cat); free(q_an); free(cat_el); free(an_el); free(els);

@@ -1,6 +1,7 @@
 #include "cs_dat.h"
 #include "cs_dat_priv.h"
 #include "cef.h"
+#include "mqmqa_priv.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -345,8 +346,9 @@ static void parse_subq_phase(Lexer *lx, Db *db, Phase *ph, const char *type)
     }
 
     /* Excess (MQMX) parameters, terminated by a 0 mixing type. A negative type
-     * introduces chemical-group override strings, which we consume and ignore
-     * (with no ternary systems in the seed databases they never fire). */
+     * introduces chemical-group override strings; they are consumed and counted so
+     * the phase's energy is refused (mqmqa_ph_excess_unsupported) rather than
+     * evaluated without them. */
     int cap = 8, n = 0;
     ph->mqmx = xalloc(lx, (size_t)cap * sizeof(Mqmx));
     for (;;) {
@@ -357,6 +359,7 @@ static void parse_subq_phase(Lexer *lx, Db *db, Phase *ph, const char *type)
                 for (int j = 0; j < 10; ++j) (void)tok_req(lx);
             note_lossy(lx->lossy, sizeof lx->lossy,
                        "the chemical-group override strings of %s", ph->name);
+            ph->n_group_override = -mixing_type;
             break;
         }
         if (n == cap) {
@@ -867,6 +870,47 @@ void mqmqa_ph_mqmx_ternary(const mqmqa_db *db, int p, double *r_exp, int *add_ca
         r_exp[k] = (double)ph->mqmx[k].exp[2];
         add_cat[k] = ph->mqmx[k].add_cat;
     }
+}
+
+static _Thread_local char g_xs_msg[512];
+
+const char *mqmqa_ph_excess_unsupported(const mqmqa_db *db, int p)
+{
+    const Db *d = (const Db *)db;
+    if (!d || p < 0 || p >= d->n_phases || d->phases[p].kind != 0) return NULL;
+    const Phase *ph = &d->phases[p];
+    if (ph->n_group_override) {
+        snprintf(g_xs_msg, sizeof g_xs_msg,
+                 "phase %s carries chemical-group override strings, which change the "
+                 "mixed chemical-group excess interpolation; mixed chemical groups are "
+                 "not supported, so its energy is not computed", ph->name);
+        return g_xs_msg;
+    }
+    for (int k = 0; k < ph->n_mqmx; ++k) {
+        const Mqmx *mx = &ph->mqmx[k];
+        const int code = (mx->code == 'Q') ? 0 : (mx->code == 'G') ? 1 : -1;
+        const mqmqa_xs_status st = mqmqa_excess_term_status(
+            ph->n_cat, ph->n_an, mx->mix, code, mx->A, mx->B, mx->X, mx->Y,
+            (double)mx->exp[2], mx->add_cat, ph->cat_group, ph->an_group);
+        if (st == XS_OK) continue;
+        const char *a = mx->mix == 1 ? ph->an_name[mx->X] : ph->cat_name[mx->A];
+        const char *b = mx->mix == 1 ? ph->an_name[mx->Y] : ph->cat_name[mx->B];
+        const char *why =
+            st == XS_CODE ? "uses an excess code other than Q or G, which is not supported" :
+            st == XS_MIX ? "mixes two cations and two anions at once (reciprocal), which is "
+                           "not supported" :
+            st == XS_TERN_ANION ? "has an additional constituent on an anion-mixing term, "
+                                  "which is not supported" :
+            st == XS_TERN_R ? "has an additional-constituent exponent r other than 1, which "
+                              "is not supported" :
+            "mixes species that the file assigns to different chemical groups; mixed "
+            "chemical groups are not supported";
+        snprintf(g_xs_msg, sizeof g_xs_msg,
+                 "phase %s: the %c excess term %s-%s %s, so its energy is not computed",
+                 ph->name, mx->code, a, b, why);
+        return g_xs_msg;
+    }
+    return NULL;
 }
 
 /* ------------------------------------------------------------------ *

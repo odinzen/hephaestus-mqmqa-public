@@ -80,10 +80,14 @@ MQMQA_API double mqmqa_ideal_mixing_energy(
 /* MQMQA excess energy for a set of MQMX interaction parameters, J per mole of
  * quadruplets (Poschmann eqs 19,20,24 mixing term, eq 17 assembly). Handles the Q
  * code (Xi, any exponents) and the G code (Chi, any exponents) for cation and anion
- * mixing, assuming a single chemical group per sublattice (empty nu/gamma).
- * Unsupported cases return NaN rather than a wrong number: Bragg-Williams B/H,
- * reciprocal R, ternary (additional mixing constituent), and the multi-group
- * nu/gamma expansion.
+ * mixing, and an additional (ternary) cation with exponent r = 1, when the term's
+ * nu/gamma chemical-group sets are empty. Unsupported cases return NaN rather than a
+ * wrong number: Bragg-Williams B/H, reciprocal R, reciprocal mixing, an additional
+ * anion, r > 1, and any term that needs the mixed chemical-group interpolation.
+ *
+ * cat_group[i] and an_group[k] are the chemical groups of the cations and anions
+ * (the ChemSage group numbers); NULL means every species of that sublattice is in
+ * one group.
  *
  * Per parameter k: par_mix 0 = cation mixing (A != B, X = Y), 1 = anion mixing
  * (A = B, X != Y). par_code 0 = Q, 1 = G. par_A,par_B cations; par_X,par_Y anions;
@@ -99,7 +103,8 @@ MQMQA_API double mqmqa_excess_energy(
     const int *par_mix, const int *par_code,
     const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
     const double *par_p, const double *par_q, const double *par_L,
-    const double *par_r, const int *par_addcat);
+    const double *par_r, const int *par_addcat,
+    const int *cat_group, const int *an_group);
 
 /* Coordination number Z of a species in a quadruplet (Pelton 2001 eqs 23-24).
  * sp_is_cation selects the sublattice; sp_idx, A, B, X, Y are cation/anion indices
@@ -127,7 +132,8 @@ MQMQA_API double mqmqa_coordination(
  * solution, N a null-space basis), the reduced coordinates t are minimized with
  * Nelder-Mead, keeping every X >= 0.
  *
- * Inputs mirror the three energy routines, plus mass balance:
+ * Inputs mirror the three energy routines, plus mass balance (an excess term the
+ * energy routine refuses makes this return NaN without minimizing):
  *   cat_elem[i]  element id (0..n_elem-1) of cation i,
  *   an_elem[k]   element id of anion k,
  *   target[e]    target mole fraction of element e (normalized to sum 1).
@@ -153,6 +159,7 @@ MQMQA_API double mqmqa_equilibrate(
     const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
     const double *par_p, const double *par_q, const double *par_L,
     const double *par_r, const int *par_addcat,
+    const int *cat_group, const int *an_group,
     int n_elem,
     const int *cat_elem, const int *an_elem,
     const double *target,

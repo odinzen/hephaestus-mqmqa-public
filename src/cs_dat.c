@@ -685,13 +685,33 @@ static void free_db(Db *db)
 static int tdb_detect(const char *text);
 static Db *read_tdb(char *text_owned);
 
+static void tdb_leading_comments(const char *p, char *out, size_t cap);
+
 static Db *read_from_text(char *text_owned)
 {
+    /* The source's own header (a ChemSage title line, a TDB file's opening comments)
+     * is kept, in its original case, for the provenance header of a written file. */
+    char title[1024], head[1024];
+    {
+        const char *t = text_owned;
+        size_t n;
+        while (*t == ' ' || *t == '\t') t++;
+        n = strcspn(t, "\n");
+        while (n && (t[n - 1] == '\r' || t[n - 1] == ' ')) n--;
+        if (n >= sizeof title) n = sizeof title - 1;
+        memcpy(title, t, n);
+        title[n] = '\0';
+    }
+    tdb_leading_comments(text_owned, head, sizeof head);
+
     /* Uppercase in place, matching pycalphad's reader so species names align. */
     for (char *p = text_owned; *p; ++p) *p = (char)toupper((unsigned char)*p);
 
-    if (tdb_detect(text_owned))
-        return read_tdb(text_owned);
+    if (tdb_detect(text_owned)) {
+        Db *tdb = read_tdb(text_owned);
+        if (tdb) snprintf(tdb->title, sizeof tdb->title, "%s", head);
+        return tdb;
+    }
 
     Lexer lx;
     memset(&lx, 0, sizeof lx);
@@ -700,19 +720,9 @@ static Db *read_from_text(char *text_owned)
     lx.err[0] = '\0';
 
     /* Skip the first line (system title / provenance), as the format's data
-     * begins on line 2. It is kept for the provenance header of a written file. */
-    char title[256];
+     * begins on line 2. */
     lx.cur = text_owned;
     while (*lx.cur && *lx.cur != '\n') lx.cur++;
-    {
-        const char *t = text_owned;
-        while (*t == ' ' || *t == '\t') t++;
-        size_t n = (size_t)(lx.cur - t);
-        while (n && (t[n - 1] == '\r' || t[n - 1] == ' ')) n--;
-        if (n >= sizeof title) n = sizeof title - 1;
-        memcpy(title, t, n);
-        title[n] = '\0';
-    }
     if (*lx.cur == '\n') { lx.cur++; lx.line++; }
 
     Db *db = NULL;
@@ -2129,6 +2139,34 @@ static Db *tdb_build_db(Tdb *tb)
 }
 
 /* ---- the parse driver ---- */
+
+/* The comment block a TDB file opens with (its provenance and license notes), one
+ * line per comment line, for the header of a converted file. */
+static void tdb_leading_comments(const char *p, char *out, size_t cap)
+{
+    size_t n = 0;
+    out[0] = '\0';
+    for (;;) {
+        const char *e;
+        while (*p == ' ' || *p == '\t' || *p == '\r') p++;
+        if (*p == '\n') { p++; continue; }
+        if (*p != '$') break;
+        while (*p == '$' || *p == ' ') p++;
+        e = p;
+        while (*e && *e != '\n') e++;
+        {
+            size_t len = (size_t)(e - p);
+            while (len && (p[len - 1] == '\r' || p[len - 1] == ' ')) len--;
+            if (len && n + len + 2 < cap) {
+                if (n) out[n++] = '\n';
+                memcpy(out + n, p, len);
+                n += len;
+                out[n] = '\0';
+            }
+        }
+        p = e;
+    }
+}
 
 static Db *read_tdb(char *text_owned)
 {

@@ -118,7 +118,9 @@ typedef struct {
     int n_stoich;
     Endmember *stoich;
     /* metadata */
-    char title[256];            /* ChemSage title line, empty from a TDB source */
+    /* the source's own header: a ChemSage title line, or the leading comment lines
+     * of a TDB file (newline-separated), carried into a converted file's header */
+    char title[1024];
     char (*el_ref)[NAME_MAX];   /* TDB element reference phase, NULL when unknown */
     double *el_h298, *el_s298;
     int n_sp;

@@ -3,7 +3,7 @@
 Every shipped database the target can represent is written, read back with the same
 engine, and compared phase by phase (structure, endmember and solution Gibbs energies
 over 300-3000 K plus two points above 6000 K, MQMQA pair/coordination/excess data and
-single-phase equilibria) at 1e-10 relative (roundtrip_util explains the bound). The
+single-phase equilibria) at 1e-14 relative (roundtrip_util explains the bound). The
 written files are then read by pycalphad, an independent parser, and compared with
 Hephaestus's energies for the ORIGINAL file. A binary phase diagram per format must pick
 the same stable phases. Unrepresentable conversions must raise and write nothing.
@@ -99,7 +99,7 @@ def test_written_tdb_matches_pycalphad(path):
                 res = calculate(pdb, comps, name, T=T, P=101325, N=1, points=np.array(Ys))
             for Y, g in zip(Ys, np.atleast_1d(res.GM.values.squeeze())):
                 d = U.rel(db.cef_gibbs(p, Y, T, per_mole_atoms=True), float(g))
-                assert d < U.REL_TOL, (name, T, Y)
+                assert d < U.ORACLE_TOL, (name, T, Y)
                 worst, n = max(worst, d), n + 1
     for i, name in enumerate(db.stoich):
         atoms = sum(db.stoich_elements(i))
@@ -108,7 +108,7 @@ def test_written_tdb_matches_pycalphad(path):
                 warnings.simplefilter("ignore")
                 res = calculate(pdb, comps, name, T=T, P=101325, N=1)
             d = U.rel(db.stoich_gibbs(i, T), float(res.GM.values.squeeze()) * atoms)
-            assert d < U.REL_TOL, (name, T)
+            assert d < U.ORACLE_TOL, (name, T)
             worst, n = max(worst, d), n + 1
     print(f"\npycalphad on written TDB {os.path.basename(path)}: {n} points, worst {worst:.3g}")
 
@@ -215,5 +215,15 @@ def test_provenance_header():
                        "from FeO-MgO-SiO2-combined.dat.")
     assert head[1] == ("$ Converting a database does not change its license; "
                        "the license of the source data applies.")
-    assert any("Source title" in ln for ln in head)
+    assert any("Source header" in ln for ln in head)
     assert text.isascii()
+
+
+def test_comparison_catches_a_planted_change(tmp_path):
+    """The gate itself: one endmember constant moved in its 14th significant digit."""
+    src = os.path.join(U.ROOT, "data", "olivine", "Olivine-CEF.dat")
+    text = Database.read(src).write_tdb()
+    assert text.count("-1543550.9474+") == 1
+    planted = Database.read_string(text.replace("-1543550.9474+", "-1543550.9474001+"))
+    with pytest.raises(AssertionError):
+        U.compare(Database.read(src), planted)

@@ -61,18 +61,23 @@ measurements in the per-system provenance notes.
 ## Converting databases
 
 Any database Hephaestus has loaded can be saved in another format. In Python,
-`Database.write_tdb`, `write_utdb`, and `write_dat` return the file text and write it
-when given a path; in C they are `mqmqa_db_write_tdb`, `mqmqa_db_write_utdb`, and
-`mqmqa_db_write_dat` (`src/db_write.c`), exported to the WebAssembly build like the
-readers.
+`Database.write_tdb`, `write_utdb`, `write_dat`, and `write_xtdb` return the file text
+and write it when given a path, and an `.xtdb` file read with `mqmqa.XTDB` has
+`write_xtdb`, `write_tdb`, `write_utdb`, and `write_dat`. In C they are
+`mqmqa_db_write_*` (`src/db_write.c`) and `xtdb_write_*` (`src/xtdb.c`), exported to the
+WebAssembly build like the readers.
 
 - `.tdb` holds CEF solutions (with the Inden magnetic model) and stoichiometric compounds.
 - `.utdb` adds MQMQA SUBQ liquids as the statements of `docs/UNIFIED_TDB_SPEC.md`.
 - `.dat` (plain-text ChemSage) holds SUBQ and SUBG liquids, SUBL solutions, and compounds.
+- `.xtdb` holds what the XTDB engine evaluates: CEF phases with one binary mixing
+  sublattice, compounds, and, from an `.xtdb` source, the third-generation Einstein and
+  two-state liquid models.
 
 A model the target format cannot represent is refused with an error that names the model
-and a format that can hold it, and no file is written: an MQMQA liquid in plain `.tdb`,
-a SUBG liquid in `.utdb`, the magnetic model in `.dat`. A source the reader had to skip
+and a format that can hold it, and no file is written: an MQMQA liquid in plain `.tdb` or
+`.xtdb`, a SUBG liquid in `.utdb`, the magnetic model in `.dat` or `.xtdb`, an Einstein
+or two-state term in `.tdb` or `.dat`. A source the reader had to skip
 part of (a ChemSage magnetic record, a TDB parameter type the engine does not read) is
 refused too, since the copy would silently lack it. Functions in a TDB source are written
 expanded, one polynomial per temperature interval, with every coefficient printed to

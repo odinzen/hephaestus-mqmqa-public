@@ -2,7 +2,7 @@
  *
  * XTDB is the open XML CALPHAD format (Sundman et al., Calphad 90 (2025) 102849). This
  * module is self-contained on purpose: it does not touch the .dat/.tdb readers in cs_dat.c,
- * so it cannot regress them. It parses the XTDB tag set, evaluates the temperature functions
+ * so it cannot regress them (its writers only call their public API). It parses the XTDB tag set, evaluates the temperature functions
  * (including the built-in GEIN Einstein function), and assembles third-generation endmember
  * Gibbs energies:
  *
@@ -21,6 +21,9 @@
  * Clean-room from the published format and model equations; no GPL source is used.
  */
 #include "xtdb.h"
+#include "cs_dat.h"      /* the writers hand TDB text to the TDB reader and .dat writer */
+#include "textbuf.h"
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -32,18 +35,34 @@
 #define XNAME 64
 #define XEXPR 512
 
-typedef struct { char id[XNAME]; char expr[8][XEXPR]; double hiT[8]; int nr; } TPfun;
-typedef struct { char kind[8]; char phase[XNAME]; char cons[XNAME]; int deg; char expr[XEXPR]; } Param;
+/* Attribute text the engine does not evaluate (limits, reference states, references) is
+ * kept verbatim so a written file carries it unchanged. */
+typedef struct {
+    char id[XNAME]; char expr[8][XEXPR]; double hiT[8]; int nr;
+    char lo_s[XNAME]; char hi_s[8][XNAME];
+} TPfun;
+typedef struct {
+    char kind[8]; char phase[XNAME]; char cons[XNAME]; int deg; char expr[XEXPR];
+    char id[XEXPR]; char bib[XNAME];
+} Param;
 typedef struct {
     char id[XNAME]; int twostate; int nsubl; double mult[8];
     int ncon[8]; char con[8][8][XNAME];   /* con[sublattice][index] */
+    char config[XNAME], state[XNAME], models[XNAME];
 } XPhase;
 
 struct xtdb_db {
     char elem[XCAP][XNAME]; int nelem;
+    char el_attr[XCAP][4][XNAME];        /* Refstate, Mass, H298, S298 */
+    char sp_id[XCAP][XNAME], sp_st[XCAP][XNAME]; int nsp;
+    char def_lo[XNAME], def_hi[XNAME], def_el[XNAME], version[XNAME];
+    char note[1024];                     /* the file's opening comment (its provenance) */
+    char bib_id[XCAP][XNAME], bib_text[XCAP][XEXPR]; int nbib;
     TPfun tp[XCAP]; int ntp;
     Param par[XCAP]; int npar;
     XPhase ph[XCAP]; int nph;
+    /* first content read past without modeling; the writers refuse such a database */
+    char lossy[256];
 };
 
 static char g_err[256];
@@ -367,6 +386,23 @@ double xtdb_phase_gibbs(const struct xtdb_db *db, int pidx, const char *B, doubl
 
 /* ---- parsing --------------------------------------------------------------------------- */
 
+static void note_lossy(struct xtdb_db *db, const char *fmt, ...) {
+    va_list ap;
+    if (db->lossy[0]) return;
+    va_start(ap, fmt);
+    vsnprintf(db->lossy, sizeof db->lossy, fmt, ap);
+    va_end(ap);
+}
+
+/* attr(), noting a value too long for its buffer: the engine would use a truncated copy */
+static int attr_k(struct xtdb_db *db, const char *b, const char *e, const char *name,
+                  char *out, int cap) {
+    int r = attr(b, e, name, out, cap);
+    if (r && (int)strlen(out) >= cap - 1)
+        note_lossy(db, "a %s attribute longer than %d characters", name, cap - 2);
+    return r;
+}
+
 xtdb_db *xtdb_read_string(const char *text) {
     g_err[0] = 0;
     if (!strstr(text, "<XTDB")) { snprintf(g_err, sizeof g_err, "not an XTDB file (<XTDB missing)"); return NULL; }
@@ -374,16 +410,48 @@ xtdb_db *xtdb_read_string(const char *text) {
     if (!db) { snprintf(g_err, sizeof g_err, "out of memory"); return NULL; }
     const char *b, *gt; char v[XEXPR];
 
-    for (const char *p = find_tag(text, "Element", &b, &gt); p; p = find_tag(gt, "Element", &b, &gt))
-        if (db->nelem < XCAP && attr(b, gt, "Id", v, XNAME)) strncpy(db->elem[db->nelem++], v, XNAME - 1);
+    if (find_tag(text, "XTDB", &b, &gt)) {
+        const char *c0 = strstr(gt, "<!--"), *c1 = c0 ? strstr(c0 + 4, "-->") : NULL;
+        const char *first = strchr(gt + 1, '<');
+        attr(b, gt, "version", db->version, XNAME);
+        if (c0 && c1 && c0 == first) {       /* a comment opening the file body */
+            size_t n = (size_t)(c1 - (c0 + 4));
+            if (n >= sizeof db->note) n = sizeof db->note - 1;
+            memcpy(db->note, c0 + 4, n);
+            db->note[n] = 0;
+        }
+    }
+    if (find_tag(text, "Defaults", &b, &gt)) {
+        attr(b, gt, "LowT", db->def_lo, XNAME);
+        attr(b, gt, "HighT", db->def_hi, XNAME);
+        attr(b, gt, "Elements", db->def_el, XNAME);
+    }
+
+    for (const char *p = find_tag(text, "Element", &b, &gt); p; p = find_tag(gt, "Element", &b, &gt)) {
+        if (db->nelem >= XCAP) { note_lossy(db, "more than %d elements", XCAP); break; }
+        if (attr_k(db, b, gt, "Id", v, XNAME)) {
+            static const char *names[4] = { "Refstate", "Mass", "H298", "S298" };
+            strncpy(db->elem[db->nelem], v, XNAME - 1);
+            for (int k = 0; k < 4; ++k) attr_k(db, b, gt, names[k], db->el_attr[db->nelem][k], XNAME);
+            db->nelem++;
+        }
+    }
+    for (const char *p = find_tag(text, "Species", &b, &gt); p; p = find_tag(gt, "Species", &b, &gt)) {
+        if (db->nsp >= XCAP) { note_lossy(db, "more than %d species", XCAP); break; }
+        if (attr_k(db, b, gt, "Id", db->sp_id[db->nsp], XNAME)) {
+            attr_k(db, b, gt, "Stoichiometry", db->sp_st[db->nsp], XNAME);
+            db->nsp++;
+        }
+    }
 
     for (const char *p = find_tag(text, "TPfun", &b, &gt); p; p = find_tag(gt, "TPfun", &b, &gt)) {
-        if (db->ntp >= XCAP) break;
+        if (db->ntp >= XCAP) { note_lossy(db, "more than %d TPfun functions", XCAP); break; }
         TPfun *f = &db->tp[db->ntp++];
         memset(f, 0, sizeof *f);
-        attr(b, gt, "Id", f->id, XNAME);
-        attr(b, gt, "Expr", f->expr[0], XEXPR);
-        if (attr(b, gt, "HighT", v, XEXPR)) f->hiT[0] = atof(v); else f->hiT[0] = 1e30;
+        attr_k(db, b, gt, "Id", f->id, XNAME);
+        attr_k(db, b, gt, "Expr", f->expr[0], XEXPR);
+        attr(b, gt, "LowT", f->lo_s, XNAME);
+        if (attr(b, gt, "HighT", f->hi_s[0], XNAME)) f->hiT[0] = atof(f->hi_s[0]); else f->hiT[0] = 1e30;
         f->nr = 1;
         /* Trange children up to the next '<' that is not a Trange */
         const char *scan = gt + 1;
@@ -395,42 +463,60 @@ xtdb_db *xtdb_read_string(const char *text) {
             if (!tr) break;
             if ((nextTop && tr > nextTop) || (nextPar && tr > nextPar)) break;   /* belongs to a later tag */
             if (f->nr < 8) {
-                attr(tb, tgt, "Expr", f->expr[f->nr], XEXPR);
-                if (attr(tb, tgt, "HighT", v, XEXPR)) f->hiT[f->nr] = atof(v); else f->hiT[f->nr] = 1e30;
+                attr_k(db, tb, tgt, "Expr", f->expr[f->nr], XEXPR);
+                if (attr(tb, tgt, "HighT", f->hi_s[f->nr], XNAME)) f->hiT[f->nr] = atof(f->hi_s[f->nr]);
+                else f->hiT[f->nr] = 1e30;
                 f->nr++;
+            } else {
+                note_lossy(db, "more than 8 temperature ranges in TPfun %s", f->id);
             }
             scan = tgt + 1;
         }
     }
 
     for (const char *p = find_tag(text, "Parameter", &b, &gt); p; p = find_tag(gt, "Parameter", &b, &gt)) {
-        if (db->npar >= XCAP) break;
-        char id[XEXPR]; if (!attr(b, gt, "Id", id, XEXPR)) continue;
+        if (db->npar >= XCAP) { note_lossy(db, "more than %d parameters", XCAP); break; }
+        char id[XEXPR]; if (!attr_k(db, b, gt, "Id", id, XEXPR)) continue;
         Param *pr = &db->par[db->npar];
         memset(pr, 0, sizeof *pr);
         /* Id = KIND(PHASE,CONS;DEG) */
         const char *lp = strchr(id, '('), *comma = lp ? strchr(lp, ',') : NULL;
         const char *semi = comma ? strchr(comma, ';') : NULL, *rp = semi ? strchr(semi, ')') : NULL;
-        if (!lp || !comma || !semi || !rp) continue;
+        if (!lp || !comma || !semi || !rp) { note_lossy(db, "an unparsed parameter Id %s", id); continue; }
         int kn = (int)(lp - id); if (kn > 7) kn = 7; memcpy(pr->kind, id, kn); pr->kind[kn] = 0;
         int pn = (int)(comma - lp - 1); if (pn > XNAME - 1) pn = XNAME - 1; memcpy(pr->phase, lp + 1, pn); pr->phase[pn] = 0;
         int cn = (int)(semi - comma - 1); if (cn > XNAME - 1) cn = XNAME - 1; memcpy(pr->cons, comma + 1, cn); pr->cons[cn] = 0;
         pr->deg = atoi(semi + 1);
-        if (!attr(b, gt, "Expr", pr->expr, XEXPR)) continue;
+        if (!attr_k(db, b, gt, "Expr", pr->expr, XEXPR)) continue;
+        snprintf(pr->id, sizeof pr->id, "%s", id);
+        attr_k(db, b, gt, "Bibref", pr->bib, XNAME);
+        if (strcmp(pr->kind, "G") && strcmp(pr->kind, "LNTH") && strcmp(pr->kind, "GD"))
+            note_lossy(db, "the %s parameter %s, which the engine does not evaluate", pr->kind, id);
+        if (gt[-1] != '/') {                 /* a Parameter with children: ranges not read */
+            const char *close = strstr(gt, "</Parameter>");
+            const char *trr = strstr(gt, "<Trange");
+            if (close && trr && trr < close)
+                note_lossy(db, "temperature ranges inside the parameter %s", id);
+        }
         db->npar++;
     }
 
     for (const char *p = find_tag(text, "Phase", &b, &gt); p; p = find_tag(gt, "Phase", &b, &gt)) {
-        if (db->nph >= XCAP) break;
+        if (db->nph >= XCAP) { note_lossy(db, "more than %d phases", XCAP); break; }
         XPhase *ph = &db->ph[db->nph++];
         memset(ph, 0, sizeof *ph);
-        attr(b, gt, "Id", ph->id, XNAME);
+        attr_k(db, b, gt, "Id", ph->id, XNAME);
+        attr(b, gt, "Configuration", ph->config, XNAME);
+        attr(b, gt, "State", ph->state, XNAME);
+        if (ph->config[0] && strcmp(ph->config, "CEF"))
+            note_lossy(db, "the %s configuration of phase %s", ph->config, ph->id);
         /* phase body ends at </Phase> */
         const char *pend = strstr(gt, "</Phase>");
         const char *sb, *sgt;
         const char *sub = find_tag(gt, "Sublattices", &sb, &sgt);
         if (sub && (!pend || sub < pend)) {
             attr(sb, sgt, "NumberOf", v, XEXPR); ph->nsubl = atoi(v);
+            if (ph->nsubl > 8) { note_lossy(db, "more than 8 sublattices in %s", ph->id); ph->nsubl = 8; }
             char mult[XEXPR]; attr(sb, sgt, "Multiplicities", mult, XEXPR);
             char *tok = strtok(mult, " "); int s = 0;
             while (tok && s < 8) { ph->mult[s++] = atof(tok); tok = strtok(NULL, " "); }
@@ -440,14 +526,31 @@ xtdb_db *xtdb_read_string(const char *text) {
                 int sl = 0; if (attr(sb, sgt, "Sublattice", v, XEXPR)) sl = atoi(v) - 1;
                 char lst[XEXPR]; attr(sb, sgt, "List", lst, XEXPR);
                 char *ct = strtok(lst, " "); int ci = 0;
-                while (ct && sl >= 0 && sl < 8 && ci < 8) { strncpy(ph->con[sl][ci++], ct, XNAME - 1); ct = strtok(NULL, " "); }
+                while (ct && sl >= 0 && sl < 8) {
+                    if (ci < 8) strncpy(ph->con[sl][ci++], ct, XNAME - 1);
+                    else note_lossy(db, "more than 8 constituents on a sublattice of %s", ph->id);
+                    ct = strtok(NULL, " ");
+                }
                 if (sl >= 0 && sl < 8) ph->ncon[sl] = ci;
             }
         }
         const char *ab, *agt;
         const char *am = find_tag(gt, "AmendPhase", &ab, &agt);
-        if (am && (!pend || am < pend) && attr(ab, agt, "Models", v, XEXPR) && strstr(v, "LIQ2STATE"))
-            ph->twostate = 1;
+        if (am && (!pend || am < pend) && attr(ab, agt, "Models", ph->models, XNAME)) {
+            char m[XNAME]; strncpy(m, ph->models, XNAME - 1); m[XNAME - 1] = 0;
+            for (char *t = strtok(m, " "); t; t = strtok(NULL, " ")) {
+                if (!strcmp(t, "LIQ2STATE")) ph->twostate = 1;
+                else if (strcmp(t, "GEIN"))
+                    note_lossy(db, "the %s model of phase %s, which the engine does not evaluate", t, ph->id);
+            }
+        }
+    }
+
+    for (const char *p = find_tag(text, "Bibitem", &b, &gt); p; p = find_tag(gt, "Bibitem", &b, &gt)) {
+        if (db->nbib >= XCAP) { note_lossy(db, "more than %d references", XCAP); break; }
+        attr_k(db, b, gt, "Id", db->bib_id[db->nbib], XNAME);
+        attr_k(db, b, gt, "Text", db->bib_text[db->nbib], XEXPR);
+        db->nbib++;
     }
     return db;
 }
@@ -458,8 +561,403 @@ const char *xtdb_phase(const xtdb_db *db, int p) { return (p >= 0 && p < db->nph
 int xtdb_n_elements(const xtdb_db *db) { return db->nelem; }
 const char *xtdb_element(const xtdb_db *db, int i) { return (i >= 0 && i < db->nelem) ? db->elem[i] : ""; }
 
+/* ---- writers ---------------------------------------------------------------------------
+ * XTDB back to XTDB keeps every expression and attribute as read. XTDB to TDB carries the
+ * TPfun and Parameter expressions over as FUNCTION and PARAMETER statements (the syntax is
+ * shared), then reads the result with the TDB reader and checks every endmember against
+ * this engine before handing it back. The .dat writer serializes that checked database.
+ * The third-generation models (the Einstein LNTH term, GEIN, the two-state liquid) have no
+ * TDB or ChemSage form and are refused. */
+
+#define XLICENSE \
+    "Converting a database does not change its license; the license of the source data applies."
+
+static void xfail(const char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(g_err, sizeof g_err, fmt, ap);
+    va_end(ap);
+}
+
+static char *xfinish(TextBuf *b) {
+    if (b->oom) { free(b->s); xfail("out of memory"); return NULL; }
+    return b->s ? b->s : calloc(1, 1);
+}
+
+static void xml_attr(TextBuf *b, const char *name, const char *v) {
+    if (v && v[0]) tb_putf(b, " %s=\"%s\"", name, v);
+}
+
+/* the source's opening comment, one cleaned and trimmed line per output line */
+static void put_note(TextBuf *b, const char *note, const char *prefix) {
+    char line[1024], clean[1024];
+    while (note && *note) {
+        size_t n = strcspn(note, "\n");
+        const char *t = note;
+        while (n && (*t == ' ' || *t == '\t' || *t == '\r')) { t++; n--; }
+        while (n && (t[n - 1] == ' ' || t[n - 1] == '\r' || t[n - 1] == '\t')) n--;
+        if (n) {
+            if (n >= sizeof line) n = sizeof line - 1;
+            memcpy(line, t, n);
+            line[n] = 0;
+            tb_clean(clean, sizeof clean, line);
+            tb_putf(b, "%s%s\n", prefix, clean);
+        }
+        note += strcspn(note, "\n");
+        if (*note == '\n') note++;
+    }
+}
+
+char *xtdb_write_xtdb(const xtdb_db *db, const char *source_name) {
+    TextBuf b = { 0 };
+    char src[200], num[40];
+    if (!db) { xfail("null database"); return NULL; }
+    if (db->lossy[0]) {
+        xfail("cannot write XTDB: the source carries %s, so a converted file would silently "
+              "drop it", db->lossy);
+        return NULL;
+    }
+    tb_clean(src, sizeof src, source_name);
+    tb_putf(&b, "<XTDB version=\"%s\">\n", db->version[0] ? db->version : "0.1.5");
+    tb_putf(&b, "<!-- Converted to XTDB by Hephaestus %s from %s.\n     %s\n", HEPHAESTUS_VERSION,
+            src, XLICENSE);
+    if (db->note[0]) {
+        tb_putf(&b, "     Source header:\n");
+        put_note(&b, db->note, "       ");
+    }
+    tb_putf(&b, "-->\n");
+    if (db->def_lo[0] || db->def_hi[0] || db->def_el[0]) {
+        tb_putf(&b, "<Defaults");
+        xml_attr(&b, "LowT", db->def_lo);
+        xml_attr(&b, "HighT", db->def_hi);
+        xml_attr(&b, "Elements", db->def_el);
+        tb_putf(&b, " />\n");
+    }
+    for (int e = 0; e < db->nelem; ++e) {
+        tb_putf(&b, "<Element Id=\"%s\"", db->elem[e]);
+        xml_attr(&b, "Refstate", db->el_attr[e][0]);
+        xml_attr(&b, "Mass", db->el_attr[e][1]);
+        xml_attr(&b, "H298", db->el_attr[e][2]);
+        xml_attr(&b, "S298", db->el_attr[e][3]);
+        tb_putf(&b, " />\n");
+    }
+    for (int i = 0; i < db->nsp; ++i) {
+        tb_putf(&b, "<Species Id=\"%s\"", db->sp_id[i]);
+        xml_attr(&b, "Stoichiometry", db->sp_st[i]);
+        tb_putf(&b, " />\n");
+    }
+    for (int p = 0; p < db->nph; ++p) {
+        const XPhase *ph = &db->ph[p];
+        tb_putf(&b, "<Phase Id=\"%s\"", ph->id);
+        xml_attr(&b, "Configuration", ph->config);
+        xml_attr(&b, "State", ph->state);
+        tb_putf(&b, " >\n  <Sublattices NumberOf=\"%d\" Multiplicities=\"", ph->nsubl);
+        for (int s = 0; s < ph->nsubl; ++s) tb_putf(&b, "%s%s", s ? " " : "", tb_num(num, ph->mult[s]));
+        tb_putf(&b, "\" >\n");
+        for (int s = 0; s < ph->nsubl; ++s) {
+            tb_putf(&b, "    <Constituents Sublattice=\"%d\" List=\"", s + 1);
+            for (int i = 0; i < ph->ncon[s]; ++i) tb_putf(&b, "%s%s", i ? " " : "", ph->con[s][i]);
+            tb_putf(&b, "\" />\n");
+        }
+        tb_putf(&b, "  </Sublattices>\n");
+        if (ph->models[0]) tb_putf(&b, "  <AmendPhase Models=\"%s\" />\n", ph->models);
+        tb_putf(&b, "</Phase>\n");
+    }
+    for (int k = 0; k < db->ntp; ++k) {
+        const TPfun *f = &db->tp[k];
+        tb_putf(&b, "<TPfun Id=\"%s\"", f->id);
+        xml_attr(&b, "LowT", f->lo_s);
+        xml_attr(&b, "Expr", f->expr[0]);
+        xml_attr(&b, "HighT", f->hi_s[0]);
+        if (f->nr == 1) { tb_putf(&b, " />\n"); continue; }
+        tb_putf(&b, " >\n");
+        for (int r = 1; r < f->nr; ++r) {
+            tb_putf(&b, "  <Trange");
+            xml_attr(&b, "Expr", f->expr[r]);
+            xml_attr(&b, "HighT", f->hi_s[r]);
+            tb_putf(&b, " />\n");
+        }
+        tb_putf(&b, "</TPfun>\n");
+    }
+    for (int k = 0; k < db->npar; ++k) {
+        const Param *pr = &db->par[k];
+        tb_putf(&b, "<Parameter Id=\"%s\" Expr=\"%s\"", pr->id, pr->expr);
+        xml_attr(&b, "Bibref", pr->bib);
+        tb_putf(&b, " />\n");
+    }
+    if (db->nbib) {
+        tb_putf(&b, "<Bibliography>\n");
+        for (int i = 0; i < db->nbib; ++i) {
+            tb_putf(&b, "<Bibitem Id=\"%s\"", db->bib_id[i]);
+            xml_attr(&b, "Text", db->bib_text[i]);
+            tb_putf(&b, " />\n");
+        }
+        tb_putf(&b, "</Bibliography>\n");
+    }
+    tb_putf(&b, "</XTDB>\n");
+    return xfinish(&b);
+}
+
+/* ---- XTDB to TDB ---- */
+
+static int is_tpfun(const struct xtdb_db *db, const char *id) {
+    for (int i = 0; i < db->ntp; ++i) if (!strcmp(db->tp[i].id, id)) return 1;
+    return 0;
+}
+
+/* An XTDB expression in TDB syntax: the trailing ';' dropped and '#' after each function
+ * reference. Returns 0 with *why naming a function TDB does not have. */
+static int tdb_expr(const struct xtdb_db *db, const char *in, TextBuf *out, const char **why) {
+    const char *p = in, *end = in + strlen(in);
+    while (end > p && (end[-1] == ';' || isspace((unsigned char)end[-1]))) end--;
+    while (p < end) {
+        if (isdigit((unsigned char)*p) || (*p == '.' && isdigit((unsigned char)p[1]))) {
+            const char *q = p;           /* a number, exponent included (805.644E23) */
+            while (q < end && (isdigit((unsigned char)*q) || *q == '.')) q++;
+            if (q < end && (*q == 'E' || *q == 'e') &&
+                (isdigit((unsigned char)q[1]) || ((q[1] == '+' || q[1] == '-') && isdigit((unsigned char)q[2])))) {
+                q += (q[1] == '+' || q[1] == '-') ? 2 : 1;
+                while (q < end && isdigit((unsigned char)*q)) q++;
+            }
+            tb_putf(out, "%.*s", (int)(q - p), p);
+            p = q;
+        } else if (isalpha((unsigned char)*p) || *p == '_') {
+            char id[XNAME]; int n = 0;
+            while (p < end && (isalnum((unsigned char)*p) || *p == '_')) { if (n < XNAME - 1) id[n++] = *p; p++; }
+            id[n] = 0;
+            if (!strcmp(id, "GEIN")) { *why = "the third-generation Einstein function GEIN"; return 0; }
+            if (!strcmp(id, "EXP")) { *why = "an EXP() term"; return 0; }
+            tb_putf(out, "%s", id);
+            if (is_tpfun(db, id) && *p != '#') tb_putf(out, "#");
+        } else {
+            tb_putf(out, "%c", *p);
+            p++;
+        }
+    }
+    return 1;
+}
+
+/* real atoms of a phase's endmember as this engine counts them (non-VA site multiplicity) */
+static double engine_atoms(const XPhase *ph, const int *pick) {
+    double n = 0.0;
+    for (int s = 0; s < ph->nsubl; ++s) if (strcmp(ph->con[s][pick[s]], "VA")) n += ph->mult[s];
+    return n;
+}
+
+static int upper_eq(const char *a, const char *b) {
+    for (; *a && *b; ++a, ++b) if (toupper((unsigned char)*a) != toupper((unsigned char)*b)) return 0;
+    return *a == *b;
+}
+
+/* Every endmember of the TDB reading must match this engine's value, per formula unit and
+ * in atoms, over 300-3000 K; anything else means the text did not carry the model. */
+static int check_against_tdb(const struct xtdb_db *db, const mqmqa_db *d) {
+    for (int p = 0; p < db->nph; ++p) {
+        const XPhase *ph = &db->ph[p];
+        int pick[8] = { 0 }, dp = -1, st = -1;
+        for (int i = 0; i < mqmqa_db_num_phases(d); ++i)
+            if (upper_eq(mqmqa_db_phase_name(d, i), ph->id)) dp = i;
+        for (int i = 0; i < mqmqa_db_num_stoich(d); ++i)
+            if (upper_eq(mqmqa_db_stoich_name(d, i), ph->id)) st = i;
+        for (;;) {
+            char cs[XNAME * 2] = { 0 };
+            for (int s = 0; s < ph->nsubl; ++s) {
+                if (s) strncat(cs, ":", sizeof cs - strlen(cs) - 1);
+                strncat(cs, ph->con[s][pick[s]], sizeof cs - strlen(cs) - 1);
+            }
+            if (find_param(db, "G", ph->id, cs, 0)) {
+                double atoms_d = 0.0, Y[64] = { 0 };
+                int ny = 0;
+                if (dp >= 0) {
+                    int ns = mqmqa_ph_cef_num_subl(d, dp), nc[16];
+                    if (ns != ph->nsubl || ns > 16) { xfail("phase %s changed shape in TDB", ph->id); return 0; }
+                    mqmqa_ph_cef_subl_ncon(d, dp, nc);
+                    for (int s = 0; s < ns; ++s)
+                        for (int i = 0; i < nc[s] && ny < 64; ++i)
+                            Y[ny++] = upper_eq(mqmqa_ph_cef_constituent(d, dp, s, i), ph->con[s][pick[s]]) ? 1.0 : 0.0;
+                } else if (st < 0) {
+                    xfail("phase %s is missing from the TDB reading", ph->id);
+                    return 0;
+                }
+                for (int k = 0; k <= 12; ++k) {
+                    double T = 300.37 + 225.0 * k, gx, gd;
+                    int okx = 1;
+                    gx = xtdb_endmember_gibbs(db, ph->id, cs, T, &okx);
+                    if (dp >= 0) {
+                        gd = mqmqa_ph_cef_gibbs(d, dp, Y, T, 0);
+                        atoms_d = gd / mqmqa_ph_cef_gibbs(d, dp, Y, T, 1);
+                    } else {
+                        double el[64];
+                        gd = mqmqa_db_stoich_gibbs(d, st, T);
+                        atoms_d = 0.0;
+                        if (mqmqa_db_num_elements(d) <= 64) {
+                            mqmqa_db_stoich_elems(d, st, el);
+                            for (int e = 0; e < mqmqa_db_num_elements(d); ++e) atoms_d += el[e];
+                        }
+                    }
+                    if (!okx || !(fabs(gx - gd) <= 1e-9 * fmax(1.0, fabs(gx)))) {
+                        xfail("endmember %s of %s reads back as %.17g instead of %.17g at %.2f K",
+                              cs, ph->id, gd, gx, T);
+                        return 0;
+                    }
+                    if (gd != 0.0 && fabs(atoms_d - engine_atoms(ph, pick)) > 1e-9 * engine_atoms(ph, pick)) {
+                        xfail("endmember %s of %s counts %g atoms in TDB but %g here: a molecular "
+                              "species, which this engine counts as one atom", cs, ph->id, atoms_d,
+                              engine_atoms(ph, pick));
+                        return 0;
+                    }
+                }
+            }
+            int s = ph->nsubl - 1;
+            while (s >= 0) { if (++pick[s] < ph->ncon[s]) break; pick[s] = 0; s--; }
+            if (s < 0) break;
+        }
+    }
+    return 1;
+}
+
+/* TDB text for the database; header_fmt NULL gives the internal form used on the way to
+ * .dat, whose only comments are the source's own. On success *checked (if given) receives
+ * the verified TDB reading. */
+static char *to_tdb(const struct xtdb_db *db, const char *source_name, const char *header_fmt,
+                    mqmqa_db **checked) {
+    TextBuf b = { 0 }, ex = { 0 };
+    char src[200];
+    const char *why = NULL, *lo = db->def_lo[0] ? db->def_lo : "0.01";
+    const char *hi = db->def_hi[0] ? db->def_hi : "1E+12";
+    if (checked) *checked = NULL;
+    if (db->lossy[0]) {
+        xfail("cannot write %s: the source carries %s, so a converted file would silently drop it",
+              header_fmt ? header_fmt : "ChemSage .dat", db->lossy);
+        return NULL;
+    }
+    for (int p = 0; p < db->nph; ++p)
+        if (db->ph[p].twostate) {
+            xfail("phase %s uses the third-generation two-state liquid (LIQ2STATE), which TDB and "
+                  "ChemSage .dat cannot hold; .xtdb can", db->ph[p].id);
+            return NULL;
+        }
+    for (int k = 0; k < db->npar; ++k) {
+        const Param *pr = &db->par[k];
+        if (!strcmp(pr->kind, "LNTH")) {
+            xfail("%s is a third-generation Einstein heat capacity (LNTH), which TDB and ChemSage "
+                  ".dat cannot hold; .xtdb can", pr->id);
+            return NULL;
+        }
+        if (!strcmp(pr->kind, "GD")) {
+            xfail("%s is a two-state liquid parameter (GD), which TDB and ChemSage .dat cannot "
+                  "hold; .xtdb can", pr->id);
+            return NULL;
+        }
+    }
+    tb_clean(src, sizeof src, source_name);
+    if (header_fmt) {
+        tb_putf(&b, "$ Converted to %s by Hephaestus %s from %s.\n$ %s\n", header_fmt,
+                HEPHAESTUS_VERSION, src, XLICENSE);
+        if (db->note[0]) { tb_putf(&b, "$ Source header:\n"); put_note(&b, db->note, "$   "); }
+        for (int i = 0; i < db->nbib; ++i) {
+            char t[XEXPR];
+            tb_clean(t, sizeof t, db->bib_text[i]);
+            tb_putf(&b, "$ Reference %s: %s\n", db->bib_id[i], t);
+        }
+    } else if (db->note[0]) {
+        put_note(&b, db->note, "$ ");
+    }
+    tb_putf(&b, "$\n ELEMENT /-   ELECTRON_GAS  0  0  0 !\n ELEMENT VA   VACUUM  0  0  0 !\n");
+    for (int e = 0; e < db->nelem; ++e)
+        tb_putf(&b, " ELEMENT %-3s  %s  %s  %s  %s !\n", db->elem[e],
+                db->el_attr[e][0][0] ? db->el_attr[e][0] : "BLANK",
+                db->el_attr[e][1][0] ? db->el_attr[e][1] : "0",
+                db->el_attr[e][2][0] ? db->el_attr[e][2] : "0",
+                db->el_attr[e][3][0] ? db->el_attr[e][3] : "0");
+    for (int i = 0; i < db->nsp; ++i) {
+        int is_el = !strcmp(db->sp_id[i], "VA");
+        for (int e = 0; e < db->nelem && !is_el; ++e) is_el = !strcmp(db->elem[e], db->sp_id[i]);
+        if (!is_el && db->sp_st[i][0]) tb_putf(&b, " SPECIES %s  %s !\n", db->sp_id[i], db->sp_st[i]);
+    }
+    tb_putf(&b, "\n TYPE_DEFINITION %% SEQ * !\n");
+    for (int k = 0; k < db->ntp; ++k) {
+        const TPfun *f = &db->tp[k];
+        tb_putf(&b, "\n FUNCTION %s  %s\n    ", f->id, f->lo_s[0] ? f->lo_s : lo);
+        for (int r = 0; r < f->nr; ++r) {
+            ex.n = 0;
+            if (!tdb_expr(db, f->expr[r], &ex, &why)) {
+                xfail("TPfun %s uses %s, which TDB and ChemSage .dat cannot hold; .xtdb can", f->id, why);
+                free(b.s); free(ex.s);
+                return NULL;
+            }
+            tb_putf(&b, "%.*s;  %s %s", (int)ex.n, ex.s ? ex.s : "",
+                    f->hi_s[r][0] ? f->hi_s[r] : hi, r + 1 < f->nr ? "Y\n    " : "N !\n");
+        }
+    }
+    for (int p = 0; p < db->nph; ++p) {
+        const XPhase *ph = &db->ph[p];
+        char num[40];
+        tb_putf(&b, "\n PHASE %s %%  %d ", ph->id, ph->nsubl);
+        for (int s = 0; s < ph->nsubl; ++s) tb_putf(&b, " %s", tb_num(num, ph->mult[s]));
+        tb_putf(&b, " !\n CONSTITUENT %s :", ph->id);
+        for (int s = 0; s < ph->nsubl; ++s) {
+            tb_putf(&b, " ");
+            for (int i = 0; i < ph->ncon[s]; ++i) tb_putf(&b, "%s%s", i ? "," : "", ph->con[s][i]);
+            tb_putf(&b, " :");
+        }
+        tb_putf(&b, " !\n");
+        for (int k = 0; k < db->npar; ++k) {
+            const Param *pr = &db->par[k];
+            if (strcmp(pr->phase, ph->id)) continue;
+            ex.n = 0;
+            if (!tdb_expr(db, pr->expr, &ex, &why)) {
+                xfail("%s uses %s, which TDB and ChemSage .dat cannot hold; .xtdb can", pr->id, why);
+                free(b.s); free(ex.s);
+                return NULL;
+            }
+            tb_putf(&b, " PARAMETER %s(%s,%s;%d)  %s\n    %.*s;  %s N%s%s !\n", pr->kind, pr->phase,
+                    pr->cons, pr->deg, lo, (int)ex.n, ex.s ? ex.s : "", hi,
+                    pr->bib[0] ? " " : "", pr->bib);
+        }
+    }
+    free(ex.s);
+    if (b.oom) { free(b.s); xfail("out of memory"); return NULL; }
+    {
+        mqmqa_db *d = mqmqa_db_read_string(b.s);
+        if (!d) {
+            xfail("the TDB reader rejects the converted text (%s): the XTDB expressions use "
+                  "syntax outside the TDB subset", mqmqa_db_error());
+            free(b.s);
+            return NULL;
+        }
+        if (!check_against_tdb(db, d)) { mqmqa_db_free(d); free(b.s); return NULL; }
+        if (checked) *checked = d; else mqmqa_db_free(d);
+    }
+    return b.s;
+}
+
+char *xtdb_write_tdb(const xtdb_db *db, const char *source_name) {
+    if (!db) { xfail("null database"); return NULL; }
+    return to_tdb(db, source_name, "TDB", NULL);
+}
+
+char *xtdb_write_utdb(const xtdb_db *db, const char *source_name) {
+    if (!db) { xfail("null database"); return NULL; }
+    return to_tdb(db, source_name, "uTDB", NULL);
+}
+
+char *xtdb_write_dat(const xtdb_db *db, const char *source_name) {
+    mqmqa_db *d = NULL;
+    char *tdb, *dat;
+    if (!db) { xfail("null database"); return NULL; }
+    tdb = to_tdb(db, source_name, NULL, &d);
+    if (!tdb) return NULL;
+    free(tdb);
+    dat = mqmqa_db_write_dat(d, source_name);
+    if (!dat) xfail("%s", mqmqa_db_error());
+    mqmqa_db_free(d);
+    return dat;
+}
+
 #ifdef XTDB_TEST
-/* standalone self-test: read AlC.xtdb, verify endmembers, mixing, and the diagram assemblage. */
+/* standalone self-test: read AlC.xtdb, verify endmembers, mixing, and the diagram assemblage.
+ * Link it with the rest of src/: the writers above call the database API. */
 
 /* lower convex hull of G(x) over all phases at temperature T. Fills seg[] with the stable
  * vertices (x, G, phase index) left to right; returns the count. Solution phases are sampled

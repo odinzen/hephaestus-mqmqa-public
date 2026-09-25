@@ -199,7 +199,7 @@ def test_written_dat_matches_pycalphad(path):
                     res = calculate(pdb, comps, name, T=T, P=101325, N=1, points=np.array(pts))
                 for Y, g in zip(Ys, np.atleast_1d(res.GM.values.squeeze())):
                     d = U.rel(db.cef_gibbs(p, Y, T, per_mole_atoms=True), float(g))
-                    assert d < U.REL_TOL, (name, T, Y)
+                    assert d < U.ORACLE_TOL, (name, T, Y)
                     worst, n = max(worst, d), n + 1
             continue
         nc, na = len(db.cations(p)), len(db.anions(p))
@@ -212,12 +212,12 @@ def test_written_dat_matches_pycalphad(path):
                 g_py = _mqmqa_energy_pycalphad(pdb, name, comps, db, p, T, Xkey)
                 if pdb_orig is not None:   # pycalphad alone: the writer changed nothing
                     g_po = _mqmqa_energy_pycalphad(pdb_orig, name, comps, db, p, T, Xkey)
-                    assert U.rel(g_po, g_py) < U.REL_TOL, (name, T, g_po, g_py)
+                    assert U.rel(g_po, g_py) < U.ORACLE_TOL, (name, T, g_po, g_py)
             if (os.path.basename(path), name) in ENGINE_GAPS:
                 continue
             g_he = _mqmqa_energy_hephaestus(db, p, T, Xkey)
             d = U.rel(g_he, g_py)
-            assert d < U.REL_TOL, (name, T, g_he, g_py)
+            assert d < U.ORACLE_TOL, (name, T, g_he, g_py)
             worst, n = max(worst, d), n + 1
     for i, name in enumerate(db.stoich):
         atoms = sum(db.stoich_elements(i))
@@ -226,7 +226,7 @@ def test_written_dat_matches_pycalphad(path):
                 warnings.simplefilter("ignore")
                 res = calculate(pdb, comps, name, T=T, P=101325, N=1)
             d = U.rel(db.stoich_gibbs(i, T), float(res.GM.values.squeeze()) * atoms)
-            assert d < U.REL_TOL, (name, T)
+            assert d < U.ORACLE_TOL, (name, T)
             worst, n = max(worst, d), n + 1
     print(f"\npycalphad on written DAT {os.path.basename(path)}: {n} points, worst {worst:.3g}")
 

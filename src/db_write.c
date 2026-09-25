@@ -58,21 +58,6 @@ static void wfail(W *w, const char *fmt, ...)
 
 #define OUT(...) tb_putf(&w->body, __VA_ARGS__)
 
-/* Header text must survive as a comment in every target: printable ASCII only,
- * no statement terminator, no XML comment close. */
-static void clean_text(char *dst, size_t cap, const char *src)
-{
-    size_t n = 0;
-    if (!src || !*src) src = "(unnamed source)";
-    for (; *src && n + 1 < cap; ++src) {
-        char c = *src;
-        if (c < 32 || c > 126 || c == '!' || c == '<' || c == '>' || c == '&') c = '_';
-        if (c == '-' && n > 0 && dst[n - 1] == '-') c = '_';
-        dst[n++] = c;
-    }
-    dst[n] = '\0';
-}
-
 /* Phase, species and constituent names become TDB tokens; reject any character
  * the TDB grammar reserves rather than write a file that parses differently. */
 static int tdb_token_ok(const char *s)
@@ -620,17 +605,39 @@ static int check_lossy(W *w, const char *fmt_name)
     return 1;
 }
 
+/* The source's own header lines, each cleaned, one per output line (sep "\n") or
+ * joined on one line (sep " / "). */
+static void source_header(TextBuf *h, const char *text, const char *prefix, const char *sep)
+{
+    char line[1024], clean[1024];
+    int first = 1;
+    while (text && *text) {
+        size_t n = strcspn(text, "\n");
+        if (n >= sizeof line) n = sizeof line - 1;
+        memcpy(line, text, n);
+        line[n] = '\0';
+        tb_clean(clean, sizeof clean, line);
+        tb_putf(h, "%s%s%s", first ? "" : sep, prefix, clean);
+        first = 0;
+        text += strcspn(text, "\n");
+        if (*text == '\n') text++;
+    }
+}
+
 static void header(W *w, const char *prefix, const char *fmt_name, const char *source)
 {
-    char src[200], title[256];
+    char src[200];
     TextBuf *h = &w->head;
-    clean_text(src, sizeof src, source);
+    tb_clean(src, sizeof src, source);
     tb_putf(h, "%sConverted to %s by Hephaestus %s from %s.\n", prefix, fmt_name,
             HEPHAESTUS_VERSION, src);
     tb_putf(h, "%s%s\n", prefix, LICENSE_LINE);
     if (w->db->title[0]) {
-        clean_text(title, sizeof title, w->db->title);
-        tb_putf(h, "%sSource title: %s\n", prefix, title);
+        char sub[16];
+        snprintf(sub, sizeof sub, "%s  ", prefix);
+        tb_putf(h, "%sSource header:\n", prefix);
+        source_header(h, w->db->title, sub, "\n");
+        tb_putf(h, "\n");
     }
 }
 
@@ -1071,7 +1078,7 @@ char *mqmqa_db_write_dat(const mqmqa_db *dbh, const char *source_name)
 {
     const Db *db = (const Db *)dbh;
     W w0, *w = &w0;
-    char num[40], src[200], title[256];
+    char num[40], src[200];
     int *count;
     if (!db) { mqmqa_db_set_error("null database"); return NULL; }
     count = calloc((size_t)(db->n_phases > 0 ? db->n_phases : 1), sizeof(int));
@@ -1092,12 +1099,12 @@ char *mqmqa_db_write_dat(const mqmqa_db *dbh, const char *source_name)
     if (w->bad) { free(count); return finish(w); }
 
     /* the title line is the one place a ChemSage file has for provenance */
-    clean_text(src, sizeof src, source_name);
+    tb_clean(src, sizeof src, source_name);
     tb_putf(&w->head, " Converted to ChemSage .dat by Hephaestus %s from %s. %s", HEPHAESTUS_VERSION,
             src, LICENSE_LINE);
     if (db->title[0]) {
-        clean_text(title, sizeof title, db->title);
-        tb_putf(&w->head, " Source title: %s", title);
+        tb_putf(&w->head, " Source header: ");
+        source_header(&w->head, db->title, "", " / ");
     }
     tb_putf(&w->head, "\n   %d   %d", db->n_el, db->n_phases);
     for (int p = 0; p < db->n_phases; ++p) tb_putf(&w->head, "   %d", count[p]);
@@ -1113,5 +1120,308 @@ char *mqmqa_db_write_dat(const mqmqa_db *dbh, const char *source_name)
     tb_putf(&w->head, "\n");
     return finish(w);
 }
-char *mqmqa_db_write_xtdb(const mqmqa_db *db, const char *source_name)
-{ (void)db; (void)source_name; mqmqa_db_set_error("the .xtdb writer is not implemented"); return NULL; }
+/* ------------------------------------------------------------------ *
+ * XTDB. The file is written for the XTDB engine in src/xtdb.c, so the checks
+ * follow what that engine evaluates: CEF phases with at most one mixing
+ * sublattice of two constituents, monatomic constituents, no magnetic model and
+ * no MQMQA. Its tables are fixed-size (256 entries, 511-character expressions,
+ * 8 ranges per function), and a file that overflows them is refused rather than
+ * read back truncated.
+ * ------------------------------------------------------------------ */
+#define XTDB_CAP 256
+#define XTDB_EXPR 511
+#define XTDB_NAME 63
+
+typedef struct {
+    W *w;
+    TextBuf tp, par;
+    int n_tp, n_par;
+} XW;
+
+/* One XTDB expression ("...;") from a term list; 0 when it would not fit. */
+static int xtdb_expr_text(W *w, const Term *t, int n, char *out, size_t cap, const char *who)
+{
+    size_t len = 0;
+    char s[96];
+    out[0] = '\0';
+    if (n == 0) { snprintf(out, cap, "0;"); return 1; }
+    for (int i = 0; i < n; ++i) {
+        term_text(&t[i], s, sizeof s);
+        if (len + strlen(s) + 2 > XTDB_EXPR || len + strlen(s) + 2 > cap) {
+            wfail(w, "%s needs an expression longer than the %d characters the XTDB engine "
+                     "reads; .tdb or .dat holds it", who, XTDB_EXPR);
+            return 0;
+        }
+        len += (size_t)snprintf(out + len, cap - len, "%s", s);
+    }
+    snprintf(out + len, cap - len, ";");
+    return 1;
+}
+
+static void xtdb_param(XW *x, const char *id, const char *expr)
+{
+    if (++x->n_par > XTDB_CAP)
+        wfail(x->w, "more than %d parameters, the XTDB engine's table size", XTDB_CAP);
+    tb_putf(&x->par, "<Parameter Id=\"%s\" Expr=\"%s\" />\n", id, expr);
+}
+
+/* A Gibbs energy as the Expr of parameter `id`: inline for one extrapolating
+ * interval, otherwise through a TPfun holding the ranges. */
+static void xtdb_gibbs(XW *x, const Endmember *em, const char *id, const char *phase, const char *who)
+{
+    W *w = x->w;
+    Term t[MAX_TERMS];
+    char e[XTDB_EXPR + 8], num[40], fid[XTDB_NAME + 1];
+    int last_open = em->intervals[em->n_intervals - 1].t_max >= OPEN_T;
+    int n_ranges = em->n_intervals + (last_open ? 0 : 1);
+    if (em->n_intervals == 1 && last_open) {
+        int n = interval_terms(w, &em->intervals[0], t, who);
+        if (w->bad || !xtdb_expr_text(w, t, n, e, sizeof e, who)) return;
+        xtdb_param(x, id, e);
+        return;
+    }
+    if (n_ranges > 8) {
+        wfail(w, "%s has %d temperature ranges; the XTDB engine reads 8 per function; .tdb or "
+                 ".dat holds it", who, n_ranges);
+        return;
+    }
+    if (++x->n_tp > XTDB_CAP) {
+        wfail(w, "more than %d functions, the XTDB engine's table size", XTDB_CAP);
+        return;
+    }
+    {   /* a function name from the phase, kept to the reader's identifier characters */
+        size_t k = 0;
+        k += (size_t)snprintf(fid, sizeof fid, "G");
+        for (const char *c = phase; *c && k < 40; ++c) fid[k++] = isalnum((unsigned char)*c) ? *c : '_';
+        snprintf(fid + k, sizeof fid - k, "_%d", x->n_tp);
+    }
+    for (int k = 0; k < em->n_intervals; ++k) {
+        const Interval *iv = &em->intervals[k];
+        int n = interval_terms(w, iv, t, who);
+        int last = (k == em->n_intervals - 1);
+        if (w->bad || !xtdb_expr_text(w, t, n, e, sizeof e, who)) return;
+        if (k == 0) tb_putf(&x->tp, "<TPfun Id=\"%s\" LowT=\"%s\" Expr=\"%s\"", fid,
+                            tb_num(num, lo_of(w, em->t_lo)), e);
+        else tb_putf(&x->tp, "  <Trange Expr=\"%s\"", e);
+        if (!last || !last_open) tb_putf(&x->tp, " HighT=\"%s\"", tb_num(num, iv->t_max));
+        else if (!isnan(em->t_top) && em->t_top < OPEN_T)
+            tb_putf(&x->tp, " HighT=\"%s\"", tb_num(num, em->t_top));
+        tb_putf(&x->tp, k == 0 ? " >\n" : " />\n");
+    }
+    if (!last_open) {   /* ChemSage data are zero above their last limit */
+        tb_putf(&x->tp, "  <Trange Expr=\"0;\" HighT=\"%s\" />\n", tb_num(num, OPEN_T));
+        w->used_zero_tail = 1;
+    }
+    tb_putf(&x->tp, "</TPfun>\n");
+    snprintf(e, sizeof e, "+%s;", fid);
+    xtdb_param(x, id, e);
+}
+
+static void xtdb_cef_phase(XW *x, const Phase *ph)
+{
+    W *w = x->w;
+    const SublPhase *cf = ph->cef;
+    char num[40], arr[512], id[640], who[640], e[XTDB_EXPR + 8];
+    int pick[8], mixing = 0;
+    if (cf->magnetic) {
+        wfail(w, "phase %s uses the Inden magnetic model (TC, BMAGN), which the XTDB engine does "
+                 "not evaluate; .tdb or .utdb holds it", ph->name);
+        return;
+    }
+    if (cf->n_subl > 8) {
+        wfail(w, "phase %s has %d sublattices; the XTDB engine reads 8", ph->name, cf->n_subl);
+        return;
+    }
+    for (int s = 0; s < cf->n_subl; ++s) {
+        if (cf->subl_ncon[s] > 1) mixing++;
+        if (cf->subl_ncon[s] > 2 || mixing > 1) {
+            wfail(w, "phase %s mixes on more than one sublattice or more than two constituents; "
+                     "the XTDB engine evaluates one binary mixing sublattice, so .tdb or .dat "
+                     "holds it", ph->name);
+            return;
+        }
+    }
+    for (int i = 0; i < cf->n_con; ++i) {
+        int va = strcmp(cf->con_name[i], "VA") == 0;
+        if (cf->con_atoms[i] != (va ? 0.0 : 1.0)) {
+            wfail(w, "constituent %s of %s counts %g atoms; the XTDB engine counts one per "
+                     "constituent, so .tdb or .utdb keeps it", cf->con_name[i], ph->name,
+                  cf->con_atoms[i]);
+            return;
+        }
+    }
+    OUT("<Phase Id=\"%s\" Configuration=\"CEF\" >\n  <Sublattices NumberOf=\"%d\" Multiplicities=\"",
+        ph->name, cf->n_subl);
+    for (int s = 0; s < cf->n_subl; ++s) OUT("%s%s", s ? " " : "", tb_num(num, cf->site_ratio[s]));
+    OUT("\" >\n");
+    for (int s = 0; s < cf->n_subl; ++s) {
+        OUT("    <Constituents Sublattice=\"%d\" List=\"", s + 1);
+        for (int i = 0; i < cf->subl_ncon[s]; ++i) OUT("%s%s", i ? " " : "", cf->con_name[cf->subl_off[s] + i]);
+        OUT("\" />\n");
+    }
+    OUT("  </Sublattices>\n</Phase>\n");
+
+    /* every endmember: the engine sums over all of them, and an absent one is zero */
+    memset(pick, 0, sizeof pick);
+    for (;;) {
+        int found = -1;
+        for (int e2 = 0; e2 < cf->n_em && found < 0; ++e2) {
+            int same = 1;
+            for (int s = 0; s < cf->n_subl; ++s)
+                if (cf->em_con[e2 * cf->n_subl + s] != pick[s]) same = 0;
+            if (same) found = e2;
+        }
+        cef_array(cf, pick, -1, 0, 0, arr, sizeof arr);
+        if (strlen(arr) > XTDB_NAME) {
+            wfail(w, "endmember %s of %s is longer than the XTDB engine's %d characters",
+                  arr, ph->name, XTDB_NAME);
+            return;
+        }
+        snprintf(id, sizeof id, "G(%s,%s;0)", ph->name, arr);
+        snprintf(who, sizeof who, "G(%s,%s)", ph->name, arr);
+        if (found >= 0) xtdb_gibbs(x, &cf->em[found], id, ph->name, who);
+        else xtdb_param(x, id, "0;");
+        if (w->bad) return;
+        {
+            int s = cf->n_subl - 1;
+            while (s >= 0) { if (++pick[s] < cf->subl_ncon[s]) break; pick[s] = 0; s--; }
+            if (s < 0) break;
+        }
+    }
+    for (int k = 0; k < cf->n_ex; ++k) {
+        const CefExcess *xe = &cf->ex[k];
+        Term t[MAX_TERMS];
+        int n;
+        for (int s = 0; s < cf->n_subl; ++s) pick[s] = (s == xe->subl) ? 0 : xe->other[s];
+        cef_array(cf, pick, xe->subl, xe->i, xe->j, arr, sizeof arr);
+        snprintf(id, sizeof id, "G(%s,%s;%d)", ph->name, arr, xe->order);
+        n = excess_terms(w, xe->coeff, t, id);
+        if (w->bad || !xtdb_expr_text(w, t, n, e, sizeof e, id)) return;
+        xtdb_param(x, id, e);
+    }
+}
+
+static void xtdb_stoich(XW *x, const Endmember *em)
+{
+    W *w = x->w;
+    const Db *db = w->db;
+    char num[40], arr[512], id[640];
+    int k = 0;
+    size_t n = 0;
+    for (int e = 0; e < db->n_el; ++e) if (em->stoich_el[e] != 0.0) k++;
+    if (k == 0 || k > 8) {
+        wfail(w, "stoichiometric phase %s has %d elements; the XTDB engine reads 1 to 8",
+              em->name, k);
+        return;
+    }
+    OUT("<Phase Id=\"%s\" Configuration=\"CEF\" >\n  <Sublattices NumberOf=\"%d\" Multiplicities=\"",
+        em->name, k);
+    k = 0;
+    for (int e = 0; e < db->n_el; ++e)
+        if (em->stoich_el[e] != 0.0) OUT("%s%s", k++ ? " " : "", tb_num(num, em->stoich_el[e]));
+    OUT("\" >\n");
+    k = 0;
+    arr[0] = '\0';
+    for (int e = 0; e < db->n_el; ++e) {
+        if (em->stoich_el[e] == 0.0) continue;
+        OUT("    <Constituents Sublattice=\"%d\" List=\"%s\" />\n", ++k, db->el_name[e]);
+        n += (size_t)snprintf(arr + n, sizeof arr - n, "%s%s", k > 1 ? ":" : "", db->el_name[e]);
+    }
+    OUT("  </Sublattices>\n</Phase>\n");
+    snprintf(id, sizeof id, "G(%s,%s;0)", em->name, arr);
+    xtdb_gibbs(x, em, id, em->name, id);
+}
+
+char *mqmqa_db_write_xtdb(const mqmqa_db *dbh, const char *source_name)
+{
+    const Db *db = (const Db *)dbh;
+    W w0, *w = &w0;
+    XW x;
+    char num[40], a[40], src[200], ctext[256];
+    if (!db) { mqmqa_db_set_error("null database"); return NULL; }
+    memset(w, 0, sizeof *w);
+    memset(&x, 0, sizeof x);
+    w->db = db;
+    x.w = w;
+    if (!check_lossy(w, "XTDB")) return finish(w);
+    if (db->n_el > XTDB_CAP || db->n_phases + db->n_stoich > XTDB_CAP)
+        wfail(w, "more elements or phases than the XTDB engine's %d", XTDB_CAP);
+    for (int p = 0; p < db->n_phases && !w->bad; ++p) {
+        const Phase *ph = &db->phases[p];
+        if (strlen(ph->name) > XTDB_NAME || strpbrk(ph->name, ",;()\"<>&")) {
+            wfail(w, "phase name %s cannot be an XTDB phase Id", ph->name);
+            break;
+        }
+        if (ph->kind == 0) {
+            wfail(w, "phase %s is an MQMQA (quadruplet) liquid, which the XTDB engine does not "
+                     "read; .utdb or .dat holds it", ph->name);
+            break;
+        }
+        xtdb_cef_phase(&x, ph);
+    }
+    for (int i = 0; i < db->n_stoich && !w->bad; ++i) {
+        if (strlen(db->stoich[i].name) > XTDB_NAME || strpbrk(db->stoich[i].name, ",;()\"<>&")) {
+            wfail(w, "phase name %s cannot be an XTDB phase Id", db->stoich[i].name);
+            break;
+        }
+        xtdb_stoich(&x, &db->stoich[i]);
+    }
+    if (!w->bad) {
+        /* the body so far holds the phases; functions and parameters follow them */
+        tb_putf(&w->body, "%s%s", x.tp.s ? x.tp.s : "", x.par.s ? x.par.s : "");
+        tb_putf(&w->body, "</XTDB>\n");
+        if (x.tp.oom || x.par.oom) wfail(w, "out of memory");
+    }
+    free(x.tp.s);
+    free(x.par.s);
+    if (w->bad) return finish(w);
+
+    tb_clean(src, sizeof src, source_name);
+    tb_putf(&w->head, "<XTDB version=\"0.1.5\">\n<!-- Converted to XTDB by Hephaestus %s from %s.\n"
+            "     %s\n", HEPHAESTUS_VERSION, src, LICENSE_LINE);
+    if (db->title[0]) {
+        tb_putf(&w->head, "     Source header:\n");
+        source_header(&w->head, db->title, "       ", "\n");
+        tb_putf(&w->head, "\n");
+    }
+    tb_putf(&w->head, "     Functions of the source appear expanded, one polynomial per range.\n");
+    if (w->used_unknown_lo)
+        tb_putf(&w->head, "     A LowT of %s K marks a limit the source did not give.\n",
+                tb_num(num, UNKNOWN_LO));
+    if (w->used_zero_tail)
+        tb_putf(&w->head, "     A final zero range keeps ChemSage data zero above their last limit.\n");
+    tb_putf(&w->head, "-->\n<Defaults LowT=\"%s\"",
+            tb_num(num, isnan(db->lim_lo) ? UNKNOWN_LO : db->lim_lo));
+    if (!isnan(db->lim_hi)) tb_putf(&w->head, " HighT=\"%s\"", tb_num(a, db->lim_hi));
+    tb_putf(&w->head, " Elements=\"VA /-\" />\n");
+    for (int e = 0; e < db->n_el; ++e) {
+        tb_putf(&w->head, "<Element Id=\"%s\"", db->el_name[e]);
+        if (db->el_ref && db->el_ref[e][0]) tb_putf(&w->head, " Refstate=\"%s\"", db->el_ref[e]);
+        tb_putf(&w->head, " Mass=\"%s\"", tb_num(num, db->el_mass[e]));
+        if (db->el_h298) tb_putf(&w->head, " H298=\"%s\" S298=\"%s\"", tb_num(num, db->el_h298[e]),
+                                 tb_num(a, db->el_s298[e]));
+        tb_putf(&w->head, " />\n");
+    }
+    tb_putf(&w->head, "<Species Id=\"VA\" Stoichiometry=\"VA\" />\n");
+    for (int e = 0; e < db->n_el; ++e)
+        tb_putf(&w->head, "<Species Id=\"%s\" Stoichiometry=\"%s\" />\n", db->el_name[e], db->el_name[e]);
+    {   /* named (non-element) constituents: their composition, for other readers */
+        SpList *sp = calloc(1, sizeof *sp);
+        if (!sp) { wfail(w, "out of memory"); return finish(w); }
+        for (int p = 0; p < db->n_phases; ++p) {
+            const SublPhase *cf = db->phases[p].cef;
+            for (int i = 0; cf && i < cf->n_con; ++i) {
+                Comp c;
+                const char *cn = cf->con_name[i];
+                if (!strcmp(cn, "VA") || is_element_name(db, cn)) continue;
+                if (species_comp(db, cn, &c)) sp_add(w, sp, cn, &c);
+            }
+        }
+        for (int i = 0; i < sp->n; ++i) {
+            comp_text(db, &sp->comp[i], ctext, sizeof ctext);
+            tb_putf(&w->head, "<Species Id=\"%s\" Stoichiometry=\"%s\" />\n", sp->name[i], ctext);
+        }
+        free(sp);
+    }
+    return finish(w);
+}

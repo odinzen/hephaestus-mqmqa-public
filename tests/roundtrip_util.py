@@ -3,10 +3,15 @@ plus numerical comparison of two loaded databases (the original and its conversi
 
 Energies are compared as a relative deviation |a - b| / max(|a|, 1 J). The writers
 print every coefficient with enough digits to read back as the same double, so a
-faithful conversion reproduces the original bit for bit or within a few ulps (the
-only freedom is the order the reader sums terms in). 1e-10 relative therefore flags
-any real change, down to a single perturbed coefficient digit, with five orders of
-magnitude of headroom over rounding.
+conversion read by the same engine reproduces the original bit for bit (observed
+deviation 0 for every shipped file) and one read by the other engine differs only by
+the order terms are summed in (observed <= 2e-15). REL_TOL = 1e-14 leaves a few tens
+of ulps for that and still catches a change in the 14th significant digit of an
+endmember coefficient (test_comparison_catches_a_planted_change).
+
+ORACLE_TOL = 1e-10 applies where pycalphad evaluates the file: a different
+implementation of the same model, whose magnetic term differs from this engine's by
+up to 5e-12 relative on the unconverted source as well.
 """
 import glob
 import os
@@ -22,7 +27,8 @@ from mqmqa import Database  # noqa: E402
 from mqmqa.equilibrium import build_inputs  # noqa: E402
 from mqmqa._abi import c_equilibrate  # noqa: E402
 
-REL_TOL = 1e-10
+REL_TOL = 1e-14
+ORACLE_TOL = 1e-10
 # 300-3000 K, offset so no point sits on an interval breakpoint, plus two points
 # above the 6000 K limit of the ChemSage data, where those data are zero.
 T_GRID = [float(t) for t in np.linspace(300.37, 3000.37, 28)] + [6500.37, 8000.0]

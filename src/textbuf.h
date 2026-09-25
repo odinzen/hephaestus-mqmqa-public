@@ -60,4 +60,19 @@ static inline const char *tb_num(char out[40], double v)
     return out;
 }
 
+/* One line of provenance text made safe for a comment in any target format:
+ * printable ASCII, no TDB terminator, no XML markup or comment close. */
+static inline void tb_clean(char *dst, size_t cap, const char *src)
+{
+    size_t n = 0;
+    if (!src || !*src) src = "(unnamed source)";
+    for (; *src && n + 1 < cap; ++src) {
+        char c = *src;
+        if (c < 32 || c > 126 || c == '!' || c == '<' || c == '>' || c == '&') c = '_';
+        if (c == '-' && n > 0 && dst[n - 1] == '-') c = '_';
+        dst[n++] = c;
+    }
+    dst[n] = '\0';
+}
+
 #endif /* MQMQA_TEXTBUF_H */

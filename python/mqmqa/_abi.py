@@ -157,6 +157,10 @@ _ffi.cdef(
                                 double T, int *ok);
     double xtdb_phase_gibbs(const void *db, int p, const char *B, double xB, double T,
                             double *fixed, int *ok);
+    char *xtdb_write_xtdb(const void *db, const char *source_name);
+    char *xtdb_write_tdb(const void *db, const char *source_name);
+    char *xtdb_write_utdb(const void *db, const char *source_name);
+    char *xtdb_write_dat(const void *db, const char *source_name);
 
     int mqmqa_num_quadruplets(int n_cat, int n_an);
     void mqmqa_enumerate_quadruplets(int n_cat, int n_an,

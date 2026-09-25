@@ -364,7 +364,7 @@ def test_xtdb_header_carries_provenance():
     assert "Converted to XTDB by Hephaestus" in text.splitlines()[1]
     assert ("Converting a database does not change its license; "
             "the license of the source data applies.") in text
-    assert "CC BY 4.0" in text                   # the source's own note travels with it
+    assert "CC BY-SA 4.0" in text                # the source's own note travels with it
     import xml.etree.ElementTree as ET
     ET.fromstring(text)                          # well-formed XML
 

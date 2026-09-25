@@ -13,7 +13,7 @@ from ._abi import (
     coordination,
     c_equilibrate,
 )
-from ._database import Database, enumerate_quadruplets
+from ._database import ConversionError, Database, enumerate_quadruplets
 
 __all__ = [
     "R",
@@ -23,6 +23,7 @@ __all__ = [
     "excess_energy",
     "coordination",
     "c_equilibrate",
+    "ConversionError",
     "Database",
     "enumerate_quadruplets",
 ]

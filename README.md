@@ -58,6 +58,34 @@ measurements in the per-system provenance notes.
 `python/mqmqa/dbbuild.py` turns a user's own measured data into a loadable `.dat`
 (free up to four components). See `docs/DESIGN.md`.
 
+## Converting databases
+
+Any database Hephaestus has loaded can be saved in another format. In Python,
+`Database.write_tdb`, `write_utdb`, and `write_dat` return the file text and write it
+when given a path; in C they are `mqmqa_db_write_tdb`, `mqmqa_db_write_utdb`, and
+`mqmqa_db_write_dat` (`src/db_write.c`), exported to the WebAssembly build like the
+readers.
+
+- `.tdb` holds CEF solutions (with the Inden magnetic model) and stoichiometric compounds.
+- `.utdb` adds MQMQA SUBQ liquids as the statements of `docs/UNIFIED_TDB_SPEC.md`.
+- `.dat` (plain-text ChemSage) holds SUBQ and SUBG liquids, SUBL solutions, and compounds.
+
+A model the target format cannot represent is refused with an error that names the model
+and a format that can hold it, and no file is written: an MQMQA liquid in plain `.tdb`,
+a SUBG liquid in `.utdb`, the magnetic model in `.dat`. A source the reader had to skip
+part of (a ChemSage magnetic record, a TDB parameter type the engine does not read) is
+refused too, since the copy would silently lack it. Functions in a TDB source are written
+expanded, one polynomial per temperature interval, with every coefficient printed to
+read back as the same number. `python/mqmqa/dbbuild.py` is a different tool: it builds a
+new `.dat` from a user's measured data, while the writers re-serialize a database that
+is already loaded.
+
+Convert only data you have the rights to use. Converting a database does not change its
+license; the license of the source data applies. Every written file records this in its
+header, with the source file name and the Hephaestus version. Hephaestus reads plain-text
+files only and contains no decryption code, so an encrypted database cannot be opened or
+converted.
+
 ## The browser app
 
 `web/index.html` is the zero-install face of the engine: the C core compiled to

@@ -5,6 +5,8 @@ accessors and frees it on garbage collection. Names come back uppercased, as the
 reader uppercases the file to match pycalphad.
 """
 
+import os
+
 from ._abi import _ffi, _lib
 
 
@@ -12,15 +14,37 @@ def _s(ptr):
     return _ffi.string(ptr).decode() if ptr != _ffi.NULL else None
 
 
+class ConversionError(ValueError):
+    """The database holds a model the target format cannot represent."""
+
+
+def _take_text(ptr, error):
+    """Copy a writer's malloc'd text into Python and release it, or raise its error."""
+    if ptr == _ffi.NULL:
+        raise ConversionError(_s(error()))
+    try:
+        return _ffi.string(ptr).decode()
+    finally:
+        _lib.mqmqa_text_free(ptr)
+
+
+def _save(text, path):
+    if path is not None:
+        with open(path, "w", encoding="ascii", newline="\n") as f:
+            f.write(text)
+    return text
+
+
 class Database:
-    def __init__(self, handle):
+    def __init__(self, handle, source=None):
         if handle == _ffi.NULL:
             raise OSError(f"failed to read ChemSage database: {_s(_lib.mqmqa_db_error())}")
         self._db = handle
+        self.source = source
 
     @classmethod
     def read(cls, path):
-        return cls(_lib.mqmqa_db_read_file(str(path).encode()))
+        return cls(_lib.mqmqa_db_read_file(str(path).encode()), os.path.basename(str(path)))
 
     @classmethod
     def read_string(cls, text):
@@ -140,6 +164,34 @@ class Database:
 
     def stoich_gibbs(self, i, T):
         return _lib.mqmqa_db_stoich_gibbs(self._db, i, T)
+
+    def stoich_elements(self, i):
+        """Element amounts of stoichiometric phase i, in database element order."""
+        out = _ffi.new("double[]", _lib.mqmqa_db_num_elements(self._db))
+        _lib.mqmqa_db_stoich_elems(self._db, i, out)
+        return list(out)
+
+    # --- writers: each returns the file text and also saves it when a path is given.
+    # A model the format cannot hold raises ConversionError; no file is written then.
+    def _write(self, fn, path, source_name):
+        src = source_name if source_name is not None else (self.source or "")
+        return _save(_take_text(fn(self._db, src.encode()), _lib.mqmqa_db_error), path)
+
+    def write_tdb(self, path=None, source_name=None):
+        """Thermo-Calc .tdb: CEF solutions (with the Inden magnetic model) and compounds."""
+        return self._write(_lib.mqmqa_db_write_tdb, path, source_name)
+
+    def write_utdb(self, path=None, source_name=None):
+        """Unified .utdb: the .tdb content plus MQMQA (SUBQ) liquids as MQ* statements."""
+        return self._write(_lib.mqmqa_db_write_utdb, path, source_name)
+
+    def write_dat(self, path=None, source_name=None):
+        """ChemSage .dat (plain text): SUBQ/SUBG liquids, SUBL solutions, compounds."""
+        return self._write(_lib.mqmqa_db_write_dat, path, source_name)
+
+    def write_xtdb(self, path=None, source_name=None):
+        """XTDB (XML): CEF solutions and compounds."""
+        return self._write(_lib.mqmqa_db_write_xtdb, path, source_name)
 
 
 def enumerate_quadruplets(n_cat, n_an):

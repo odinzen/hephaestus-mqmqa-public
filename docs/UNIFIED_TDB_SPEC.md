@@ -138,6 +138,14 @@ salt flux, its ternary excess term, and the halite CEF solution;
 `web/FeC-FeOMgOSiO2.utdb`, steelmaking with the magnetic Fe-C steel and the
 FeO-MgO-SiO2 slag) reproduce the `.dat` physics exactly: pair Gibbs, coordination rows, SNN excess, single-phase
 equilibria, and stoichiometric solids agree at machine precision across temperature,
-and the alloy phases match the reference `AlZn.tdb`. A `write_utdb` emitter in
-dbbuild, so every dbbuild-built system ships in both containers automatically, is
-the named next step.
+and the alloy phases match the reference `AlZn.tdb`.
+
+## Writing uTDB
+
+`mqmqa_db_write_utdb` (`src/db_write.c`; `Database.write_utdb` in Python) writes any
+loaded database in this dialect, so every shipped `.dat` system can be carried in TDB
+grammar. A constituent named by its element alone in a ChemSage source (the anion `O`)
+is written as a charged species (`O-2`), since a species cannot share its element's
+name. SUBG liquids, a fourth (anion ternary) MQMX exponent, and nonzero ChemSage MQMX
+metadata have no statement here and are refused; `.dat` keeps them.
+`tests/test_writers_tdb.py` round-trips every shipped database through the writer.

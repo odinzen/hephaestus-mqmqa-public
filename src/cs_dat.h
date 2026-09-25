@@ -34,7 +34,7 @@ MQMQA_API mqmqa_db *mqmqa_db_read_file(const char *path);
 MQMQA_API mqmqa_db *mqmqa_db_read_string(const char *text);
 MQMQA_API void mqmqa_db_free(mqmqa_db *db);
 
-/* Human-readable message for the most recent read failure on this thread. */
+/* Human-readable message for the most recent read or write failure on this thread. */
 MQMQA_API const char *mqmqa_db_error(void);
 
 /* --- Header --- */
@@ -112,6 +112,19 @@ MQMQA_API double mqmqa_db_stoich_gibbs(const mqmqa_db *db, int i, double T);
 /* Element stoichiometry of stoichiometric phase i, in database element order
  * (length mqmqa_db_num_elements). */
 MQMQA_API void mqmqa_db_stoich_elems(const mqmqa_db *db, int i, double *out);
+
+/* --- Writers (src/db_write.c) ---
+ * Serialize a loaded database in another format. Each returns the whole file as a
+ * NUL-terminated string the caller releases with mqmqa_text_free, or NULL when the
+ * database holds a model the target cannot represent (or the source had content the
+ * reader skipped); mqmqa_db_error() then names the model and a format that can hold
+ * it. Nothing partial is ever returned. source_name (may be NULL) is recorded in the
+ * provenance header with the engine version and the licensing note. */
+MQMQA_API char *mqmqa_db_write_tdb(const mqmqa_db *db, const char *source_name);
+MQMQA_API char *mqmqa_db_write_utdb(const mqmqa_db *db, const char *source_name);
+MQMQA_API char *mqmqa_db_write_dat(const mqmqa_db *db, const char *source_name);
+MQMQA_API char *mqmqa_db_write_xtdb(const mqmqa_db *db, const char *source_name);
+MQMQA_API void mqmqa_text_free(char *text);
 
 /* --- Quadruplet enumeration (engine utility, no database needed) ---
  * The full quadruplet set is every unordered cation pair {i<=j} crossed with

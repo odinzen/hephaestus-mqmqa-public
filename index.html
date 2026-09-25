@@ -297,6 +297,15 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <button class="filebtn ghost" id="example-steel" type="button">Steelmaking demo (steel + slag, .utdb)</button>
       <span id="loadmsg" class="muted">No database loaded yet.</span>
     </div>
+    <div class="row saveas" id="saveas-row" style="margin-top:.55rem" hidden>
+      <span class="muted">Save this database as</span>
+      <button class="filebtn ghost" type="button" data-fmt="tdb">.tdb</button>
+      <button class="filebtn ghost" type="button" data-fmt="utdb">.utdb</button>
+      <button class="filebtn ghost" type="button" data-fmt="dat">.dat</button>
+      <button class="filebtn ghost" type="button" data-fmt="xtdb">.xtdb</button>
+      <span class="muted" id="saveas-msg" style="font-size:var(--fs-xs)">Written in your browser.
+        Converting a database does not change its license; convert only data you have the rights to use.</span>
+    </div>
     <div class="muted" style="margin-top:.55rem; font-size:var(--fs-xs)">
       Two dialects, one engine: <b>ChemSage .dat</b> (the FactSage / ChemApp / Thermochimica
       family; the only format that carries the MQMQA melt model, so slags and salts live here)
@@ -668,6 +677,15 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <button class="filebtn ghost" id="xtdb-pbsn" type="button">Pb&ndash;Sn example (classic, .xtdb)</button>
       <span id="xtdb-msg" class="muted">Al&ndash;C is the third-generation assessment of He et&nbsp;al. (2021); Pb&ndash;Sn is a classic assessment written in the XTDB format.</span>
     </div>
+    <div class="row saveas" id="xtdb-saveas-row" style="margin-top:.55rem" hidden>
+      <span class="muted">Save this XTDB database as</span>
+      <button class="filebtn ghost" type="button" data-fmt="xtdb">.xtdb</button>
+      <button class="filebtn ghost" type="button" data-fmt="tdb">.tdb</button>
+      <button class="filebtn ghost" type="button" data-fmt="utdb">.utdb</button>
+      <button class="filebtn ghost" type="button" data-fmt="dat">.dat</button>
+      <span class="muted" id="xtdb-saveas-msg" style="font-size:var(--fs-xs)">Written in your browser.
+        Converting a database does not change its license; convert only data you have the rights to use.</span>
+    </div>
     <div id="xtdb-info" class="bld-hint" style="margin-top:.7rem" hidden></div>
     <div class="pdwrap" style="margin-top:.6rem"><canvas id="xtdb-canvas"></canvas></div>
   </div>
@@ -952,6 +970,30 @@ async function loadShipped(file) {
     document.getElementById('loadmsg').textContent = 'Database not found next to this page.';
   }
 }
+// Save the loaded database in another format. The C writers build the whole file or refuse
+// with the reason (a model the target cannot hold); nothing leaves the browser.
+function saveConverted(prefix, handle, srcName, fmt, errFn, msgEl) {
+  const M = api.M;
+  const p = M.ccall(prefix + fmt, 'number', ['number', 'string'], [handle, srcName]);
+  if (!p) { msgEl.textContent = 'Not converted: ' + errFn(); return; }
+  const text = M.UTF8ToString(p);
+  M.ccall('mqmqa_text_free', null, ['number'], [p]);
+  const url = URL.createObjectURL(new Blob([text], {type: 'text/plain'}));
+  const a = document.createElement('a');
+  a.href = url; a.download = srcName.replace(/\.[^.]*$/, '') + '.' + fmt;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  msgEl.textContent = 'Saved ' + a.download + '. Converting a database does not change its license; '
+    + 'the license of the source data applies.';
+}
+document.querySelectorAll('#saveas-row [data-fmt]').forEach(b => b.addEventListener('click', () => {
+  if (db) saveConverted('mqmqa_db_write_', db, window._dbName || 'database', b.dataset.fmt,
+                        api.error, document.getElementById('saveas-msg'));
+}));
+document.querySelectorAll('#xtdb-saveas-row [data-fmt]').forEach(b => b.addEventListener('click', () => {
+  if (window._xtdbHandle) saveConverted('xtdb_write_', window._xtdbHandle, window._xtdbName || 'database',
+                                        b.dataset.fmt, api.xtdbErr, document.getElementById('xtdb-saveas-msg'));
+}));
 document.getElementById('example').addEventListener('click', () => loadShipped('FeO-MgO-SiO2-combined.dat'));
 document.getElementById('example-salt').addEventListener('click', () => loadShipped('LiCl-KCl.dat'));
 document.getElementById('example-alloy').addEventListener('click', () => loadShipped('AlZn.tdb'));
@@ -970,7 +1012,9 @@ function loadDatabase(text, name) {
   }
   if (db) { api.free(db); db = 0; }
   db = api.read(text);
+  document.getElementById('saveas-row').hidden = !db;
   if (!db) { msg.textContent = 'Could not read this file: ' + api.error(); return; }
+  window._dbName = name;
 
   phase = 0; // first MQMQA solution phase when one exists, else the first phase
   window.alloyMode = true;
@@ -3855,8 +3899,10 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     if (!api || !api.xtdbRead){ msg.textContent = 'Engine still loading, try again in a moment.'; return; }
     if (handle){ api.xtdbFree(handle); handle = 0; }
     handle = api.xtdbRead(text);
+    document.getElementById('xtdb-saveas-row').hidden = !handle;
     if (!handle){ msg.textContent = 'Could not read this XTDB file: ' + api.xtdbErr(); info.hidden = true; return; }
     name = fname;
+    window._xtdbHandle = handle; window._xtdbName = fname;
     elems = []; for (let i=0;i<api.xtdbNEl(handle);i++) elems.push(api.xtdbEl(handle,i));
     phases = []; for (let p=0;p<api.xtdbNPh(handle);p++) phases.push(api.xtdbPh(handle,p));
     if (elems.length < 2){ msg.textContent = fname + ': need a binary (2-element) system to draw a diagram.'; info.hidden = true; return; }

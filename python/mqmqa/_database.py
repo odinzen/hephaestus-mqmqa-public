@@ -60,6 +60,17 @@ class Database:
             _lib.mqmqa_db_free(db)
             self._db = _ffi.NULL
 
+    @property
+    def own_gas_constant(self):
+        """This database's own gas constant, what its calculations use unless a mode
+        forces another (mqmqa.set_gas_constant)."""
+        return _lib.mqmqa_db_R_own(self._db)
+
+    @property
+    def gas_constant(self):
+        """The gas constant this database's calculations use now."""
+        return _lib.mqmqa_gas_constant(_lib.mqmqa_db_R_own(self._db))
+
     # --- header ---
     @property
     def elements(self):

@@ -12,6 +12,10 @@ import cffi
 _ffi = cffi.FFI()
 _ffi.cdef(
     """
+    int mqmqa_set_gas_constant(int mode);
+    int mqmqa_gas_constant_mode(void);
+    double mqmqa_gas_constant_choice(int choice);
+    double mqmqa_gas_constant(double own);
     double mqmqa_R(void);
     double mqmqa_ideal_entropy_binary(double x);
     double mqmqa_reference_energy(
@@ -31,7 +35,7 @@ _ffi.cdef(
         const double *X,
         const double *Za, const double *Zb, const double *Zx, const double *Zy,
         const double *zeta,
-        int soln_type);
+        int soln_type, double R_own);
     double mqmqa_excess_energy(
         int n_cat, int n_an, int n_quads,
         const int *quad_ca, const int *quad_cb,
@@ -70,6 +74,7 @@ _ffi.cdef(
         const double *par_p, const double *par_q, const double *par_L,
         const double *par_r, const int *par_addcat,
         const int *cat_group, const int *an_group,
+        double R_own,
         int n_elem,
         const int *cat_elem, const int *an_elem,
         const double *target,
@@ -78,6 +83,7 @@ _ffi.cdef(
     double mqmqa_equilibrate_db(const void *db, int phase, double T,
         const double *target_elem, double *X_out, double *err_out);
 
+    double mqmqa_db_R_own(const void *db);
     void *mqmqa_db_read_file(const char *path);
     void *mqmqa_db_read_string(const char *text);
     void mqmqa_db_free(void *db);
@@ -135,7 +141,7 @@ _ffi.cdef(
         int n_em, const int *em_con, const double *em_G,
         int n_ex, const int *ex_subl, const int *ex_i, const int *ex_j,
         const int *ex_order, const double *ex_L, const int *ex_other,
-        int per_mole_atoms);
+        int per_mole_atoms, double R_own);
 
     int mqmqa_db_num_stoich(const void *db);
     const char *mqmqa_db_stoich_name(const void *db, int i);
@@ -198,6 +204,34 @@ _lib = _ffi.dlopen(str(_libpath))
 R = _lib.mqmqa_R
 ideal_entropy_binary = _lib.mqmqa_ideal_entropy_binary
 
+# Gas-constant modes, in the order of the C enum (MQMQA_R_AS_ASSESSED ...).
+GAS_CONSTANT_MODES = ("as_assessed", "calphad", "sgte", "si")
+
+
+def set_gas_constant(mode):
+    """Engine-wide gas constant for calculations: "as_assessed" (each database keeps
+    its own value, the default), or "calphad" (8.3145), "sgte" (8.31451), "si"
+    (8.314462618) forced everywhere. Never written into a file."""
+    if mode not in GAS_CONSTANT_MODES:
+        raise ValueError(f"gas constant mode must be one of {GAS_CONSTANT_MODES}, not {mode!r}")
+    _lib.mqmqa_set_gas_constant(GAS_CONSTANT_MODES.index(mode))
+
+
+def gas_constant_mode():
+    return GAS_CONSTANT_MODES[_lib.mqmqa_gas_constant_mode()]
+
+
+def gas_constant_choice(choice):
+    """The value of one labeled choice ("calphad", "sgte", "si"), whatever the mode."""
+    if choice not in GAS_CONSTANT_MODES[1:]:
+        raise ValueError(f"gas constant choice must be one of {GAS_CONSTANT_MODES[1:]}")
+    return _lib.mqmqa_gas_constant_choice(GAS_CONSTANT_MODES.index(choice))
+
+
+def gas_constant(own):
+    """The R a calculation uses for data whose own value is `own` (the mode applied)."""
+    return _lib.mqmqa_gas_constant(float(own))
+
 
 def _ints(seq):
     return _ffi.new("int[]", [int(v) for v in seq])
@@ -225,10 +259,12 @@ def reference_energy(quad_ca, quad_cb, quad_ax, quad_ay, X,
 
 
 def ideal_mixing_energy(T, n_cat, n_an, quad_ca, quad_cb, quad_ax, quad_ay, X,
-                        Za, Zb, Zx, Zy, zeta, soln_type):
+                        Za, Zb, Zx, Zy, zeta, soln_type, R_own=None):
     """MQMQA ideal-mixing (configurational entropy) energy, J per mole of quadruplets.
 
-    soln_type: 0 for SUBG, 1 for SUBQ. zeta is a flat [n_cat*n_an] sequence.
+    soln_type: 0 for SUBG, 1 for SUBQ. zeta is a flat [n_cat*n_an] sequence. R_own is
+    the database's own gas constant (Database.own_gas_constant), the CALPHAD 8.3145
+    when omitted; the engine-wide mode is applied to it.
     """
     return _lib.mqmqa_ideal_mixing_energy(
         float(T), int(n_cat), int(n_an), len(X),
@@ -236,7 +272,12 @@ def ideal_mixing_energy(T, n_cat, n_an, quad_ca, quad_cb, quad_ax, quad_ay, X,
         _dbls(X),
         _dbls(Za), _dbls(Zb), _dbls(Zx), _dbls(Zy),
         _dbls(zeta), int(soln_type),
+        _own(R_own),
     )
+
+
+def _own(R_own):
+    return float(R_own) if R_own is not None else _lib.mqmqa_gas_constant_choice(1)
 
 
 def _groups(seq):
@@ -320,6 +361,7 @@ def c_equilibrate(inp, x_target):
         _dbls(ex.get("r", [0.0] * len(ex["A"]))),
         _ints(ex.get("addcat", [-1] * len(ex["A"]))),
         _groups(inp.get("cat_group")), _groups(inp.get("an_group")),
+        _own(inp.get("R_own")),
         len(elements),
         _ints(cat_elem), _ints(an_elem),
         _dbls(target),

@@ -108,7 +108,7 @@ typedef struct {
     double charge;
 } DbSpecies;
 
-typedef struct {
+typedef struct Db {
     int n_el;
     char (*el_name)[NAME_MAX];
     double *el_mass;
@@ -134,7 +134,20 @@ typedef struct {
      * The writers refuse such a database: re-serializing it would drop that content
      * with no trace. */
     char lossy[256];
+    /* gas constant */
+    double R_own;               /* the database's own R, what as-assessed calculations use */
+    int R_ref;                  /* TDB expressions reference the function R (R#) */
+    double R_force;             /* value R# was forced to when the expressions were read,
+                                 * NAN when the file's own (or the built-in) R stood */
+    char *src_text;             /* the source as given, kept only when R_ref: a change of the
+                                 * R the expressions need re-reads it */
+    struct Db *next_live;       /* registry of databases to re-read on such a change */
 } Db;
+
+/* The database as its own gas constant has it, for the writers: NULL when d already is
+ * (no R# references, or none re-read under a forced mode), else a fresh reading the
+ * caller frees with mqmqa_db_free. */
+Db *mqmqa_db_own_reading(const Db *d);
 
 /* Record a write failure for mqmqa_db_error(). */
 void mqmqa_db_set_error(const char *fmt, ...);

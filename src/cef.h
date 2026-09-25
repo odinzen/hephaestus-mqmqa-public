@@ -49,7 +49,8 @@ MQMQA_API double mqmqa_cef_gibbs(
     const int *ex_order,        /* [n_ex] Redlich-Kister order */
     const double *ex_L,         /* [n_ex] interaction coefficient at T */
     const int *ex_other,        /* [n_ex*n_subl] pinned constituent on each non-mixing sublattice */
-    int per_mole_atoms);        /* 1: divide by sum(site_ratio); 0: per formula unit */
+    int per_mole_atoms,         /* 1: divide by sum(site_ratio); 0: per formula unit */
+    double R_own);              /* the database's own R; mqmqa_gas_constant applies the mode */
 
 #ifdef __cplusplus
 }

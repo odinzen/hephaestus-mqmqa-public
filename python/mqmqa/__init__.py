@@ -12,6 +12,11 @@ from ._abi import (
     excess_energy,
     coordination,
     c_equilibrate,
+    GAS_CONSTANT_MODES,
+    set_gas_constant,
+    gas_constant_mode,
+    gas_constant_choice,
+    gas_constant,
 )
 from ._database import ConversionError, Database, UnsupportedModelError, enumerate_quadruplets
 from ._xtdb import XTDB
@@ -24,6 +29,11 @@ __all__ = [
     "excess_energy",
     "coordination",
     "c_equilibrate",
+    "GAS_CONSTANT_MODES",
+    "set_gas_constant",
+    "gas_constant_mode",
+    "gas_constant_choice",
+    "gas_constant",
     "ConversionError",
     "Database",
     "UnsupportedModelError",

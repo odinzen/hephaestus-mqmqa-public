@@ -22,4 +22,8 @@ mqmqa_xs_status mqmqa_excess_term_status(int n_cat, int n_an, int mix, int code,
                                          double r, int addcat,
                                          const int *cat_group, const int *an_group);
 
+/* The gas-constant mode changed: databases whose expressions reference R are re-read
+ * with the value R now takes (cs_dat.c). */
+void mqmqa_gas_constant_changed(void);
+
 #endif /* MQMQA_PRIV_H */

@@ -17,7 +17,6 @@
 #define GAS_NAME 24
 #define GAS_MAXEL 96
 #define P_REF 101325.0
-#define GAS_R 8.314462618
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -47,6 +46,7 @@ static const struct { const char *name; double tc, pc_bar, omega; } CRIT[] = {
 };
 
 struct gas_db {
+    double R_own;            /* the data's own gas constant (NASA: exact SI) */
     int n_sp;
     GasSpecies *sp;
     int n_el;
@@ -103,6 +103,7 @@ gas_db *mqmqa_gas_read_string(const char *text)
 {
     g_err[0] = '\0';
     gas_db *g = calloc(1, sizeof *g);
+    if (g) g->R_own = mqmqa_gas_constant_choice(MQMQA_R_SI);
     if (!g) { snprintf(g_err, sizeof g_err, "out of memory"); return NULL; }
     g->el = calloc(GAS_MAXEL, sizeof *g->el);
     int cap = 64;
@@ -276,6 +277,7 @@ static double cubic_max_root(double c2, double c1, double c0)
 static void pr_fugacity(const gas_db *g, double T, double P, const double *x, double *phi)
 {
     int nsp = g->n_sp;
+    const double GAS_R = mqmqa_gas_constant(g->R_own);
     double *ai = malloc((size_t)nsp * sizeof(double));
     double *bi = malloc((size_t)nsp * sizeof(double));
     if (!ai || !bi) { for (int i = 0; i < nsp; ++i) phi[i] = 1.0; free(ai); free(bi); return; }

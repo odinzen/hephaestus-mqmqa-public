@@ -163,6 +163,7 @@ MQMQA_API double mqmqa_equilibrate_db(const mqmqa_db *db, int phase, double T,
         Za, Zb, Zx, Zy, zeta, soln,
         np, pc, pa, pG, pst, Ztab,
         nx, xm, xc, xA, xB, xX, xY, xpp, xqp, xL, xr, xac, cgrp, agrp,
+        mqmqa_db_R_own(db),
         nel, cat_elem, an_elem, target, X_out, err_out);
 
     #undef ZC

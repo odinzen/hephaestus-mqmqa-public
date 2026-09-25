@@ -26,7 +26,11 @@ import math
 from dataclasses import dataclass, field
 from pathlib import Path
 
-R = 8.3145            # CALPHAD gas constant (the engine's value, load-bearing)
+from ._abi import gas_constant_choice
+
+# Building a database is independent of the engine-wide gas-constant mode: the files it
+# writes are on the CALPHAD value, so its activity fits are too.
+R = gas_constant_choice("calphad")
 T0 = 298.15           # K, reference temperature for dHf and S298
 Z_PER_CHARGE = 1.3774438 / 2.0   # charge-proportional coordination (FactSage oxide convention)
 MAX_FREE_COMPONENTS = 4          # free self-assessment cap; 5+ is premium

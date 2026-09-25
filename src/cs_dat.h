@@ -37,6 +37,10 @@ MQMQA_API void mqmqa_db_free(mqmqa_db *db);
 /* Human-readable message for the most recent read or write failure on this thread. */
 MQMQA_API const char *mqmqa_db_error(void);
 
+/* The database's own gas constant, the value its calculations use in the as-assessed
+ * mode; pass it as R_own to the array-level energy routines. */
+MQMQA_API double mqmqa_db_R_own(const mqmqa_db *db);
+
 /* --- Header --- */
 MQMQA_API int mqmqa_db_num_elements(const mqmqa_db *db);
 MQMQA_API const char *mqmqa_db_element(const mqmqa_db *db, int i);

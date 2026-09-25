@@ -32,8 +32,6 @@ import os
 
 from mqmqa.gas import read_nasa_thermo
 
-R = 8.314462618
-
 # Liquid endmember standard-state Gibbs over RT, from the NASA condensed database (NASA7, single
 # interval each). Read, not fitted; the same values Cantera carries. FeO(l) valid >= 1650 K,
 # Fe(l) >= 1809 K.

@@ -32,7 +32,11 @@ import mqmqa
 from mqmqa import equilibrium as eq
 from mqmqa._abi import c_equilibrate
 
-R = 8.314462618
+
+def _R():
+    # JANAF Gibbs energies are on the exact SI gas constant; the engine-wide mode may
+    # force another value
+    return mqmqa.gas_constant(mqmqa.gas_constant_choice("si"))
 
 # Components and their element content; _ATOMS is atoms per formula unit.
 COMPONENTS = {"NaCl": {"NA": 1, "CL": 1}, "KCl": {"K": 1, "CL": 1}, "MgCl2": {"MG": 1, "CL": 2}}
@@ -69,7 +73,7 @@ def pure_vapor_pressure(salt, T):
         return 10.0 ** (A - B / (T + C))
     if salt == "MgCl2":
         g, ell = _interp_mgcl2(T)
-        return math.exp(-(g - ell) * 1000.0 / (R * T))
+        return math.exp(-(g - ell) * 1000.0 / (_R() * T))
     raise KeyError(salt)
 
 
@@ -112,7 +116,7 @@ def salt_activities(T, composition, db=None, h=0.01):
         up[s] += h
         dn[s] -= h
         mu = (gtot(up) - gtot(dn)) / (2.0 * h)          # partial molar Gibbs of component s
-        out[s] = math.exp((mu - mu_pure(s)) / (R * T))
+        out[s] = math.exp((mu - mu_pure(s)) / (_R() * T))
     return out
 
 

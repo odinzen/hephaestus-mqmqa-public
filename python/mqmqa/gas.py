@@ -16,7 +16,6 @@ from itertools import combinations
 
 import numpy as np
 
-R = 8.314462618          # J/mol-K
 P_REF = 101325.0         # Pa, NASA standard state (1 atm)
 
 

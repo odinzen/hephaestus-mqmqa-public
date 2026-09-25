@@ -126,6 +126,7 @@ def build_inputs(db, phase, T, components=None):
         "an_el": [_element(a["name"]) for a in ans],
         "cat_group": [c["group"] for c in cats],
         "an_group": [a["group"] for a in ans],
+        "R_own": db.own_gas_constant,
     }
 
 
@@ -138,7 +139,7 @@ def gibbs_per_quad(inp, X):
         + mqmqa.ideal_mixing_energy(inp["T"], inp["ncat"], inp["nan"],
                                     inp["qca"], inp["qcb"], inp["qax"], inp["qay"], Xl,
                                     inp["Za"], inp["Zb"], inp["Zx"], inp["Zy"], inp["zeta"],
-                                    inp["soln_type"])
+                                    inp["soln_type"], inp.get("R_own"))
         + mqmqa.excess_energy(inp["ncat"], inp["nan"],
                               inp["qca"], inp["qcb"], inp["qax"], inp["qay"], Xl,
                               inp["Za"], inp["Zb"], inp["Zx"], inp["Zy"],

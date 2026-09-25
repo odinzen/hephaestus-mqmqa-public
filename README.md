@@ -70,6 +70,21 @@ ChemSage chemical-group override strings, and chemical groups or an
 additional-constituent exponent r > 1 in a phase whose other sublattice holds more than
 one ion.
 
+## Gas constant
+
+Three values of R are in use, each matching the data it came with: 8.3145 (the CALPHAD
+convention of Thermo-Calc, pycalphad and OpenCalphad, and of this engine's ChemSage and
+TDB databases), 8.31451 (the SGTE unary data and XTDB), and 8.314462618 (exact SI, CODATA
+2018, used by the NASA and Cantera gas data). One engine-wide setting governs every
+calculation (`mqmqa.set_gas_constant`, `mqmqa_set_gas_constant` in C):
+
+- `"as_assessed"` (default): each database uses the value its data was built with.
+- `"calphad"`, `"sgte"`, `"si"`: force 8.3145, 8.31451 or 8.314462618 everywhere, the gas
+  phase included. A TDB file's `R#` references follow the forced value too.
+
+The setting affects calculations only. Building a database (`dbbuild`) and writing one
+never depend on it.
+
 ## Converting databases
 
 Any database Hephaestus has loaded can be saved in another format. In Python,

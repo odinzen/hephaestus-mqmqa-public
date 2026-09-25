@@ -4,14 +4,37 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-/* CALPHAD/SGTE conventional gas constant, matching pycalphad's v.R and the value
- * used to assess every SGTE database. NOT the CODATA 2018 value; using CODATA here
- * would make energies inconsistent with the databases this engine reads. */
-#define MQMQA_R_CONST 8.3145
+/* The one table of gas-constant values. A database's energies are only consistent with
+ * the R it was assessed with, so each part of the engine keeps its data's own value
+ * unless the user forces one. */
+static const double R_CHOICE[4] = { 0.0, 8.3145, 8.31451, 8.314462618 };
+static int g_R_mode = MQMQA_R_AS_ASSESSED;
+
+int mqmqa_set_gas_constant(int mode)
+{
+    if (mode < MQMQA_R_AS_ASSESSED || mode > MQMQA_R_SI) return -1;
+    if (mode != g_R_mode) {
+        g_R_mode = mode;
+        mqmqa_gas_constant_changed();
+    }
+    return 0;
+}
+
+int mqmqa_gas_constant_mode(void) { return g_R_mode; }
+
+double mqmqa_gas_constant_choice(int choice)
+{
+    return (choice >= MQMQA_R_CALPHAD && choice <= MQMQA_R_SI) ? R_CHOICE[choice] : NAN;
+}
+
+double mqmqa_gas_constant(double own)
+{
+    return g_R_mode == MQMQA_R_AS_ASSESSED ? own : R_CHOICE[g_R_mode];
+}
 
 double mqmqa_R(void)
 {
-    return MQMQA_R_CONST;
+    return mqmqa_gas_constant(R_CHOICE[MQMQA_R_CALPHAD]);
 }
 
 double mqmqa_ideal_entropy_binary(double x)
@@ -19,7 +42,7 @@ double mqmqa_ideal_entropy_binary(double x)
     if (x <= 0.0 || x >= 1.0) {
         return 0.0; /* endpoints: pure, zero configurational entropy */
     }
-    return -MQMQA_R_CONST * (x * log(x) + (1.0 - x) * log(1.0 - x));
+    return -mqmqa_R() * (x * log(x) + (1.0 - x) * log(1.0 - x));
 }
 
 double mqmqa_reference_energy(
@@ -58,7 +81,7 @@ double mqmqa_ideal_mixing_energy(
     const double *X,
     const double *Za, const double *Zb, const double *Zx, const double *Zy,
     const double *zeta,
-    int soln_type)
+    int soln_type, double R_own)
 {
     const int subq = (soln_type == 1);
     const double pow_Xik = subq ? 0.75 : 1.0;
@@ -149,7 +172,7 @@ double mqmqa_ideal_mixing_energy(
 
     free(ni_c); free(ni_a); free(Yc); free(Ya);
     free(nik); free(niks); free(Fc); free(Fa);
-    return Sid * T * MQMQA_R_CONST;
+    return Sid * T * mqmqa_gas_constant(R_own);
 }
 
 /* Find the index of the canonical quadruplet with cation pair {a,b} and anion
@@ -610,6 +633,7 @@ typedef struct {
     const double *par_r;                             /* ternary additional-constituent */
     const int *par_addcat;                           /* exponent r and cation (-1 none) */
     const int *cat_group, *an_group;                 /* chemical groups, NULL = one group */
+    double R_own;                                    /* the data's own gas constant */
     const double *x0, *N;                            /* affine subspace X = x0 + N t */
     int n_null;
     double *Xbuf;                                    /* scratch, length n_quads */
@@ -632,7 +656,8 @@ static double ctx_gibbs_per_quad(const eqctx *c, const double *X)
                                   c->Gax, c->stoich, c->Zref)
          + mqmqa_ideal_mixing_energy(c->T, c->n_cat, c->n_an, c->n_quads,
                                      c->ca, c->cb, c->ax, c->ay, X,
-                                     c->Za, c->Zb, c->Zx, c->Zy, c->zeta, c->soln_type)
+                                     c->Za, c->Zb, c->Zx, c->Zy, c->zeta, c->soln_type,
+                                     c->R_own)
          + mqmqa_excess_energy(c->n_cat, c->n_an, c->n_quads,
                                c->ca, c->cb, c->ax, c->ay, X,
                                c->Za, c->Zb, c->Zx, c->Zy,
@@ -771,6 +796,7 @@ double mqmqa_equilibrate(
     const double *par_p, const double *par_q, const double *par_L,
     const double *par_r, const int *par_addcat,
     const int *cat_group, const int *an_group,
+    double R_own,
     int n_elem,
     const int *cat_elem, const int *an_elem,
     const double *target,
@@ -830,7 +856,7 @@ double mqmqa_equilibrate(
         n_pairs, pair_c, pair_a, Gax, stoich, Zref,
         n_params, par_mix, par_code, par_A, par_B, par_X, par_Y,
         par_p, par_q, par_L, par_r, par_addcat,
-        cat_group, an_group,
+        cat_group, an_group, R_own,
         x0, N, n_null,
         (double *)malloc((size_t)n_quads * sizeof(double)),
     };

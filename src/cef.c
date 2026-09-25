@@ -2,9 +2,6 @@
 
 #include <math.h>
 
-/* CALPHAD gas constant (matches mqmqa_R and cef.py), not CODATA. */
-#define CEF_R 8.3145
-
 double mqmqa_cef_gibbs(
     double T,
     int n_subl,
@@ -23,8 +20,9 @@ double mqmqa_cef_gibbs(
     const int *ex_order,
     const double *ex_L,
     const int *ex_other,
-    int per_mole_atoms)
+    int per_mole_atoms, double R_own)
 {
+    const double R = mqmqa_gas_constant(R_own);
     double G = 0.0;
 
     /* reference: sum over endmembers of (product of site fractions) * G_endmember */
@@ -40,7 +38,7 @@ double mqmqa_cef_gibbs(
         for (int i = 0; i < subl_ncon[s]; ++i) {
             double y = Y[subl_off[s] + i];
             if (y > 0.0)
-                G += CEF_R * T * site_ratio[s] * y * log(y);
+                G += R * T * site_ratio[s] * y * log(y);
         }
     }
 

@@ -30,7 +30,6 @@
 #include <ctype.h>
 #include <stdio.h>
 
-#define XR 8.31451                 /* CALPHAD gas constant used by the 3rd-gen SGTE data */
 #define XCAP 256                   /* generous fixed caps; XTDB files are small */
 #define XNAME 64
 #define XEXPR 512
@@ -63,7 +62,11 @@ struct xtdb_db {
     XPhase ph[XCAP]; int nph;
     /* first content read past without modeling; the writers refuse such a database */
     char lossy[256];
+    double R_own;                        /* the database's own gas constant */
 };
+
+/* the R a calculation on this database uses */
+static double xr(const struct xtdb_db *db) { return mqmqa_gas_constant(db->R_own); }
 
 static char g_err[256];
 const char *xtdb_error(void) { return g_err; }
@@ -139,13 +142,19 @@ static double ev_atom(Ev *e) {
             e->p++; double a = ev_expr(e); ev_ws(e); if (*e->p == ')') e->p++; else e->err = 1;
             if (!strcmp(id, "LN"))  return log(a);
             if (!strcmp(id, "EXP")) return exp(a);
-            if (!strcmp(id, "GEIN")) return 1.5 * XR * a + 3.0 * XR * e->T * log(1.0 - exp(-a / e->T));
+            if (!strcmp(id, "GEIN")) {
+                const double R = xr(e->db);
+                return 1.5 * R * a + 3.0 * R * e->T * log(1.0 - exp(-a / e->T));
+            }
             e->err = 1; return 0.0;
         }
         if (*e->p == '#') e->p++;     /* tolerate TDB-style function-ref marker */
         if (!strcmp(id, "T")) return e->T;
         if (!strcmp(id, "P")) return 1.0e5;
         const TPfun *f = find_tp(e->db, id);
+        /* a forced gas constant replaces the file's own TPfun R wherever it is used */
+        if (f && !strcmp(id, "R") && mqmqa_gas_constant_mode() != MQMQA_R_AS_ASSESSED)
+            return xr(e->db);
         if (f) { int er = 0; double v = eval_tp(e->db, f, e->T, &er); if (er) e->err = 1; return v; }
         e->err = 1; return 0.0;
     }
@@ -236,12 +245,12 @@ double xtdb_endmember_gibbs(const struct xtdb_db *db, const char *phase, const c
     const char *lnth = find_param(db, "LNTH", phase, cons, 0);
     if (lnth) {
         double theta = exp(eval_str(db, lnth, T, &err));
-        G += natoms_of(db, phase, cons) * (1.5 * XR * theta + 3.0 * XR * T * log(1.0 - exp(-theta / T)));
+        G += natoms_of(db, phase, cons) * (1.5 * xr(db) * theta + 3.0 * xr(db) * T * log(1.0 - exp(-theta / T)));
     }
     const XPhase *ph = find_phase(db, phase);
     if (ph && ph->twostate) {
         const char *gd = find_param(db, "GD", phase, cons, 0);
-        if (gd) { double dG = eval_str(db, gd, T, &err); G += -XR * T * log(1.0 + exp(-dG / (XR * T))); }
+        if (gd) { double dG = eval_str(db, gd, T, &err); G += -xr(db) * T * log(1.0 + exp(-dG / (xr(db) * T))); }
     }
     if (ok) *ok = !err;
     return G;
@@ -261,7 +270,7 @@ static double endmember_am(const struct xtdb_db *db, const char *phase, const ch
     const char *lnth = find_param(db, "LNTH", phase, cons, 0);
     if (lnth) {
         double theta = exp(eval_str(db, lnth, T, err));
-        G += natoms_of(db, phase, cons) * (1.5 * XR * theta + 3.0 * XR * T * log(1.0 - exp(-theta / T)));
+        G += natoms_of(db, phase, cons) * (1.5 * xr(db) * theta + 3.0 * xr(db) * T * log(1.0 - exp(-theta / T)));
     }
     return G;
 }
@@ -336,7 +345,7 @@ double xtdb_phase_gibbs(const struct xtdb_db *db, int pidx, const char *B, doubl
     double ideal = 0.0;
     for (int s = 0; s < ph->nsubl; ++s)
         for (int i = 0; i < ph->ncon[s]; ++i)
-            if (Y[s][i] > 0.0) ideal += XR * T * ph->mult[s] * Y[s][i] * log(Y[s][i]);
+            if (Y[s][i] > 0.0) ideal += xr(db) * T * ph->mult[s] * Y[s][i] * log(Y[s][i]);
 
     /* excess: Redlich-Kister interaction parameters G(phase, ...comma-list...; deg) */
     double excess = 0.0;
@@ -378,7 +387,7 @@ double xtdb_phase_gibbs(const struct xtdb_db *db, int pidx, const char *B, doubl
             const char *gd = find_param(db, "GD", ph->id, ph->con[smix][i], 0);
             if (gd) dG += Y[smix][i] * eval_str(db, gd, T, &err);
         }
-        G += -XR * T * log(1.0 + exp(-dG / (XR * T)));
+        G += -xr(db) * T * log(1.0 + exp(-dG / (xr(db) * T)));
     }
     if (ok) *ok = !err;
     return G;
@@ -407,6 +416,7 @@ xtdb_db *xtdb_read_string(const char *text) {
     g_err[0] = 0;
     if (!strstr(text, "<XTDB")) { snprintf(g_err, sizeof g_err, "not an XTDB file (<XTDB missing)"); return NULL; }
     xtdb_db *db = calloc(1, sizeof *db);
+    if (db) db->R_own = mqmqa_gas_constant_choice(MQMQA_R_SGTE);
     if (!db) { snprintf(g_err, sizeof g_err, "out of memory"); return NULL; }
     const char *b, *gt; char v[XEXPR];
 

@@ -27,8 +27,31 @@ extern "C" {
 #define HEPHAESTUS_VERSION "0.6.0+dev"
 MQMQA_API const char *mqmqa_version(void);
 
-/* Molar gas constant R (J/mol/K): the CALPHAD/SGTE conventional value 8.3145 that
- * the databases are assessed with, matching pycalphad. Not CODATA 2018. */
+/* Gas constant R (J/mol/K). Three values are in use, each matching the data it came
+ * with: 8.3145 (CALPHAD: the ChemSage and TDB databases, Thermo-Calc, pycalphad),
+ * 8.31451 (SGTE unary data and XTDB), 8.314462618 (exact SI, CODATA 2018: NASA and
+ * Cantera gas data). Every calculation reads one engine-wide setting through
+ * mqmqa_gas_constant: in the default MQMQA_R_AS_ASSESSED mode each database uses its
+ * own value; the other modes force one value everywhere. The setting governs
+ * calculations only; database building and the writers never depend on it. */
+enum {
+    MQMQA_R_AS_ASSESSED = 0,
+    MQMQA_R_CALPHAD = 1,        /* 8.3145 */
+    MQMQA_R_SGTE = 2,           /* 8.31451 */
+    MQMQA_R_SI = 3              /* 8.314462618 */
+};
+
+/* Select the mode; returns 0, or -1 (and changes nothing) for an unknown mode. */
+MQMQA_API int mqmqa_set_gas_constant(int mode);
+MQMQA_API int mqmqa_gas_constant_mode(void);
+/* The value of MQMQA_R_CALPHAD, _SGTE or _SI; NaN otherwise. */
+MQMQA_API double mqmqa_gas_constant_choice(int choice);
+/* The R a calculation uses for data whose own value is `own`: `own` itself in the
+ * as-assessed mode, the forced value otherwise. */
+MQMQA_API double mqmqa_gas_constant(double own);
+
+/* The R the condensed engine uses for data on the CALPHAD convention (8.3145 unless a
+ * forced mode says otherwise). */
 MQMQA_API double mqmqa_R(void);
 
 /* Ideal binary configurational entropy, -R (x ln x + (1-x) ln(1-x)), J/mol/K.
@@ -60,7 +83,8 @@ MQMQA_API double mqmqa_reference_energy(
     const double *Z);
 
 /* MQMQA ideal-mixing (configurational entropy) energy, J per mole of quadruplets,
- * following Poschmann 2021 eqs 5-14. Returns Sid * T * R.
+ * following Poschmann 2021 eqs 5-14. Returns Sid * T * R, with R =
+ * mqmqa_gas_constant(R_own) and R_own the database's own gas constant.
  *
  * Za,Zb,Zx,Zy give the coordination number of each of quadruplet q's four
  * constituents (cation a, cation b, anion x, anion y). zeta is the row-major
@@ -75,7 +99,7 @@ MQMQA_API double mqmqa_ideal_mixing_energy(
     const double *X,
     const double *Za, const double *Zb, const double *Zx, const double *Zy,
     const double *zeta,
-    int soln_type);
+    int soln_type, double R_own);
 
 /* MQMQA excess energy for a set of MQMX interaction parameters, J per mole of
  * quadruplets (Poschmann eqs 19,20,24 mixing term, eq 17 assembly). Handles the Q
@@ -132,8 +156,9 @@ MQMQA_API double mqmqa_coordination(
  * solution, N a null-space basis), the reduced coordinates t are minimized with
  * Nelder-Mead, keeping every X >= 0.
  *
- * Inputs mirror the three energy routines, plus mass balance (an excess term the
- * energy routine refuses makes this return NaN without minimizing):
+ * Inputs mirror the three energy routines (R_own as in mqmqa_ideal_mixing_energy),
+ * plus mass balance (an excess term the energy routine refuses makes this return NaN
+ * without minimizing):
  *   cat_elem[i]  element id (0..n_elem-1) of cation i,
  *   an_elem[k]   element id of anion k,
  *   target[e]    target mole fraction of element e (normalized to sum 1).
@@ -160,6 +185,7 @@ MQMQA_API double mqmqa_equilibrate(
     const double *par_p, const double *par_q, const double *par_L,
     const double *par_r, const int *par_addcat,
     const int *cat_group, const int *an_group,
+    double R_own,
     int n_elem,
     const int *cat_elem, const int *an_elem,
     const double *target,

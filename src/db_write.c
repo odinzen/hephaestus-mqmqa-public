@@ -776,16 +776,28 @@ done:
     return finish(w);
 }
 
+/* A mode that forces the gas constant re-reads R# references with the forced value; a
+ * written file records the database as assessed, so the writers use the file's own
+ * reading. */
+typedef char *(*db_writer)(const Db *db, const char *source_name, int arg);
+
+static char *write_own(const mqmqa_db *h, const char *source_name, int arg, db_writer fn)
+{
+    if (!h) { mqmqa_db_set_error("null database"); return NULL; }
+    Db *own = mqmqa_db_own_reading((const Db *)h);
+    char *text = fn(own ? own : (const Db *)h, source_name, arg);
+    if (own) mqmqa_db_free(own);
+    return text;
+}
+
 char *mqmqa_db_write_tdb(const mqmqa_db *db, const char *source_name)
 {
-    if (!db) { mqmqa_db_set_error("null database"); return NULL; }
-    return write_tdb((const Db *)db, source_name, 0);
+    return write_own(db, source_name, 0, write_tdb);
 }
 
 char *mqmqa_db_write_utdb(const mqmqa_db *db, const char *source_name)
 {
-    if (!db) { mqmqa_db_set_error("null database"); return NULL; }
-    return write_tdb((const Db *)db, source_name, 1);
+    return write_own(db, source_name, 1, write_tdb);
 }
 
 /* ------------------------------------------------------------------ *
@@ -1074,9 +1086,9 @@ static void dat_q_phase(W *w, const Phase *ph)
     OUT("   0\n");
 }
 
-char *mqmqa_db_write_dat(const mqmqa_db *dbh, const char *source_name)
+static char *write_dat(const Db *db, const char *source_name, int unused)
 {
-    const Db *db = (const Db *)dbh;
+    (void)unused;
     W w0, *w = &w0;
     char num[40], src[200];
     int *count;
@@ -1332,9 +1344,9 @@ static void xtdb_stoich(XW *x, const Endmember *em)
     xtdb_gibbs(x, em, id, em->name, id);
 }
 
-char *mqmqa_db_write_xtdb(const mqmqa_db *dbh, const char *source_name)
+static char *write_xtdb(const Db *db, const char *source_name, int unused)
 {
-    const Db *db = (const Db *)dbh;
+    (void)unused;
     W w0, *w = &w0;
     XW x;
     char num[40], a[40], src[200], ctext[256];
@@ -1424,4 +1436,14 @@ char *mqmqa_db_write_xtdb(const mqmqa_db *dbh, const char *source_name)
         free(sp);
     }
     return finish(w);
+}
+
+char *mqmqa_db_write_dat(const mqmqa_db *db, const char *source_name)
+{
+    return write_own(db, source_name, 0, write_dat);
+}
+
+char *mqmqa_db_write_xtdb(const mqmqa_db *db, const char *source_name)
+{
+    return write_own(db, source_name, 0, write_xtdb);
 }

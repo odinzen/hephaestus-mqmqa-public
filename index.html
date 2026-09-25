@@ -64,6 +64,31 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
                   cursor:pointer; font-size:1rem; line-height:1;
                   display:inline-flex; align-items:center; justify-content:center; padding:0; }
   .theme-toggle:hover { border-color:var(--brand); }
+  /* gas-constant control: the R toggle opens a menu; every choice explains itself on hover */
+  .gasr { position:relative; flex:none; }
+  .gasr .theme-toggle.forced { border-color:var(--brand); color:var(--brand); }
+  .gasr-menu { position:absolute; right:0; top:calc(100% + .35rem); z-index:40; width:15.5rem;
+               background:var(--card); border:1px solid var(--line); border-radius:8px;
+               padding:.3rem; box-shadow:0 6px 18px var(--shadow); display:none; }
+  .gasr.open .gasr-menu { display:block; }
+  /* spans the gap under the toggle, so moving onto the menu keeps it open */
+  .gasr-menu::before { content:''; position:absolute; left:0; right:0; top:-.45rem; height:.45rem; }
+  .gasr-opt { position:relative; display:block; width:100%; text-align:left; background:transparent;
+              border:1px solid transparent; color:var(--ink); padding:.38rem .55rem; border-radius:6px;
+              cursor:pointer; font-size:var(--fs-sm); }
+  .gasr-opt:hover, .gasr-opt:focus-visible { border-color:var(--line); }
+  .gasr-opt.on { border-color:var(--brand); font-weight:600; }
+  .tip { position:absolute; z-index:50; width:19rem; padding:.5rem .65rem; border-radius:8px;
+         background:var(--card); color:var(--ink); border:1px solid var(--brand);
+         box-shadow:0 6px 18px var(--shadow); font-size:var(--fs-xs); font-weight:400;
+         line-height:1.4; text-align:left; white-space:normal; pointer-events:none; display:none; }
+  .gasr-opt .tip { right:calc(100% + .6rem); top:0; }
+  .gasr-opt:hover .tip, .gasr-opt:focus-visible .tip,
+  .rdecl-opt:hover .tip, .rdecl-opt:focus-visible .tip { display:block; }
+  .rnote-row { margin-top:.45rem; gap:.4rem; align-items:center; }
+  .rnote-row[hidden] { display:none; }
+  .rdecl-opt { position:relative; }
+  .rdecl-opt .tip { left:0; bottom:calc(100% + .45rem); }
 
   .card { background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
           padding:1.1rem 1.15rem; box-shadow:0 1px 2px var(--shadow); margin:1rem 0; }
@@ -280,6 +305,11 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
     </div>
     <button class="theme-toggle" id="tunit-toggle" type="button"
             aria-label="Toggle temperature unit" title="Temperature unit"></button>
+    <div class="gasr" id="gasr">
+      <button class="theme-toggle" id="gasr-toggle" type="button" aria-haspopup="true"
+              aria-expanded="false" aria-label="Gas constant R">R</button>
+      <div class="gasr-menu" id="gasr-menu" role="menu"></div>
+    </div>
     <button class="theme-toggle" id="theme-toggle" type="button"
             aria-label="Toggle light and dark background" title="Toggle light / dark"></button>
   </header>
@@ -296,6 +326,10 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <button class="filebtn ghost" id="example-unified" type="button">Al recycling demo (alloy + salt flux, .utdb)</button>
       <button class="filebtn ghost" id="example-steel" type="button">Steelmaking demo (steel + slag, .utdb)</button>
       <span id="loadmsg" class="muted">No database loaded yet.</span>
+    </div>
+    <div class="row rnote-row" id="rnote-row" hidden>
+      <span id="rnote" class="muted"></span>
+      <span class="rdecl" id="rdecl"></span>
     </div>
     <div class="row saveas" id="saveas-row" style="margin-top:.55rem" hidden>
       <span class="muted">Save this database as</span>
@@ -636,6 +670,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <button class="filebtn ghost" id="gas-preset-steel" type="button" style="border-color:var(--accent)">steel: Fe + reducing gas (coupled)</button>
     </div>
     <div id="gas-out" class="bld-hint" hidden style="margin-top:.8rem"></div>
+    <div class="muted" id="gas-rnote" style="margin-top:.4rem;font-size:var(--fs-xs)" hidden></div>
   </div>
 
   <div class="card" id="slaggascard">
@@ -676,6 +711,10 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <button class="filebtn ghost" id="xtdb-alc" type="button">Al&ndash;C example (3rd-gen, .xtdb)</button>
       <button class="filebtn ghost" id="xtdb-pbsn" type="button">Pb&ndash;Sn example (classic, .xtdb)</button>
       <span id="xtdb-msg" class="muted">Al&ndash;C is the third-generation assessment of He et&nbsp;al. (2021); Pb&ndash;Sn is a classic assessment written in the XTDB format.</span>
+    </div>
+    <div class="row rnote-row" id="xtdb-rnote-row" hidden>
+      <span id="xtdb-rnote" class="muted"></span>
+      <span class="rdecl" id="xtdb-rdecl"></span>
     </div>
     <div class="row saveas" id="xtdb-saveas-row" style="margin-top:.55rem" hidden>
       <span class="muted">Save this XTDB database as</span>
@@ -747,6 +786,62 @@ let api = null, db = 0, phase = 0, nPairs = 0, catNames = [], anNames = [];
 // the value from the engine (mqmqa_gas_constant), which holds the same table.
 const GAS_R = {1: 8.3145, 2: 8.31451, 3: 8.314462618};
 window.condensedR = () => api ? api.RCondensed() : GAS_R[1];
+// The four gas-constant choices: the engine-wide setting's labels and hover explanations.
+const R_CHOICES = [
+  {mode: 0, label: 'As assessed', tip: 'Each database uses the value its data was built with, '
+    + 'read from the file when it is stated: 8.3145 for slag, salt and alloy databases (.dat, '
+    + '.tdb, .utdb), 8.31451 for third-generation XTDB data, and 8.314462618 for the NASA gas '
+    + 'data. Recommended.'},
+  {mode: 1, label: '8.3145 (CALPHAD)', tip: 'The convention of Thermo-Calc, pycalphad and '
+    + 'OpenCalphad. Forces this value everywhere, including the gas phase.'},
+  {mode: 2, label: '8.31451 (SGTE)', tip: 'The value of the SGTE unary data and XTDB. Forces '
+    + 'this value everywhere.'},
+  {mode: 3, label: '8.314462618 (exact SI)', tip: 'The exact SI value (CODATA 2018), used by '
+    + 'NASA and Cantera gas data. Forces this value everywhere.'},
+];
+// Declaring a database's own R uses the same labels; the tooltips say what a declaration does,
+// since it sets one database's value rather than forcing one everywhere.
+const R_DECLARE_TIPS = [
+  'Use what this file gives: the value inferred from its constants, or the convention for its '
+    + 'format.',
+  'The convention of Thermo-Calc, pycalphad and OpenCalphad. Declares that this database was '
+    + 'assessed with 8.3145; saving it records the value.',
+  'The value of the SGTE unary data and XTDB. Declares that this database was assessed with '
+    + '8.31451; saving it records the value.',
+  'The exact SI value (CODATA 2018), used by NASA and Cantera gas data. Declares that this '
+    + 'database was assessed with 8.314462618; saving it records the value.',
+];
+function rOption(cls, label, tip){
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = cls;
+  b.appendChild(document.createTextNode(label));
+  const t = document.createElement('span'); t.className = 'tip'; t.textContent = tip;
+  b.appendChild(t);
+  return b;
+}
+// The note on a loaded database's R and, when its file does not state R, the declaration.
+// src: 0 read from file, 1 inferred, 2 convention, 3 declared (the database's own source).
+window.renderRNote = (row, noteEl, declEl, handle, noteFn, srcFn, ownFn, declareFn, onChange) => {
+  if (!handle) { row.hidden = true; return; }
+  row.hidden = false;
+  noteEl.textContent = noteFn(handle) + '.';
+  declEl.innerHTML = '';
+  const src = srcFn(handle);
+  if (src === 0) return;
+  const lab = document.createElement('span');
+  lab.className = 'muted'; lab.textContent = 'Declare the R it was assessed with:';
+  declEl.appendChild(lab);
+  R_CHOICES.forEach((c, i) => {
+    const b = rOption('seg-btn rdecl-opt', c.label, R_DECLARE_TIPS[i]);
+    b.classList.toggle('on', src === 3 ? ownFn(handle) === GAS_R[i] : i === 0);
+    b.addEventListener('click', () => {
+      if (declareFn(handle, c.mode) !== 0) return;
+      onChange();
+      window.dispatchEvent(new Event('hmqmqa-gasr'));
+    });
+    declEl.appendChild(b);
+  });
+};
 // Temperature unit: the engine works in Kelvin; the display defaults to Kelvin and a header
 // toggle (beside the light/dark one) switches to Celsius. Sliders and stored values stay in K;
 // only the shown number and unit change. Cards re-render their temperature text on 'hmqmqa-tunit'.
@@ -818,6 +913,14 @@ Hephaestus().then(M => {
     REff:   M.cwrap('mqmqa_gas_constant','number',['number']),
     RCondensed: M.cwrap('mqmqa_R','number',[]),
     dbROwn: M.cwrap('mqmqa_db_R_own','number',['number']),
+    dbRNote: M.cwrap('mqmqa_db_R_note','string',['number']),
+    dbROwnSrc: M.cwrap('mqmqa_db_R_own_source','number',['number']),
+    dbDeclareR: M.cwrap('mqmqa_db_declare_R','number',['number','number']),
+    xtdbRNote: M.cwrap('xtdb_R_note','string',['number']),
+    xtdbROwn: M.cwrap('xtdb_R_own','number',['number']),
+    xtdbROwnSrc: M.cwrap('xtdb_R_own_source','number',['number']),
+    xtdbDeclareR: M.cwrap('xtdb_declare_R','number',['number','number']),
+    gasRNote: M.cwrap('mqmqa_gas_R_note','string',['number']),
     phaseKind: M.cwrap('mqmqa_db_phase_kind','number',['number','number']),
     cefG:   M.cwrap('mqmqa_ph_cef_gibbs','number',['number','number','number','number','number']),
     cefNumSubl: M.cwrap('mqmqa_ph_cef_num_subl','number',['number','number']),
@@ -1029,6 +1132,7 @@ function loadDatabase(text, name) {
   if (db) { api.free(db); db = 0; }
   db = api.read(text);
   document.getElementById('saveas-row').hidden = !db;
+  if (!db) document.getElementById('rnote-row').hidden = true;
   if (!db) { msg.textContent = 'Could not read this file: ' + api.error(); return; }
   window._dbName = name;
 
@@ -1058,6 +1162,7 @@ function loadDatabase(text, name) {
       b.classList.toggle('on', b.dataset.m === 'melt'));
   }
   msg.textContent = name + ' loaded.';
+  showDbRNote();
   const refused = !window.alloyMode && api.xsUnsupported(db, phase);
   if (refused) msg.textContent += ' Not computed: ' + refused + '.';
   document.getElementById('results').classList.remove('hidden');
@@ -1153,6 +1258,20 @@ function loadDatabase(text, name) {
                           !hasO && !window.alloyMode);
   else if (window._bldSeedFor) window._bldSeedFor(!hasO && !window.alloyMode);
 }
+
+function showDbRNote(){
+  window.renderRNote(document.getElementById('rnote-row'), document.getElementById('rnote'),
+    document.getElementById('rdecl'), db, api.dbRNote, api.dbROwnSrc, api.dbROwn, api.dbDeclareR,
+    showDbRNote);
+}
+// A new gas constant (the setting or a declaration) recomputes what the cards show.
+window.addEventListener('hmqmqa-gasr', () => {
+  if (!db) return;
+  showDbRNote();
+  if (!window.alloyMode) updatePairs();
+  if (!document.getElementById('eqout').classList.contains('hidden')) document.getElementById('solve').click();
+  if (pdResult) generateDiagram();
+});
 
 function updatePairs() {
   if (!db) return;
@@ -2551,6 +2670,33 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     setIcon(); window.dispatchEvent(new Event('hmqmqa-tunit')); });
 })();
 
+(function(){ const box=document.getElementById('gasr'), btn=document.getElementById('gasr-toggle'),
+      menu=document.getElementById('gasr-menu'); if(!box) return;
+  const opts = R_CHOICES.map(c => {
+    const b = rOption('gasr-opt', c.label, c.tip);
+    b.setAttribute('role', 'menuitemradio');
+    b.addEventListener('click', () => {
+      if (!api) return;
+      api.setRMode(c.mode); sync(); box.classList.remove('open');
+      window.dispatchEvent(new Event('hmqmqa-gasr'));
+    });
+    menu.appendChild(b);
+    return b;
+  });
+  function sync(){
+    const m = api ? api.RMode() : 0;
+    opts.forEach((b, i) => { b.classList.toggle('on', i === m); b.setAttribute('aria-checked', i === m); });
+    btn.classList.toggle('forced', m !== 0);
+    btn.title = 'Gas constant: ' + R_CHOICES[m].label;
+  }
+  const open = on => { box.classList.toggle('open', on); btn.setAttribute('aria-expanded', on); };
+  box.addEventListener('mouseenter', () => open(true));
+  box.addEventListener('mouseleave', () => open(false));
+  btn.addEventListener('click', () => open(!box.classList.contains('open')));
+  document.addEventListener('click', e => { if (!box.contains(e.target)) open(false); });
+  sync();
+})();
+
 (function(){ const root=document.documentElement, btn=document.getElementById('theme-toggle'); if(!btn) return;
   // ︎ forces the monochrome text form so iOS does not render a wider, off-center color emoji
   const setIcon=()=>{ btn.textContent = root.dataset.theme==='light' ? '☾' : '☀︎'; };
@@ -3080,6 +3226,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
         sysSel=document.getElementById('live-sys');
   tsl.addEventListener('input',()=>{ tval.textContent=window.tLabel(+tsl.value); });
   window.onTUnit(()=>{ tval.textContent=window.tLabel(+tsl.value); if(model) render(); });
+  window.addEventListener('hmqmqa-gasr', ()=>{ if(model && !go.disabled) go.click(); });
   sysSel.addEventListener('change',()=>{
     SYS=SYSTEMS[sysSel.value]; model=null;
     tsl.min=SYS.tmin; tsl.max=SYS.tmax; tsl.value=SYS.tdef; tval.textContent=window.tLabel(+tsl.value);
@@ -3465,6 +3612,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
   };
   _bldSeedFor(false);   // default (landing / slag): hide salt presets, seed the generic ternary
   window._bldRedraw=draw;
+  window.addEventListener('hmqmqa-gasr', draw);
 })();
 </script>
 <script>
@@ -3621,9 +3769,12 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     return gdb;
   }
   function esc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  window.addEventListener('hmqmqa-gasr', ()=>{ if(!document.getElementById('gas-out').hidden) compute(); });
   async function compute(){
     const msg=document.getElementById('gas-msg'), out=document.getElementById('gas-out');
     if(!(await ensureDB())){ msg.textContent='Gas database not found next to this page.'; return; }
+    const rn=document.getElementById('gas-rnote');
+    rn.textContent='NASA gas data: '+api.gasRNote(gdb)+'.'; rn.hidden=false;
     const feed={C:+document.getElementById('gas-C').value||0, H:+document.getElementById('gas-H').value||0,
                 O:+document.getElementById('gas-O').value||0, N:+document.getElementById('gas-N').value||0};
     if(feed.C+feed.H+feed.O+feed.N<=0){ msg.textContent='Enter at least one element amount.'; return; }
@@ -3928,7 +4079,8 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     if (handle){ api.xtdbFree(handle); handle = 0; }
     handle = api.xtdbRead(text);
     document.getElementById('xtdb-saveas-row').hidden = !handle;
-    if (!handle){ msg.textContent = 'Could not read this XTDB file: ' + api.xtdbErr(); info.hidden = true; return; }
+    if (!handle){ msg.textContent = 'Could not read this XTDB file: ' + api.xtdbErr(); info.hidden = true;
+      document.getElementById('xtdb-rnote-row').hidden = true; return; }
     name = fname;
     window._xtdbHandle = handle; window._xtdbName = fname;
     elems = []; for (let i=0;i<api.xtdbNEl(handle);i++) elems.push(api.xtdbEl(handle,i));
@@ -3937,6 +4089,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     elemB = elems[1];
     win = pickWindow(elems);
     msg.textContent = fname + ' loaded.';
+    showRNote();
     info.hidden = false;
     info.innerHTML = '<b>' + esc(fname) + '</b> &middot; elements ' + esc(elems.join(', '))
       + ' &middot; ' + phases.length + ' phases: ' + esc(phases.join(', '))
@@ -3946,6 +4099,12 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     draw();
   }
   window.loadXtdb = loadXtdb;
+  function showRNote(){
+    window.renderRNote(document.getElementById('xtdb-rnote-row'), document.getElementById('xtdb-rnote'),
+      document.getElementById('xtdb-rdecl'), handle, api.xtdbRNote, api.xtdbROwnSrc, api.xtdbROwn,
+      api.xtdbDeclareR, showRNote);
+  }
+  window.addEventListener('hmqmqa-gasr', () => { if (handle) { showRNote(); if (elems.length >= 2) draw(); } });
 
   // ---- diagram: stable-phase map by lower convex hull at each temperature ----
   function stableMap(W, H){

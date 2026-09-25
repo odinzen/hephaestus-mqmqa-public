@@ -357,10 +357,12 @@ static int needs_groups(const int *grp, int n, int i, int j)
 /* The group interpolation and the r > 1 factor are implemented where the other
  * sublattice holds a single species. With several, the published equations can be
  * read with overall site fractions or with pair fractions within the fixed ion, and
- * the G-code Chi gains reciprocal-quadruplet terms; those cases stay refused. */
+ * the G-code Chi gains reciprocal-quadruplet terms; those cases stay refused. The
+ * reciprocal Chi terms are not evaluated yet, so a G term whose exponents give Chi any
+ * weight is refused there too. */
 mqmqa_xs_status mqmqa_excess_term_status(int n_cat, int n_an, int mix, int code,
                                          int A, int B, int X, int Y,
-                                         double r, int addcat,
+                                         double p, double q, double r, int addcat,
                                          const int *cat_group, const int *an_group)
 {
     if (code != 0 && code != 1) return XS_CODE;
@@ -373,6 +375,7 @@ mqmqa_xs_status mqmqa_excess_term_status(int n_cat, int n_an, int mix, int code,
     if (n_other > 1 && needs_groups(mix == 0 ? cat_group : an_group, mix == 0 ? n_cat : n_an,
                                     mix == 0 ? A : X, mix == 0 ? B : Y))
         return XS_GROUPS;
+    if (code == 1 && n_other > 1 && (p != 0.0 || q != 0.0)) return XS_CHI_RECIP;
     return XS_OK;
 }
 
@@ -403,7 +406,7 @@ double mqmqa_excess_energy(
     for (int k = 0; k < n_params; ++k) {
         if (mqmqa_excess_term_status(n_cat, n_an, par_mix[k], par_code[k],
                                      par_A[k], par_B[k], par_X[k], par_Y[k],
-                                     par_r ? par_r[k] : 1.0,
+                                     par_p[k], par_q[k], par_r ? par_r[k] : 1.0,
                                      par_addcat ? par_addcat[k] : -1,
                                      cat_group, an_group) != XS_OK)
             return NAN;
@@ -926,7 +929,7 @@ double mqmqa_equilibrate(
     for (int k = 0; k < n_params; ++k)
         if (mqmqa_excess_term_status(n_cat, n_an, par_mix[k], par_code[k],
                                      par_A[k], par_B[k], par_X[k], par_Y[k],
-                                     par_r ? par_r[k] : 1.0,
+                                     par_p[k], par_q[k], par_r ? par_r[k] : 1.0,
                                      par_addcat ? par_addcat[k] : -1,
                                      cat_group, an_group) != XS_OK)
             return NAN;

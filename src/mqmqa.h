@@ -124,7 +124,9 @@ MQMQA_API double mqmqa_ideal_mixing_energy(
  * mixing, and an additional (ternary) cation with exponent r = 1, when the term's
  * nu/gamma chemical-group sets are empty. Unsupported cases return NaN rather than a
  * wrong number: Bragg-Williams B/H, reciprocal R, reciprocal mixing, an additional
- * anion, r > 1, and any term that needs the mixed chemical-group interpolation.
+ * anion, r > 1, and any term that needs the mixed chemical-group interpolation. A G
+ * term with a nonzero exponent is refused when the other sublattice holds more than
+ * one species.
  *
  * cat_group[i] and an_group[k] are the chemical groups of the cations and anions
  * (the ChemSage group numbers); NULL means every species of that sublattice is in

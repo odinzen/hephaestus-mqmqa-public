@@ -12,14 +12,15 @@ typedef enum {
     XS_MIX,           /* reciprocal mixing: two cations and two anions in one term */
     XS_TERN_ANION,    /* additional constituent on an anion-mixing term */
     XS_TERN_R,        /* additional-constituent exponent r other than 1 */
-    XS_GROUPS         /* needs the mixed chemical-group (nu/gamma) interpolation */
+    XS_GROUPS,        /* needs the mixed chemical-group (nu/gamma) interpolation */
+    XS_CHI_RECIP      /* G code with a nonzero exponent where the other sublattice mixes */
 } mqmqa_xs_status;
 
 /* Status of one excess term. cat_group/an_group may be NULL, meaning every species of
  * that sublattice is in one chemical group. */
 mqmqa_xs_status mqmqa_excess_term_status(int n_cat, int n_an, int mix, int code,
                                          int A, int B, int X, int Y,
-                                         double r, int addcat,
+                                         double p, double q, double r, int addcat,
                                          const int *cat_group, const int *an_group);
 
 /* The gas-constant mode changed: databases whose expressions reference R are re-read

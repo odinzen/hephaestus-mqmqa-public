@@ -1084,7 +1084,8 @@ const char *mqmqa_ph_excess_unsupported(const mqmqa_db *db, int p)
         const int code = (mx->code == 'Q') ? 0 : (mx->code == 'G') ? 1 : -1;
         const mqmqa_xs_status st = mqmqa_excess_term_status(
             ph->n_cat, ph->n_an, mx->mix, code, mx->A, mx->B, mx->X, mx->Y,
-            (double)mx->exp[2], mx->add_cat, ph->cat_group, ph->an_group);
+            (double)mx->exp[0], (double)mx->exp[1], (double)mx->exp[2], mx->add_cat,
+            ph->cat_group, ph->an_group);
         if (st == XS_OK) continue;
         const char *a = mx->mix == 1 ? ph->an_name[mx->X] : ph->cat_name[mx->A];
         const char *b = mx->mix == 1 ? ph->an_name[mx->Y] : ph->cat_name[mx->B];
@@ -1096,6 +1097,9 @@ const char *mqmqa_ph_excess_unsupported(const mqmqa_db *db, int p)
                                   "which is not supported" :
             st == XS_TERN_R ? "has an additional-constituent exponent r other than 1, which "
                               "is supported only for r >= 1 in a phase with a single anion" :
+            st == XS_CHI_RECIP ? "has a nonzero exponent in a phase with more than one cation "
+                                 "and more than one anion, where the G-code Chi variables are "
+                                 "not supported yet" :
             mx->mix == 1 ? "mixes species that the file assigns to different chemical groups "
                            "in a phase with more than one cation; mixed chemical groups are "
                            "not supported there" :

@@ -66,9 +66,9 @@ measurements in the per-system provenance notes.
 An MQMQA excess term the engine does not evaluate is refused with a message naming the
 phase (`Database.excess_unsupported`, `UnsupportedModelError`, a note in the browser),
 never computed as something else: the B and R excess codes, reciprocal mixing,
-ChemSage chemical-group override strings, and chemical groups or an
-additional-constituent exponent r > 1 in a phase whose other sublattice holds more than
-one ion.
+ChemSage chemical-group override strings, and chemical groups, an additional-constituent
+exponent r > 1, or a G-code term with a nonzero exponent in a phase whose other
+sublattice holds more than one ion.
 
 ## Gas constant
 

@@ -107,6 +107,11 @@ format: `FUNCTION R` in `.tdb` and `.utdb`, a `TPfun R` in `.xtdb`, and a senten
 title line of a `.dat`, which has no field for it. A written file therefore reads back as
 "read from file".
 
+In the browser, the R control next to the temperature-unit toggle sets the mode (each
+choice explains itself on hover) and recomputes what is on screen; after loading a
+database a note gives its R and source, and offers the declaration when the file does
+not state R.
+
 ## Converting databases
 
 Any database Hephaestus has loaded can be saved in another format. In Python,

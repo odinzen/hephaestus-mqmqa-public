@@ -799,10 +799,14 @@ Hephaestus().then(M => {
     mqmx:   M.cwrap('mqmqa_ph_mqmx',null,Array(10).fill('number')),
     mqmxL:  M.cwrap('mqmqa_ph_mqmx_L',null,['number','number','number','number']),
     mqmxTern: M.cwrap('mqmqa_ph_mqmx_ternary',null,['number','number','number','number']),
+    // '' when every excess term of the phase is evaluated, else why the engine refuses it
+    xsUnsupported: M.cwrap('mqmqa_ph_excess_unsupported','string',['number','number']),
+    catGrp: M.cwrap('mqmqa_ph_cation_group','number',['number','number','number']),
+    anGrp:  M.cwrap('mqmqa_ph_anion_group','number',['number','number','number']),
     nQuad:  M.cwrap('mqmqa_num_quadruplets','number',['number','number']),
     enumQ:  M.cwrap('mqmqa_enumerate_quadruplets',null,Array(6).fill('number')),
     coord:  M.cwrap('mqmqa_coordination','number',Array(15).fill('number')),
-    equil:  M.cwrap('mqmqa_equilibrate','number',Array(38).fill('number')),
+    equil:  M.cwrap('mqmqa_equilibrate','number',Array(40).fill('number')),
     phaseKind: M.cwrap('mqmqa_db_phase_kind','number',['number','number']),
     cefG:   M.cwrap('mqmqa_ph_cef_gibbs','number',['number','number','number','number','number']),
     cefNumSubl: M.cwrap('mqmqa_ph_cef_num_subl','number',['number','number']),
@@ -1042,6 +1046,8 @@ function loadDatabase(text, name) {
       b.classList.toggle('on', b.dataset.m === 'melt'));
   }
   msg.textContent = name + ' loaded.';
+  const refused = !window.alloyMode && api.xsUnsupported(db, phase);
+  if (refused) msg.textContent += ' Not computed: ' + refused + '.';
   document.getElementById('results').classList.remove('hidden');
 
   const els = []; for (let i=0;i<api.nEl(db);i++) els.push(api.el(db,i));
@@ -1381,6 +1387,8 @@ function renderCompFields(){
 // Mirrors python/mqmqa/equilibrium.build_inputs: restrict cations/anions to the
 // subsystem, reindex, and gather coordination, pair, and excess data.
 function buildInputs(comp, T){
+  const refused=api.xsUnsupported(db,phase);
+  if(refused) throw new Error(refused);
   const M=api.M, compSet=new Set(comp.map(c=>c.toUpperCase()));
   const nCatAll=api.nCat(db,phase), nAnAll=api.nAn(db,phase);
   const catKeep=[], anKeep=[];
@@ -1393,6 +1401,7 @@ function buildInputs(comp, T){
   const catEl=catKeep.map(i=>elementOf(api.cat(db,phase,i)));
   const anEl=anKeep.map(k=>elementOf(api.an(db,phase,k)));
   const catNm=catKeep.map(i=>api.cat(db,phase,i)), anNm=anKeep.map(k=>api.an(db,phase,k));
+  const catGroup=catKeep.map(i=>api.catGrp(db,phase,i)), anGroup=anKeep.map(k=>api.anGrp(db,phase,k));
 
   const nq=api.nQuad(ncat,nan);
   const pca=M._malloc(nq*4),pcb=M._malloc(nq*4),pax=M._malloc(nq*4),pay=M._malloc(nq*4);
@@ -1468,7 +1477,7 @@ function buildInputs(comp, T){
   [pqc,pqa,pmA,pmB,pmX,pmY,pmZ].forEach(p=>M._free(p));
   const quadLabel=q=>catNm[qca[q]]+'/'+catNm[qcb[q]]+' · '+anNm[qax[q]]+'/'+anNm[qay[q]];
   return {ncat,nan,nq,qca,qcb,qax,qay,Za,Zb,Zx,Zy,zeta,soln:api.isSubq(db,phase),
-          pcat,pan,pG,pstoich,Ztab,ex,catEl,anEl,T,quadLabel};
+          pcat,pan,pG,pstoich,Ztab,ex,catEl,anEl,catGroup,anGroup,T,quadLabel};
 }
 
 function solveEquilibrium(inp, target){
@@ -1487,13 +1496,14 @@ function solveEquilibrium(inp, target){
     xm:iArr(inp.ex.mix),xc:iArr(inp.ex.code),xA:iArr(inp.ex.A),xB:iArr(inp.ex.B),
     xX:iArr(inp.ex.X),xY:iArr(inp.ex.Y),xp:dArr(inp.ex.p),xq:dArr(inp.ex.q),xL:dArr(inp.ex.L),
     xr:dArr(inp.ex.r||inp.ex.A.map(()=>0)),xac:iArr(inp.ex.addcat||inp.ex.A.map(()=>-1)),
+    cg:iArr(inp.catGroup),ag:iArr(inp.anGroup),
     ce:iArr(catElem),ae:iArr(anElem),tg:dArr(tgt),Xout:M._malloc(inp.nq*8),cerr:M._malloc(8),
   };
   const gm=api.equil(
     inp.T, inp.ncat, inp.nan, inp.nq,
     p.qca,p.qcb,p.qax,p.qay, p.Za,p.Zb,p.Zx,p.Zy, p.zeta, inp.soln,
     inp.pcat.length, p.pc,p.pa,p.G,p.st,p.Zref,
-    inp.ex.A.length, p.xm,p.xc,p.xA,p.xB,p.xX,p.xY,p.xp,p.xq,p.xL,p.xr,p.xac,
+    inp.ex.A.length, p.xm,p.xc,p.xA,p.xB,p.xX,p.xY,p.xp,p.xq,p.xL,p.xr,p.xac,p.cg,p.ag,
     elements.length, p.ce,p.ae,p.tg, p.Xout,p.cerr);
   const X=readD(p.Xout,inp.nq), cerr=M.getValue(p.cerr,'double');
   Object.values(p).forEach(ptr=>M._free(ptr));
@@ -1504,6 +1514,8 @@ document.getElementById('solve').addEventListener('click', () => {
   const msg=document.getElementById('eqmsg'), out=document.getElementById('eqout');
   out.classList.add('hidden');
   if(!db){ msg.textContent='Load a database first.'; return; }
+  const refused=api.xsUnsupported(db,phase);
+  if(refused){ msg.textContent='Not computed: '+refused+'.'; return; }
   const comps=window._components||[];
   const rows=[...document.querySelectorAll('#compfields input')]
     .map(i=>({c:comps[+i.dataset.idx], x:parseFloat(i.value)||0}));
@@ -2199,6 +2211,8 @@ async function generateDiagram(){
   if(window.alloyMode) return generateAlloyDiagram();
   const msg=document.getElementById('pdmsg'), out=document.getElementById('pdout');
   if(!db){ msg.textContent='Load a database first.'; return; }
+  const refused=api.xsUnsupported(db,phase);
+  if(refused){ msg.textContent='Not computed: '+refused+'.'; return; }
   const ia=+document.getElementById('pdA').value, ib=+document.getElementById('pdB').value, ic=+document.getElementById('pdCommon').value;
   if(ia===ib){ msg.textContent='Pick two different end members.'; return; }
   const common=pdCommon[ic]||pdCommon[0];

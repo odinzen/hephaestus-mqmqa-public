@@ -137,7 +137,7 @@ static const char *own_phrase(int src)
 
 const char *rinfo_note(const RInfo *ri)
 {
-    static _Thread_local char buf[512];
+    static char buf[512];   /* not _Thread_local, see g_error in cs_dat.c */
     const char *sep = ri->detail[0] ? "; " : "";
     if (g_R_mode != MQMQA_R_AS_ASSESSED)
         snprintf(buf, sizeof buf, "R = %.10g, the gas-constant setting, overriding this "

@@ -47,6 +47,6 @@ void rinfo_detect(RInfo *ri, const char *format, double convention, int stated,
 int rinfo_declare(RInfo *ri, int choice);
 double rinfo_value(const RInfo *ri);         /* the R calculations use now */
 int rinfo_source(const RInfo *ri);           /* OVERRIDE while a mode is forced */
-const char *rinfo_note(const RInfo *ri);     /* one line for the user, per-thread buffer */
+const char *rinfo_note(const RInfo *ri);     /* one line for the user, static buffer */
 
 #endif /* MQMQA_PRIV_H */

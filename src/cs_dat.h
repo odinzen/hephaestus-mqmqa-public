@@ -34,7 +34,7 @@ MQMQA_API mqmqa_db *mqmqa_db_read_file(const char *path);
 MQMQA_API mqmqa_db *mqmqa_db_read_string(const char *text);
 MQMQA_API void mqmqa_db_free(mqmqa_db *db);
 
-/* Human-readable message for the most recent read or write failure on this thread. */
+/* Human-readable message for the most recent read or write failure. */
 MQMQA_API const char *mqmqa_db_error(void);
 
 /* The database's own gas constant, the value its calculations use in the as-assessed
@@ -42,7 +42,7 @@ MQMQA_API const char *mqmqa_db_error(void);
 MQMQA_API double mqmqa_db_R_own(const mqmqa_db *db);
 /* The R its calculations use now (the mode applied), and where it comes from
  * (MQMQA_R_SRC_*, OVERRIDE while a mode is forced); the source of the own value; and a
- * one-line note for the user (per-thread buffer, overwritten by the next note). */
+ * one-line note for the user (a static buffer, overwritten by the next note). */
 MQMQA_API double mqmqa_db_R(const mqmqa_db *db);
 MQMQA_API int mqmqa_db_R_source(const mqmqa_db *db);
 MQMQA_API int mqmqa_db_R_own_source(const mqmqa_db *db);
@@ -111,7 +111,7 @@ MQMQA_API void mqmqa_ph_mqmx_ternary(const mqmqa_db *db, int p, double *r_exp, i
  * naming the phase and the first term the engine refuses (an unsupported code, an
  * additional anion, r > 1, mixed chemical groups, chemical-group override strings).
  * The energy routines return NaN for such a phase; this says why. The text lives in
- * a per-thread buffer overwritten by the next call. */
+ * a static buffer overwritten by the next call. */
 MQMQA_API const char *mqmqa_ph_excess_unsupported(const mqmqa_db *db, int p);
 
 /* --- CEF (SUBL / compound-energy-formalism) solution phases ---

@@ -51,7 +51,11 @@ typedef struct {
     char lossy[256];    /* first source content read past without modeling */
 } Lexer;
 
-static _Thread_local char g_error[512] = "";
+/* Message buffers and parse flags are plain statics, not _Thread_local. Linked by lld
+ * against the mingw-w64 5.3 CRT, the DLL's TLS directory covers only 8 bytes of .tls, so
+ * thread-local writes went past an 8-byte heap block and corrupted the heap. The engine
+ * already keeps process-wide state (gas-constant mode, live-database registry). */
+static char g_error[512] = "";
 
 void mqmqa_db_set_error(const char *fmt, ...)
 {
@@ -709,12 +713,12 @@ static void tdb_leading_comments(const char *p, char *out, size_t cap);
 
 /* The value R# is forced to while a TDB text is read, NAN to leave the file's own
  * FUNCTION R (or the built-in) standing. */
-static _Thread_local double g_parse_R_force = NAN;
+static double g_parse_R_force = NAN;
 /* What the TDB reader saw of R: whether the file defines FUNCTION R (1 a constant, whose
  * value follows; 2 anything else), and whether it holds uTDB statements. */
-static _Thread_local int g_tdb_R_stated;
-static _Thread_local double g_tdb_R_value;
-static _Thread_local int g_tdb_unified;
+static int g_tdb_R_stated;
+static double g_tdb_R_value;
+static int g_tdb_unified;
 
 /* A Hephaestus-written .dat states R in its title line, the only free text the format
  * has: "... Gas constant R = 8.3145 ...". */
@@ -1061,7 +1065,7 @@ void mqmqa_ph_mqmx_ternary(const mqmqa_db *db, int p, double *r_exp, int *add_ca
     }
 }
 
-static _Thread_local char g_xs_msg[512];
+static char g_xs_msg[512];
 
 const char *mqmqa_ph_excess_unsupported(const mqmqa_db *db, int p)
 {

@@ -3,6 +3,9 @@
 #include <math.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <ctype.h>
+#include <stdio.h>
+#include <string.h>
 
 /* The one table of gas-constant values. A database's energies are only consistent with
  * the R it was assessed with, so each part of the engine keeps its data's own value
@@ -30,6 +33,122 @@ double mqmqa_gas_constant_choice(int choice)
 double mqmqa_gas_constant(double own)
 {
     return g_R_mode == MQMQA_R_AS_ASSESSED ? own : R_CHOICE[g_R_mode];
+}
+
+/* ---- a database's own R ---- */
+
+/* Gas-constant literals in the expressions: numbers from 8.3139 to 8.3149 standing
+ * alone (not part of a longer number or a name). kind 1 skips TDB comment lines, kind 2
+ * reads only the Expr="..." attributes of XTDB. Returns the count of distinct values
+ * (up to cap written to vals). */
+static int R_literals(const char *text, int kind, double *vals, int cap)
+{
+    int n = 0;
+    const char *p = text;
+    while (*p) {
+        const char *end;
+        if (kind == 1) {
+            if (*p == '$') { while (*p && *p != '\n') ++p; continue; }
+            end = p + strcspn(p, "$");
+        } else {
+            const char *a = strstr(p, "Expr=\"");
+            if (!a) break;
+            p = a + 6;
+            end = strchr(p, '"');
+            if (!end) break;
+        }
+        for (const char *q = p; q < end; ++q) {
+            if (!isdigit((unsigned char)*q)) continue;
+            if (q > text && (isalnum((unsigned char)q[-1]) || q[-1] == '.' || q[-1] == '_')) continue;
+            char *stop;
+            const double v = strtod(q, &stop);
+            if (v > 8.3139 && v < 8.3149 && !isalpha((unsigned char)*stop) && *stop != '_') {
+                int seen = 0;
+                for (int k = 0; k < n; ++k) seen |= vals[k] == v;
+                if (!seen && n < cap) vals[n++] = v;
+            }
+            q = stop - 1;
+        }
+        p = end;
+    }
+    return n;
+}
+
+void rinfo_detect(RInfo *ri, const char *format, double convention, int stated,
+                  double stated_value, const char *text, int kind)
+{
+    memset(ri, 0, sizeof *ri);
+    snprintf(ri->format, sizeof ri->format, "%s", format);
+    double lit[8];
+    const int n = (!stated && text) ? R_literals(text, kind, lit, 8) : 0;
+    if (stated) {
+        ri->found = stated_value;
+        ri->found_src = MQMQA_R_SRC_FILE;
+    } else if (n == 1) {
+        ri->found = lit[0];
+        ri->found_src = MQMQA_R_SRC_INFERRED;
+    } else {
+        ri->found = convention;
+        ri->found_src = MQMQA_R_SRC_CONVENTION;
+        if (n > 1) {
+            /* disagreeing literals: which one is R cannot be told, so none is guessed */
+            size_t m = (size_t)snprintf(ri->detail, sizeof ri->detail,
+                                        "its constants disagree (");
+            for (int k = 0; k < n && m < sizeof ri->detail; ++k)
+                m += (size_t)snprintf(ri->detail + m, sizeof ri->detail - m, "%s%.10g",
+                                      k ? ", " : "", lit[k]);
+            if (m < sizeof ri->detail) snprintf(ri->detail + m, sizeof ri->detail - m, ")");
+        }
+    }
+    ri->own = ri->found;
+    ri->src = ri->found_src;
+}
+
+int rinfo_declare(RInfo *ri, int choice)
+{
+    if (choice < MQMQA_R_AS_ASSESSED || choice > MQMQA_R_SI) return -2;
+    if (ri->found_src == MQMQA_R_SRC_FILE) return -1;
+    if (choice == MQMQA_R_AS_ASSESSED) {
+        ri->own = ri->found;
+        ri->src = ri->found_src;
+    } else {
+        ri->own = R_CHOICE[choice];
+        ri->src = MQMQA_R_SRC_DECLARED;
+    }
+    return 0;
+}
+
+double rinfo_value(const RInfo *ri) { return mqmqa_gas_constant(ri->own); }
+
+int rinfo_source(const RInfo *ri)
+{
+    return g_R_mode == MQMQA_R_AS_ASSESSED ? ri->src : MQMQA_R_SRC_OVERRIDE;
+}
+
+static const char *own_phrase(int src)
+{
+    switch (src) {
+    case MQMQA_R_SRC_FILE: return "read from this file";
+    case MQMQA_R_SRC_INFERRED: return "inferred from constants in this file";
+    case MQMQA_R_SRC_DECLARED: return "declared by you for this database";
+    default: return "not stated in the file";
+    }
+}
+
+const char *rinfo_note(const RInfo *ri)
+{
+    static _Thread_local char buf[512];
+    const char *sep = ri->detail[0] ? "; " : "";
+    if (g_R_mode != MQMQA_R_AS_ASSESSED)
+        snprintf(buf, sizeof buf, "R = %.10g, the gas-constant setting, overriding this "
+                 "database's own %.10g (%s)", R_CHOICE[g_R_mode], ri->own, own_phrase(ri->src));
+    else if (ri->src == MQMQA_R_SRC_CONVENTION)
+        snprintf(buf, sizeof buf, "Not stated in the file; using %.10g, the convention for "
+                 "%s%s%s", ri->own, ri->format, sep, ri->detail);
+    else
+        snprintf(buf, sizeof buf, "R = %.10g, %s%s%s", ri->own, own_phrase(ri->src), sep,
+                 ri->detail);
+    return buf;
 }
 
 double mqmqa_R(void)

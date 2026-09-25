@@ -8,6 +8,7 @@
  * python/mqmqa/gas.py against Cantera to 1e-10 mole fraction.
  */
 #include "gas.h"
+#include "mqmqa_priv.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -46,7 +47,7 @@ static const struct { const char *name; double tc, pc_bar, omega; } CRIT[] = {
 };
 
 struct gas_db {
-    double R_own;            /* the data's own gas constant (NASA: exact SI) */
+    RInfo R;                 /* the data's own gas constant (NASA: exact SI) */
     int n_sp;
     GasSpecies *sp;
     int n_el;
@@ -56,6 +57,12 @@ struct gas_db {
 static char g_err[160];
 
 const char *mqmqa_gas_error(void) { return g_err; }
+
+double mqmqa_gas_R_own(const gas_db *g) { return g->R.own; }
+double mqmqa_gas_R(const gas_db *g) { return rinfo_value(&g->R); }
+int mqmqa_gas_R_source(const gas_db *g) { return rinfo_source(&g->R); }
+int mqmqa_gas_R_own_source(const gas_db *g) { return g->R.src; }
+const char *mqmqa_gas_R_note(const gas_db *g) { return rinfo_note(&g->R); }
 
 static int el_index(gas_db *g, const char *sym)
 {
@@ -103,7 +110,8 @@ gas_db *mqmqa_gas_read_string(const char *text)
 {
     g_err[0] = '\0';
     gas_db *g = calloc(1, sizeof *g);
-    if (g) g->R_own = mqmqa_gas_constant_choice(MQMQA_R_SI);
+    if (g) rinfo_detect(&g->R, "NASA gas data", mqmqa_gas_constant_choice(MQMQA_R_SI), 0, 0.0,
+                        NULL, 0);
     if (!g) { snprintf(g_err, sizeof g_err, "out of memory"); return NULL; }
     g->el = calloc(GAS_MAXEL, sizeof *g->el);
     int cap = 64;
@@ -277,7 +285,7 @@ static double cubic_max_root(double c2, double c1, double c0)
 static void pr_fugacity(const gas_db *g, double T, double P, const double *x, double *phi)
 {
     int nsp = g->n_sp;
-    const double GAS_R = mqmqa_gas_constant(g->R_own);
+    const double GAS_R = rinfo_value(&g->R);
     double *ai = malloc((size_t)nsp * sizeof(double));
     double *bi = malloc((size_t)nsp * sizeof(double));
     if (!ai || !bi) { for (int i = 0; i < nsp; ++i) phi[i] = 1.0; free(ai); free(bi); return; }

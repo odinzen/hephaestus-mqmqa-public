@@ -7,7 +7,7 @@ reader uppercases the file to match pycalphad.
 
 import os
 
-from ._abi import _ffi, _lib
+from ._abi import _ffi, _lib, _GasConstantInfo
 
 
 def _s(ptr):
@@ -39,7 +39,10 @@ def _save(text, path):
     return text
 
 
-class Database:
+class Database(_GasConstantInfo):
+    _R_fns = (_lib.mqmqa_db_R_own, _lib.mqmqa_db_R, _lib.mqmqa_db_R_source,
+              _lib.mqmqa_db_R_own_source, _lib.mqmqa_db_R_note)
+
     def __init__(self, handle, source=None):
         if handle == _ffi.NULL:
             raise OSError(f"failed to read ChemSage database: {_s(_lib.mqmqa_db_error())}")
@@ -59,17 +62,6 @@ class Database:
         if db is not None and db != _ffi.NULL:
             _lib.mqmqa_db_free(db)
             self._db = _ffi.NULL
-
-    @property
-    def own_gas_constant(self):
-        """This database's own gas constant, what its calculations use unless a mode
-        forces another (mqmqa.set_gas_constant)."""
-        return _lib.mqmqa_db_R_own(self._db)
-
-    @property
-    def gas_constant(self):
-        """The gas constant this database's calculations use now."""
-        return _lib.mqmqa_gas_constant(_lib.mqmqa_db_R_own(self._db))
 
     # --- header ---
     @property

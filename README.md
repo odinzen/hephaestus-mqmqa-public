@@ -85,6 +85,22 @@ calculation (`mqmqa.set_gas_constant`, `mqmqa_set_gas_constant` in C):
 The setting affects calculations only. Building a database (`dbbuild`) and writing one
 never depend on it.
 
+Each loaded database reports its own R and where it came from (`Database.gas_constant`,
+`gas_constant_source`, `gas_constant_note`, the same on `XTDB`; `mqmqa_db_R*`,
+`xtdb_R*`, `mqmqa_gas_R*` in C):
+
+- read from file: a TDB `FUNCTION R` (which also replaces the built-in `R#`), an XTDB
+  `TPfun R`, or the gas-constant line in the title of a `.dat` Hephaestus wrote;
+- inferred from constants in the file: R is not stated, but the expressions use one
+  gas-constant literal (8.314...) throughout. Literals that disagree are not guessed
+  between; the convention applies and the note lists them. Comments never count;
+- format convention, not stated in file: 8.3145 for `.dat`, `.tdb` and `.utdb`, 8.31451
+  for `.xtdb`, 8.314462618 for the NASA gas data. A `.tdb` that uses `R#` without defining
+  it keeps the built-in 8.31451 there, as it always has;
+- user override: a forced mode is active; the database's own value is kept and shown.
+
+Databases loaded together each keep their own value.
+
 ## Converting databases
 
 Any database Hephaestus has loaded can be saved in another format. In Python,

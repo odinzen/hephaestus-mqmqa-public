@@ -7,6 +7,8 @@
  * so a written file carries what the source said (limits, reference states,
  * provenance) instead of invented defaults. */
 
+#include "mqmqa_priv.h"   /* RInfo */
+
 #define NAME_MAX 64
 #define MAX_COEFFS 16
 
@@ -135,7 +137,7 @@ typedef struct Db {
      * with no trace. */
     char lossy[256];
     /* gas constant */
-    double R_own;               /* the database's own R, what as-assessed calculations use */
+    RInfo R;                    /* the database's own R and where it came from */
     int R_ref;                  /* TDB expressions reference the function R (R#) */
     double R_force;             /* value R# was forced to when the expressions were read,
                                  * NAN when the file's own (or the built-in) R stood */

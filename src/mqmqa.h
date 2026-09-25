@@ -50,6 +50,23 @@ MQMQA_API double mqmqa_gas_constant_choice(int choice);
  * as-assessed mode, the forced value otherwise. */
 MQMQA_API double mqmqa_gas_constant(double own);
 
+/* Where a loaded database's R comes from. Each database (mqmqa_db_R_*, xtdb_R_*,
+ * mqmqa_gas_R_*) reports its value and source:
+ *   FILE        the file states R (a TDB FUNCTION R, an XTDB TPfun R, the gas-constant
+ *               line a Hephaestus-written .dat carries in its title);
+ *   INFERRED    R is not stated, but the expressions use one gas-constant literal
+ *               (8.314...) consistently;
+ *   CONVENTION  neither: the value the engine has always used for that format;
+ *   DECLARED    the user declared the value for a database that does not state it;
+ *   OVERRIDE    a forced mode is active and overrides the database's own value. */
+enum {
+    MQMQA_R_SRC_FILE = 0,
+    MQMQA_R_SRC_INFERRED = 1,
+    MQMQA_R_SRC_CONVENTION = 2,
+    MQMQA_R_SRC_DECLARED = 3,
+    MQMQA_R_SRC_OVERRIDE = 4
+};
+
 /* The R the condensed engine uses for data on the CALPHAD convention (8.3145 unless a
  * forced mode says otherwise). */
 MQMQA_API double mqmqa_R(void);

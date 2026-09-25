@@ -23,6 +23,7 @@
 #include "xtdb.h"
 #include "cs_dat.h"      /* the writers hand TDB text to the TDB reader and .dat writer */
 #include "textbuf.h"
+#include "mqmqa_priv.h"
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
@@ -62,11 +63,11 @@ struct xtdb_db {
     XPhase ph[XCAP]; int nph;
     /* first content read past without modeling; the writers refuse such a database */
     char lossy[256];
-    double R_own;                        /* the database's own gas constant */
+    RInfo R;                             /* the database's own gas constant */
 };
 
 /* the R a calculation on this database uses */
-static double xr(const struct xtdb_db *db) { return mqmqa_gas_constant(db->R_own); }
+static double xr(const struct xtdb_db *db) { return rinfo_value(&db->R); }
 
 static char g_err[256];
 const char *xtdb_error(void) { return g_err; }
@@ -416,7 +417,6 @@ xtdb_db *xtdb_read_string(const char *text) {
     g_err[0] = 0;
     if (!strstr(text, "<XTDB")) { snprintf(g_err, sizeof g_err, "not an XTDB file (<XTDB missing)"); return NULL; }
     xtdb_db *db = calloc(1, sizeof *db);
-    if (db) db->R_own = mqmqa_gas_constant_choice(MQMQA_R_SGTE);
     if (!db) { snprintf(g_err, sizeof g_err, "out of memory"); return NULL; }
     const char *b, *gt; char v[XEXPR];
 
@@ -562,8 +562,29 @@ xtdb_db *xtdb_read_string(const char *text) {
         attr_k(db, b, gt, "Text", db->bib_text[db->nbib], XEXPR);
         db->nbib++;
     }
+    {   /* a TPfun R holding one number states R; otherwise literals, then the convention */
+        const TPfun *f = find_tp(db, "R");
+        double v = 0.0;
+        int stated = 0;
+        if (f && f->nr == 1) {
+            char *end;
+            v = strtod(f->expr[0], &end);
+            while (isspace((unsigned char)*end) || *end == ';') end++;
+            stated = end != f->expr[0] && *end == '\0';
+        }
+        rinfo_detect(&db->R, ".xtdb files", mqmqa_gas_constant_choice(MQMQA_R_SGTE), stated, v,
+                     text, 2);
+        if (f && !stated)
+            snprintf(db->R.detail, sizeof db->R.detail, "its TPfun R is not a single number");
+    }
     return db;
 }
+
+double xtdb_R_own(const xtdb_db *db) { return db->R.own; }
+double xtdb_R(const xtdb_db *db) { return rinfo_value(&db->R); }
+int xtdb_R_source(const xtdb_db *db) { return rinfo_source(&db->R); }
+int xtdb_R_own_source(const xtdb_db *db) { return db->R.src; }
+const char *xtdb_R_note(const xtdb_db *db) { return rinfo_note(&db->R); }
 
 void xtdb_free(xtdb_db *db) { free(db); }
 int xtdb_n_phases(const xtdb_db *db) { return db->nph; }

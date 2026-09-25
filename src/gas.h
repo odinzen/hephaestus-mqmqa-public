@@ -28,6 +28,15 @@ MQMQA_API gas_db *mqmqa_gas_read_string(const char *text);
 MQMQA_API void mqmqa_gas_free(gas_db *g);
 MQMQA_API const char *mqmqa_gas_error(void);
 
+/* The gas data's R, as for mqmqa_db_R_own and the rest (cs_dat.h). NASA polynomials are
+ * dimensionless and state no R; their convention is the exact SI value. The equilibrium
+ * uses R only in the Peng-Robinson fugacities, where it cancels. */
+MQMQA_API double mqmqa_gas_R_own(const gas_db *g);
+MQMQA_API double mqmqa_gas_R(const gas_db *g);
+MQMQA_API int mqmqa_gas_R_source(const gas_db *g);
+MQMQA_API int mqmqa_gas_R_own_source(const gas_db *g);
+MQMQA_API const char *mqmqa_gas_R_note(const gas_db *g);
+
 MQMQA_API int mqmqa_gas_num_species(const gas_db *g);
 MQMQA_API const char *mqmqa_gas_species_name(const gas_db *g, int i);
 MQMQA_API int mqmqa_gas_num_elements(const gas_db *g);

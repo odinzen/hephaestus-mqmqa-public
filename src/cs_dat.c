@@ -710,6 +710,26 @@ static void tdb_leading_comments(const char *p, char *out, size_t cap);
 /* The value R# is forced to while a TDB text is read, NAN to leave the file's own
  * FUNCTION R (or the built-in) standing. */
 static _Thread_local double g_parse_R_force = NAN;
+/* What the TDB reader saw of R: whether the file defines FUNCTION R (1 a constant, whose
+ * value follows; 2 anything else), and whether it holds uTDB statements. */
+static _Thread_local int g_tdb_R_stated;
+static _Thread_local double g_tdb_R_value;
+static _Thread_local int g_tdb_unified;
+
+/* A Hephaestus-written .dat states R in its title line, the only free text the format
+ * has: "... Gas constant R = 8.3145 ...". */
+static int title_R(const char *title, double *v)
+{
+    char up[1024];
+    size_t i = 0;
+    for (; title[i] && i < sizeof up - 1; ++i) up[i] = (char)toupper((unsigned char)title[i]);
+    up[i] = '\0';
+    const char *p = strstr(up, "GAS CONSTANT R =");
+    if (!p) return 0;
+    char *end;
+    *v = strtod(p + 16, &end);
+    return end != p + 16 && *v > 0.0;
+}
 
 /* The text refers to the function R (R# in TDB syntax), case-insensitively. */
 static int refs_R(const char *t)
@@ -737,6 +757,11 @@ static Db *read_from_text(char *text_owned)
         title[n] = '\0';
     }
     tdb_leading_comments(text_owned, head, sizeof head);
+    /* literals are read before the parse consumes the text; FUNCTION R, which wins over
+     * them, is known after it */
+    RInfo inferred;
+    rinfo_detect(&inferred, ".tdb files", mqmqa_gas_constant_choice(MQMQA_R_CALPHAD), 0, 0.0,
+                 text_owned, 1);
 
     /* Uppercase in place, matching pycalphad's reader so species names align. */
     for (char *p = text_owned; *p; ++p) *p = (char)toupper((unsigned char)*p);
@@ -745,7 +770,13 @@ static Db *read_from_text(char *text_owned)
         Db *tdb = read_tdb(text_owned);
         if (tdb) {
             snprintf(tdb->title, sizeof tdb->title, "%s", head);
-            tdb->R_own = mqmqa_gas_constant_choice(MQMQA_R_CALPHAD);
+            if (g_tdb_R_stated == 1)
+                rinfo_detect(&tdb->R, ".tdb files", 0.0, 1, g_tdb_R_value, NULL, 0);
+            else
+                tdb->R = inferred;
+            if (g_tdb_unified) snprintf(tdb->R.format, sizeof tdb->R.format, ".utdb files");
+            if (g_tdb_R_stated == 2)
+                snprintf(tdb->R.detail, sizeof tdb->R.detail, "its FUNCTION R is not a constant");
             tdb->R_force = g_parse_R_force;
         }
         return tdb;
@@ -767,7 +798,12 @@ static Db *read_from_text(char *text_owned)
     if (setjmp(lx.jb) == 0) {
         db = parse_db(&lx);
         snprintf(db->title, sizeof db->title, "%s", title);
-        db->R_own = mqmqa_gas_constant_choice(MQMQA_R_CALPHAD);
+        {
+            double v = 0.0;
+            const int stated = title_R(title, &v);
+            rinfo_detect(&db->R, ".dat files", mqmqa_gas_constant_choice(MQMQA_R_CALPHAD), stated, v,
+                         NULL, 0);
+        }
         db->R_force = NAN;
         snprintf(db->lossy, sizeof db->lossy, "%s", lx.lossy);
         g_error[0] = '\0';
@@ -779,12 +815,22 @@ static Db *read_from_text(char *text_owned)
     return db;
 }
 
-/* The value R# must take in database d: forced by the mode, or left to the file. */
-static double wanted_R_force(void)
+/* The value R# must take in database d when its own R is used: a declared or inferred
+ * value, or NAN to leave the file's FUNCTION R (or the built-in) standing. */
+static double own_R_force(const Db *d)
+{
+    return (d->R.src == MQMQA_R_SRC_DECLARED || d->R.src == MQMQA_R_SRC_INFERRED)
+           ? d->R.own : NAN;
+}
+
+/* The value R# must take now: forced by the mode, else the database's own. */
+static double wanted_R_force(const Db *d)
 {
     const int mode = mqmqa_gas_constant_mode();
-    return mode == MQMQA_R_AS_ASSESSED ? NAN : mqmqa_gas_constant_choice(mode);
+    return mode == MQMQA_R_AS_ASSESSED ? own_R_force(d) : mqmqa_gas_constant_choice(mode);
 }
+
+static void db_reread(Db *d);
 
 static int same_force(double a, double b)
 {
@@ -811,8 +857,19 @@ static Db *read_owned(char *text_owned, double force)
 
 static Db *read_public(char *text_owned)
 {
-    Db *db = read_owned(text_owned, wanted_R_force());
-    if (db && db->R_ref) { db->next_live = g_live; g_live = db; }
+    const int mode = mqmqa_gas_constant_mode();
+    Db *db = read_owned(text_owned, mode == MQMQA_R_AS_ASSESSED
+                                    ? NAN : mqmqa_gas_constant_choice(mode));
+    if (db && db->R_ref) {
+        db->next_live = g_live;
+        g_live = db;
+        if (db->R.src == MQMQA_R_SRC_CONVENTION) {
+            size_t m = strlen(db->R.detail);
+            snprintf(db->R.detail + m, sizeof db->R.detail - m, "%sR# in its expressions is the "
+                     "built-in %.10g", m ? "; " : "", mqmqa_gas_constant_choice(MQMQA_R_SGTE));
+        }
+        db_reread(db);        /* an inferred R also sets R# */
+    }
     return db;
 }
 
@@ -820,7 +877,7 @@ static Db *read_public(char *text_owned)
  * valid, while strings the accessors returned before are released. */
 static void db_reread(Db *d)
 {
-    const double force = wanted_R_force();
+    const double force = wanted_R_force(d);
     if (!d->R_ref || same_force(force, d->R_force)) return;
     char *copy = malloc(strlen(d->src_text) + 1);
     if (!copy) return;
@@ -834,17 +891,18 @@ static void db_reread(Db *d)
     free(fresh);
     d->src_text = keep.src_text;
     d->next_live = keep.next_live;
-    d->R_own = keep.R_own;
+    d->R = keep.R;
 }
 
 Db *mqmqa_db_own_reading(const Db *d)
 {
-    if (!d->R_ref || isnan(d->R_force)) return NULL;
+    const double force = own_R_force(d);
+    if (!d->R_ref || same_force(force, d->R_force)) return NULL;
     char *copy = malloc(strlen(d->src_text) + 1);
     if (!copy) return NULL;
     strcpy(copy, d->src_text);
-    Db *own = read_owned(copy, NAN);
-    if (own) own->R_own = d->R_own;
+    Db *own = read_owned(copy, force);
+    if (own) own->R = d->R;
     return own;
 }
 
@@ -882,7 +940,11 @@ void mqmqa_db_free(mqmqa_db *db) { free_db((Db *)db); }
 
 const char *mqmqa_db_error(void) { return g_error; }
 
-double mqmqa_db_R_own(const mqmqa_db *db) { return ((const Db *)db)->R_own; }
+double mqmqa_db_R_own(const mqmqa_db *db) { return ((const Db *)db)->R.own; }
+double mqmqa_db_R(const mqmqa_db *db) { return rinfo_value(&((const Db *)db)->R); }
+int mqmqa_db_R_source(const mqmqa_db *db) { return rinfo_source(&((const Db *)db)->R); }
+int mqmqa_db_R_own_source(const mqmqa_db *db) { return ((const Db *)db)->R.src; }
+const char *mqmqa_db_R_note(const mqmqa_db *db) { return rinfo_note(&((const Db *)db)->R); }
 
 /* ------------------------------------------------------------------ *
  * Accessors
@@ -1112,7 +1174,7 @@ double mqmqa_ph_cef_gibbs(const mqmqa_db *db, int p, const double *Y, double T,
         T, cf->n_subl, cf->site_ratio, cf->subl_ncon, cf->subl_off, Y, cf->con_atoms,
         cf->n_em, cf->em_con, em_G,
         n_ex, ex_subl, ex_i, ex_j, ex_order, ex_L, ex_other,
-        0, d->R_own);
+        0, d->R.own);
 
     /* Inden-Hillert-Jarl magnetic contribution, per mole of formula: TC(Y) and
      * beta(Y) mix exactly like the excess terms, then G_mag = R T ln(1+beta) f(tau). */
@@ -1154,7 +1216,7 @@ double mqmqa_ph_cef_gibbs(const mqmqa_db *db, int p, const double *Y, double T,
                       * (pow(tau, 3) / 6.0 + pow(tau, 9) / 135.0 + pow(tau, 15) / 600.0)) / A;
             else
                 f = -(pow(tau, -5) / 10.0 + pow(tau, -15) / 315.0 + pow(tau, -25) / 1500.0) / A;
-            g += mqmqa_gas_constant(d->R_own) * T * log(B + 1.0) * f;
+            g += rinfo_value(&d->R) * T * log(B + 1.0) * f;
         }
     }
 
@@ -1420,6 +1482,19 @@ static void tdb_func_segs(Tdb *tb, int fi)
     if (tb->func[fi].seg) return;
     tb->func[fi].seg = calloc(TDB_MAX_SEG, sizeof(TdbSeg));
     if (!tb->func[fi].seg) tdb_fail(tb, "out of memory");
+}
+
+/* the function as written is one constant at every temperature */
+static int tdb_segs_const(const TdbFunc *f, double *v)
+{
+    if (f->n_seg < 1) return 0;
+    for (int k = 0; k < f->n_seg; ++k) {
+        const TdbTerm *t = &f->seg[k].t[0];
+        if (f->seg[k].n != 1 || t->kind != 0 || t->power != 0.0 || t->func >= 0) return 0;
+        if (k == 0) *v = t->c;
+        else if (t->c != *v) return 0;
+    }
+    return 1;
 }
 
 /* function fi becomes the constant v at every temperature */
@@ -2347,6 +2422,8 @@ static void tdb_leading_comments(const char *p, char *out, size_t cap)
 
 static Db *read_tdb(char *text_owned)
 {
+    g_tdb_R_stated = 0;
+    g_tdb_unified = 0;
     Lexer lx;
     Tdb tb;
     Db *db = NULL;
@@ -2471,8 +2548,10 @@ static Db *read_tdb(char *text_owned)
                 tdb_func_segs(&tb, fi);
                 tb.func[fi].n_seg = tdb_parse_piecewise(&tb, &s, tb.func[fi].seg, TDB_MAX_SEG);
                 tb.func[fi].state = 0;
-                if (!strcmp(name, "R") && !isnan(g_parse_R_force))
-                    tdb_func_set_const(&tb, fi, g_parse_R_force);
+                if (!strcmp(name, "R")) {
+                    g_tdb_R_stated = tdb_segs_const(&tb.func[fi], &g_tdb_R_value) ? 1 : 2;
+                    if (!isnan(g_parse_R_force)) tdb_func_set_const(&tb, fi, g_parse_R_force);
+                }
             } else if (strncmp(kw, "TYPE_DEF", 8) == 0) {
                 char ch[NAME_MAX];
                 if (!tdb_word(&s, ch, sizeof ch)) continue;
@@ -2737,6 +2816,7 @@ static Db *read_tdb(char *text_owned)
         }
         db = tdb_build_db(&tb);
         snprintf(db->lossy, sizeof db->lossy, "%s", lx.lossy);
+        g_tdb_unified = tb.n_mq > 0;
         g_error[0] = '\0';
     } else {
         snprintf(g_error, sizeof g_error, "%s", lx.err);

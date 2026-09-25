@@ -21,6 +21,15 @@ MQMQA_API const char *xtdb_element(const xtdb_db *db, int i);
 MQMQA_API int xtdb_n_phases(const xtdb_db *db);
 MQMQA_API const char *xtdb_phase(const xtdb_db *db, int p);
 
+/* The database's gas constant, as for mqmqa_db_R_own and the rest (cs_dat.h): stated
+ * by a TPfun R holding one number, else inferred from its expressions' literals, else
+ * the XTDB convention 8.31451. */
+MQMQA_API double xtdb_R_own(const xtdb_db *db);
+MQMQA_API double xtdb_R(const xtdb_db *db);
+MQMQA_API int xtdb_R_source(const xtdb_db *db);
+MQMQA_API int xtdb_R_own_source(const xtdb_db *db);
+MQMQA_API const char *xtdb_R_note(const xtdb_db *db);
+
 /* Third-generation endmember Gibbs energy (J/mol-formula) for a phase and a colon-separated
  * constituent set (e.g. "AL:VA"), including the Einstein GEIN(theta) term and, for a two-state
  * phase, the -R T ln(1+exp(-GD/RT)) contribution. Sets *ok to 0 on an expression error. */

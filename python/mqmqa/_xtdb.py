@@ -8,11 +8,14 @@ database does not hold, so an .xtdb file is read here rather than by Database.
 import math
 import os
 
-from ._abi import _ffi, _lib
+from ._abi import _ffi, _lib, _GasConstantInfo
 from ._database import _s, _save, _take_text
 
 
-class XTDB:
+class XTDB(_GasConstantInfo):
+    _R_fns = (_lib.xtdb_R_own, _lib.xtdb_R, _lib.xtdb_R_source, _lib.xtdb_R_own_source,
+              _lib.xtdb_R_note)
+
     def __init__(self, handle, source=None):
         if handle == _ffi.NULL:
             raise OSError(f"failed to read XTDB database: {_s(_lib.xtdb_error())}")

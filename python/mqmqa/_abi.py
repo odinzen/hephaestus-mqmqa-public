@@ -84,6 +84,20 @@ _ffi.cdef(
         const double *target_elem, double *X_out, double *err_out);
 
     double mqmqa_db_R_own(const void *db);
+    double mqmqa_db_R(const void *db);
+    int mqmqa_db_R_source(const void *db);
+    int mqmqa_db_R_own_source(const void *db);
+    const char *mqmqa_db_R_note(const void *db);
+    double xtdb_R_own(const void *db);
+    double xtdb_R(const void *db);
+    int xtdb_R_source(const void *db);
+    int xtdb_R_own_source(const void *db);
+    const char *xtdb_R_note(const void *db);
+    double mqmqa_gas_R_own(const void *g);
+    double mqmqa_gas_R(const void *g);
+    int mqmqa_gas_R_source(const void *g);
+    int mqmqa_gas_R_own_source(const void *g);
+    const char *mqmqa_gas_R_note(const void *g);
     void *mqmqa_db_read_file(const char *path);
     void *mqmqa_db_read_string(const char *text);
     void mqmqa_db_free(void *db);
@@ -206,6 +220,39 @@ ideal_entropy_binary = _lib.mqmqa_ideal_entropy_binary
 
 # Gas-constant modes, in the order of the C enum (MQMQA_R_AS_ASSESSED ...).
 GAS_CONSTANT_MODES = ("as_assessed", "calphad", "sgte", "si")
+
+# Where a database's R comes from, in the order of the C enum (MQMQA_R_SRC_FILE ...).
+GAS_CONSTANT_SOURCES = ("read from file", "inferred from constants in the file",
+                        "format convention, not stated in file", "declared by user",
+                        "user override")
+
+
+class _GasConstantInfo:
+    """R properties shared by the database handles; _R_fns names the C accessors."""
+
+    @property
+    def own_gas_constant(self):
+        """This database's own R, what its calculations use unless a mode forces another."""
+        return self._R_fns[0](self._db)
+
+    @property
+    def gas_constant(self):
+        """The R this database's calculations use now."""
+        return self._R_fns[1](self._db)
+
+    @property
+    def gas_constant_source(self):
+        """Where the R in use comes from ("user override" while a mode is forced)."""
+        return GAS_CONSTANT_SOURCES[self._R_fns[2](self._db)]
+
+    @property
+    def own_gas_constant_source(self):
+        return GAS_CONSTANT_SOURCES[self._R_fns[3](self._db)]
+
+    @property
+    def gas_constant_note(self):
+        """One line for the user: the R in use and where it comes from."""
+        return _ffi.string(self._R_fns[4](self._db)).decode()
 
 
 def set_gas_constant(mode):

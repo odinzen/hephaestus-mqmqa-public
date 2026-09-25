@@ -40,6 +40,13 @@ MQMQA_API const char *mqmqa_db_error(void);
 /* The database's own gas constant, the value its calculations use in the as-assessed
  * mode; pass it as R_own to the array-level energy routines. */
 MQMQA_API double mqmqa_db_R_own(const mqmqa_db *db);
+/* The R its calculations use now (the mode applied), and where it comes from
+ * (MQMQA_R_SRC_*, OVERRIDE while a mode is forced); the source of the own value; and a
+ * one-line note for the user (per-thread buffer, overwritten by the next note). */
+MQMQA_API double mqmqa_db_R(const mqmqa_db *db);
+MQMQA_API int mqmqa_db_R_source(const mqmqa_db *db);
+MQMQA_API int mqmqa_db_R_own_source(const mqmqa_db *db);
+MQMQA_API const char *mqmqa_db_R_note(const mqmqa_db *db);
 
 /* --- Header --- */
 MQMQA_API int mqmqa_db_num_elements(const mqmqa_db *db);

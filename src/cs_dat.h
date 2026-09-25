@@ -34,7 +34,7 @@ MQMQA_API mqmqa_db *mqmqa_db_read_file(const char *path);
 MQMQA_API mqmqa_db *mqmqa_db_read_string(const char *text);
 MQMQA_API void mqmqa_db_free(mqmqa_db *db);
 
-/* Human-readable message for the most recent read failure on this thread. */
+/* Human-readable message for the most recent read failure. */
 MQMQA_API const char *mqmqa_db_error(void);
 
 /* --- Header --- */

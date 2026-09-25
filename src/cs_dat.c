@@ -145,7 +145,10 @@ typedef struct {
     char err[256];
 } Lexer;
 
-static _Thread_local char g_error[256] = "";
+/* A plain static, not _Thread_local. Linked by lld against the mingw-w64 5.3 CRT, the DLL's
+ * TLS directory covers only 8 bytes of .tls, so thread-local writes went past an 8-byte heap
+ * block and corrupted the heap. */
+static char g_error[256] = "";
 
 static void lex_fail(Lexer *lx, const char *what)
 {

@@ -22,6 +22,7 @@
  */
 #include "xtdb.h"
 #include "cs_dat.h"      /* the writers hand TDB text to the TDB reader and .dat writer */
+#include "fmtbuf.h"
 #include "textbuf.h"
 #include "mqmqa_priv.h"
 #include <stdarg.h>
@@ -34,6 +35,7 @@
 #define XCAP 256                   /* generous fixed caps; XTDB files are small */
 #define XNAME 64
 #define XEXPR 512
+#define XCONS (8 * XNAME)          /* an endmember key: one name per sublattice, colons */
 
 /* Attribute text the engine does not evaluate (limits, reference states, references) is
  * kept verbatim so a written file carries it unchanged. */
@@ -74,7 +76,8 @@ const char *xtdb_error(void) { return g_err; }
 
 /* ---- tiny XML helpers: find tags and read attributes ---------------------------------- */
 
-/* copy the value of attribute `name` inside tag body [b,e) into out; return 1 if found */
+/* copy the value of attribute `name` inside tag body [b,e) into out; return 1 if found,
+ * -1 if found but longer than cap - 1 (out then holds the prefix that fits) */
 static int attr(const char *b, const char *e, const char *name, char *out, int cap) {
     size_t nl = strlen(name);
     for (const char *p = b; p + nl + 1 < e; ++p) {
@@ -88,9 +91,10 @@ static int attr(const char *b, const char *e, const char *name, char *out, int c
             q++;
             const char *r = q;
             while (r < e && *r != '"') r++;
-            int n = (int)(r - q); if (n >= cap) n = cap - 1;
+            int n = (int)(r - q), cut = n >= cap;
+            if (cut) n = cap - 1;
             memcpy(out, q, n); out[n] = 0;
-            return 1;
+            return cut ? -1 : 1;
         }
     }
     return 0;
@@ -138,6 +142,7 @@ static double ev_atom(Ev *e) {
         char id[XNAME]; int n = 0;
         while ((isalnum((unsigned char)*e->p) || *e->p == '_') && n < XNAME - 1) id[n++] = *e->p++;
         id[n] = 0;
+        if (isalnum((unsigned char)*e->p) || *e->p == '_') { e->err = 1; return 0.0; }
         ev_ws(e);
         if (*e->p == '(') {           /* function call: LN, EXP, GEIN */
             e->p++; double a = ev_expr(e); ev_ws(e); if (*e->p == ')') e->p++; else e->err = 1;
@@ -230,7 +235,8 @@ static const XPhase *find_phase(const struct xtdb_db *db, const char *name) {
 static double natoms_of(const struct xtdb_db *db, const char *phase, const char *cons) {
     const XPhase *ph = find_phase(db, phase);
     if (!ph) return 1.0;
-    char buf[XNAME]; strncpy(buf, cons, XNAME - 1); buf[XNAME - 1] = 0;
+    char buf[XCONS];
+    if (fmt_to(buf, sizeof buf, "%s", cons)) return 1.0;
     double n = 0.0; int s = 0;
     for (char *t = strtok(buf, ":"); t && s < ph->nsubl; t = strtok(NULL, ":"), ++s)
         if (strcmp(t, "VA") != 0) n += ph->mult[s];
@@ -330,11 +336,10 @@ double xtdb_phase_gibbs(const struct xtdb_db *db, int pidx, const char *B, doubl
     double ref = 0.0;
     int idx[8] = {0};
     for (;;) {
-        double prod = 1.0; char cs[XNAME] = {0};
+        double prod = 1.0; char cs[XCONS] = {0};
         for (int s = 0; s < ph->nsubl; ++s) {
             prod *= Y[s][idx[s]];
-            if (s) strncat(cs, ":", XNAME - strlen(cs) - 1);
-            strncat(cs, ph->con[s][idx[s]], XNAME - strlen(cs) - 1);
+            fmt_cat(cs, sizeof cs, "%s%s", s ? ":" : "", ph->con[s][idx[s]]);
         }
         if (prod > 0.0) ref += prod * endmember_am(db, ph->id, cs, T, &err);
         int s = ph->nsubl - 1;
@@ -400,17 +405,35 @@ static void note_lossy(struct xtdb_db *db, const char *fmt, ...) {
     va_list ap;
     if (db->lossy[0]) return;
     va_start(ap, fmt);
-    vsnprintf(db->lossy, sizeof db->lossy, fmt, ap);
+    fmt_vmsg(db->lossy, sizeof db->lossy, fmt, ap);
     va_end(ap);
 }
 
-/* attr(), noting a value too long for its buffer: the engine would use a truncated copy */
+/* attr() for text the engine only carries, noting a value too long for its buffer so the
+ * writers refuse to pass on the cut copy */
 static int attr_k(struct xtdb_db *db, const char *b, const char *e, const char *name,
                   char *out, int cap) {
     int r = attr(b, e, name, out, cap);
-    if (r && (int)strlen(out) >= cap - 1)
-        note_lossy(db, "a %s attribute longer than %d characters", name, cap - 2);
-    return r;
+    if (r < 0) note_lossy(db, "a %s attribute longer than %d characters", name, cap - 1);
+    return r != 0;
+}
+
+/* attr() for a value the engine evaluates or matches by name, which must arrive whole: a
+ * cut expression is another expression and a cut name can match another. A value too long
+ * fails the read (g_err, checked when the file is done). */
+static int attr_req(const char *b, const char *e, const char *tag, const char *name,
+                    char *out, int cap) {
+    int r = attr(b, e, name, out, cap);
+    if (r < 0 && !g_err[0])
+        fmt_msg(g_err, sizeof g_err, "the %s attribute of a %s, %.40s..., is longer than %d "
+                "characters", name, tag, out, cap - 1);
+    return r != 0;
+}
+
+static void name_too_long(const char *what, const char *s, size_t len) {
+    if (!g_err[0])
+        fmt_msg(g_err, sizeof g_err, "the %s %.*s%s is longer than %d characters", what,
+                (int)(len < 40 ? len : 40), s, len > 40 ? "..." : "", XNAME - 1);
 }
 
 xtdb_db *xtdb_read_string(const char *text) {
@@ -423,7 +446,7 @@ xtdb_db *xtdb_read_string(const char *text) {
     if (find_tag(text, "XTDB", &b, &gt)) {
         const char *c0 = strstr(gt, "<!--"), *c1 = c0 ? strstr(c0 + 4, "-->") : NULL;
         const char *first = strchr(gt + 1, '<');
-        attr(b, gt, "version", db->version, XNAME);
+        attr_k(db, b, gt, "version", db->version, XNAME);
         if (c0 && c1 && c0 == first) {       /* a comment opening the file body */
             size_t n = (size_t)(c1 - (c0 + 4));
             if (n >= sizeof db->note) n = sizeof db->note - 1;
@@ -432,23 +455,22 @@ xtdb_db *xtdb_read_string(const char *text) {
         }
     }
     if (find_tag(text, "Defaults", &b, &gt)) {
-        attr(b, gt, "LowT", db->def_lo, XNAME);
-        attr(b, gt, "HighT", db->def_hi, XNAME);
-        attr(b, gt, "Elements", db->def_el, XNAME);
+        attr_k(db, b, gt, "LowT", db->def_lo, XNAME);
+        attr_k(db, b, gt, "HighT", db->def_hi, XNAME);
+        attr_k(db, b, gt, "Elements", db->def_el, XNAME);
     }
 
     for (const char *p = find_tag(text, "Element", &b, &gt); p; p = find_tag(gt, "Element", &b, &gt)) {
         if (db->nelem >= XCAP) { note_lossy(db, "more than %d elements", XCAP); break; }
-        if (attr_k(db, b, gt, "Id", v, XNAME)) {
+        if (attr_req(b, gt, "Element", "Id", db->elem[db->nelem], XNAME)) {
             static const char *names[4] = { "Refstate", "Mass", "H298", "S298" };
-            strncpy(db->elem[db->nelem], v, XNAME - 1);
             for (int k = 0; k < 4; ++k) attr_k(db, b, gt, names[k], db->el_attr[db->nelem][k], XNAME);
             db->nelem++;
         }
     }
     for (const char *p = find_tag(text, "Species", &b, &gt); p; p = find_tag(gt, "Species", &b, &gt)) {
         if (db->nsp >= XCAP) { note_lossy(db, "more than %d species", XCAP); break; }
-        if (attr_k(db, b, gt, "Id", db->sp_id[db->nsp], XNAME)) {
+        if (attr_req(b, gt, "Species", "Id", db->sp_id[db->nsp], XNAME)) {
             attr_k(db, b, gt, "Stoichiometry", db->sp_st[db->nsp], XNAME);
             db->nsp++;
         }
@@ -458,10 +480,11 @@ xtdb_db *xtdb_read_string(const char *text) {
         if (db->ntp >= XCAP) { note_lossy(db, "more than %d TPfun functions", XCAP); break; }
         TPfun *f = &db->tp[db->ntp++];
         memset(f, 0, sizeof *f);
-        attr_k(db, b, gt, "Id", f->id, XNAME);
-        attr_k(db, b, gt, "Expr", f->expr[0], XEXPR);
-        attr(b, gt, "LowT", f->lo_s, XNAME);
-        if (attr(b, gt, "HighT", f->hi_s[0], XNAME)) f->hiT[0] = atof(f->hi_s[0]); else f->hiT[0] = 1e30;
+        attr_req(b, gt, "TPfun", "Id", f->id, XNAME);
+        attr_req(b, gt, "TPfun", "Expr", f->expr[0], XEXPR);
+        attr_req(b, gt, "TPfun", "LowT", f->lo_s, XNAME);
+        if (attr_req(b, gt, "TPfun", "HighT", f->hi_s[0], XNAME)) f->hiT[0] = atof(f->hi_s[0]);
+        else f->hiT[0] = 1e30;
         f->nr = 1;
         /* Trange children up to the next '<' that is not a Trange */
         const char *scan = gt + 1;
@@ -473,8 +496,9 @@ xtdb_db *xtdb_read_string(const char *text) {
             if (!tr) break;
             if ((nextTop && tr > nextTop) || (nextPar && tr > nextPar)) break;   /* belongs to a later tag */
             if (f->nr < 8) {
-                attr_k(db, tb, tgt, "Expr", f->expr[f->nr], XEXPR);
-                if (attr(tb, tgt, "HighT", f->hi_s[f->nr], XNAME)) f->hiT[f->nr] = atof(f->hi_s[f->nr]);
+                attr_req(tb, tgt, "Trange", "Expr", f->expr[f->nr], XEXPR);
+                if (attr_req(tb, tgt, "Trange", "HighT", f->hi_s[f->nr], XNAME))
+                    f->hiT[f->nr] = atof(f->hi_s[f->nr]);
                 else f->hiT[f->nr] = 1e30;
                 f->nr++;
             } else {
@@ -486,7 +510,7 @@ xtdb_db *xtdb_read_string(const char *text) {
 
     for (const char *p = find_tag(text, "Parameter", &b, &gt); p; p = find_tag(gt, "Parameter", &b, &gt)) {
         if (db->npar >= XCAP) { note_lossy(db, "more than %d parameters", XCAP); break; }
-        char id[XEXPR]; if (!attr_k(db, b, gt, "Id", id, XEXPR)) continue;
+        char id[XEXPR]; if (!attr_req(b, gt, "Parameter", "Id", id, XEXPR)) continue;
         Param *pr = &db->par[db->npar];
         memset(pr, 0, sizeof *pr);
         /* Id = KIND(PHASE,CONS;DEG) */
@@ -494,10 +518,13 @@ xtdb_db *xtdb_read_string(const char *text) {
         const char *semi = comma ? strchr(comma, ';') : NULL, *rp = semi ? strchr(semi, ')') : NULL;
         if (!lp || !comma || !semi || !rp) { note_lossy(db, "an unparsed parameter Id %s", id); continue; }
         int kn = (int)(lp - id); if (kn > 7) kn = 7; memcpy(pr->kind, id, kn); pr->kind[kn] = 0;
-        int pn = (int)(comma - lp - 1); if (pn > XNAME - 1) pn = XNAME - 1; memcpy(pr->phase, lp + 1, pn); pr->phase[pn] = 0;
-        int cn = (int)(semi - comma - 1); if (cn > XNAME - 1) cn = XNAME - 1; memcpy(pr->cons, comma + 1, cn); pr->cons[cn] = 0;
+        int pn = (int)(comma - lp - 1), cn = (int)(semi - comma - 1);
+        if (pn > XNAME - 1) { name_too_long("phase in parameter Id", lp + 1, (size_t)pn); continue; }
+        if (cn > XNAME - 1) { name_too_long("constituent array in parameter Id", comma + 1, (size_t)cn); continue; }
+        memcpy(pr->phase, lp + 1, pn); pr->phase[pn] = 0;
+        memcpy(pr->cons, comma + 1, cn); pr->cons[cn] = 0;
         pr->deg = atoi(semi + 1);
-        if (!attr_k(db, b, gt, "Expr", pr->expr, XEXPR)) continue;
+        if (!attr_req(b, gt, "Parameter", "Expr", pr->expr, XEXPR)) continue;
         snprintf(pr->id, sizeof pr->id, "%s", id);
         attr_k(db, b, gt, "Bibref", pr->bib, XNAME);
         if (strcmp(pr->kind, "G") && strcmp(pr->kind, "LNTH") && strcmp(pr->kind, "GD"))
@@ -515,9 +542,9 @@ xtdb_db *xtdb_read_string(const char *text) {
         if (db->nph >= XCAP) { note_lossy(db, "more than %d phases", XCAP); break; }
         XPhase *ph = &db->ph[db->nph++];
         memset(ph, 0, sizeof *ph);
-        attr_k(db, b, gt, "Id", ph->id, XNAME);
-        attr(b, gt, "Configuration", ph->config, XNAME);
-        attr(b, gt, "State", ph->state, XNAME);
+        attr_req(b, gt, "Phase", "Id", ph->id, XNAME);
+        attr_req(b, gt, "Phase", "Configuration", ph->config, XNAME);
+        attr_k(db, b, gt, "State", ph->state, XNAME);
         if (ph->config[0] && strcmp(ph->config, "CEF"))
             note_lossy(db, "the %s configuration of phase %s", ph->config, ph->id);
         /* phase body ends at </Phase> */
@@ -525,19 +552,21 @@ xtdb_db *xtdb_read_string(const char *text) {
         const char *sb, *sgt;
         const char *sub = find_tag(gt, "Sublattices", &sb, &sgt);
         if (sub && (!pend || sub < pend)) {
-            attr(sb, sgt, "NumberOf", v, XEXPR); ph->nsubl = atoi(v);
+            v[0] = 0;
+            attr_req(sb, sgt, "Sublattices", "NumberOf", v, XEXPR); ph->nsubl = atoi(v);
             if (ph->nsubl > 8) { note_lossy(db, "more than 8 sublattices in %s", ph->id); ph->nsubl = 8; }
-            char mult[XEXPR]; attr(sb, sgt, "Multiplicities", mult, XEXPR);
+            char mult[XEXPR] = ""; attr_req(sb, sgt, "Sublattices", "Multiplicities", mult, XEXPR);
             char *tok = strtok(mult, " "); int s = 0;
             while (tok && s < 8) { ph->mult[s++] = atof(tok); tok = strtok(NULL, " "); }
             const char *cscan = sgt;
             for (const char *cp = find_tag(cscan, "Constituents", &sb, &sgt); cp && (!pend || cp < pend);
                  cp = find_tag(sgt, "Constituents", &sb, &sgt)) {
-                int sl = 0; if (attr(sb, sgt, "Sublattice", v, XEXPR)) sl = atoi(v) - 1;
-                char lst[XEXPR]; attr(sb, sgt, "List", lst, XEXPR);
+                int sl = 0; if (attr_req(sb, sgt, "Constituents", "Sublattice", v, XEXPR)) sl = atoi(v) - 1;
+                char lst[XEXPR] = ""; attr_req(sb, sgt, "Constituents", "List", lst, XEXPR);
                 char *ct = strtok(lst, " "); int ci = 0;
                 while (ct && sl >= 0 && sl < 8) {
-                    if (ci < 8) strncpy(ph->con[sl][ci++], ct, XNAME - 1);
+                    if (strlen(ct) > XNAME - 1) name_too_long("constituent", ct, strlen(ct));
+                    else if (ci < 8) memcpy(ph->con[sl][ci++], ct, strlen(ct) + 1);
                     else note_lossy(db, "more than 8 constituents on a sublattice of %s", ph->id);
                     ct = strtok(NULL, " ");
                 }
@@ -546,8 +575,9 @@ xtdb_db *xtdb_read_string(const char *text) {
         }
         const char *ab, *agt;
         const char *am = find_tag(gt, "AmendPhase", &ab, &agt);
-        if (am && (!pend || am < pend) && attr(ab, agt, "Models", ph->models, XNAME)) {
-            char m[XNAME]; strncpy(m, ph->models, XNAME - 1); m[XNAME - 1] = 0;
+        if (am && (!pend || am < pend) && attr_req(ab, agt, "AmendPhase", "Models", ph->models, XNAME)) {
+            char m[XNAME];
+            memcpy(m, ph->models, sizeof m);
             for (char *t = strtok(m, " "); t; t = strtok(NULL, " ")) {
                 if (!strcmp(t, "LIQ2STATE")) ph->twostate = 1;
                 else if (strcmp(t, "GEIN"))
@@ -577,6 +607,7 @@ xtdb_db *xtdb_read_string(const char *text) {
         if (f && !stated)
             snprintf(db->R.detail, sizeof db->R.detail, "its TPfun R is not a single number");
     }
+    if (g_err[0]) { free(db); return NULL; }   /* a value too long for its field */
     return db;
 }
 
@@ -614,10 +645,11 @@ const char *xtdb_element(const xtdb_db *db, int i) { return (i >= 0 && i < db->n
 #define XLICENSE \
     "Converting a database does not change its license; the license of the source data applies."
 
+static void xfail(const char *fmt, ...) FMT_PRINTF(1, 2);
 static void xfail(const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    vsnprintf(g_err, sizeof g_err, fmt, ap);
+    fmt_vmsg(g_err, sizeof g_err, fmt, ap);
     va_end(ap);
 }
 
@@ -769,8 +801,13 @@ static int tdb_expr(const struct xtdb_db *db, const char *in, TextBuf *out, cons
             p = q;
         } else if (isalpha((unsigned char)*p) || *p == '_') {
             char id[XNAME]; int n = 0;
+            const char *start = p;
             while (p < end && (isalnum((unsigned char)*p) || *p == '_')) { if (n < XNAME - 1) id[n++] = *p; p++; }
             id[n] = 0;
+            if (p - start >= XNAME) {   /* no function has such a name; the TDB reader refuses it */
+                tb_putf(out, "%.*s", (int)(p - start), start);
+                continue;
+            }
             if (!strcmp(id, "GEIN")) { *why = "the third-generation Einstein function GEIN"; return 0; }
             if (!strcmp(id, "EXP")) { *why = "an EXP() term"; return 0; }
             tb_putf(out, "%s", id);
@@ -806,11 +843,9 @@ static int check_against_tdb(const struct xtdb_db *db, const mqmqa_db *d) {
         for (int i = 0; i < mqmqa_db_num_stoich(d); ++i)
             if (upper_eq(mqmqa_db_stoich_name(d, i), ph->id)) st = i;
         for (;;) {
-            char cs[XNAME * 2] = { 0 };
-            for (int s = 0; s < ph->nsubl; ++s) {
-                if (s) strncat(cs, ":", sizeof cs - strlen(cs) - 1);
-                strncat(cs, ph->con[s][pick[s]], sizeof cs - strlen(cs) - 1);
-            }
+            char cs[XCONS] = { 0 };
+            for (int s = 0; s < ph->nsubl; ++s)
+                fmt_cat(cs, sizeof cs, "%s%s", s ? ":" : "", ph->con[s][pick[s]]);
             if (find_param(db, "G", ph->id, cs, 0)) {
                 double atoms_d = 0.0, Y[64] = { 0 };
                 int ny = 0;

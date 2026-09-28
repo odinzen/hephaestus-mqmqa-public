@@ -1,4 +1,5 @@
 #include "mqmqa.h"
+#include "fmtbuf.h"
 #include "mqmqa_priv.h"
 #include <math.h>
 #include <stddef.h>
@@ -92,12 +93,11 @@ void rinfo_detect(RInfo *ri, const char *format, double convention, int stated,
         ri->found_src = MQMQA_R_SRC_CONVENTION;
         if (n > 1) {
             /* disagreeing literals: which one is R cannot be told, so none is guessed */
-            size_t m = (size_t)snprintf(ri->detail, sizeof ri->detail,
-                                        "its constants disagree (");
-            for (int k = 0; k < n && m < sizeof ri->detail; ++k)
-                m += (size_t)snprintf(ri->detail + m, sizeof ri->detail - m, "%s%.10g",
-                                      k ? ", " : "", lit[k]);
-            if (m < sizeof ri->detail) snprintf(ri->detail + m, sizeof ri->detail - m, ")");
+            int cut = fmt_to(ri->detail, sizeof ri->detail, "its constants disagree (");
+            for (int k = 0; k < n; ++k)
+                cut |= fmt_cat(ri->detail, sizeof ri->detail, "%s%.10g", k ? ", " : "", lit[k]);
+            cut |= fmt_cat(ri->detail, sizeof ri->detail, ")");
+            if (cut) fmt_mark_cut(ri->detail, sizeof ri->detail);
         }
     }
     ri->own = ri->found;
@@ -140,14 +140,14 @@ const char *rinfo_note(const RInfo *ri)
     static char buf[512];   /* not _Thread_local, see g_error in cs_dat.c */
     const char *sep = ri->detail[0] ? "; " : "";
     if (g_R_mode != MQMQA_R_AS_ASSESSED)
-        snprintf(buf, sizeof buf, "R = %.10g, the gas-constant setting, overriding this "
-                 "database's own %.10g (%s)", R_CHOICE[g_R_mode], ri->own, own_phrase(ri->src));
+        fmt_msg(buf, sizeof buf, "R = %.10g, the gas-constant setting, overriding this "
+                "database's own %.10g (%s)", R_CHOICE[g_R_mode], ri->own, own_phrase(ri->src));
     else if (ri->src == MQMQA_R_SRC_CONVENTION)
-        snprintf(buf, sizeof buf, "Not stated in the file; using %.10g, the convention for "
-                 "%s%s%s", ri->own, ri->format, sep, ri->detail);
+        fmt_msg(buf, sizeof buf, "Not stated in the file; using %.10g, the convention for "
+                "%s%s%s", ri->own, ri->format, sep, ri->detail);
     else
-        snprintf(buf, sizeof buf, "R = %.10g, %s%s%s", ri->own, own_phrase(ri->src), sep,
-                 ri->detail);
+        fmt_msg(buf, sizeof buf, "R = %.10g, %s%s%s", ri->own, own_phrase(ri->src), sep,
+                ri->detail);
     return buf;
 }
 

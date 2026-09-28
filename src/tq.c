@@ -10,6 +10,7 @@
  */
 #include "tq.h"
 #include "cs_dat.h"
+#include "fmtbuf.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -17,7 +18,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TQ_ELEN 8
+/* holds a whole constituent name (the readers keep 63 characters), so a symbol is never cut */
+#define TQ_ELEN 64
 
 struct tq_ctx {
     mqmqa_db *db;
@@ -70,7 +72,7 @@ int tq_read_string(tq_ctx *c, const char *text)
     if (c->db) { mqmqa_db_free(c->db); c->db = NULL; }
     c->db = mqmqa_db_read_string(text);
     if (!c->db) {
-        snprintf(c->err, sizeof c->err, "%s", mqmqa_db_error());
+        fmt_msg(c->err, sizeof c->err, "%s", mqmqa_db_error());
         return 1;
     }
     c->ncomp = mqmqa_db_num_elements(c->db);
@@ -174,7 +176,7 @@ int tq_compute_equilibrium(tq_ctx *c)
                                          elem_a, elem_b, qa, qb, ssusp, 1,
                                          po, am, 8, &gm);
     free(cefs); free(ssusp);
-    if (m == -3) { snprintf(c->err, sizeof c->err, "%s", mqmqa_db_error()); return 5; }
+    if (m == -3) { fmt_msg(c->err, sizeof c->err, "%s", mqmqa_db_error()); return 5; }
     if (m < 0) { snprintf(c->err, sizeof c->err, "equilibrium failed (%d)", m); return 5; }
 
     free(c->stable_ph); free(c->stable_amt);

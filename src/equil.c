@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define ELEN 8
+#define ELEN NAME_MAX   /* a whole constituent name fits, so a symbol is never cut */
 
 /* leading element symbol of a constituent name (NA+1 -> NA), uppercased */
 static void elem_of(const char *name, char *out)

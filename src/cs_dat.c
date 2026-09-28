@@ -1,6 +1,7 @@
 #include "cs_dat.h"
 #include "cs_dat_priv.h"
 #include "cef.h"
+#include "fmtbuf.h"
 #include "mqmqa_priv.h"
 
 #include <ctype.h>
@@ -61,24 +62,34 @@ void mqmqa_db_set_error(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    vsnprintf(g_error, sizeof g_error, fmt, ap);
+    fmt_vmsg(g_error, sizeof g_error, fmt, ap);
     va_end(ap);
 }
 
 /* Keep the first note only: one named example is enough to refuse a conversion. */
+static void note_lossy(char *dst, size_t cap, const char *fmt, ...) FMT_PRINTF(3, 4);
 static void note_lossy(char *dst, size_t cap, const char *fmt, ...)
 {
     va_list ap;
     if (dst[0]) return;
     va_start(ap, fmt);
-    vsnprintf(dst, cap, fmt, ap);
+    fmt_vmsg(dst, cap, fmt, ap);
     va_end(ap);
 }
 
 static void lex_fail(Lexer *lx, const char *what)
 {
-    snprintf(lx->err, sizeof lx->err, "line %d: %s", lx->line, what);
+    fmt_msg(lx->err, sizeof lx->err, "line %d: %s", lx->line, what);
     longjmp(lx->jb, 1);
+}
+
+/* "name AB...YZ is longer than N characters": a name cut to fit could merge with
+ * another, so a reader refuses it. */
+static void long_name_msg(char *msg, size_t cap, const char *what, const char *s, size_t len,
+                          size_t max)
+{
+    fmt_msg(msg, cap, "%s %.*s%s is longer than %d characters", what,
+            (int)(len < 40 ? len : 40), s, len > 40 ? "..." : "", (int)max);
 }
 
 /* Next whitespace-delimited token, null-terminated in place. NULL only at EOF. */
@@ -156,9 +167,12 @@ static void tok_name(Lexer *lx, char out[NAME_MAX])
 {
     char *t = tok_req(lx);
     size_t n = strlen(t);
-    if (n >= NAME_MAX) n = NAME_MAX - 1;
-    memcpy(out, t, n);
-    out[n] = '\0';
+    if (n >= NAME_MAX) {
+        char msg[128];
+        long_name_msg(msg, sizeof msg, "name", t, n, NAME_MAX - 1);
+        lex_fail(lx, msg);
+    }
+    memcpy(out, t, n + 1);
 }
 
 /* Checked allocation: longjmp on failure rather than returning NULL upward. */
@@ -613,8 +627,8 @@ static Db *parse_db(Lexer *lx)
             }
             parse_subl_phase(lx, db, ph, soln_counts[s]);
         } else {
-            snprintf(lx->err, sizeof lx->err,
-                     "phase type %s is not supported (only SUBQ/SUBG/SUBL)", type);
+            fmt_msg(lx->err, sizeof lx->err,
+                    "phase type %s is not supported (only SUBQ/SUBG/SUBL)", type);
             longjmp(lx->jb, 1);
         }
         db->n_phases++;
@@ -867,11 +881,11 @@ static Db *read_public(char *text_owned)
     if (db && db->R_ref) {
         db->next_live = g_live;
         g_live = db;
-        if (db->R.src == MQMQA_R_SRC_CONVENTION) {
-            size_t m = strlen(db->R.detail);
-            snprintf(db->R.detail + m, sizeof db->R.detail - m, "%sR# in its expressions is the "
-                     "built-in %.10g", m ? "; " : "", mqmqa_gas_constant_choice(MQMQA_R_SGTE));
-        }
+        if (db->R.src == MQMQA_R_SRC_CONVENTION &&
+            fmt_cat(db->R.detail, sizeof db->R.detail, "%sR# in its expressions is the "
+                    "built-in %.10g", db->R.detail[0] ? "; " : "",
+                    mqmqa_gas_constant_choice(MQMQA_R_SGTE)))
+            fmt_mark_cut(db->R.detail, sizeof db->R.detail);
         db_reread(db);        /* an inferred R also sets R# */
     }
     return db;
@@ -1073,10 +1087,10 @@ const char *mqmqa_ph_excess_unsupported(const mqmqa_db *db, int p)
     if (!d || p < 0 || p >= d->n_phases || d->phases[p].kind != 0) return NULL;
     const Phase *ph = &d->phases[p];
     if (ph->n_group_override) {
-        snprintf(g_xs_msg, sizeof g_xs_msg,
-                 "phase %s carries chemical-group override strings, which change the "
-                 "mixed chemical-group excess interpolation; mixed chemical groups are "
-                 "not supported, so its energy is not computed", ph->name);
+        fmt_msg(g_xs_msg, sizeof g_xs_msg,
+                "phase %s carries chemical-group override strings, which change the "
+                "mixed chemical-group excess interpolation; mixed chemical groups are "
+                "not supported, so its energy is not computed", ph->name);
         return g_xs_msg;
     }
     for (int k = 0; k < ph->n_mqmx; ++k) {
@@ -1101,10 +1115,10 @@ const char *mqmqa_ph_excess_unsupported(const mqmqa_db *db, int p)
                            "not supported there" :
             "mixes species that the file assigns to different chemical groups in a phase "
             "with more than one anion; mixed chemical groups are not supported there";
-        snprintf(g_xs_msg, sizeof g_xs_msg,
-                 "phase %s: the %c excess term between %s and %s %s, so its energy is "
-                 "not computed",
-                 ph->name, mx->code, a, b, why);
+        fmt_msg(g_xs_msg, sizeof g_xs_msg,
+                "phase %s: the %c excess term between %s and %s %s, so its energy is "
+                "not computed",
+                ph->name, mx->code, a, b, why);
         return g_xs_msg;
     }
     return NULL;
@@ -1403,8 +1417,21 @@ typedef struct {
 
 static void tdb_fail(Tdb *tb, const char *what)
 {
-    snprintf(tb->lx->err, sizeof tb->lx->err, "TDB line %d: %s", tb->line, what);
+    fmt_msg(tb->lx->err, sizeof tb->lx->err, "TDB line %d: %s", tb->line, what);
     longjmp(tb->lx->jb, 1);
+}
+
+static void tdb_fail_long(Tdb *tb, const char *what, const char *s, size_t len, size_t max)
+{
+    char msg[160];
+    long_name_msg(msg, sizeof msg, what, s, len, max);
+    tdb_fail(tb, msg);
+}
+
+/* Copy a name into a NAME_MAX field, or fail the read when it does not fit. */
+static void tdb_name(Tdb *tb, char *dst, const char *src)
+{
+    if (fmt_to(dst, NAME_MAX, "%s", src)) tdb_fail_long(tb, "name", src, strlen(src), NAME_MAX - 1);
 }
 
 static int tdb_detect(const char *text)
@@ -1459,12 +1486,15 @@ static char *tdb_next_statement(Tdb *tb)
 
 /* ---- in-statement tokens: words and single punctuation characters ---- */
 
-static char *tdb_word(char **s, char *buf, size_t bufsz)
+/* A word longer than buf fails the read, since a cut name or number would be read as
+ * another; tb NULL keeps the cut prefix, for keywords and codes read by their start. */
+static char *tdb_word(Tdb *tb, char **s, char *buf, size_t bufsz)
 {
-    char *p = *s;
+    char *p = *s, *start;
     size_t n = 0;
     while (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n') p++;
     if (!*p) { *s = p; return NULL; }
+    start = p;
     if (strchr(",:;()*", *p)) { buf[n++] = *p++; }
     else {
         while (*p && !strchr(" \t\r\n,:;()", *p)) {
@@ -1472,6 +1502,8 @@ static char *tdb_word(char **s, char *buf, size_t bufsz)
             p++;
         }
     }
+    if (tb && (size_t)(p - start) >= bufsz)
+        tdb_fail_long(tb, "name or number", start, (size_t)(p - start), bufsz - 1);
     buf[n] = '\0';
     *s = p;
     return buf;
@@ -1582,11 +1614,14 @@ static void tdb_parse_expr(Tdb *tb, char **s, TdbSeg *seg)
                 tdb_fail(tb, "EXP(...) term is outside the v1 subset");
             } else if (isalpha((unsigned char)c) || c == '_') {
                 char name[NAME_MAX]; size_t n = 0;
+                const char *start = *s;
                 int fi;
                 while (**s && (isalnum((unsigned char)**s) || **s == '_')) {
                     if (n + 1 < sizeof name) name[n++] = **s;
                     (*s)++;
                 }
+                if ((size_t)(*s - start) >= sizeof name)
+                    tdb_fail_long(tb, "function name", start, (size_t)(*s - start), sizeof name - 1);
                 name[n] = '\0';
                 if (**s == '#') (*s)++;
                 fi = tdb_func_index(tb, name);
@@ -1646,7 +1681,7 @@ static int tdb_parse_piecewise(Tdb *tb, char **s, TdbSeg *seg, int max_seg)
     char *end = NULL;
     double lo;
     int n = 0;
-    if (!tdb_word(s, buf, sizeof buf)) tdb_fail(tb, "missing lower temperature limit");
+    if (!tdb_word(tb, s, buf, sizeof buf)) tdb_fail(tb, "missing lower temperature limit");
     lo = strtod(buf, &end);
     if (end == buf) tdb_fail(tb, "bad lower temperature limit");
     for (;;) {
@@ -1656,11 +1691,11 @@ static int tdb_parse_piecewise(Tdb *tb, char **s, TdbSeg *seg, int max_seg)
         tdb_parse_expr(tb, s, &seg[n]);
         while (**s == ' ' || **s == '\t' || **s == '\r' || **s == '\n') (*s)++;
         if (**s == ';') (*s)++;
-        if (!tdb_word(s, buf, sizeof buf)) { seg[n].hi = 6000.0; n++; break; }
+        if (!tdb_word(tb, s, buf, sizeof buf)) { seg[n].hi = 6000.0; n++; break; }
         hi = strtod(buf, &end);
         if (end == buf) { seg[n].hi = 6000.0; n++; break; }  /* trailing ref name */
         seg[n].hi = hi; n++;
-        if (!tdb_word(s, buf, sizeof buf)) break;
+        if (!tdb_word(NULL, s, buf, sizeof buf)) break;
         if (buf[0] == 'Y') { lo = hi; continue; }
         break;   /* 'N': the rest of the statement is the reference */
     }
@@ -2493,9 +2528,9 @@ static Db *read_tdb(char *text_owned)
                 while ((st = tdb_next_statement(&pre)) != NULL) {
                     char *s = st;
                     char kw[NAME_MAX], name[NAME_MAX];
-                    if (!tdb_word(&s, kw, sizeof kw)) continue;
+                    if (!tdb_word(NULL, &s, kw, sizeof kw)) continue;
                     if (strncmp(kw, "FUN", 3) != 0) continue;
-                    if (!tdb_word(&s, name, sizeof name)) continue;
+                    if (!tdb_word(&pre, &s, name, sizeof name)) continue;
                     {
                         int fi = tdb_func_index(&pre, name);
                         if (fi < 0) {
@@ -2519,18 +2554,18 @@ static Db *read_tdb(char *text_owned)
         while ((st = tdb_next_statement(&tb)) != NULL) {
             char *s = st;
             char kw[NAME_MAX];
-            if (!tdb_word(&s, kw, sizeof kw)) continue;
+            if (!tdb_word(NULL, &s, kw, sizeof kw)) continue;
 
             if (strncmp(kw, "ELEM", 4) == 0) {
                 char name[NAME_MAX], ref[NAME_MAX], w[NAME_MAX];
                 double mass = 0.0, h298 = 0.0, s298 = 0.0;
                 TdbSpecies *sp;
-                if (!tdb_word(&s, name, sizeof name)) tdb_fail(&tb, "ELEMENT without a name");
+                if (!tdb_word(&tb, &s, name, sizeof name)) tdb_fail(&tb, "ELEMENT without a name");
                 ref[0] = '\0';
-                tdb_word(&s, ref, sizeof ref);
-                if (tdb_word(&s, w, sizeof w)) mass = atof(w);
-                if (tdb_word(&s, w, sizeof w)) h298 = atof(w);
-                if (tdb_word(&s, w, sizeof w)) s298 = atof(w);
+                tdb_word(&tb, &s, ref, sizeof ref);
+                if (tdb_word(&tb, &s, w, sizeof w)) mass = atof(w);
+                if (tdb_word(&tb, &s, w, sizeof w)) h298 = atof(w);
+                if (tdb_word(&tb, &s, w, sizeof w)) s298 = atof(w);
                 if (strcmp(name, "/-") == 0 || strcmp(name, "VA") == 0) continue;
                 if (tb.n_el >= 64) tdb_fail(&tb, "too many elements");
                 snprintf(tb.el_name[tb.n_el], NAME_MAX, "%s", name);
@@ -2545,7 +2580,7 @@ static Db *read_tdb(char *text_owned)
             } else if (strncmp(kw, "SPEC", 4) == 0) {
                 char name[NAME_MAX], comp[NAME_MAX];
                 TdbSpecies *sp;
-                if (!tdb_word(&s, name, sizeof name) || !tdb_word(&s, comp, sizeof comp))
+                if (!tdb_word(&tb, &s, name, sizeof name) || !tdb_word(&tb, &s, comp, sizeof comp))
                     tdb_fail(&tb, "malformed SPECIES");
                 if (strcmp(name, "VA") == 0) continue;
                 if (tb.n_sp >= 4096) tdb_fail(&tb, "too many species");
@@ -2555,7 +2590,7 @@ static Db *read_tdb(char *text_owned)
             } else if (strncmp(kw, "FUN", 3) == 0) {
                 char name[NAME_MAX];
                 int fi;
-                if (!tdb_word(&s, name, sizeof name)) tdb_fail(&tb, "FUNCTION without a name");
+                if (!tdb_word(&tb, &s, name, sizeof name)) tdb_fail(&tb, "FUNCTION without a name");
                 fi = tdb_func_index(&tb, name);
                 if (fi < 0) {
                     if (tb.n_func >= TDB_MAX_FUNCS) tdb_fail(&tb, "too many functions");
@@ -2572,7 +2607,7 @@ static Db *read_tdb(char *text_owned)
                 }
             } else if (strncmp(kw, "TYPE_DEF", 8) == 0) {
                 char ch[NAME_MAX];
-                if (!tdb_word(&s, ch, sizeof ch)) continue;
+                if (!tdb_word(NULL, &s, ch, sizeof ch)) continue;
                 if (strstr(s, "MAGNETIC")) {
                     if (tb.n_mag_td < 15) {
                         double afm = -1.0, pv = 0.4;
@@ -2591,15 +2626,15 @@ static Db *read_tdb(char *text_owned)
                 TdbPhase *ph;
                 char *c;
                 int m;
-                if (!tdb_word(&s, name, sizeof name)) tdb_fail(&tb, "PHASE without a name");
+                if (!tdb_word(&tb, &s, name, sizeof name)) tdb_fail(&tb, "PHASE without a name");
                 colon = strchr(name, ':');
                 if (colon) *colon = '\0';
                 {
                     int q_suffix = 0;
                     if (*s == ':') {      /* attached :L / :Y / :Q model-type suffix */
                         char sfx[NAME_MAX];
-                        tdb_word(&s, sfx, sizeof sfx);  /* the colon */
-                        if (tdb_word(&s, sfx, sizeof sfx)) {
+                        tdb_word(NULL, &s, sfx, sizeof sfx);  /* the colon */
+                        if (tdb_word(NULL, &s, sfx, sizeof sfx)) {
                             if (sfx[0] == 'Y')
                                 tdb_fail(&tb, "ionic two-sublattice liquid (:Y) is outside the v1 subset");
                             if (sfx[0] == 'Q') q_suffix = 1;
@@ -2610,7 +2645,7 @@ static Db *read_tdb(char *text_owned)
                 if (tb.n_ph >= 512) tdb_fail(&tb, "too many phases");
                 ph = &tb.ph[tb.n_ph++];
                 snprintf(ph->name, NAME_MAX, "%s", name);
-                if (!tdb_word(&s, code, sizeof code)) tdb_fail(&tb, "PHASE without a model code");
+                if (!tdb_word(&tb, &s, code, sizeof code)) tdb_fail(&tb, "PHASE without a model code");
                 for (c = code; *c; ++c) {
                     for (m = 0; m < tb.n_mag_td; ++m)
                         if (*c == tb.magnetic_typedefs[m]) {
@@ -2621,12 +2656,12 @@ static Db *read_tdb(char *text_owned)
                     for (m = 0; m < tb.n_ord_td; ++m)
                         if (*c == tb.order_typedefs[m]) ph->flags_order = 1;
                 }
-                if (!tdb_word(&s, w, sizeof w)) tdb_fail(&tb, "PHASE without sublattice count");
+                if (!tdb_word(&tb, &s, w, sizeof w)) tdb_fail(&tb, "PHASE without sublattice count");
                 ph->n_subl = atoi(w);
                 if (ph->n_subl < 1 || ph->n_subl > TDB_MAX_SUBL)
                     tdb_fail(&tb, "unsupported sublattice count");
                 for (m = 0; m < ph->n_subl; ++m) {
-                    if (!tdb_word(&s, w, sizeof w)) tdb_fail(&tb, "missing site ratio");
+                    if (!tdb_word(&tb, &s, w, sizeof w)) tdb_fail(&tb, "missing site ratio");
                     ph->ratio[m] = atof(w);
                 }
             } else if (strncmp(kw, "CONS", 4) == 0) {
@@ -2634,22 +2669,22 @@ static Db *read_tdb(char *text_owned)
                 char *colon;
                 TdbPhase *ph = NULL;
                 int i2, subl = -1;
-                if (!tdb_word(&s, name, sizeof name)) tdb_fail(&tb, "CONSTITUENT without a phase");
+                if (!tdb_word(&tb, &s, name, sizeof name)) tdb_fail(&tb, "CONSTITUENT without a phase");
                 colon = strchr(name, ':');
                 if (colon) *colon = '\0';
                 if (*s == ':') {          /* attached :L suffix: colon + short suffix, only
                                            * when the real list starts at a later colon */
                     char *save = s;
                     char sfx[NAME_MAX];
-                    tdb_word(&s, sfx, sizeof sfx);      /* the colon */
-                    if (!(tdb_word(&s, sfx, sizeof sfx) && sfx[0] != ':' &&
+                    tdb_word(NULL, &s, sfx, sizeof sfx);      /* the colon */
+                    if (!(tdb_word(NULL, &s, sfx, sizeof sfx) && sfx[0] != ':' &&
                           strlen(sfx) <= 2 && tdb_peekc(s) == ':'))
                         s = save;
                 }
                 for (i2 = 0; i2 < tb.n_ph; ++i2)
                     if (strcmp(tb.ph[i2].name, name) == 0) { ph = &tb.ph[i2]; break; }
                 if (!ph) tdb_fail(&tb, "CONSTITUENT for an undeclared phase");
-                while (tdb_word(&s, w, sizeof w)) {
+                while (tdb_word(&tb, &s, w, sizeof w)) {
                     size_t len;
                     if (w[0] == ':') { subl++; if (subl >= ph->n_subl) break; continue; }
                     if (w[0] == ',') continue;
@@ -2662,7 +2697,8 @@ static Db *read_tdb(char *text_owned)
                 }
             } else if (strncmp(kw, "PARA", 4) == 0) {
                 char type[NAME_MAX]; size_t tn = 0;
-                char desc[512]; size_t dn = 0;
+                char desc[TDB_DESC]; size_t dn = 0;
+                const char *dstart;
                 int depth;
                 char *comma, *phname, *pcolon, *arr, *semi, *tokp;
                 int order = 0, subl;
@@ -2672,15 +2708,23 @@ static Db *read_tdb(char *text_owned)
                 int i2;
                 while (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r') s++;
                 while (*s && *s != '(' && tn + 1 < sizeof type) type[tn++] = *s++;
+                if (*s && *s != '(') tdb_fail_long(&tb, "PARAMETER type", s - tn, tn + strcspn(s, "("),
+                                                   sizeof type - 1);
                 type[tn] = '\0';
                 while (tn && type[tn - 1] == ' ') type[--tn] = '\0';
                 if (*s != '(') tdb_fail(&tb, "malformed PARAMETER descriptor");
                 s++;
+                dstart = s;
                 depth = 1;
                 while (*s && depth > 0) {
                     if (*s == '(') depth++;
                     else if (*s == ')') { depth--; if (!depth) { s++; break; } }
-                    if (depth > 0 && dn + 1 < sizeof desc) desc[dn++] = *s;
+                    if (depth > 0) {
+                        if (dn + 1 >= sizeof desc)
+                            tdb_fail_long(&tb, "PARAMETER descriptor", dstart, strlen(dstart),
+                                          sizeof desc - 1);
+                        desc[dn++] = *s;
+                    }
                     s++;
                 }
                 desc[dn] = '\0';
@@ -2712,8 +2756,8 @@ static Db *read_tdb(char *text_owned)
                         char *dcomma = strchr(desc, ',');
                         if (!dcomma) tdb_fail(&tb, "MQ parameter without a constituent array");
                         *dcomma = '\0';
-                        snprintf(mq->phase, NAME_MAX, "%s", desc);
-                        { char *pc = strchr(mq->phase, ':'); if (pc) *pc = '\0'; }
+                        { char *pc = strchr(desc, ':'); if (pc) *pc = '\0'; }
+                        tdb_name(&tb, mq->phase, desc);
                         arr2 = dcomma + 1;
                     }
                     seg2 = strchr(arr2, ';');
@@ -2727,7 +2771,7 @@ static Db *read_tdb(char *text_owned)
                         while (*mem2 == ' ') mem2++;
                         { char *e2 = mem2 + strlen(mem2);
                           while (e2 > mem2 && e2[-1] == ' ') *--e2 = '\0'; }
-                        if (*mem2) snprintf(mq->names[ni++], NAME_MAX, "%s", mem2);
+                        if (*mem2) tdb_name(&tb, mq->names[ni++], mem2);
                         mem2 = sep ? nx + 1 : NULL;
                     }
                     mq->n_names = ni;
@@ -2735,7 +2779,7 @@ static Db *read_tdb(char *text_owned)
                         char *colon2 = strchr(seg2, ':');
                         if (colon2) {
                             *colon2 = '\0';
-                            if (ni < 5) snprintf(mq->names[mq->n_names++], NAME_MAX, "%s", colon2 + 1);
+                            if (ni < 5) tdb_name(&tb, mq->names[mq->n_names++], colon2 + 1);
                         }
                         {
                             char *q2 = strchr(seg2, ',');
@@ -2755,8 +2799,8 @@ static Db *read_tdb(char *text_owned)
                         /* constant payload row: lowT v1 v2 ... ; T N */
                         char w2[NAME_MAX];
                         int after_semi = 0;
-                        if (!tdb_word(&s, w2, sizeof w2)) tdb_fail(&tb, "MQ constants missing");
-                        while (tdb_word(&s, w2, sizeof w2)) {
+                        if (!tdb_word(&tb, &s, w2, sizeof w2)) tdb_fail(&tb, "MQ constants missing");
+                        while (tdb_word(&tb, &s, w2, sizeof w2)) {
                             char *e3 = NULL;
                             double v3;
                             if (w2[0] == ';') { after_semi = 1; continue; }
@@ -2792,7 +2836,7 @@ static Db *read_tdb(char *text_owned)
                 if (tb.n_par >= tb.cap_par) tdb_fail(&tb, "too many parameters");
                 pa = &tb.par[tb.n_par];
                 memset(pa, 0, sizeof *pa);
-                snprintf(pa->phase, NAME_MAX, "%s", phname);
+                tdb_name(&tb, pa->phase, phname);
                 pa->order = order;
                 pa->kind = pending_kind;
                 pa->expr = calloc(TDB_MAX_SEG, sizeof(TdbSeg));

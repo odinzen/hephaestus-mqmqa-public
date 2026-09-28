@@ -11,6 +11,8 @@
 
 #define NAME_MAX 64
 #define MAX_COEFFS 16
+/* buffer for a TDB PARAMETER descriptor, the text inside its parentheses */
+#define TDB_DESC 512
 
 typedef struct {
     double t_max;

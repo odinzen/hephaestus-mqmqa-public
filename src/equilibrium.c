@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define ELEN 8
+#define ELEN NAME_MAX   /* a whole constituent name fits, so a symbol is never cut */
 
 static void el_of(const char *name, char *out)
 {

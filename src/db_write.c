@@ -13,6 +13,7 @@
  */
 #include "cs_dat.h"
 #include "cs_dat_priv.h"
+#include "fmtbuf.h"
 #include "textbuf.h"
 
 #include <ctype.h>
@@ -44,19 +45,29 @@ typedef struct {
     int used_unknown_lo, used_zero_tail, renamed_ion;
 } W;
 
+static void wfail(W *w, const char *fmt, ...) FMT_PRINTF(2, 3);
 static void wfail(W *w, const char *fmt, ...)
 {
-    char msg[256];
+    char msg[512];
     va_list ap;
     if (w->bad) return;
     w->bad = 1;
     va_start(ap, fmt);
-    vsnprintf(msg, sizeof msg, fmt, ap);
+    fmt_vmsg(msg, sizeof msg, fmt, ap);
     va_end(ap);
     mqmqa_db_set_error("%s", msg);
 }
 
 #define OUT(...) tb_putf(&w->body, __VA_ARGS__)
+
+/* A name or array for a message: its first 40 characters, "..." marking a cut, so the
+ * reason after it is never cut off. */
+#define CLIP 44
+static const char *clip(char out[CLIP], const char *s)
+{
+    if (fmt_to(out, CLIP, "%s", s)) fmt_mark_cut(out, CLIP);
+    return out;
+}
 
 /* Phase, species and constituent names become TDB tokens; reject any character
  * the TDB grammar reserves rather than write a file that parses differently. */
@@ -183,17 +194,17 @@ static double comp_atoms(const Comp *c)
     return a;
 }
 
-/* TDB species composition string, e.g. FE1/+2 or SI1O2. */
-static void comp_text(const Db *db, const Comp *c, char *out, size_t cap)
+/* TDB species composition string, e.g. FE1/+2 or SI1O2; 0 when it does not fit. */
+static int comp_text(const Db *db, const Comp *c, char *out, size_t cap)
 {
     char num[40];
-    size_t n = 0;
+    int cut = 0;
     out[0] = '\0';
     for (int i = 0; i < c->n_el; ++i)
-        n += (size_t)snprintf(out + n, cap - n, "%s%s", db->el_name[c->el[i]],
-                              tb_num(num, c->n[i]));
+        cut |= fmt_cat(out, cap, "%s%s", db->el_name[c->el[i]], tb_num(num, c->n[i]));
     if (c->charge != 0.0)
-        snprintf(out + n, cap - n, "/%c%s", c->charge < 0 ? '-' : '+', tb_num(num, fabs(c->charge)));
+        cut |= fmt_cat(out, cap, "/%c%s", c->charge < 0 ? '-' : '+', tb_num(num, fabs(c->charge)));
+    return !cut;
 }
 
 /* ------------------------------------------------------------------ *
@@ -401,7 +412,11 @@ static void q_species(W *w, SpList *L, const char *con, double charge, int anion
         }
         snprintf(out, NAME_MAX, "%s", con);
     } else {
-        snprintf(out, NAME_MAX, "%s%c%s", con, anion ? '-' : '+', tb_num(num, fabs(q)));
+        if (fmt_to(out, NAME_MAX, "%s%c%s", con, anion ? '-' : '+', tb_num(num, fabs(q)))) {
+            wfail(w, "ion %s of %s with its charge added is longer than %d characters",
+                  con, phase, NAME_MAX - 1);
+            return;
+        }
         w->renamed_ion = 1;
     }
     c.charge = q;
@@ -431,20 +446,35 @@ static char mag_char(W *w, MagDefs *M, const SublPhase *cf, const char *phase)
     return M->ch[M->n++];
 }
 
-/* Constituent array text of a CEF parameter; mixing on `subl` when >= 0. */
-static void cef_array(const SublPhase *cf, const int *pick, int subl, int i, int j,
-                      char *out, size_t cap)
+/* Constituent array text of a CEF parameter; mixing on `subl` when >= 0. On a cut it
+ * fails the write and returns 0. */
+static int cef_array(W *w, const Phase *ph, const int *pick, int subl, int i, int j,
+                     char *out, size_t cap)
 {
-    size_t n = 0;
+    const SublPhase *cf = ph->cef;
+    int cut = 0;
     out[0] = '\0';
     for (int s = 0; s < cf->n_subl; ++s) {
-        if (s) n += (size_t)snprintf(out + n, cap - n, ":");
+        if (s) cut |= fmt_cat(out, cap, ":");
         if (s == subl)
-            n += (size_t)snprintf(out + n, cap - n, "%s,%s", cf->con_name[cf->subl_off[s] + i],
-                                  cf->con_name[cf->subl_off[s] + j]);
+            cut |= fmt_cat(out, cap, "%s,%s", cf->con_name[cf->subl_off[s] + i],
+                           cf->con_name[cf->subl_off[s] + j]);
         else
-            n += (size_t)snprintf(out + n, cap - n, "%s", cf->con_name[cf->subl_off[s] + pick[s]]);
+            cut |= fmt_cat(out, cap, "%s", cf->con_name[cf->subl_off[s] + pick[s]]);
     }
+    if (cut) wfail(w, "a constituent array of %s is longer than %d characters", ph->name,
+                   (int)cap - 1);
+    return !cut;
+}
+
+/* The text in a written PARAMETER's parentheses must fit the TDB reader's buffer. */
+static int tdb_desc_ok(W *w, const char *kw, const char *phase, const char *arr, int order)
+{
+    char d[TDB_DESC], c[CLIP];
+    if (!fmt_to(d, sizeof d, "%s,%s;%d", phase, arr, order)) return 1;
+    wfail(w, "parameter %s(%s,%s) is longer than the %d characters a TDB descriptor holds",
+          kw, phase, clip(c, arr), TDB_DESC - 1);
+    return 0;
 }
 
 static int any_nonzero(const double *v, int n)
@@ -471,8 +501,9 @@ static void tdb_cef_phase(W *w, const Phase *ph, char magc)
     for (int e = 0; e < cf->n_em; ++e) {
         const Endmember *em = &cf->em[e];
         for (int s = 0; s < cf->n_subl; ++s) pick[s] = cf->em_con[e * cf->n_subl + s];
-        cef_array(cf, pick, -1, 0, 0, arr, sizeof arr);
-        snprintf(who, sizeof who, "G(%s,%s)", ph->name, arr);
+        if (!cef_array(w, ph, pick, -1, 0, 0, arr, sizeof arr) ||
+            !tdb_desc_ok(w, "G", ph->name, arr, 0)) return;
+        fmt_msg(who, sizeof who, "G(%s,%s)", ph->name, arr);
         if (em->name[0] && strcmp(em->name, ph->name) != 0 && tdb_token_ok(em->name))
             OUT(" $ %s\n", em->name);
         OUT(" PARAMETER G(%s,%s;0)", ph->name, arr);
@@ -490,8 +521,9 @@ static void tdb_cef_phase(W *w, const Phase *ph, char magc)
                 memcpy(row, rows + e * 6, 6 * sizeof(double));
                 if (!any_nonzero(row, 6)) continue;
                 for (int s = 0; s < cf->n_subl; ++s) pick[s] = cf->em_con[e * cf->n_subl + s];
-                cef_array(cf, pick, -1, 0, 0, arr, sizeof arr);
-                snprintf(who, sizeof who, "%s(%s,%s)", kw, ph->name, arr);
+                if (!cef_array(w, ph, pick, -1, 0, 0, arr, sizeof arr) ||
+                    !tdb_desc_ok(w, kw, ph->name, arr, 0)) return;
+                fmt_msg(who, sizeof who, "%s(%s,%s)", kw, ph->name, arr);
                 OUT(" PARAMETER %s(%s,%s;0)", kw, ph->name, arr);
                 tdb_single(w, row, NAN, NAN, who);
             }
@@ -499,8 +531,9 @@ static void tdb_cef_phase(W *w, const Phase *ph, char magc)
         for (int k = 0; k < nk; ++k) {
             const CefExcess *x = &xs[k];
             for (int s = 0; s < cf->n_subl; ++s) pick[s] = (s == x->subl) ? 0 : x->other[s];
-            cef_array(cf, pick, x->subl, x->i, x->j, arr, sizeof arr);
-            snprintf(who, sizeof who, "%s(%s,%s;%d)", kw, ph->name, arr, x->order);
+            if (!cef_array(w, ph, pick, x->subl, x->i, x->j, arr, sizeof arr) ||
+                !tdb_desc_ok(w, kw, ph->name, arr, x->order)) return;
+            fmt_msg(who, sizeof who, "%s(%s,%s;%d)", kw, ph->name, arr, x->order);
             OUT(" PARAMETER %s(%s,%s;%d)", kw, ph->name, arr, x->order);
             tdb_single(w, x->coeff, x->t_lo, x->t_hi, who);
         }
@@ -520,7 +553,7 @@ static void tdb_q_phase(W *w, const Phase *ph, char (*qc)[NAME_MAX], char (*qa)[
     for (int k = 0; k < ph->n_pairs; ++k) {
         const Endmember *em = &ph->pairs[k];
         const char *c = qc[em->cat_idx], *an = qa[em->an_idx];
-        snprintf(who, sizeof who, "MQG(%s,%s:%s)", ph->name, c, an);
+        fmt_msg(who, sizeof who, "MQG(%s,%s:%s)", ph->name, c, an);
         if (em->name[0] && tdb_token_ok(em->name)) OUT(" $ pair %s\n", em->name);
         OUT(" PARAMETER MQG(%s,%s:%s;0)", ph->name, c, an);
         tdb_piecewise(w, em, who);
@@ -539,8 +572,8 @@ static void tdb_q_phase(W *w, const Phase *ph, char (*qc)[NAME_MAX], char (*qa)[
     }
     for (int k = 0; k < ph->n_mqmx; ++k) {
         const Mqmx *x = &ph->mqmx[k];
-        snprintf(who, sizeof who, "MQX(%s,%s,%s:%s,%s)", ph->name, qc[x->A], qc[x->B],
-                 qa[x->X], qa[x->Y]);
+        fmt_msg(who, sizeof who, "MQX(%s,%s,%s:%s,%s)", ph->name, qc[x->A], qc[x->B],
+                qa[x->X], qa[x->Y]);
         if (!strchr("QGBR", x->code) || !x->code) {
             wfail(w, "%s has excess code %c, which uTDB does not define", who, x->code);
             return;
@@ -591,7 +624,7 @@ static void tdb_stoich(W *w, const Endmember *em)
     for (int e = 0; e < db->n_el; ++e)
         if (em->stoich_el[e] != 0.0) OUT("%s%s", k++ ? ":" : "", db->el_name[e]);
     OUT(";0)");
-    snprintf(who, sizeof who, "G(%s)", em->name);
+    fmt_msg(who, sizeof who, "G(%s)", em->name);
     tdb_piecewise(w, em, who);
 }
 
@@ -760,8 +793,10 @@ static char *write_tdb(const Db *db, const char *source, int unified)
                 tb_num(b, db->el_s298 ? db->el_s298[e] : 0.0));
     }
     if (sp->n) tb_putf(&w->head, "\n");
-    for (int i = 0; i < sp->n; ++i) {
-        comp_text(db, &sp->comp[i], ctext, sizeof ctext);
+    for (int i = 0; i < sp->n && !w->bad; ++i) {
+        if (!comp_text(db, &sp->comp[i], ctext, NAME_MAX))
+            wfail(w, "the composition of species %s is longer than the %d characters the TDB "
+                     "reader keeps", sp->name[i], NAME_MAX - 1);
         tb_putf(&w->head, " SPECIES %s  %s !\n", sp->name[i], ctext);
     }
     tb_putf(&w->head, "\n TYPE_DEFINITION %% SEQ * !\n");
@@ -838,7 +873,13 @@ static void dat_endmember(W *w, const Endmember *em, const char *name, const dou
     const Db *db = w->db;
     char num[40];
     int has_add = 0;
-    if (!dat_token_ok(name) || strlen(name) >= NAME_MAX) {
+    if (strlen(name) >= NAME_MAX) {
+        char c[CLIP];
+        wfail(w, "species name %s is longer than the %d characters the ChemSage reader "
+                 "keeps", clip(c, name), NAME_MAX - 1);
+        return;
+    }
+    if (!dat_token_ok(name)) {
         wfail(w, "species name \"%s\" cannot be a ChemSage token", name);
         return;
     }
@@ -860,6 +901,15 @@ static void dat_endmember(W *w, const Endmember *em, const char *name, const dou
             OUT("\n");
         }
     }
+}
+
+/* An endmember named by its constituents, A:B:C. A name cut to fit is still longer
+ * than NAME_MAX - 1, so dat_endmember refuses it. */
+static void joined_name(const SublPhase *cf, const int *pick, char *out, size_t cap)
+{
+    out[0] = '\0';
+    for (int s = 0; s < cf->n_subl; ++s)
+        fmt_cat(out, cap, "%s%s", s ? ":" : "", cf->con_name[cf->subl_off[s] + pick[s]]);
 }
 
 /* Returns the number of endmembers written (the header's species count). */
@@ -909,12 +959,7 @@ static int dat_cef_phase(W *w, const Phase *ph)
         for (int s = 0; s < cf->n_subl; ++s) pick[s] = cf->em_con[e * cf->n_subl + s];
         memcpy(listed + n_list++ * cf->n_subl, pick, (size_t)cf->n_subl * sizeof(int));
         if (em->name[0] && strcmp(em->name, ph->name) != 0) snprintf(nm, sizeof nm, "%s", em->name);
-        else {
-            size_t n = 0;
-            for (int s = 0; s < cf->n_subl; ++s)
-                n += (size_t)snprintf(nm + n, sizeof nm - n, "%s%s", s ? ":" : "",
-                                      cf->con_name[cf->subl_off[s] + pick[s]]);
-        }
+        else joined_name(cf, pick, nm, sizeof nm);
         if (em->stoich_el) memcpy(stoich, em->stoich_el, (size_t)db->n_el * sizeof(double));
         else if (!cef_em_stoich(w, cf, pick, stoich, ph->name)) break;
         dat_endmember(w, em, nm, stoich);
@@ -931,12 +976,7 @@ static int dat_cef_phase(W *w, const Phase *ph)
             seen = memcmp(listed + k * cf->n_subl, pick, (size_t)cf->n_subl * sizeof(int)) == 0;
         if (seen) continue;
         memcpy(listed + n_list++ * cf->n_subl, pick, (size_t)cf->n_subl * sizeof(int));
-        {
-            size_t n = 0;
-            for (int s = 0; s < cf->n_subl; ++s)
-                n += (size_t)snprintf(nm + n, sizeof nm - n, "%s%s", s ? ":" : "",
-                                      cf->con_name[cf->subl_off[s] + pick[s]]);
-        }
+        joined_name(cf, pick, nm, sizeof nm);
         if (!cef_em_stoich(w, cf, pick, stoich, ph->name)) break;
         dat_endmember(w, &zero, nm, stoich);
     }
@@ -1003,17 +1043,19 @@ done:
     return n_list;
 }
 
-/* Conventional ChemSage pair name from its ions and stoichiometry: SIO2, ALO1.5. */
+/* Conventional ChemSage pair name from its ions and stoichiometry: SIO2, ALO1.5. A name
+ * cut to fit is longer than NAME_MAX - 1, which dat_endmember refuses. */
 static void pair_name(const Phase *ph, const Endmember *em, char *out, size_t cap)
 {
     char num[40];
     double q;
     const char *c = ph->cat_name[em->cat_idx], *a = ph->an_name[em->an_idx];
-    size_t nc = split_charge(c, &q), na = split_charge(a, &q), n = 0;
-    n += (size_t)snprintf(out + n, cap - n, "%.*s", (int)nc, c);
-    if (em->stoich_quad[0] != 1.0) n += (size_t)snprintf(out + n, cap - n, "%s", tb_num(num, em->stoich_quad[0]));
-    n += (size_t)snprintf(out + n, cap - n, "%.*s", (int)na, a);
-    if (em->stoich_quad[1] != 1.0) snprintf(out + n, cap - n, "%s", tb_num(num, em->stoich_quad[1]));
+    size_t nc = split_charge(c, &q), na = split_charge(a, &q);
+    out[0] = '\0';
+    fmt_cat(out, cap, "%.*s", (int)nc, c);
+    if (em->stoich_quad[0] != 1.0) fmt_cat(out, cap, "%s", tb_num(num, em->stoich_quad[0]));
+    fmt_cat(out, cap, "%.*s", (int)na, a);
+    if (em->stoich_quad[1] != 1.0) fmt_cat(out, cap, "%s", tb_num(num, em->stoich_quad[1]));
 }
 
 static void dat_q_phase(W *w, const Phase *ph)
@@ -1157,20 +1199,20 @@ typedef struct {
 /* One XTDB expression ("...;") from a term list; 0 when it would not fit. */
 static int xtdb_expr_text(W *w, const Term *t, int n, char *out, size_t cap, const char *who)
 {
-    size_t len = 0;
     char s[96];
     out[0] = '\0';
     if (n == 0) { snprintf(out, cap, "0;"); return 1; }
     for (int i = 0; i < n; ++i) {
+        size_t len = strlen(out);
         term_text(&t[i], s, sizeof s);
         if (len + strlen(s) + 2 > XTDB_EXPR || len + strlen(s) + 2 > cap) {
             wfail(w, "%s needs an expression longer than the %d characters the XTDB engine "
                      "reads; .tdb or .dat holds it", who, XTDB_EXPR);
             return 0;
         }
-        len += (size_t)snprintf(out + len, cap - len, "%s", s);
+        fmt_cat(out, cap, "%s", s);
     }
-    snprintf(out + len, cap - len, ";");
+    fmt_cat(out, cap, ";");
     return 1;
 }
 
@@ -1206,8 +1248,8 @@ static void xtdb_gibbs(XW *x, const Endmember *em, const char *id, const char *p
         return;
     }
     {   /* a function name from the phase, kept to the reader's identifier characters */
-        size_t k = 0;
-        k += (size_t)snprintf(fid, sizeof fid, "G");
+        size_t k = 1;
+        fid[0] = 'G';
         for (const char *c = phase; *c && k < 40; ++c) fid[k++] = isalnum((unsigned char)*c) ? *c : '_';
         snprintf(fid + k, sizeof fid - k, "_%d", x->n_tp);
     }
@@ -1287,10 +1329,11 @@ static void xtdb_cef_phase(XW *x, const Phase *ph)
                 if (cf->em_con[e2 * cf->n_subl + s] != pick[s]) same = 0;
             if (same) found = e2;
         }
-        cef_array(cf, pick, -1, 0, 0, arr, sizeof arr);
+        if (!cef_array(w, ph, pick, -1, 0, 0, arr, sizeof arr)) return;
         if (strlen(arr) > XTDB_NAME) {
+            char c[CLIP];
             wfail(w, "endmember %s of %s is longer than the XTDB engine's %d characters",
-                  arr, ph->name, XTDB_NAME);
+                  clip(c, arr), ph->name, XTDB_NAME);
             return;
         }
         snprintf(id, sizeof id, "G(%s,%s;0)", ph->name, arr);
@@ -1309,7 +1352,13 @@ static void xtdb_cef_phase(XW *x, const Phase *ph)
         Term t[MAX_TERMS];
         int n;
         for (int s = 0; s < cf->n_subl; ++s) pick[s] = (s == xe->subl) ? 0 : xe->other[s];
-        cef_array(cf, pick, xe->subl, xe->i, xe->j, arr, sizeof arr);
+        if (!cef_array(w, ph, pick, xe->subl, xe->i, xe->j, arr, sizeof arr)) return;
+        if (strlen(arr) > XTDB_NAME) {
+            char c[CLIP];
+            wfail(w, "interaction %s of %s is longer than the XTDB engine's %d characters",
+                  clip(c, arr), ph->name, XTDB_NAME);
+            return;
+        }
         snprintf(id, sizeof id, "G(%s,%s;%d)", ph->name, arr, xe->order);
         n = excess_terms(w, xe->coeff, t, id);
         if (w->bad || !xtdb_expr_text(w, t, n, e, sizeof e, id)) return;
@@ -1322,8 +1371,7 @@ static void xtdb_stoich(XW *x, const Endmember *em)
     W *w = x->w;
     const Db *db = w->db;
     char num[40], arr[512], id[640];
-    int k = 0;
-    size_t n = 0;
+    int k = 0, cut = 0;
     for (int e = 0; e < db->n_el; ++e) if (em->stoich_el[e] != 0.0) k++;
     if (k == 0 || k > 8) {
         wfail(w, "stoichiometric phase %s has %d elements; the XTDB engine reads 1 to 8",
@@ -1341,7 +1389,13 @@ static void xtdb_stoich(XW *x, const Endmember *em)
     for (int e = 0; e < db->n_el; ++e) {
         if (em->stoich_el[e] == 0.0) continue;
         OUT("    <Constituents Sublattice=\"%d\" List=\"%s\" />\n", ++k, db->el_name[e]);
-        n += (size_t)snprintf(arr + n, sizeof arr - n, "%s%s", k > 1 ? ":" : "", db->el_name[e]);
+        cut |= fmt_cat(arr, sizeof arr, "%s%s", k > 1 ? ":" : "", db->el_name[e]);
+    }
+    if (cut || strlen(arr) > XTDB_NAME) {
+        char c[CLIP];
+        wfail(w, "endmember %s of %s is longer than the XTDB engine's %d characters",
+              clip(c, arr), em->name, XTDB_NAME);
+        return;
     }
     OUT("  </Sublattices>\n</Phase>\n");
     snprintf(id, sizeof id, "G(%s,%s;0)", em->name, arr);
@@ -1434,8 +1488,10 @@ static char *write_xtdb(const Db *db, const char *source_name, int unused)
                 if (species_comp(db, cn, &c)) sp_add(w, sp, cn, &c);
             }
         }
-        for (int i = 0; i < sp->n; ++i) {
-            comp_text(db, &sp->comp[i], ctext, sizeof ctext);
+        for (int i = 0; i < sp->n && !w->bad; ++i) {
+            if (!comp_text(db, &sp->comp[i], ctext, XTDB_NAME + 1))
+                wfail(w, "the composition of species %s is longer than the XTDB engine's %d "
+                         "characters", sp->name[i], XTDB_NAME);
             tb_putf(&w->head, "<Species Id=\"%s\" Stoichiometry=\"%s\" />\n", sp->name[i], ctext);
         }
         free(sp);

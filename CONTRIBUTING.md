@@ -57,7 +57,8 @@ the engine should keep those comparisons passing at their existing tolerances. S
 ## Provenance and licensing boundary
 
 Hephaestus is a clean-room implementation of published model equations (Pelton et al. 2001;
-Poschmann et al. 2021). Do not copy code, algorithms, or solver internals from any other
+Poschmann et al. 2021), apart from one maintainer-approved term adapted from pycalphad (MIT)
+and credited in the README. Do not copy code, algorithms, or solver internals from any other
 implementation. The database is assembled only from published experimental data with per-value
 provenance. Contributions must respect the same boundary.
 

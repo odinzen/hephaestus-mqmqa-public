@@ -19,9 +19,9 @@ It is not the first open MQMQA. pycalphad already ships one
 library's value is being small, dependency-light, and callable from C or Python
 directly. pycalphad is used here as the validation oracle, not as a dependency.
 
-## Provenance (clean-room)
+## Provenance
 
-The model is implemented from the published literature only:
+The model is implemented from the published literature, with the one exception below:
 
 - Pelton, Chartrand, Eriksson, "The Modified Quasi-chemical Model: Part IV.
   Two-Sublattice Quadruplet Approximation," Metall. Mater. Trans. A 32 (2001)
@@ -34,7 +34,39 @@ The model is implemented from the published literature only:
   into PyCalphad and ESPEI," arXiv:2204.09111, Eqs 8-10 (the chemical-group excess
   interpolation of Pelton et al., restated).
 
-No code, algorithms, or solver internals from any other implementation are used.
+No code, algorithms, or solver internals from any other implementation are used, except
+for one term. In a SUBQ phase where both sublattices mix, the G-code Chi variables also
+count the reciprocal quadruplets. The published equation (Paz Soldan Palma et al., Eq 9)
+weights them 0.5; pycalphad's `ModelMQMQA._Chi_mix` weights them 1.0. The engine follows
+pycalphad (`chi_quads` in `src/mqmqa.c`, adapted from that method), so its results
+agree with pycalphad there. pycalphad is distributed under the MIT License:
+
+    pycalphad, a Python library for the CALculation of PHAse Diagrams
+
+    The MIT License (MIT)
+
+    Copyright (c) 2014-2019 Richard Otis and Zi-Kui Liu
+    Copyright (c) 2016-2019 Brandon Bocklund
+    Copyright (c) 2016-2019 California Institute of Technology
+    Copyright (c) 2018-2019 Materials Genome Foundation
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
 
 ## Validation
 
@@ -66,9 +98,9 @@ measurements in the per-system provenance notes.
 An MQMQA excess term the engine does not evaluate is refused with a message naming the
 phase (`Database.excess_unsupported`, `UnsupportedModelError`, a note in the browser),
 never computed as something else: the B and R excess codes, reciprocal mixing,
-ChemSage chemical-group override strings, and chemical groups, an additional-constituent
-exponent r > 1, or a G-code term with a nonzero exponent in a phase whose other
-sublattice holds more than one ion.
+ChemSage chemical-group override strings, and, in a phase whose other sublattice holds
+more than one ion, an additional-constituent exponent r > 1 and chemical groups in a Q
+term or a term with an additional constituent.
 
 ## Gas constant
 
@@ -185,5 +217,6 @@ under `web/` are licensed under Creative Commons Attribution-ShareAlike 4.0 Inte
 consulting work on either. Any modified version that is distributed, or offered to users
 over a network, must carry the same license and keep the credits, so the engine and the
 thermodynamics it carries stay open. Model equations are public; this is an independent,
-clean-room implementation of them. Releases up to and including v0.6.0 were published under
+clean-room implementation of them, apart from the one pycalphad-derived term credited
+under Provenance. Releases up to and including v0.6.0 were published under
 MIT (engine) and CC BY 4.0 (data), and those releases keep those terms.

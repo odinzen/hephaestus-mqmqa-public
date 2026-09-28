@@ -84,6 +84,7 @@ def _build_case(comps):
         Za, Zb, Zx, Zy,
         pm["mix"], pm["code"], pm["A"], pm["B"], pm["X"], pm["Y"],
         pm["p"], pm["q"], pm["L"],
+        soln_type=1,                                 # the Shishin slag is SUBQ
     )
     return exc_py, exc_c
 

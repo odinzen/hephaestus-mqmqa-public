@@ -127,7 +127,8 @@ def _energies_from_reader(path, phase):
                                   Za, Zb, Zx, Zy,
                                   mx["mix"], mx["code"], mx["A"], mx["B"], mx["X"], mx["Y"],
                                   mx["p"], mx["q"], mx["L"], mx["r"], mx["addcat"],
-                                  [c["group"] for c in cats], [a["group"] for a in ans])
+                                  [c["group"] for c in cats], [a["group"] for a in ans],
+                                  soln_type=db.is_subq(p))
     reader_cat = [(_element(c["name"]), c["charge"]) for c in cats]
     reader_an = [(_element(a["name"]), a["charge"]) for a in ans]
     return db, p, Xkey, reader_cat, reader_an, (ref, ideal, exc)

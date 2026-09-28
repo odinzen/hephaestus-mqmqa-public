@@ -132,7 +132,8 @@ def _mqmqa_energy_hephaestus(db, p, T, Xkey):
     exc = mqmqa.excess_energy(nc, na, ca, cb, ax, ay, X, Za, Zb, Zx, Zy, mx["mix"],
                               mx["code"], mx["A"], mx["B"], mx["X"], mx["Y"], mx["p"],
                               mx["q"], mx["L"], mx["r"], mx["addcat"],
-                              [c["group"] for c in cats], [a["group"] for a in ans])
+                              [c["group"] for c in cats], [a["group"] for a in ans],
+                              soln_type=db.is_subq(p))
     return ref + ideal + exc
 
 

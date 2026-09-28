@@ -8,9 +8,11 @@
  * terms (reference, ideal mixing, excess) are added incrementally, each
  * validated against pycalphad and Thermochimica before landing.
  *
- * Model implemented clean-room from published papers only:
+ * Model implemented clean-room from published papers:
  *   Pelton, Chartrand, Eriksson, Metall. Mater. Trans. A 32 (2001) 1409.
  *   Poschmann, Bajpai, Fitzpatrick, Piro, Calphad 75 (2021) 102341.
+ * except the reciprocal-quadruplet terms of the G-code Chi in SUBQ phases, adapted from
+ * pycalphad (MIT; see chi_quads in mqmqa.c and README.md).
  */
 
 #ifdef _WIN32
@@ -121,12 +123,15 @@ MQMQA_API double mqmqa_ideal_mixing_energy(
 /* MQMQA excess energy for a set of MQMX interaction parameters, J per mole of
  * quadruplets (Poschmann eqs 19,20,24 mixing term, eq 17 assembly). Handles the Q
  * code (Xi, any exponents) and the G code (Chi, any exponents) for cation and anion
- * mixing, and an additional (ternary) cation with exponent r = 1, when the term's
- * nu/gamma chemical-group sets are empty. Unsupported cases return NaN rather than a
- * wrong number: Bragg-Williams B/H, reciprocal R, reciprocal mixing, an additional
- * anion, r > 1, and any term that needs the mixed chemical-group interpolation. A G
- * term with a nonzero exponent is refused when the other sublattice holds more than
- * one species.
+ * mixing, with their chemical-group interpolation, and an additional (ternary) cation
+ * with exponent r >= 1. Unsupported cases return NaN rather than a wrong number:
+ * Bragg-Williams B/H, reciprocal R, reciprocal mixing, an additional anion, and, where
+ * the other sublattice holds more than one species, r > 1 and the group interpolation
+ * of a Q term or of a term with an additional cation.
+ *
+ * soln_type is 0 for SUBG, 1 for SUBQ, as in mqmqa_ideal_mixing_energy; in a SUBQ
+ * phase whose other sublattice holds more than one species the G-code Chi variables
+ * also count the reciprocal quadruplets.
  *
  * cat_group[i] and an_group[k] are the chemical groups of the cations and anions
  * (the ChemSage group numbers); NULL means every species of that sublattice is in
@@ -142,6 +147,7 @@ MQMQA_API double mqmqa_excess_energy(
     const int *quad_ax, const int *quad_ay,
     const double *X,
     const double *Za, const double *Zb, const double *Zx, const double *Zy,
+    int soln_type,
     int n_params,
     const int *par_mix, const int *par_code,
     const int *par_A, const int *par_B, const int *par_X, const int *par_Y,

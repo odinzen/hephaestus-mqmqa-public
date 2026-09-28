@@ -9,8 +9,10 @@ can read them) cover the Q and G codes, r = 1 to 3, every assignment of three sp
 to groups, and groups on the anion sublattice.
 
 Where the other sublattice holds more than one species the published equations admit
-more than one reading and the engine refuses the term (NaN, with a message naming the
-phase); so it does for r > 1 there and for ChemSage chemical-group override strings.
+more than one reading for a Q term or an additional-constituent factor, and the engine
+refuses the term (NaN, with a message naming the phase); so it does for r > 1 there and
+for ChemSage chemical-group override strings. The G code's Chi there is compared with
+pycalphad in test_reciprocal_chi_vs_pycalphad.py.
 """
 import math
 import os
@@ -57,7 +59,8 @@ def _excess(db, p, T, Xkey, grouped=True):
         mx["mix"], mx["code"], mx["A"], mx["B"], mx["X"], mx["Y"], mx["p"], mx["q"], mx["L"],
         mx["r"], mx["addcat"],
         [c["group"] for c in cats] if grouped else None,
-        [a["group"] for a in ans] if grouped else None)
+        [a["group"] for a in ans] if grouped else None,
+        soln_type=db.is_subq(p))
 
 
 def _excess_pycalphad(path, name, db, p, T, Xkey):

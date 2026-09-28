@@ -1098,9 +1098,11 @@ const char *mqmqa_ph_excess_unsupported(const mqmqa_db *db, int p)
                               "is supported only for r >= 1 in a phase with a single anion" :
             mx->mix == 1 ? "mixes species that the file assigns to different chemical groups "
                            "in a phase with more than one cation; mixed chemical groups are "
-                           "not supported there" :
+                           "not supported there except in a G term without an additional "
+                           "constituent" :
             "mixes species that the file assigns to different chemical groups in a phase "
-            "with more than one anion; mixed chemical groups are not supported there";
+            "with more than one anion; mixed chemical groups are not supported there "
+            "except in a G term without an additional constituent";
         snprintf(g_xs_msg, sizeof g_xs_msg,
                  "phase %s: the %c excess term between %s and %s %s, so its energy is "
                  "not computed",

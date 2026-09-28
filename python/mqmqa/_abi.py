@@ -42,6 +42,7 @@ _ffi.cdef(
         const int *quad_ax, const int *quad_ay,
         const double *X,
         const double *Za, const double *Zb, const double *Zx, const double *Zy,
+        int soln_type,
         int n_params,
         const int *par_mix, const int *par_code,
         const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
@@ -347,17 +348,21 @@ def _groups(seq):
 def excess_energy(n_cat, n_an, quad_ca, quad_cb, quad_ax, quad_ay, X,
                   Za, Zb, Zx, Zy, par_mix, par_code,
                   par_A, par_B, par_X, par_Y, par_p, par_q, par_L,
-                  par_r=None, par_addcat=None, cat_group=None, an_group=None):
+                  par_r=None, par_addcat=None, cat_group=None, an_group=None, *,
+                  soln_type):
     """Excess energy for MQMX parameters, J per mole of quadruplets.
 
-    cat_group/an_group are the species' chemical groups; None puts a whole sublattice
-    in one group. NaN for a term the engine does not evaluate."""
+    soln_type: 0 for SUBG, 1 for SUBQ (Database.is_subq); a reciprocal SUBQ phase's
+    G-code terms depend on it. cat_group/an_group are the species' chemical groups;
+    None puts a whole sublattice in one group. NaN for a term the engine does not
+    evaluate."""
     n = len(par_A)
     return _lib.mqmqa_excess_energy(
         int(n_cat), int(n_an), len(X),
         _ints(quad_ca), _ints(quad_cb), _ints(quad_ax), _ints(quad_ay),
         _dbls(X),
         _dbls(Za), _dbls(Zb), _dbls(Zx), _dbls(Zy),
+        int(soln_type),
         n,
         _ints(par_mix), _ints(par_code),
         _ints(par_A), _ints(par_B), _ints(par_X), _ints(par_Y),

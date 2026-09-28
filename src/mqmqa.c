@@ -354,10 +354,40 @@ static int needs_groups(const int *grp, int n, int i, int j)
     return 0;
 }
 
-/* The group interpolation and the r > 1 factor are implemented where the other
- * sublattice holds a single species. With several, the published equations can be
- * read with overall site fractions or with pair fractions within the fixed ion, and
- * the G-code Chi gains reciprocal-quadruplet terms; those cases stay refused. */
+/* What the quadruplets of mixing-sublattice species a,b over the fixed ion f add to
+ * the G-code Chi variables: X(ab/ff), and in a SUBQ phase also every reciprocal
+ * quadruplet X(ab/fm) with another ion m of f's sublattice (in cation mixing; the
+ * roles swap in anion mixing). A missing quadruplet counts as zero.
+ *
+ * The reciprocal terms carry weight 1.0, as in pycalphad's ModelMQMQA._Chi_mix, whose
+ * sum over both slots of the fixed sublattice counts each X(ab/fm) twice at 1/2. The
+ * equation as published (Paz Soldan Palma et al., arXiv:2204.09111, Eq 9, after
+ * Poschmann et al. 2021) weights them 0.5; this engine uses 1.0 to match pycalphad.
+ * Adapted from pycalphad (MIT License, Copyright (c) 2014-2019 Richard Otis and
+ * Zi-Kui Liu, and the other holders listed in README.md). */
+static double chi_quads(int n_quads, const int *ca, const int *cb,
+                        const int *ax, const int *ay, const double *X,
+                        int cmix, int n_fixed, int subq, int a, int b, int f)
+{
+    int q = cmix ? find_quad(n_quads, ca, cb, ax, ay, a, b, f, f)
+                 : find_quad(n_quads, ca, cb, ax, ay, f, f, a, b);
+    double s = q >= 0 ? X[q] : 0.0;
+    if (!subq) return s;
+    for (int m = 0; m < n_fixed; ++m) {
+        if (m == f) continue;
+        q = cmix ? find_quad(n_quads, ca, cb, ax, ay, a, b, f, m)
+                 : find_quad(n_quads, ca, cb, ax, ay, f, m, a, b);
+        if (q >= 0) s += X[q];
+    }
+    return s;
+}
+
+/* The group interpolation of the Q code and the r > 1 factor are implemented where
+ * the other sublattice holds a single species. With several, the published equations
+ * can be read with overall site fractions or with pair fractions within the fixed
+ * ion; those cases stay refused. The G code's Chi variables have one reading there
+ * (chi_quads), with or without groups, as long as no additional constituent brings in
+ * the Xi-based factor. */
 mqmqa_xs_status mqmqa_excess_term_status(int n_cat, int n_an, int mix, int code,
                                          int A, int B, int X, int Y,
                                          double r, int addcat,
@@ -370,8 +400,9 @@ mqmqa_xs_status mqmqa_excess_term_status(int n_cat, int n_an, int mix, int code,
         if (mix != 0) return XS_TERN_ANION;
         if (r < 1.0 || (r != 1.0 && n_other > 1)) return XS_TERN_R;
     }
-    if (n_other > 1 && needs_groups(mix == 0 ? cat_group : an_group, mix == 0 ? n_cat : n_an,
-                                    mix == 0 ? A : X, mix == 0 ? B : Y))
+    if (n_other > 1 && (code != 1 || addcat >= 0)
+        && needs_groups(mix == 0 ? cat_group : an_group, mix == 0 ? n_cat : n_an,
+                        mix == 0 ? A : X, mix == 0 ? B : Y))
         return XS_GROUPS;
     return XS_OK;
 }
@@ -386,6 +417,8 @@ mqmqa_xs_status mqmqa_excess_term_status(int n_cat, int n_an, int mix, int code,
  * 1 for anion mixing (single cation A = B, anions X != Y). par_code = 0 for Q,
  * 1 for G. For cation mixing par_A,par_B are the mixing cations and par_X the
  * anion; for anion mixing par_A is the cation and par_X,par_Y the mixing anions.
+ * soln_type (1 SUBQ, otherwise SUBG) decides whether Chi takes in the reciprocal
+ * quadruplets (chi_quads).
  */
 double mqmqa_excess_energy(
     int n_cat, int n_an, int n_quads,
@@ -393,6 +426,7 @@ double mqmqa_excess_energy(
     const int *quad_ax, const int *quad_ay,
     const double *X,
     const double *Za, const double *Zb, const double *Zx, const double *Zy,
+    int soln_type,
     int n_params,
     const int *par_mix, const int *par_code,
     const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
@@ -424,12 +458,16 @@ double mqmqa_excess_energy(
         const int A = par_A[k], B = par_B[k], Xn = par_X[k], Yn = par_Y[k];
         const double p = par_p[k], qx = par_q[k];
 
-        /* the mixing sublattice, its two species si,sj, and whether the term needs the
-         * group interpolation (status guarantees a single fixed ion on the other side) */
+        /* the mixing sublattice, its two species si,sj, the fixed ion f and the size
+         * of its sublattice, and whether the term needs the group interpolation
+         * (status guarantees a single fixed ion on the other side, except for the
+         * G code's Chi) */
         const int cmix = par_mix[k] == 0;
         const int *grp = cmix ? cat_group : an_group;
         const int n_mix = cmix ? n_cat : n_an;
         const int si = cmix ? A : Xn, sj = cmix ? B : Yn;
+        const int f = cmix ? Xn : A, n_fixed = cmix ? n_an : n_cat;
+        const int subq = soln_type == 1;
         const int grouped = needs_groups(grp, n_mix, si, sj);
 
         /* mixing term */
@@ -444,13 +482,11 @@ double mqmqa_excess_energy(
                 for (int b = a; b < n_mix; ++b) {
                     const int bi = on_side(grp, b, si, sj), bj = on_side(grp, b, sj, si);
                     if (!bi && !bj) continue;
-                    const int q = cmix
-                        ? find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay, a, b, Xn, Xn)
-                        : find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay, A, A, a, b);
-                    if (q < 0) continue;
-                    s_all += X[q];
-                    if (ai && bi) s_i += X[q];
-                    if (aj && bj) s_j += X[q];
+                    const double x = chi_quads(n_quads, quad_ca, quad_cb, quad_ax, quad_ay,
+                                               X, cmix, n_fixed, subq, a, b, f);
+                    s_all += x;
+                    if (ai && bi) s_i += x;
+                    if (aj && bj) s_j += x;
                 }
             }
             g = par_L[k] * pow(s_i / s_all, p) * pow(s_j / s_all, qx);
@@ -466,18 +502,14 @@ double mqmqa_excess_energy(
         } else if (par_code[k] == 1) {              /* G code, Chi_mix (Poschmann eq 21/23) */
             /* empty nu sets: Chi_i = X(i,i)/[X(i,i)+X(i,j)+X(j,j)] over the two
              * mixing constituents */
-            int qii, qij, qjj;
-            if (par_mix[k] == 0) {                  /* cation mixing over anion Xn */
-                qii = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay, A, A, Xn, Xn);
-                qij = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay, A, B, Xn, Xn);
-                qjj = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay, B, B, Xn, Xn);
-            } else {                                /* anion mixing over cation A */
-                qii = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay, A, A, Xn, Xn);
-                qij = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay, A, A, Xn, Yn);
-                qjj = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay, A, A, Yn, Yn);
-            }
-            const double den = X[qii] + X[qij] + X[qjj];
-            const double chi_i = X[qii] / den, chi_j = X[qjj] / den;
+            const double xii = chi_quads(n_quads, quad_ca, quad_cb, quad_ax, quad_ay,
+                                         X, cmix, n_fixed, subq, si, si, f);
+            const double xij = chi_quads(n_quads, quad_ca, quad_cb, quad_ax, quad_ay,
+                                         X, cmix, n_fixed, subq, si, sj, f);
+            const double xjj = chi_quads(n_quads, quad_ca, quad_cb, quad_ax, quad_ay,
+                                         X, cmix, n_fixed, subq, sj, sj, f);
+            const double den = xii + xij + xjj;
+            const double chi_i = xii / den, chi_j = xjj / den;
             g = par_L[k] * pow(chi_i, p) * pow(chi_j, qx);
         } else {                                    /* Q code, eq 24 */
             double Xi_i, Xi_j;
@@ -779,7 +811,7 @@ static double ctx_gibbs_per_quad(const eqctx *c, const double *X)
                                      c->R_own)
          + mqmqa_excess_energy(c->n_cat, c->n_an, c->n_quads,
                                c->ca, c->cb, c->ax, c->ay, X,
-                               c->Za, c->Zb, c->Zx, c->Zy,
+                               c->Za, c->Zb, c->Zx, c->Zy, c->soln_type,
                                c->n_params, c->par_mix, c->par_code,
                                c->par_A, c->par_B, c->par_X, c->par_Y,
                                c->par_p, c->par_q, c->par_L,

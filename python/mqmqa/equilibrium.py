@@ -146,7 +146,8 @@ def gibbs_per_quad(inp, X):
                               ex["mix"], ex["code"], ex["A"], ex["B"], ex["X"], ex["Y"],
                               ex["p"], ex["q"], ex["L"],
                               ex.get("r"), ex.get("addcat"),
-                              inp.get("cat_group"), inp.get("an_group"))
+                              inp.get("cat_group"), inp.get("an_group"),
+                              soln_type=inp["soln_type"])
     )
 
 

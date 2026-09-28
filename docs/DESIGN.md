@@ -63,7 +63,8 @@ parameters go into it. No FactSage code, database, or trademark; only open data.
 ## Status
 
 Energy path complete and validated to machine precision against pycalphad: reference,
-ideal-mixing, and excess (Q code any exponents; G code zero exponents), plus coordination
+ideal-mixing, and excess (Q and G codes, any exponents; the G code's reciprocal-quadruplet
+terms in SUBQ phases weighted as pycalphad weights them, see README), plus coordination
 numbers Z (recursive, including reciprocal quadruplets).
 
 ChemSage `.dat` reader done (`src/cs_dat.c`): parses the header, SUBQ/SUBG phases (pairs,

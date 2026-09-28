@@ -1,13 +1,16 @@
 # Hephaestus
 
-**Hephaestus** is a small, standalone engine for the **Modified Quasichemical Model in
-the Quadruplet Approximation (MQMQA)**: a C core with a thin Python wrapper. The MQMQA
-describes short-range ordering in ionic liquids (molten salts, oxide slags,
-electrolytes), the physics behind FactSage's oxide/slag databases. Named for the god of
-the forge, it computes the thermodynamics of the melt.
+**Hephaestus** is an open-source, high-performance thermodynamic engine for ionic liquids, alloys, and coupled gas phases. Its C core provides a pure, unconstrained implementation of the **Modified Quasichemical Model in the Quadruplet Approximation (MQMQA)** to capture short-range ordering in molten salts, metallurgical slags, and electrolytes.  
 
-The scientific model is MQMQA (a standard acronym); the engine that implements it is
-Hephaestus. The library is currently imported as `mqmqa`.
+## Core capabilities
+
+**Universal CALPHAD Interoperability** includes lossless native readers and writers for ChemSage (.dat), Thermo-Calc (.tdb), .utdb, and XTDB formats.   
+
+**Run-Anywhere Architecture** as a C core, a Python module (import mqmqa), or compiled to WebAssembly (WASM) for client-side execution in a browser.   
+
+**Coupled Multi-Phase Solver** computes equilibrium across ionic melts, alloy solids, and an ideal gas phase coupled at a shared oxygen potential.   
+
+**HPC and Cluster Ready** offers and engine free of commercial floating-license restrictions, enabling parallel scaling across thousands of cores for high-throughput screening and uncertainty quantification.
 
 ## Scope and honest positioning
 
@@ -89,5 +92,9 @@ both the engine and the open slag database as one open-science contribution. See
 
 ## License
 
-MIT (see LICENSE). Model equations are public; this is an independent
-implementation of them.
+Hephaestus is released under copyleft terms:
+
+* **Engine & Code** [GNU Affero General Public License v3.0 (AGPL-3.0)](https://www.gnu.org/licenses/agpl-3.0)
+* **Databases & Assessments** [Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/)
+
+Anyone may use, teach with, extend, or build consulting work on this software, provided all distributed or hosted versions remain open-source and credited under the same terms. Model equations are public domain; this codebase is an independent clean-room implementation.

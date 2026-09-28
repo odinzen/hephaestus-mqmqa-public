@@ -1,9 +1,11 @@
 # 3D phase-space visualization: red-team review and specification
 
-Status: design proposal, not implemented. Target: the private `next-release` line, then the public
-release. Everything here builds on the engine's existing ternary path, the C lower convex hull
-(`mqmqa_lower_hull_2d`) and the lever-rule assemblage lookup (`mqmqa_hull_assemblage_2d`) in
-`src/hull.h`, fed with Gibbs-energy points sampled per phase.
+Status: steps 1 and 2 of section 7 implemented (`src/vis3d.h`, `src/vis3d.c`,
+`python/mqmqa/vis3d.py`, `tests/test_vis3d.py`); steps 3 to 7 not started. Section 8 records
+where the implementation departs from this proposal and why. Target: the private `next-release`
+line, then the public release. The proposal below builds on the engine's existing ternary path,
+the C lower convex hull (`mqmqa_lower_hull_2d`) and the lever-rule assemblage lookup
+(`mqmqa_hull_assemblage_2d`) in `src/hull.h`, fed with Gibbs-energy points sampled per phase.
 
 ## 1. Red-team findings
 
@@ -451,3 +453,47 @@ The cffi binding copies each arena array into numpy (`np.frombuffer(...).copy()`
 Acceptance for every step: the full suite passes; shipped databases are bit-identical (the 3D module
 adds functions and changes no existing path); and every 3D view has a 2D counterpart it must agree
 with.
+
+## 8. Steps 1 and 2 as built
+
+What testing found, and what changed from the proposal because of it.
+
+- **The liquid needs its own minimizer.** The single-phase solver behind
+  `mqmqa_equilibrate_db` (Nelder-Mead from one start) can stop with quadruplet fractions pinned at
+  zero, 1 to 10 kJ/mol above the minimum (FeO-rich, low-silica liquid at 2000 K). A hull fed those
+  values invents miscibility gaps. `vis3d.c` minimizes G per mole of cations itself: a start at the
+  random-mixing distribution fitted exactly to the composition, then Levenberg-Marquardt steps in
+  the constraint null space, scaled by the current fractions so no fraction reaches zero. The
+  reference energy is linear in the fractions and is handled exactly; only mixing plus excess is
+  differenced. Over 900 random FeO-MgO-SiO2 compositions from 1300 to 2400 K it is never more than
+  6.5e-4 J above an SLSQP multi-start, and it matches pycalphad's liquid-only minimum to 1e-3 J.
+- **The hull needs exact orientation tests.** Refinement puts many samples on one line in a nearly
+  flat region; `mqmqa_lower_hull_2d` then loops without end. `vis3d_lower_hull` rounds points to an
+  integer grid (2^-24 in composition, 2^-38 of the Gibbs range) and decides every orientation in
+  128-bit integers.
+- **Refinement and convergence.** Liquid samples start on a 1/40 lattice (the seed only moves the
+  interior nodes). Around every hull vertex where two phases, or the two sides of a miscibility
+  gap, meet, samples are added in all directions until the step is 1/160, then along the tie-line
+  directions, halving the step each pass. The pass stops when the step is below `x_tol` and the
+  tie-lines through 2145 fixed probe compositions move less than `x_tol` between passes; where
+  they still move, the facet's same-phase edges are split. No convergence within `max_refine`
+  passes is an error, never a coarser answer.
+- **Miscibility gaps by energy, not distance.** Two liquid samples joined by a hull edge are one
+  liquid or the two sides of a gap according to the liquid at the edge's midpoint: above the chord
+  it is unstable, so the edge is a two-liquid tie-line. Edges shorter than 0.01 are taken as one
+  liquid, so the last 0.01 of a gap before its critical point is not resolved.
+- **The section is an overlay, not a bisection.** The phase regions are unions of hull facets, so
+  their boundaries are known exactly. A lattice triangle no boundary crosses is kept whole; one a
+  boundary crosses is clipped against the facets it overlaps. Bisection along lattice edges, as
+  proposed in R5, missed fields narrower than the lattice (thin three-phase triangles, 9% of
+  triangles mislabelled in CaO-Al2O3-SiO2 at 1673 K). Fields of zero width (a compound's point, a
+  tie-line between two compounds) get no area.
+- **Browser build.** `vis3d_*` joins the exported list in `scripts/build_wasm.sh`. The build does not
+  export `HEAPF32`/`HEAPU32`; the worker of section 5 needs them added to
+  `EXPORTED_RUNTIME_METHODS` (step 6).
+
+Validation (`tests/test_vis3d.py`): the 1900 K olivine tie-line of R7 is within 1e-3 of
+pycalphad (liquidus 0.3696, solidus 0.0803 on the join) for five seeds; seven further tie-lines
+(olivine, periclase, two liquids, a three-phase triangle, orthopyroxene) from 1700 to 2000 K agree
+within 1e-3; the section's fields equal the existing 2D lookup on the same candidates at every
+point of a 50-step grid; field areas converge as the lattice goes from 30 to 120.

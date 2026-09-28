@@ -1,0 +1,352 @@
+"""The 3D module, steps 1 and 2 of docs/VISUALIZATION_3D.md (src/vis3d.c).
+
+Step 1, the deterministic refined liquid: the same input gives the same hull bit for bit;
+the refined tie-lines agree with the model's own equilibrium (pycalphad on the committed
+combined .dat) to X_TOL whatever the sampling seed; the liquid minimizer reaches the
+single-phase minimum pycalphad finds. Step 2, the isothermal section as mesh patches:
+one label per triangle, the labels agree with the existing 2D assemblage lookup on the
+same candidates, and the phase-field areas converge as the lattice is refined.
+
+X_TOL is the default boundary tolerance of the module (cation mole fraction), 1e-3:
+below the width of a pixel on any diagram of the triangle, and well above the ~1e-4
+scatter of the converged boundaries between sampling seeds.
+"""
+import sys
+from pathlib import Path
+
+import numpy as np
+import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "python"))
+
+import mqmqa                                           # noqa: E402
+from mqmqa import vis3d                                # noqa: E402
+from mqmqa._abi import _ffi, _lib                      # noqa: E402
+
+_ffi.cdef("int mqmqa_hull_assemblage_2d(const double *pts, int n, const int *facets, int nf,"
+          " double qx, double qy, int *tri_out, double *w_out, double *g_out);", override=True)
+
+X_TOL = 1e-3
+FMS = ROOT / "data" / "feo-mgo-sio2" / "FeO-MgO-SiO2-combined.dat"
+CAS = ROOT / "web" / "CaO-Al2O3-SiO2.dat"
+LIQ = "FEO-MGO-SIO2-LIQUID"
+PHASES = [LIQ, "OLIVINE", "ORTHOPYROXENE", "CRISTOBALITE", "PERICLASE", "WUSTITE"]
+
+
+@pytest.fixture(scope="module")
+def fms():
+    return mqmqa.Database.read(str(FMS))
+
+
+_hulls = {}
+
+
+def _hull(db, T, seed=0):
+    """Hulls are the expensive part (seconds each); tests share them."""
+    key = (id(db), T, seed)
+    if key not in _hulls:
+        _hulls[key] = vis3d.Hull(db, T, seed=seed)
+    return _hulls[key]
+
+
+def _pyc_equilibrium(T, x_fe, x_si, phases=PHASES):
+    """[(phase, x_fe, x_si)] of the model's equilibrium, from pycalphad on the same file."""
+    from pycalphad import Database, equilibrium, variables as v
+    dbf = _pyc_equilibrium.dbf = getattr(_pyc_equilibrium, "dbf", None) or Database(str(FMS))
+    x_mg = 1.0 - x_fe - x_si
+    tot = 1.0 + x_fe + x_mg + 2.0 * x_si
+    eq = equilibrium(dbf, ["FE", "MG", "SI", "O"], phases,
+                     {v.T: T, v.P: 1e5, v.N: 1,
+                      v.X("FE"): x_fe / tot, v.X("MG"): x_mg / tot, v.X("SI"): x_si / tot})
+    names = np.ravel(eq.Phase.values)
+    X = eq.X.values.reshape(len(names), -1)
+    NP = np.ravel(eq.NP.values)
+    comp = list(eq.component.values)
+    out = []
+    for name, row, amt in zip(names, X, NP):
+        if str(name) in ("", "nan") or amt < 1e-3:
+            continue
+        d = dict(zip(comp, row))
+        ncat = d["FE"] + d["MG"] + d["SI"]
+        out.append((str(name), d["FE"] / ncat, d["SI"] / ncat))
+    return sorted(out), float(eq.GM.values.squeeze()) * tot
+
+
+def _mine(h, x_fe, x_si):
+    """The hull's assemblage as [(phase, x_fe, x_si)], liquid order x1 = Fe, x2 = Mg, x3 = Si."""
+    return sorted((p, 1.0 - x2 - x3, x3) for p, amt, x2, x3 in h.assemblage(1 - x_fe - x_si, x_si)
+                  if amt > 1e-3)
+
+
+# ------------------------------------------------------------------ step 1: the liquid
+
+def test_liquid_minimizer_reaches_the_single_phase_minimum(fms):
+    """The minimizer against pycalphad restricted to the liquid, where pycalphad finds one
+    liquid. (The Nelder-Mead path behind mqmqa_equilibrate_db is kJ above this minimum in
+    FeO-rich, low-silica liquid at 2000 K; that is why the module has its own.)"""
+    pytest.importorskip("pycalphad")
+    from pycalphad import Database, equilibrium, variables as v
+    dbf = Database(str(FMS))
+    rng = np.random.default_rng(4)
+    checked = 0
+    for T in (1500.0, 2000.0):
+        for _ in range(15):
+            x = rng.dirichlet([1.0, 1.0, 1.0])
+            x_fe, x_mg, x_si = x
+            tot = 1.0 + x_fe + x_mg + 2.0 * x_si
+            eq = equilibrium(dbf, ["FE", "MG", "SI", "O"], [LIQ],
+                             {v.T: T, v.P: 1e5, v.N: 1, v.X("FE"): x_fe / tot,
+                              v.X("MG"): x_mg / tot, v.X("SI"): x_si / tot})
+            if sum(str(n) not in ("", "nan") for n in np.ravel(eq.Phase.values)) != 1:
+                continue        # pycalphad splits it into two liquids: not a single-phase check
+            g_pyc = float(eq.GM.values.squeeze()) * tot
+            g, X = vis3d.liquid_gibbs(fms, LIQ, T, x_mg, x_si)
+            assert abs(g - g_pyc) < 1e-3, f"T={T} x={x}: {g} vs pycalphad {g_pyc}"
+            assert X.min() > 0.0
+            checked += 1
+    assert checked >= 20
+
+
+def test_same_input_same_hull(fms):
+    a = vis3d.Hull(fms, 1900.0, seed=3)
+    b = vis3d.Hull(fms, 1900.0, seed=3)
+    pa, pb = a.points(), b.points()
+    assert pa.shape == pb.shape and np.array_equal(pa, pb)
+    assert np.array_equal(a.facets(), b.facets())
+    assert a.passes == b.passes
+
+
+def test_olivine_tieline_converges_to_the_model_value_for_every_seed(fms):
+    """The 1900 K olivine-liquid tie-line on the x_Si = 1/3 join, the case the random
+    sampler of python/mqmqa/ternary.py put anywhere from 0.33 to 0.47 (liquidus, join
+    X_Fe) depending on the seed. Each seed must land within X_TOL of the model's
+    equilibrium, so the seeds also agree with each other."""
+    pytest.importorskip("pycalphad")
+    T, x_fe, x_si = 1900.0, 0.20, 1.0 / 3.0
+    ref, _ = _pyc_equilibrium(T, x_fe, x_si)
+    assert [p for p, _, _ in ref] == [LIQ, "OLIVINE"]
+    liq_ref, sol_ref = ref[0][1], ref[1][1]
+    assert abs(liq_ref / (2 / 3) - 0.3696) < 1e-3 and abs(sol_ref / (2 / 3) - 0.0803) < 1e-3
+    liq, sol = [], []
+    for seed in range(5):
+        got = _mine(_hull(fms, T, seed), x_fe, x_si)
+        assert [p for p, _, _ in got] == [LIQ, "OLIVINE"], (seed, got)
+        # both ends on the join (the liquid end is interpolated between samples)
+        assert abs(got[0][2] - 1 / 3) < 1e-6 and abs(got[1][2] - 1 / 3) < 1e-6
+        liq.append(got[0][1])
+        sol.append(got[1][1])
+    assert max(abs(v - liq_ref) for v in liq) < X_TOL, (liq, liq_ref)
+    assert max(abs(v - sol_ref) for v in sol) < X_TOL, (sol, sol_ref)
+    assert max(liq) - min(liq) < X_TOL and max(sol) - min(sol) < X_TOL
+
+
+@pytest.mark.parametrize("T, x_fe, x_si", [
+    (1800.0, 0.30, 1.0 / 3.0),     # liquid + olivine
+    (2000.0, 0.10, 1.0 / 3.0),     # liquid + olivine
+    (1900.0, 0.15, 0.80),          # two liquids (the silica-rich miscibility gap)
+    (1900.0, 0.30, 0.10),          # liquid + periclase
+    (2000.0, 0.20, 0.15),          # liquid + periclase
+    (1800.0, 0.10, 0.10),          # liquid + olivine + periclase
+    (1700.0, 0.35, 0.60),          # liquid + orthopyroxene, next to a metastable two-liquid field
+])
+def test_tielines_match_the_model_equilibrium(fms, T, x_fe, x_si):
+    pytest.importorskip("pycalphad")
+    ref, g_ref = _pyc_equilibrium(T, x_fe, x_si)
+    h = _hull(fms, T)
+    got = _mine(h, x_fe, x_si)
+    assert [p for p, _, _ in got] == [p for p, _, _ in ref], (got, ref)
+    for (p, a1, a3), (_, b1, b3) in zip(got, ref):
+        assert np.hypot(a1 - b1, a3 - b3) < X_TOL, (p, (a1, a3), (b1, b3))
+    # The hull energy is a lever sum of real phase states, so it cannot fall below the
+    # true minimum (beyond solver noise); it lies above it by the chord error between
+    # samples, ~0.1 J on these tie-lines.
+    dg = h.gibbs(1 - x_fe - x_si, x_si) - g_ref
+    assert -1e-2 < dg < 1.0, dg
+
+
+# --------------------------------------------------------------------- the exact hull
+
+def test_exact_hull_agrees_with_scipy_and_survives_degenerate_input(fms):
+    """The module's hull decides orientations exactly; mqmqa_lower_hull_2d can loop
+    without end once refinement puts many samples on one line, so the refined point set
+    goes only to this one."""
+    scipy_spatial = pytest.importorskip("scipy.spatial")
+    h = _hull(fms, 1900.0)
+    P = h.points()[:, :3].copy()
+    F = vis3d.lower_hull(P)
+    S = scipy_spatial.ConvexHull(P)
+    low = np.array([s for e, s in zip(S.equations, S.simplices) if e[2] < -1e-12])
+
+    def hull_g(facets, q):
+        best = np.inf
+        for f in facets:
+            a, b, c = P[f, :2]
+            M = np.array([[a[0] - c[0], b[0] - c[0]], [a[1] - c[1], b[1] - c[1]]])
+            if abs(np.linalg.det(M)) < 1e-15:
+                continue
+            w = np.linalg.solve(M, q - c)
+            w = np.array([w[0], w[1], 1 - w.sum()])
+            if (w >= -1e-9).all():
+                best = min(best, w @ P[f, 2])
+        return best
+
+    rng = np.random.default_rng(1)
+    for q in rng.dirichlet([1, 1, 1], 25)[:, 1:]:
+        # rounding to the exact grid moves a sample by < 3e-8 in composition
+        assert abs(hull_g(F, q) - hull_g(low, q)) < 1e-2
+
+    n = 40
+    pts = [(i / n, j / n, (i / n - 0.3) ** 2 + (j / n - 0.4) ** 2)
+           for i in range(n + 1) for j in range(n + 1 - i)]
+    pts += [(0.2 + t * 1e-3, 0.3 + t * 2e-3, 0.0) for t in range(30)]   # collinear, coplanar
+    pts += pts[:25]                                                       # duplicates
+    assert len(vis3d.lower_hull(np.array(pts))) > 0
+
+
+# ------------------------------------------------------------------ step 2: the section
+
+def _areas(s):
+    c = s.comp[:, 1:]
+    a = c[s.tri[:, 1]] - c[s.tri[:, 0]]
+    b = c[s.tri[:, 2]] - c[s.tri[:, 0]]
+    return 0.5 * (a[:, 0] * b[:, 1] - a[:, 1] * b[:, 0])
+
+
+def _check_mesh(s, T, z_per_kelvin=1e-3):
+    nt, nv = len(s.tri), len(s.comp)
+    assert s.patch_start[0] == 0 and s.patch_start[-1] == nt
+    assert np.all(np.diff(s.patch_start) > 0)
+    assert np.all((s.patch_phase >= 0) & (s.patch_phase < len(s.labels)))
+    assert len(set(s.labels)) == len(s.labels)
+    assert s.tri.max() < nv
+    # every vertex belongs to exactly one patch: seams are duplicated, never shared
+    owner = np.full(nv, -1)
+    for p in range(len(s.patch_phase)):
+        v = np.unique(s.tri[s.patch_start[p]:s.patch_start[p + 1]])
+        assert np.all(owner[v] == -1), "a vertex is shared between patches"
+        owner[v] = p
+    assert np.all(owner >= 0)
+    ar = _areas(s)
+    assert np.all(ar > 0), "every triangle counter-clockwise with positive area"
+    assert abs(ar.sum() - 0.5) < 1e-9, "the patches tile the whole triangle"
+    assert np.allclose(s.comp.sum(axis=1), 1.0, atol=1e-12)
+    X = s.comp[:, 1] + 0.5 * s.comp[:, 2]
+    Y = np.sqrt(3) / 2 * s.comp[:, 2]
+    assert np.allclose(s.pos[:, 0], X, atol=1e-6) and np.allclose(s.pos[:, 1], Y, atol=1e-6)
+    assert np.allclose(s.pos[:, 2], T * z_per_kelvin, rtol=1e-6)
+    assert np.all(s.temp == T)
+    assert len(s.line_pos) == 2 * (len(s.line_start) - 1)
+
+
+def _labels_at(h, x2x3):
+    out = []
+    for x2, x3 in x2x3:
+        out.append("+".join(sorted(p for p, amt, _, _ in h.assemblage(x2, x3))))
+    return out
+
+
+@pytest.mark.parametrize("db_path, T", [(FMS, 1900.0), (CAS, 1673.0)])
+def test_section_patches_carry_one_label_each(db_path, T):
+    """One label per triangle by construction, and it is the equilibrium at the triangle's
+    centroid: the patches are the hull's own regions. Clipping along a facet edge leaves
+    numerically degenerate slivers whose centroid can read the facet next door; together
+    they must hold no measurable area."""
+    db = mqmqa.Database.read(str(db_path))
+    h = _hull(db, T)
+    s = h.section(lattice_n=60)
+    _check_mesh(s, T)
+    tl = s.tri_label
+    cen = s.comp[s.tri].mean(axis=1)[:, 1:]
+    got = _labels_at(h, cen)
+    bad = [k for k in range(len(tl)) if got[k] != s.labels[tl[k]]]
+    ar = _areas(s)
+    assert ar[bad].sum() < 1e-6, f"{len(bad)} of {len(tl)} centroids disagree, area {ar[bad].sum()}"
+
+
+def test_section_matches_the_2d_assemblage_lookup(fms):
+    """The section's fields are the existing 2D lookup, mqmqa_hull_assemblage_2d, run on the
+    same candidates and facets. That lookup has no notion of a miscibility gap, so phase
+    sets are compared (two liquids count as liquid)."""
+    h = _hull(fms, 1900.0)
+    P = h.points()
+    P[:, :2] = np.round(P[:, :2] * 2.0 ** 24) / 2.0 ** 24     # the hull's exact grid
+    F = h.facets()
+    names = h.phase_names
+    pts = _ffi.new("double[]", P[:, :3].ravel().tolist())
+    fac = _ffi.new("int[]", F.ravel().tolist())
+    tri = _ffi.new("int[3]"); w = _ffi.new("double[3]"); g = _ffi.new("double[1]")
+    n, total, same = 50, 0, 0
+    for i in range(n + 1):
+        for j in range(n + 1 - i):
+            x2, x3 = i / n, j / n
+            ok = _lib.mqmqa_hull_assemblage_2d(pts, len(P), fac, len(F), x2, x3, tri, w, g)
+            assert ok == 1
+            old = {names[int(P[tri[k], 3])] for k in range(3) if w[k] > 1e-6}
+            new = {p for p, _, _, _ in h.assemblage(x2, x3)}
+            total += 1
+            same += old == new
+    assert same == total, f"{total - same} of {total} disagree"
+
+
+def test_section_boundaries_converge_with_the_lattice(fms):
+    """Field areas at lattice 30, 60 and 120: the changes shrink, and the last is below
+    what a boundary shift of X_TOL along the whole boundary length would give."""
+    h = _hull(fms, 1900.0)
+    area = {}
+    for n in (30, 60, 120):
+        s = h.section(lattice_n=n)
+        _check_mesh(s, 1900.0)
+        ar = _areas(s)
+        tl = s.tri_label
+        area[n] = {lab: ar[tl == k].sum() for k, lab in enumerate(s.labels)}
+    labs = set(area[30]) | set(area[60]) | set(area[120])
+    d1 = sum(abs(area[30].get(l, 0) - area[120].get(l, 0)) for l in labs)
+    d2 = sum(abs(area[60].get(l, 0) - area[120].get(l, 0)) for l in labs)
+    assert d2 < d1
+    boundary_length = 6.0   # generous: the seams of this section total well under this
+    assert d2 < X_TOL * boundary_length
+
+
+def test_section_seams_are_located_to_x_tol(fms):
+    """Along the olivine join the seam crossings of a lattice-60 and a lattice-120 section
+    are the same boundaries, within X_TOL."""
+    h = _hull(fms, 1900.0)
+    y = np.sqrt(3) / 2 / 3                         # x3 = 1/3 in Cartesian Y
+
+    def crossings(s):
+        seg = s.line_pos[:, :2].reshape(-1, 2, 2).astype(np.float64)
+        out = []
+        for (x0, y0), (x1, y1) in seg:
+            if (y0 - y) * (y1 - y) < 0:
+                out.append(x0 + (y - y0) * (x1 - x0) / (y1 - y0))
+        return np.sort(out)
+
+    c60, c120 = crossings(h.section(lattice_n=60)), crossings(h.section(lattice_n=120))
+    assert len(c60) > 0
+    for c in c120:
+        assert np.min(np.abs(c60 - c)) < X_TOL
+    for c in c60:
+        assert np.min(np.abs(c120 - c)) < X_TOL
+
+
+def test_same_input_same_section(fms):
+    a = vis3d.section(fms, 1900.0, lattice_n=30)
+    b = vis3d.section(fms, 1900.0, lattice_n=30)
+    for f in ("pos", "comp", "temp", "tri", "patch_start", "patch_phase", "line_pos", "line_start"):
+        assert np.array_equal(getattr(a, f), getattr(b, f)), f
+    assert a.labels == b.labels
+
+
+# ----------------------------------------------------------------------- loud failures
+
+def test_refuses_rather_than_approximates(fms):
+    with pytest.raises(vis3d.Vis3DError, match="did not converge"):
+        vis3d.Hull(fms, 1900.0, max_refine=1)
+    with pytest.raises(vis3d.Vis3DError, match="no phase named"):
+        vis3d.Hull(fms, 1900.0, phases=[LIQ, "NOT-A-PHASE"])
+    salt = mqmqa.Database.read(str(ROOT / "web" / "LiCl-KCl.dat"))
+    with pytest.raises(vis3d.Vis3DError, match="three"):
+        vis3d.Hull(salt, 900.0)
+    with pytest.raises(vis3d.Vis3DError, match="lattice_n"):
+        vis3d.section(fms, 1900.0, lattice_n=0)

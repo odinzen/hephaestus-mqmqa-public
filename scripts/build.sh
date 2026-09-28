@@ -21,6 +21,6 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
     -shared -I"$ROOT/src" \
     -o "$ROOT/python/mqmqa/mqmqa.dll" \
     "$ROOT/src/mqmqa.c" "$ROOT/src/cs_dat.c" "$ROOT/src/cef.c" "$ROOT/src/gas.c" "$ROOT/src/equil.c" "$ROOT/src/hull.c" "$ROOT/src/equilibrium.c" "$ROOT/src/tq.c" \
-    "$ROOT/src/db_write.c" "$ROOT/src/xtdb.c"
+    "$ROOT/src/db_write.c" "$ROOT/src/xtdb.c" "$ROOT/src/vis3d.c"
 
 echo "built $ROOT/python/mqmqa/mqmqa.dll"

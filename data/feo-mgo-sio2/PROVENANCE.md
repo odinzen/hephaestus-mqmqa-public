@@ -192,7 +192,19 @@ tridymite or cristobalite. The fix belongs to the FeO-SiO2 binary (below), not t
   and melting begins with wustite first at about 1553 K (pycalphad on the same file agrees:
   opx + wustite at 1480 K, liquid + wustite at 1530 K, liquid at 1560 K). The fayalite
   endpoint quoted below compares liquid with olivine only. Measured: fayalite melts at 1478 K.
-  The Fe end of the orthopyroxene is the suspect.
+  On the FeO-SiO2 edge the combined .dat puts orthopyroxene everywhere from ~1150 K up (opx +
+  wustite at the fayalite composition, opx alone at FeSiO3), where Bowen & Schairer (1932,
+  1935) found fayalite + silica and no pyroxene; the 1935 text says FeSiO3 does not form,
+  though pyroxenes up to nearly 90% FeSiO3 do. The reaction Fe2Si2O6 + 2 FeO -> 2 Fe2SiO4 is
+  -19 kJ at 298 K on Robie-Hemingway + JANAF data and +11 kJ at 1480 K in the model: the
+  ferrosilite Cp fit (R&H, data to 800 K) runs 5-10 J/K per FeSiO3 above the olivine + oxide
+  sum. It cannot be fixed on the ferrosilite endmember alone, because the measured
+  olivine/opx Fe-Mg exchange pins ferrosilite against fayalite at <= 1273 K; the opx mixing
+  at the Fe-rich end is the likely lever.
+- **SiO2 solid Cp below ~500 K.** The Haas-Fisher fit shared by every silicate here gives
+  26.7 J/mol/K at 298 K (JANAF: 44.6); integrated from 298 K it leaves solid (and liquid)
+  SiO2 3.1, 4.7, 5.5 and 6.0 kJ too high at 1000, 1273, 1400 and 1480 K. SiO2 cancels in
+  melting and in the reaction above, but not in compound formation from the oxides.
 - **Olivine melting loop (`olivine_join.py`).** The Mg2SiO4-Fe2SiO4 join (liquid <-> olivine
   CEF, common tangent along x_SiO2 = 1/3) computed with our own stack now reproduces BOTH
   congruent endpoints - forsterite 2163 K and fayalite 1476 K (measured 2163 / 1478) - after

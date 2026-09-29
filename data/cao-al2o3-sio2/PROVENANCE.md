@@ -108,7 +108,13 @@ measurements above, not to MLIP energies. Repro: `_mlip/mlip_mix.py <model> all 
 - Every binary edge inherits its own documented limits (CaO-SiO2 silica gap
   temperature, CaO-Al2O3 +-90 K invariants, Al2O3-SiO2 Al-rich flank).
 - Ternary liquidus surfaces/invariants not yet mapped (the FeO-MgO-SiO2 ternary
-  machinery applies and is the natural follow-up).
+  machinery applies and is the natural follow-up). A first look (vis3d.liquidus_point,
+  2026-09-29): anorthite melts at 2234 K (1960 degC) in the model against 1557 degC
+  measured, and gehlenite at 1946 K (1672 degC) against about 1590 degC. The anorthite Cp is
+  a fit to 1000 K; the missing ternary liquid term may carry part of it.
+- The liquid alone has a CaO-rich two-liquid region off the CaO-Al2O3 edge (to x_Al 0.35
+  on the edge at 1900 K), deep under the CaO liquidus, so solid CaO removes it from every
+  equilibrium; it shows only in liquid-only views.
 - Both engines load all 15 phases; the SUBQ+stoich ternary code path is the one
   validated end-to-end on FeO-MgO-SiO2 (phase sets 15/16 vs pycalphad).
 

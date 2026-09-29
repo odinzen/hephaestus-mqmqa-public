@@ -49,6 +49,15 @@ file (build_combined_dat.py) crystallize the right silicate; see PROVENANCE_comb
   assessed; the interior of the quaternary is a prediction. Ternary MQMX terms (the CaO-SiO2
   + Mg / + Fe kind, as in CaO-Al2O3-SiO2) are the v0.2 refinement if open ternary slag data
   are digitized.
+- **Chemical groups: all four cations in group 1** (a symmetric interpolation, not
+  Muggianu as said above). Since 2026-09-29 the FeO-MgO-SiO2 liquid puts Si in its own group,
+  so this melt's Ca-free face is that liquid's earlier model, not the shipped one (energies
+  equal to 0 J with the matching groups). Neither layout is clean on every face (liquid-only
+  two-liquid nodes on a 1/40 grid, 1700 K): with all in group 1, FeO-MgO-SiO2 and
+  CaO-MgO-SiO2 carry spurious two-liquid regions away from silica (89 and 59 nodes) and
+  CaO-FeO-SiO2 none; with Si alone the first two lose them and CaO-FeO-SiO2 gains one
+  (100 nodes, FeO-rich basic liquid against lime silicate liquid). The engine does not take
+  per-ternary group overrides, so the choice, or a ternary term, is open.
 - **The basic edges (CaO-FeO, CaO-MgO, FeO-MgO) are ideal.** All three are near-ideal
   mixtures of divalent oxides (complete miscibility); small assessed interactions (CaO-FeO
   and CaO-MgO have modest positive excesses in full assessments) are a documented v0.2

@@ -18,7 +18,7 @@
  * The lower hull here is its own implementation rather than mqmqa_lower_hull_2d: the
  * refinement puts many samples on one line in a nearly flat region, and a hull built on
  * floating-point orientation tests can fail to terminate on such input. This one rounds
- * the points to an integer grid (composition to 2^-24, Gibbs energy to 2^-38 of its
+ * the points to an integer grid (composition to 2^-30, Gibbs energy to 2^-38 of its
  * range) and decides every orientation exactly in 128-bit integers.
  */
 #include "vis3d.h"
@@ -131,8 +131,8 @@ static int i128_sign(I128 a)
 
 typedef struct { int64_t x, y, z; } Q3;
 
-/* sign of det[b-a, c-a, d-a]; the xy minors stay below 2^51 and z differences below
- * 2^39, so every product and the sum fit in 128 bits */
+/* sign of det[b-a, c-a, d-a]; with x, y in [0, 2^30] the xy minors stay below 2^61 and z
+ * differences below 2^39, so every product and the sum fit in 128 bits */
 static int orient3(const Q3 *a, const Q3 *b, const Q3 *c, const Q3 *d)
 {
     int64_t bx = b->x - a->x, by = b->y - a->y, bz = b->z - a->z;
@@ -206,17 +206,30 @@ static int exact_lower_hull(double *P, int n, int **facets_out)
 {
     *facets_out = NULL;
     if (n < 4) return -1;
+    /* The composition grid is fine because a sample moved on it keeps its old energy: a
+     * move of 2^-31 on a slope of 1e6 J is 0.5 mJ, where 2^-25 was 30 mJ. The bit budget
+     * of orient3 holds only for x and y inside the unit square (give or take rounding),
+     * so anything else is refused. */
+    const double lo = -1e-12, hi = 1.0 + 1e-12;
     double gmax = 0.0;
-    for (int i = 0; i < n; ++i) if (fabs(P[3*i+2]) > gmax) gmax = fabs(P[3*i+2]);
+    for (int i = 0; i < n; ++i) {
+        if (!(P[3*i] >= lo && P[3*i] <= hi && P[3*i+1] >= lo && P[3*i+1] <= hi &&
+              isfinite(P[3*i+2])))
+            return -1;
+        if (fabs(P[3*i+2]) > gmax) gmax = fabs(P[3*i+2]);
+    }
     double gstep = gmax > 0 ? gmax / 274877906944.0 : 1.0;   /* 2^38 steps over the range */
     Q3 *Q = malloc((size_t)n * sizeof(Q3));
     if (!Q) return -1;
     for (int i = 0; i < n; ++i) {
-        Q[i].x = (int64_t)llround(P[3*i] * 16777216.0);
-        Q[i].y = (int64_t)llround(P[3*i+1] * 16777216.0);
+        Q[i].x = (int64_t)llround(P[3*i] * 1073741824.0);
+        Q[i].y = (int64_t)llround(P[3*i+1] * 1073741824.0);
+        /* x and y rounded apart can leave a point of the x + y = 1 edge a grid step off it,
+         * and a probe on that edge then falls outside every facet */
+        if (fabs(1.0 - P[3*i] - P[3*i+1]) <= 1e-12) Q[i].y = 1073741824 - Q[i].x;
         Q[i].z = (int64_t)llround(P[3*i+2] / gstep);
-        P[3*i] = (double)Q[i].x / 16777216.0;
-        P[3*i+1] = (double)Q[i].y / 16777216.0;
+        P[3*i] = (double)Q[i].x / 1073741824.0;
+        P[3*i+1] = (double)Q[i].y / 1073741824.0;
         P[3*i+2] = (double)Q[i].z * gstep;
     }
 
@@ -965,8 +978,7 @@ static int add_point(vis3d_hull *h, double x2, double x3, double g, int tag, dou
     return 0;
 }
 
-/* Liquid Gibbs energy per mole of cations at (x2, x3), where it was placed (a corner the
- * excess routine cannot take moves 1e-9 inward); 1 when outside the triangle. A solve
+/* Liquid Gibbs energy per mole of cations at (x2, x3); 1 when outside the triangle. A solve
  * that does not converge is an error, never a skipped sample. */
 static int liq_eval(vis3d_hull *h, double *px2, double *px3, double *pg, double *perr)
 {
@@ -976,9 +988,10 @@ static int liq_eval(vis3d_hull *h, double *px2, double *px3, double *pg, double 
     double err = 0.0, g = liqm_minimize(&h->lm, x, &err);
     if (!isfinite(g) && (x[0] == 0.0 || x[1] == 0.0 || x[2] == 0.0)) {
         /* The excess routine returns NaN at some exact end-members (the FeO-SiO2 Q term
-         * at pure FeO); the sample moves 1e-9 toward the centre, about 1e-4 J away. */
+         * at pure FeO); the energy is taken 1e-9 toward the centre, about 1e-4 J away. The
+         * sample stays on the corner or edge: moved inward it would lie a grid step inside,
+         * and the hull would no longer reach the corner. */
         for (int i = 0; i < 3; ++i) x[i] += 1e-9 * (1.0 / 3.0 - x[i]);
-        x2 = x[1]; x3 = x[2];
         g = liqm_minimize(&h->lm, x, &err);
     }
     if (!isfinite(g)) {
@@ -1192,8 +1205,12 @@ static int rehull(vis3d_hull *h)
     return 0;
 }
 
-/* covering facet at (x2, x3): the same barycentric test and tolerance as
- * mqmqa_hull_assemblage_2d; facets are tried in index order, so ties are reproducible */
+/* covering facet at (x2, x3): the barycentric test and tolerance of
+ * mqmqa_hull_assemblage_2d, plus a floor for rounding. On a sliver, whose third corner can
+ * sit 2e-9 from the edge a probe lies on, plain rounding makes that corner's weight -3e-9,
+ * past any fixed tolerance; its unnormalized weight (twice a signed area) is ~1e-18, and
+ * anything down to -1e-15 counts as zero. Weights come back clipped at zero. Facets are
+ * tried in index order, so ties are reproducible. */
 static int locate(const vis3d_hull *h, double x2, double x3, double w[3])
 {
     const double tol = 1e-9;
@@ -1209,11 +1226,16 @@ static int locate(const vis3d_hull *h, double x2, double x3, double w[3])
         const double *A = h->R + 3*h->facets[3*f], *B = h->R + 3*h->facets[3*f+1],
                      *C = h->R + 3*h->facets[3*f+2];
         double det = (A[0] - C[0]) * (B[1] - C[1]) - (B[0] - C[0]) * (A[1] - C[1]);
-        if (fabs(det) < 1e-15) continue;
-        double l1 = ((B[1] - C[1]) * (x2 - C[0]) + (C[0] - B[0]) * (x3 - C[1])) / det;
-        double l2 = ((C[1] - A[1]) * (x2 - C[0]) + (A[0] - C[0]) * (x3 - C[1])) / det;
-        double l3 = 1.0 - l1 - l2;
-        if (l1 >= -tol && l2 >= -tol && l3 >= -tol) { best = f; w[0] = l1; w[1] = l2; w[2] = l3; }
+        if (det == 0.0) continue;
+        double s = det > 0 ? 1.0 : -1.0, ad = fabs(det);
+        double n1 = s * ((B[1] - C[1]) * (x2 - C[0]) + (C[0] - B[0]) * (x3 - C[1]));
+        double n2 = s * ((C[1] - A[1]) * (x2 - C[0]) + (A[0] - C[0]) * (x3 - C[1]));
+        double n3 = ad - n1 - n2;
+        double floor_ = fmax(tol * ad, 1e-15);
+        if (n1 < -floor_ || n2 < -floor_ || n3 < -floor_) continue;
+        n1 = fmax(n1, 0.0); n2 = fmax(n2, 0.0); n3 = fmax(n3, 0.0);
+        double sum = n1 + n2 + n3;
+        best = f; w[0] = n1 / sum; w[1] = n2 / sum; w[2] = n3 / sum;
     }
     return best;
 }
@@ -2077,6 +2099,26 @@ static int soup_to_mesh(Soup *S, Labels *L, int nbin, double z_scale, int z_is_s
 {
     int rc = 0;
     VKey *keys = NULL; int *vid = NULL, *uf = NULL, *order = NULL, *pat = NULL;
+    /* A sliver two of whose corners fall on one grid point would come out with zero area;
+     * it covers nothing, so it goes before the vertices are numbered and leaves no orphan. */
+    int kept = 0;
+    for (int t = 0; t < S->nt; ++t) {
+        int64_t kx[3], ky[3];
+        for (int c = 0; c < 3; ++c) {
+            kx[c] = llround(S->v[6*t+2*c] * 68719476736.0);
+            ky[c] = llround(S->v[6*t+2*c+1] * 68719476736.0);
+        }
+        if ((kx[0] == kx[1] && ky[0] == ky[1]) || (kx[1] == kx[2] && ky[1] == ky[2]) ||
+            (kx[0] == kx[2] && ky[0] == ky[2]))
+            continue;
+        if (kept != t) {
+            memmove(S->v + 6*kept, S->v + 6*t, 6 * sizeof(double));
+            S->lab[kept] = S->lab[t];
+            if (S->tz) memmove(S->tz + 3*kept, S->tz + 3*t, 3 * sizeof(double));
+        }
+        kept++;
+    }
+    S->nt = kept;
     /* vertices: merge equal coordinates within a label, never across labels */
     int nc = 3 * S->nt;
     keys = malloc((size_t)(nc ? nc : 1) * sizeof(VKey));

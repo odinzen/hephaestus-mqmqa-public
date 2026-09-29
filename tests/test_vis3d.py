@@ -84,9 +84,13 @@ def _mine(h, x_fe, x_si):
 def test_liquid_minimizer_reaches_the_single_phase_minimum(fms):
     """The minimizer against pycalphad restricted to the liquid, where pycalphad finds one
     liquid. (The Nelder-Mead path behind mqmqa_equilibrate_db is kJ above this minimum in
-    FeO-rich, low-silica liquid at 2000 K; that is why the module has its own.)"""
+    FeO-rich, low-silica liquid at 2000 K; that is why the module has its own.)
+
+    The reference is the energy of pycalphad's equilibrium state, recomputed there with
+    calculate(), not eq.GM: eq.GM comes from its chemical potentials and was found 1.1 mJ
+    below the energy of its own state at x = (0.058, 0.391, 0.551), 1500 K."""
     pytest.importorskip("pycalphad")
-    from pycalphad import Database, equilibrium, variables as v
+    from pycalphad import Database, calculate, equilibrium, variables as v
     dbf = Database(str(FMS))
     rng = np.random.default_rng(4)
     checked = 0
@@ -100,7 +104,12 @@ def test_liquid_minimizer_reaches_the_single_phase_minimum(fms):
                               v.X("MG"): x_mg / tot, v.X("SI"): x_si / tot})
             if sum(str(n) not in ("", "nan") for n in np.ravel(eq.Phase.values)) != 1:
                 continue        # pycalphad splits it into two liquids: not a single-phase check
-            g_pyc = float(eq.GM.values.squeeze()) * tot
+            y = np.ravel(eq.Y.values)
+            y = y[~np.isnan(y)]
+            st = calculate(dbf, ["FE", "MG", "SI", "O"], LIQ, T=T, P=1e5, N=1, points=y[None, :])
+            got = [float(st.X.sel(component=e).values.squeeze()) for e in ("FE", "MG", "SI")]
+            assert np.allclose(got, [x_fe / tot, x_mg / tot, x_si / tot], atol=1e-10)
+            g_pyc = float(st.GM.values.squeeze()) * tot
             g, X = vis3d.liquid_gibbs(fms, LIQ, T, x_mg, x_si)
             assert abs(g - g_pyc) < 1e-3, f"T={T} x={x}: {g} vs pycalphad {g_pyc}"
             assert X.min() > 0.0
@@ -199,7 +208,7 @@ def test_exact_hull_agrees_with_scipy_and_survives_degenerate_input(fms):
 
     rng = np.random.default_rng(1)
     for q in rng.dirichlet([1, 1, 1], 25)[:, 1:]:
-        # rounding to the exact grid moves a sample by < 3e-8 in composition
+        # rounding to the exact grid moves a sample by < 5e-10 in composition
         assert abs(hull_g(F, q) - hull_g(low, q)) < 1e-2
 
     n = 40

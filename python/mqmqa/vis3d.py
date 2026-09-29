@@ -238,7 +238,8 @@ def lower_hull(pts):
     F = _ffi.new("int[]", 3 * cap)
     nf = _lib.vis3d_lower_hull(_ffi.cast("double *", P.ctypes.data), len(P), F, cap)
     if nf < 0:
-        raise Vis3DError("lower hull failed (fewer than four points, or all coplanar)")
+        raise Vis3DError("lower hull failed (fewer than four points, all coplanar, x or y "
+                         "outside [0, 1], or g not finite)")
     return _copy(F, "int *", nf * 3, np.int32, (nf, 3))
 
 

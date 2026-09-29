@@ -471,7 +471,7 @@ What testing found, and what changed from the proposal because of it.
   6.5e-4 J above an SLSQP multi-start, and it matches pycalphad's liquid-only minimum to 1e-3 J.
 - **The hull needs exact orientation tests.** Refinement puts many samples on one line in a nearly
   flat region; `mqmqa_lower_hull_2d` then loops without end. `vis3d_lower_hull` rounds points to an
-  integer grid (2^-24 in composition, 2^-38 of the Gibbs range) and decides every orientation in
+  integer grid (2^-30 in composition, 2^-38 of the Gibbs range) and decides every orientation in
   128-bit integers.
 - **Refinement and convergence.** Liquid samples start on a 1/40 lattice (the seed only moves the
   interior nodes). Around every hull vertex where two phases, or the two sides of a miscibility

@@ -18,6 +18,7 @@ A phase contributes a set of `PhasePoint(x_fe, x_si, g, phase, y)` samples (y = 
 state that produced g, kept for refinement/reporting). Solution phases are sampled over their
 composition range; stoichiometric solids are a single point.
 """
+import re
 from dataclasses import dataclass
 
 import numpy as np
@@ -51,12 +52,17 @@ def _quad_to_point(inp, X):
     return x_fe, x_si, g
 
 
-def liquid_points(db, phase, T, nsamp=12000, seed=0):
+def liquid_points(db, phase, T, nsamp=12000, seed=0, lattice=60):
     """Sample the liquid Gibbs surface (per mole cation) by drawing quadruplet distributions
     directly - fast C evaluations, no per-composition minimization. The lower convex hull of
     the pooled samples is its Gibbs envelope; hull vertices are tightened later by
     `refine_liquid`. Structured draws (pure endmembers, binary edges, and Dirichlet mixes at
-    several concentrations) give broad coverage of the cation simplex."""
+    several concentrations) give broad coverage of the cation simplex.
+
+    A random draw is almost never the minimum at its own composition, so on draws alone the
+    tie-line ends wandered with the seed (0.34 to 0.45 in join X_Fe at 1900 K). Every node of
+    a 1/`lattice` composition lattice therefore also gets its exact minimum from
+    vis3d.liquid_gibbs; 0 turns that off."""
     p = phase if isinstance(phase, int) else db.phase_index(phase)
     inp = eqm.build_inputs(db, p, T, components=["FE", "MG", "SI", "O"])
     n = len(inp["quads"])
@@ -72,6 +78,22 @@ def liquid_points(db, phase, T, nsamp=12000, seed=0):
         r = _quad_to_point(inp, row)
         if r is not None:
             pts.append(PhasePoint(r[0], r[1], r[2], "LIQUID", row))
+    if lattice:
+        from mqmqa import vis3d
+        order = [re.match(r"[A-Z]+", c["name"].upper()).group(0) for c in db.cations(p)]
+        for i in range(lattice + 1):
+            for j in range(lattice + 1 - i):
+                x = dict(zip(order, (1.0 - (i + j) / lattice, i / lattice, j / lattice)))
+                try:
+                    g, Xq = vis3d.liquid_gibbs(db, p, T, x[order[1]], x[order[2]])
+                except vis3d.Vis3DError:
+                    # the excess routine is NaN at some exact end-members (the FeO-SiO2 Q
+                    # term at pure FeO); as in the hull, take the energy 1e-9 inward
+                    if min(x.values()) > 0.0:
+                        raise
+                    y = {e: v + 1e-9 * (1.0 / 3.0 - v) for e, v in x.items()}
+                    g, Xq = vis3d.liquid_gibbs(db, p, T, y[order[1]], y[order[2]])
+                pts.append(PhasePoint(x["FE"], x["SI"], g, "LIQUID", Xq))
     return pts, inp
 
 

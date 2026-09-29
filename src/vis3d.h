@@ -148,8 +148,9 @@ MQMQA_API const char *vis3d_hull_phase_name(const vis3d_hull *h, int k);
  * lattice_n and z_per_kelvin are read from opt). */
 MQMQA_API int vis3d_hull_section(const vis3d_hull *h, const VisOptions *opt, VisMesh *out);
 /* Lower convex hull of n points (x, y, g) with every orientation decided exactly (points
- * rounded to a grid of 2^-24 in x and y and about 2^-38 of the g range); same layout and
- * return as mqmqa_lower_hull_2d, which can loop without end on degenerate input. */
+ * rounded to a grid of 2^-30 in x and y and about 2^-38 of the g range); same layout and
+ * return as mqmqa_lower_hull_2d, which can loop without end on degenerate input. x and y
+ * must lie in [0, 1] (to within 1e-12) and g must be finite, else -1. */
 MQMQA_API int vis3d_lower_hull(const double *pts, int n, int *facets, int max_facets);
 /* Gibbs energy of the equilibrium (the hull) per mole of cations at bulk (x2, x3); NaN
  * outside the simplex. */

@@ -2277,6 +2277,7 @@ done:
 
 #define LAT_N 40              /* liquid lattice that flags a split liquid */
 #define SPLIT_EPS 1e-2        /* J; ten times the liquid solver's energy noise */
+#define LQ_MAX_SPACING 50.0   /* K between levels; see lq_open */
 
 typedef struct {
     int dim;                  /* 2 inside the triangle, 1 on an edge, 0 at a corner */
@@ -2583,8 +2584,8 @@ static int lq_liquidus(Lq *q, double x2, double x3, int only, double guess, doub
     } else {
         /* A split liquid is only known at the levels: the driving force is smooth in T,
          * so the root is interpolated through the two bracketing levels and the next one
-         * above; over one level spacing the curvature (heat-capacity terms) moves it by
-         * far less than t_tol. */
+         * above. This, not t_tol, sets the accuracy there: about 2 K at 25 to 50 K spacing
+         * (checked against 10 K spacing and against the full hull). */
         double t0 = q->lev[k].T, t1 = q->lev[k - 1].T, f0 = D[k], f1 = D[k - 1];
         double r = t0 + (t1 - t0) * f0 / (f0 - f1);
         if (k - 2 >= 0) {
@@ -2812,6 +2813,14 @@ static int lq_open(Lq *q, const mqmqa_db *db, const char *const *phases, int n_p
         !(o->x_tol > 0) || o->lattice_n < 1 || o->lattice_n > 2000) {
         mqmqa_db_set_error("vis3d: the liquidus needs 0 < t_lo < t_hi, n_temps >= 3, positive "
                            "t_tol and x_tol, and lattice_n in 1..2000");
+        return -1;
+    }
+    /* Where the liquid has split, the liquidus is interpolated between levels: within
+     * about 2 K at spacings up to 50 K, drifting by several kelvin (and able to pick the
+     * wrong primary phase near a field boundary) at 100 K. Coarser is refused. */
+    if ((o->t_hi - o->t_lo) / (o->n_temps - 1) > LQ_MAX_SPACING) {
+        mqmqa_db_set_error("vis3d: temperature levels %.1f K apart; at most %.0f K is allowed "
+                           "(raise n_temps)", (o->t_hi - o->t_lo) / (o->n_temps - 1), LQ_MAX_SPACING);
         return -1;
     }
     q->db = db;

@@ -507,8 +507,10 @@ stable liquid's tangent plane at the bulk composition, and the temperature where
 reaches zero. Where the liquid is one phase that plane is exact (the liquid's own tangent) and the
 root is found to `t_tol` by regula falsi. Where the liquid has split, the plane is the two liquids'
 common tangent from a refined liquid-only hull, available at the `n_temps` levels, and the root is
-interpolated through three levels; a split liquid lies below the single tangent, so the check is
-needed only below the single-liquid liquidus. A composition on an edge or at a corner compares only
+interpolated through three levels, which sets the accuracy there: about 2 K at level spacings of 25
+to 50 K (compared with 10 K spacing), while at 100 K the result drifts by up to 6 K and can pick the
+wrong primary phase near a field boundary, so spacings above 50 K are refused. A split liquid lies
+below the single tangent, so the check is needed only below the single-liquid liquidus. A composition on an edge or at a corner compares only
 the solids on it. Field boundaries are located to `x_tol` by bisection on which solid comes first;
 a lattice triangle holding three fields is subdivided toward `x_tol`. A liquidus outside
 `[t_lo, t_hi]` is an error naming the composition.

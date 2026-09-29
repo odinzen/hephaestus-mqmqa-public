@@ -456,6 +456,8 @@ def test_liquidus_outside_the_window_is_an_error(fms):
         vis3d.liquidus_point(fms, 0.9, 0.05, 1300.0, 2500.0)
     with pytest.raises(vis3d.Vis3DError, match="below t_lo"):
         vis3d.liquidus_point(fms, 0.1, 0.3, 1700.0, 3200.0)
+    with pytest.raises(vis3d.Vis3DError, match="at most 50 K"):     # split-liquid accuracy
+        vis3d.liquidus_point(fms, 0.1, 0.3, 1300.0, 3200.0, n_temps=20)
 
 
 # ------------------------------------------------------------ step 4: Gibbs surfaces

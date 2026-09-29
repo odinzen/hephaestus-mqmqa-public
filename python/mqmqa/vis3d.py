@@ -7,6 +7,7 @@ engine memory.
 Composition is the cation fractions (x1, x2, x3) of the liquid's three cations, in the
 liquid's own order; `hull.phase_names` and `Section.labels` name what was found.
 """
+import math
 from dataclasses import dataclass
 
 import numpy as np
@@ -252,7 +253,7 @@ def section(db, T, phases=None, lattice_n=None, x_tol=None, seed=None, max_refin
 
 def _liquidus_options(t_lo, t_hi, n_temps, lattice_n, x_tol, t_tol, max_refine, z_per_kelvin):
     if n_temps is None:
-        n_temps = max(3, int(round((t_hi - t_lo) / 25.0)) + 1)   # levels about 25 K apart
+        n_temps = max(3, int(math.ceil((t_hi - t_lo) / 25.0)) + 1)   # levels at most 25 K apart
     return _options(lattice_n, x_tol, None, max_refine, z_per_kelvin, t_lo, t_hi, n_temps, t_tol)
 
 

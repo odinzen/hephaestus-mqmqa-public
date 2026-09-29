@@ -81,9 +81,11 @@ MQMQA_API int vis3d_section(const mqmqa_db *db, const char *const *phases, int n
  * boundaries (the univariant valleys) as two-point polylines, their vertices duplicated
  * per patch. The liquidus of a composition is where the first solid's driving force
  * against the stable liquid (the single liquid, or both liquids where it has split)
- * reaches zero, found to t_tol; field boundaries are located to x_tol along lattice
- * edges. Reads lattice_n, n_temps (>= 3 temperature levels spanning t_lo..t_hi), t_lo,
- * t_hi, t_tol, x_tol, z_per_kelvin, and max_refine for the split-liquid hulls. A liquidus
+ * reaches zero: to t_tol where the liquid is one phase, to about 2 K where it has split
+ * (interpolated between the temperature levels, which may be at most 50 K apart). Field
+ * boundaries are located to x_tol along lattice edges. Reads lattice_n, n_temps (>= 3
+ * temperature levels spanning t_lo..t_hi), t_lo, t_hi, t_tol, x_tol, z_per_kelvin, and
+ * max_refine for the split-liquid hulls. A liquidus
  * outside [t_lo, t_hi] anywhere is an error (-7) naming the composition. */
 MQMQA_API int vis3d_liquidus_surface(const mqmqa_db *db, const char *const *phases,
                                      int n_phases, const VisOptions *opt, VisMesh *out);

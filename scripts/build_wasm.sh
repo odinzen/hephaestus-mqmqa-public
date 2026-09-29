@@ -32,7 +32,7 @@ for f in $FUNCS; do EXPORTS="$EXPORTS,\"_$f\""; done
     "$ROOT/src/equil.c" "$ROOT/src/hull.c" "$ROOT/src/equilibrium.c" "$ROOT/src/tq.c" \
     "$ROOT/src/xtdb.c" "$ROOT/src/db_write.c" "$ROOT/src/vis3d.c" \
     -s "EXPORTED_FUNCTIONS=[$EXPORTS]" \
-    -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap","UTF8ToString","stringToUTF8","lengthBytesUTF8","getValue","setValue"]' \
+    -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap","UTF8ToString","stringToUTF8","lengthBytesUTF8","getValue","setValue","HEAP32","HEAPU32","HEAPF32","HEAPF64"]' \
     -s ALLOW_MEMORY_GROWTH=1 \
     -s MODULARIZE=1 -s EXPORT_NAME=Hephaestus \
     -s SINGLE_FILE=1 \

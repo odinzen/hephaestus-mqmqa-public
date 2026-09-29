@@ -56,9 +56,11 @@ typedef struct {
     double   z_per_kelvin; /* display scale for temperature */
     uint32_t seed;         /* placement of the initial liquid samples; 0 = plain lattice */
     int32_t  max_refine;   /* cap on refinement passes near tangencies */
+    double   z_per_joule;  /* display scale for a Gibbs energy (J per mole of cations) */
 } VisOptions;
 
-/* Defaults: lattice_n 60, x_tol 1e-3, z_per_kelvin 1e-3, seed 0, max_refine 16. */
+/* Defaults: lattice_n 60, x_tol 1e-3, z_per_kelvin 1e-3, seed 0, max_refine 16,
+ * z_per_joule 1e-5. */
 MQMQA_API void vis3d_default_options(VisOptions *opt);
 
 /* Phase regions of the isothermal section at T, as flat patches at z = T * z_per_kelvin.
@@ -90,6 +92,17 @@ MQMQA_API int vis3d_liquidus_surface(const mqmqa_db *db, const char *const *phas
 MQMQA_API int vis3d_liquidus_point(const mqmqa_db *db, const char *const *phases, int n_phases,
                                    const VisOptions *opt, double x2, double x3, double *T,
                                    char *primary, int primary_len);
+
+/* Gibbs energies at T per mole of cations, relative to the plane through the pure
+ * components' equilibrium energies (relative = 0) or to the equilibrium itself (relative
+ * = 1, so each value is the height above equilibrium; where the equilibrium is the single
+ * liquid, that reference is the liquid's own exact energy). The liquid is a surface on the
+ * lattice (patch labelled with its name), each CEF solution a curve along its line and
+ * each compound a zero-length segment (polylines, in phase order), and the refined hull a
+ * patch labelled "HULL". `scalar` holds the relative energy, z = scalar * z_per_joule,
+ * `temp` is T. Computed in double; only the exported floats are rounded. */
+MQMQA_API int vis3d_gibbs_surfaces(const mqmqa_db *db, const char *const *phases, int n_phases,
+                                   double T, int relative, const VisOptions *opt, VisMesh *out);
 
 /* Barycentric (x1, x2, x3) to Cartesian (X, Y): x1 at (0, 0), x2 at (1, 0), x3 at the
  * apex. The one place this transform lives. */
@@ -158,6 +171,7 @@ MQMQA_API int vis3d_mesh_n_patch(const VisMesh *m);
 MQMQA_API int vis3d_mesh_n_line(const VisMesh *m);
 MQMQA_API int vis3d_mesh_n_line_pts(const VisMesh *m);
 MQMQA_API int vis3d_mesh_n_label(const VisMesh *m);
+MQMQA_API const float *vis3d_mesh_scalar(const VisMesh *m);
 MQMQA_API const float *vis3d_mesh_pos(const VisMesh *m);
 MQMQA_API const double *vis3d_mesh_comp(const VisMesh *m);
 MQMQA_API const double *vis3d_mesh_temp(const VisMesh *m);
@@ -171,6 +185,15 @@ MQMQA_API int vis3d_liquidus_surface_js(const mqmqa_db *db, const char *phase_li
                                         int lattice_n, int n_temps, double t_lo, double t_hi,
                                         double x_tol, double t_tol, double z_per_kelvin,
                                         VisMesh *out);
+MQMQA_API int vis3d_gibbs_surfaces_js(const mqmqa_db *db, const char *phase_list, double T,
+                                      int relative, int lattice_n, double x_tol,
+                                      double z_per_joule, VisMesh *out);
+MQMQA_API vis3d_hull *vis3d_hull_build_js(const mqmqa_db *db, const char *phase_list, double T,
+                                          double x_tol, uint32_t seed, int max_refine);
+MQMQA_API int vis3d_liquidus_point_js(const mqmqa_db *db, const char *phase_list, double x2,
+                                      double x3, int n_temps, double t_lo, double t_hi,
+                                      double x_tol, double t_tol, double *T, char *primary,
+                                      int primary_len);
 MQMQA_API int vis3d_section_js(const mqmqa_db *db, const char *phase_list, double T,
                                int lattice_n, double x_tol, uint32_t seed, int max_refine,
                                double z_per_kelvin, VisMesh *out);

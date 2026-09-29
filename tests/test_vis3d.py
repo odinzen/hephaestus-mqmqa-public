@@ -456,3 +456,90 @@ def test_liquidus_outside_the_window_is_an_error(fms):
         vis3d.liquidus_point(fms, 0.9, 0.05, 1300.0, 2500.0)
     with pytest.raises(vis3d.Vis3DError, match="below t_lo"):
         vis3d.liquidus_point(fms, 0.1, 0.3, 1700.0, 3200.0)
+
+
+# ------------------------------------------------------------ step 4: Gibbs surfaces
+
+def _patch_vertices(s, name):
+    tl = s.tri_label
+    return np.unique(s.tri[tl == s.labels.index(name)])
+
+
+def test_gibbs_surfaces_against_equilibrium(fms):
+    """Heights above equilibrium at 1900 K: zero wherever the equilibrium is the single
+    liquid, never below it beyond the ~0.2 J the refined hull resolves in flat two-liquid
+    regions, and the hull patch at zero. On the olivine join the liquid rises off zero
+    exactly across the liquid end of the tie-line (join X_Fe 0.3696)."""
+    s = vis3d.gibbs_surfaces(fms, 1900.0, relative=True, lattice_n=30)
+    assert s.labels[-1] == "HULL" and LIQ in s.labels
+    assert np.allclose(s.pos[:, 2], s.scalar * 1e-5, rtol=1e-5) and np.all(s.temp == 1900.0)
+    h = _hull(fms, 1900.0)
+    v = _patch_vertices(s, LIQ)
+    assert s.scalar[v].min() > -0.5
+    single = [i for i in v if [p for p, _, _, _ in h.assemblage(*s.comp[i, 1:])] == [LIQ]]
+    assert len(single) > 50 and np.all(s.scalar[single] == 0.0)
+    assert np.abs(s.scalar[_patch_vertices(s, "HULL")]).max() < 0.1
+    height = {tuple(np.round(s.comp[i, 1:], 9)): s.scalar[i] for i in v}
+    x_fe_liq = 0.3695579 * 2.0 / 3.0                    # 0.2464, between two join nodes
+    liquid_side, solid_side = (round(0.4, 9), round(1 / 3, 9)), (round(13 / 30, 9), round(1 / 3, 9))
+    assert 1 - 0.4 - 1 / 3 > x_fe_liq > 1 - 13 / 30 - 1 / 3
+    assert height[liquid_side] == 0.0 and height[solid_side] > 1.0
+
+
+def test_gibbs_surfaces_against_the_pure_components(fms):
+    """Relative to the plane through the pure components' equilibrium energies, the hull
+    lies at or below zero and meets it at the corners."""
+    s = vis3d.gibbs_surfaces(fms, 1900.0, relative=False, lattice_n=20)
+    hv = _patch_vertices(s, "HULL")
+    assert s.scalar[hv].max() < 1e-3
+    corners = [i for i in hv if np.isclose(s.comp[i].max(), 1.0)]
+    assert len(corners) >= 3 and np.abs(s.scalar[corners]).max() < 1e-3
+    # CEF lines as curves and compounds as points: olivine, orthopyroxene, three oxides
+    assert len(s.line_start) - 1 > 3
+
+
+# ----------------------------------------------------- step 5: VTK layout and PyVista
+
+def test_surface_arrays_are_vtk_layout(fms):
+    s = _hull(fms, 1900.0).section(lattice_n=20)
+    pts, faces, lab, lpts, lines = vis3d.surface_arrays(s)
+    assert pts.shape == (len(s.pos), 3) and pts.dtype == np.float64
+    f = faces.reshape(-1, 4)
+    assert np.all(f[:, 0] == 3) and np.array_equal(f[:, 1:], s.tri.astype(np.int64))
+    assert len(lab) == len(s.tri) and np.array_equal(lab, s.tri_label)
+    k, nseg = 0, 0
+    while k < len(lines):                      # [n, i0, ..., i_{n-1}] records
+        assert lines[k] == 2 and lines[k + 1] < len(lpts) and lines[k + 2] < len(lpts)
+        k += lines[k] + 1
+        nseg += 1
+    assert nseg == len(s.line_start) - 1
+
+
+def test_prism_wedges_carry_the_equilibrium_below_them(fms):
+    """Every wedge has one label, and it is the assemblage at the centroid of its lower
+    triangle at that level."""
+    hulls = [_hull(fms, T) for T in (1800.0, 1900.0, 2000.0)]
+    pts, cells, types, lab, labels = vis3d.prism_arrays(hulls, lattice_n=12)
+    n_node = 13 * 14 // 2
+    assert pts.shape == (3 * n_node, 3) and np.all(types == vis3d.VTK_WEDGE)
+    c = cells.reshape(-1, 7)
+    assert np.all(c[:, 0] == 6) and len(c) == 2 * 144 and len(lab) == len(c)
+    assert np.all(c[:, 4:] - c[:, 1:4] == n_node)             # top sits over bottom
+    comp = pts[:, :2]
+    for w in range(0, len(c), 17):
+        level = c[w, 1] // n_node
+        xy = comp[c[w, 1:4]].mean(axis=0)
+        x3 = xy[1] / (np.sqrt(3) / 2)
+        x2 = xy[0] - 0.5 * x3
+        name = "+".join(sorted(p for p, _, _, _ in hulls[level].assemblage(x2, x3)))
+        assert labels[lab[w]] == name
+
+
+def test_pyvista_objects(fms):
+    pv = pytest.importorskip("pyvista")
+    s = _hull(fms, 1900.0).section(lattice_n=20)
+    surf, lines = vis3d.to_polydata(s)
+    assert surf.n_cells == len(s.tri) and surf.n_points == len(s.pos)
+    assert np.array_equal(surf.cell_data["phase_field"], s.tri_label)
+    grid = vis3d.to_unstructured([_hull(fms, 1800.0), _hull(fms, 1900.0)], lattice_n=10)
+    assert grid.n_cells == 100 and isinstance(grid, pv.UnstructuredGrid)

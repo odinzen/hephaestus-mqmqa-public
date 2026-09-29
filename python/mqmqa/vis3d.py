@@ -25,7 +25,7 @@ _ffi.cdef(
     } VisMesh;
     typedef struct {
         int32_t lattice_n, n_temps; double t_lo, t_hi; double x_tol, t_tol, z_per_kelvin;
-        uint32_t seed; int32_t max_refine;
+        uint32_t seed; int32_t max_refine; double z_per_joule;
     } VisOptions;
     void vis3d_default_options(VisOptions *opt);
     int vis3d_section(const void *db, const char *const *phases, int n_phases, double T,
@@ -50,6 +50,8 @@ _ffi.cdef(
     double vis3d_hull_gibbs(const void *h, double x2, double x3);
     int vis3d_hull_section(const void *h, const VisOptions *opt, VisMesh *out);
     int vis3d_lower_hull(const double *pts, int n, int *facets, int max_facets);
+    int vis3d_gibbs_surfaces(const void *db, const char *const *phases, int n_phases, double T,
+                             int relative, const VisOptions *opt, VisMesh *out);
     int vis3d_liquidus_surface(const void *db, const char *const *phases, int n_phases,
                                const VisOptions *opt, VisMesh *out);
     int vis3d_liquidus_point(const void *db, const char *const *phases, int n_phases,
@@ -71,9 +73,11 @@ def _error():
 
 
 def _options(lattice_n, x_tol, seed, max_refine, z_per_kelvin, t_lo=None, t_hi=None,
-             n_temps=None, t_tol=None):
+             n_temps=None, t_tol=None, z_per_joule=None):
     o = _ffi.new("VisOptions *")
     _lib.vis3d_default_options(o)
+    if z_per_joule is not None:
+        o.z_per_joule = z_per_joule
     if t_lo is not None:
         o.t_lo = t_lo
     if t_hi is not None:
@@ -206,6 +210,7 @@ class Section:
     line_pos: np.ndarray     # (n_line_pts, 3) float32
     line_start: np.ndarray   # (n_line + 1,)
     labels: list
+    scalar: np.ndarray = None  # (n_vert,) float32 field, when the mesh carries one
 
     @property
     def tri_label(self):
@@ -274,6 +279,19 @@ def liquidus_surface(db, t_lo, t_hi, phases=None, n_temps=None, lattice_n=None, 
     return _take_mesh(m, _lib.vis3d_liquidus_surface(_handle(db), arr, n, o, m), None)
 
 
+def gibbs_surfaces(db, T, relative=True, phases=None, lattice_n=None, x_tol=None,
+                   z_per_joule=None):
+    """Gibbs energies at T relative to the pure-component plane (relative=False) or to the
+    equilibrium (relative=True): the liquid surface, CEF curves and compound points (lines),
+    and the hull as a patch labelled "HULL". `scalar` holds the relative energy in J per
+    mole of cations."""
+    arr, n, keep = _phase_args(phases)
+    o = _options(lattice_n, x_tol, None, None, None, z_per_joule=z_per_joule)
+    m = _ffi.new("VisMesh *")
+    return _take_mesh(m, _lib.vis3d_gibbs_surfaces(_handle(db), arr, n, float(T), int(bool(relative)),
+                                                   o, m), T)
+
+
 def _take_mesh(m, rc, T):
     if rc != 0:
         raise Vis3DError(f"{_error()} (code {rc})")
@@ -290,6 +308,101 @@ def _take_mesh(m, rc, T):
             line_pos=_copy(m.line_pos, "float *", m.n_line_pts * 3, np.float32, (m.n_line_pts, 3)),
             line_start=_copy(m.line_start, "int32_t *", nl + 1, np.int32),
             labels=[_ffi.string(m.label[k]).decode() for k in range(m.n_label)],
+            scalar=None if m.scalar == _ffi.NULL else _copy(m.scalar, "float *", nv, np.float32),
         )
     finally:
         _lib.vis3d_free(m)
+
+
+# --------------------------------------------------------------- VTK layout and PyVista
+
+VTK_WEDGE = 13     # VTK cell type: a triangle swept to a triangle
+
+
+def surface_arrays(mesh):
+    """A mesh in the layout VTK takes: points (n, 3) float64, faces as a flat [3, a, b, c,
+    ...] array, the label index of every triangle (one per cell, never interpolated across a
+    seam), and the polylines as (points, flat [n, i0, i1, ...])."""
+    pts = mesh.pos.astype(np.float64)
+    tri = mesh.tri.astype(np.int64)
+    faces = np.hstack([np.full((len(tri), 1), 3, dtype=np.int64), tri]).ravel()
+    lpts = mesh.line_pos.astype(np.float64)
+    ls = mesh.line_start
+    lines = np.concatenate([[e - s, *range(s, e)] for s, e in zip(ls[:-1], ls[1:])]
+                           ).astype(np.int64) if len(ls) > 1 else np.zeros(0, np.int64)
+    return pts, faces, mesh.tri_label, lpts, lines
+
+
+def prism_arrays(hulls, lattice_n=30, z_per_kelvin=1e-3):
+    """A T-x1-x2 prism from refined hulls at increasing temperatures: one wedge per lattice
+    triangle and pair of neighbouring levels, labelled with the assemblage at the centroid of
+    its lower triangle. The prism is an overview at lattice resolution; the exact field
+    boundaries are the sections'. Returns points (n, 3), cells as a flat [6, ...] array, cell
+    types, the label index of every cell, and the labels."""
+    hulls = sorted(hulls, key=lambda h: h.T)
+    if len(hulls) < 2:
+        raise ValueError("a prism needs at least two temperature levels")
+    n = lattice_n
+    nodes = [(i / n, j / n) for i in range(n + 1) for j in range(n + 1 - i)]
+    index = {(i, j): k for k, (i, j) in enumerate((i, j) for i in range(n + 1) for j in range(n + 1 - i))}
+    tris = []
+    for i in range(n):
+        for j in range(n - i):
+            tris.append((index[i, j], index[i + 1, j], index[i, j + 1]))
+            if i + j + 2 <= n:
+                tris.append((index[i + 1, j], index[i + 1, j + 1], index[i, j + 1]))
+    tris = np.array(tris, dtype=np.int64)
+    xy = np.array([bary_to_xy(a, b) for a, b in nodes])
+    pts = np.vstack([np.column_stack([xy, np.full(len(nodes), h.T * z_per_kelvin)]) for h in hulls])
+    comp = np.array(nodes)
+    labels, cell_label, cells = [], [], []
+    for lev in range(len(hulls) - 1):
+        h = hulls[lev]
+        lo, hi = lev * len(nodes), (lev + 1) * len(nodes)
+        cen = comp[tris].mean(axis=1)
+        for (a, b, c), (x2, x3) in zip(tris, cen):
+            name = "+".join(sorted(p for p, _, _, _ in h.assemblage(x2, x3)))
+            if name not in labels:
+                labels.append(name)
+            cell_label.append(labels.index(name))
+            cells.append([6, lo + a, lo + b, lo + c, hi + a, hi + b, hi + c])
+    cells = np.array(cells, dtype=np.int64).ravel()
+    types = np.full(len(cell_label), VTK_WEDGE, dtype=np.uint8)
+    return pts, cells, types, np.array(cell_label, dtype=np.int32), labels
+
+
+def _pyvista():
+    try:
+        import pyvista
+    except ImportError as e:
+        raise ImportError("PyVista is optional for Hephaestus; install it to build VTK "
+                          "objects (the *_arrays functions need only numpy)") from e
+    return pyvista
+
+
+def to_polydata(mesh):
+    """(surface, lines) as pyvista.PolyData: a categorical `phase_field` per cell, the
+    labels in field data, temperature per point, and the relative Gibbs energy when the
+    mesh carries one."""
+    pv = _pyvista()
+    pts, faces, lab, lpts, lines = surface_arrays(mesh)
+    surf = pv.PolyData(pts, faces)
+    surf.cell_data["phase_field"] = lab
+    surf.point_data["T_K"] = mesh.temp
+    if mesh.scalar is not None:
+        surf.point_data["G_rel"] = mesh.scalar
+    surf.field_data["labels"] = np.array(mesh.labels)
+    line_data = pv.PolyData(lpts)
+    if len(lines):
+        line_data.lines = lines
+    return surf, line_data
+
+
+def to_unstructured(hulls, lattice_n=30, z_per_kelvin=1e-3):
+    """The prism of `prism_arrays` as a pyvista.UnstructuredGrid of wedges."""
+    pv = _pyvista()
+    pts, cells, types, lab, labels = prism_arrays(hulls, lattice_n, z_per_kelvin)
+    grid = pv.UnstructuredGrid(cells, types, pts)
+    grid.cell_data["phase_field"] = lab
+    grid.field_data["labels"] = np.array(labels)
+    return grid

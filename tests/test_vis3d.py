@@ -142,7 +142,7 @@ def test_olivine_tieline_converges_to_the_model_value_for_every_seed(fms):
     ref, _ = _pyc_equilibrium(T, x_fe, x_si)
     assert [p for p, _, _ in ref] == [LIQ, "OLIVINE"]
     liq_ref, sol_ref = ref[0][1], ref[1][1]
-    assert abs(liq_ref / (2 / 3) - 0.3696) < 1e-3 and abs(sol_ref / (2 / 3) - 0.0803) < 1e-3
+    assert abs(liq_ref / (2 / 3) - 0.4171) < 1e-3 and abs(sol_ref / (2 / 3) - 0.0827) < 1e-3
     liq, sol = [], []
     for seed in range(5):
         got = _mine(_hull(fms, T, seed), x_fe, x_si)
@@ -397,9 +397,9 @@ def _pyc_liquidus(x2, x3, T_lo, T_hi):
 
 
 def test_liquidus_at_the_liquid_end_of_the_1900K_tieline(fms):
-    """The liquid end of the 1900 K olivine tie-line (join X_Fe 0.3695579 from pycalphad) has
+    """The liquid end of the 1900 K olivine tie-line (join X_Fe 0.4170896 from pycalphad) has
     its liquidus at exactly 1900 K, with olivine first to crystallize."""
-    x_fe = 0.3695579 * 2.0 / 3.0
+    x_fe = 0.4170896 * 2.0 / 3.0
     T, prim = vis3d.liquidus_point(fms, 1.0 - x_fe - 1.0 / 3.0, 1.0 / 3.0, *WINDOW, t_tol=1e-3)
     assert prim == "OLIVINE"
     assert abs(T - 1900.0) < 0.01
@@ -480,7 +480,7 @@ def test_gibbs_surfaces_against_equilibrium(fms):
     """Heights above equilibrium at 1900 K: zero wherever the equilibrium is the single
     liquid, never below it beyond the ~0.2 J the refined hull resolves in flat two-liquid
     regions, and the hull patch at zero. On the olivine join the liquid rises off zero
-    exactly across the liquid end of the tie-line (join X_Fe 0.3696)."""
+    exactly across the liquid end of the tie-line (join X_Fe 0.4171)."""
     s = vis3d.gibbs_surfaces(fms, 1900.0, relative=True, lattice_n=30)
     assert s.labels[-1] == "HULL" and LIQ in s.labels
     assert np.allclose(s.pos[:, 2], s.scalar * 1e-5, rtol=1e-5) and np.all(s.temp == 1900.0)
@@ -491,9 +491,9 @@ def test_gibbs_surfaces_against_equilibrium(fms):
     assert len(single) > 50 and np.all(s.scalar[single] == 0.0)
     assert np.abs(s.scalar[_patch_vertices(s, "HULL")]).max() < 0.1
     height = {tuple(np.round(s.comp[i, 1:], 9)): s.scalar[i] for i in v}
-    x_fe_liq = 0.3695579 * 2.0 / 3.0                    # 0.2464, between two join nodes
-    liquid_side, solid_side = (round(0.4, 9), round(1 / 3, 9)), (round(13 / 30, 9), round(1 / 3, 9))
-    assert 1 - 0.4 - 1 / 3 > x_fe_liq > 1 - 13 / 30 - 1 / 3
+    x_fe_liq = 0.4170896 * 2.0 / 3.0                    # 0.2781, between two join nodes
+    liquid_side, solid_side = (round(11 / 30, 9), round(1 / 3, 9)), (round(0.4, 9), round(1 / 3, 9))
+    assert 1 - 11 / 30 - 1 / 3 > x_fe_liq > 1 - 0.4 - 1 / 3
     assert height[liquid_side] == 0.0 and height[solid_side] > 1.0
 
 

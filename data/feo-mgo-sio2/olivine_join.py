@@ -13,9 +13,10 @@ Gibbs curves per formula unit (Mg,Fe)2SiO4:
     converge. Against pycalphad's liquid minimum on the same model (FeO-MgO-SiO2-combined.dat)
     the curve sits above it at nearly every point, by a median 0.3-0.5 kJ and up to 5 kJ per
     formula unit at 1700 and 1900 K. The loop drawn from it is a picture of the model, not a
-    reference. At 1900 K it puts the tie-line at X_Fe 0.088 / 0.401 against the model's
-    0.0803 / 0.3696 (pycalphad equilibrium), and last-digit input changes move its liquidus
-    between 0.31 and 0.48. The whole loop is computed with our own stack.
+    reference. At 1900 K it put the tie-line at X_Fe 0.088 / 0.401 against the model's
+    0.0803 / 0.3696 (pycalphad equilibrium), and last-digit input changes moved its liquidus
+    between 0.31 and 0.48. Those figures predate Si getting its own chemical group; the
+    model's tie-line is now 0.0827 / 0.4171. The whole loop is computed with our own stack.
 
 At each T the melting loop is the tie-line of the lower convex hull of the pooled curves
 whose ends fall on different phases (liquidus = its liquid end, solidus = its olivine end).

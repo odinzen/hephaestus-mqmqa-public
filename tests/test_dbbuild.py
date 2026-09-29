@@ -30,7 +30,7 @@ SHIPPED_FEO_SIO2 = (-42839.42808976104, 17.829765801117908)   # v0.3 a00, b00
 def feo_mgo_sio2_spec():
     feo = db.starter_component("FeO", liq_beta=FEO_LIQ_BETA)
     mgo = db.starter_component("MgO", liq_beta=MGO_LIQ_BETA)
-    sio2 = db.starter_component("SiO2")
+    sio2 = db.starter_component("SiO2", group=2)
     feo_sio2 = db.BinaryExcess("FeO", "SiO2", [
         db.ExcessTerm(a=SHIPPED_FEO_SIO2[0], b=SHIPPED_FEO_SIO2[1], p=0, q=0)],
         source="v0.3 activity-pinned (Bjorkman 1985 a(FeO); Bowen-Schairer 1932 melting)")

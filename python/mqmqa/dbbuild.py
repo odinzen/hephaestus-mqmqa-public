@@ -77,6 +77,7 @@ class Component:
     source: str               # provenance: citation + locator for every number above
     liq_beta: float = 0.0     # optional below-Tm liquid recalibration slope (J/mol/K)
     z_cat: float = 0.0        # explicit cation coordination; 0 = charge * z_per_charge
+    group: int = 1            # chemical group of the excess interpolation (SiO2 alone in slags)
 
 
 @dataclass
@@ -232,7 +233,7 @@ def write_dat(spec: SystemSpec, anion_sym="O", anion_charge=2.0, z_per_charge=No
     ap(" " + "                     ".join(f"{c.cation}+{int(c.charge)}" for c in comps))
     ap(f" {anion_sym}")
     ap("  " + "      ".join(f"{c.charge:.5f}" for c in comps))   # cation charges
-    ap("   " + "   ".join("1" for _ in comps))                  # cation groups
+    ap("   " + "   ".join(str(c.group) for c in comps))        # cation groups
     ap(f"  {anion_charge:.5f}")                                # anion charge magnitude
     ap("   1")                                                 # anion group
     ap("   " + "   ".join(str(i) for i in range(1, n_cat + 1)))  # pair cation indices

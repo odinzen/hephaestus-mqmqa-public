@@ -73,12 +73,11 @@ def test_olivine_tieline_matches_model_equilibrium():
     sol2d = join(agg["OLIVINE"][1] / agg["OLIVINE"][0])
     liq2d = join(agg["LIQUID"][1] / agg["LIQUID"][0])
 
-    # The model's own tie-line: solidus 0.0803, liquidus 0.3696, the same at any bulk on the
+    # The model's own tie-line: solidus 0.0827, liquidus 0.4171, the same at any bulk on the
     # tie-line. The 2-D minimizer reads the solidus off an 81-point olivine grid (spacing
-    # 0.0125) and places the liquid end from sampled quadruplet draws; with seed 0 it gives
-    # 0.0876 and 0.3671. Over liquid-sampling seeds and densities (4000 to 16000 draws, 15
-    # runs) the solidus stayed within 0.008 but the liquidus ranged 0.337 to 0.451, so the
-    # 0.04 bound holds for this seed, not for every seed.
+    # 0.0125) and the liquid end off its liquid samples. On random quadruplet draws alone
+    # the liquidus ranged 0.337 to 0.451 over seeds and densities; the exact lattice minima
+    # liquid_points now adds bound it by the lattice spacing.
     ref = _pycalphad_olivine_tieline(T, x_fe, x_si)
     assert set(ref) == {"FEO-MGO-SIO2-LIQUID", "OLIVINE"}, ref
     sol_ref, liq_ref = ref["OLIVINE"], ref["FEO-MGO-SIO2-LIQUID"]
@@ -100,7 +99,7 @@ def test_three_phase_triangle_and_opx_appear():
     assert abs(sum(amt for _, amt, _, _ in asm) - 1.0) < 1e-6  # lever rule
 
     # a Mg-rich composition near the enstatite point (below its ~1830 K peritectic) brings
-    # in orthopyroxene
-    asm2 = tern.assemblage(pts, facets, 0.06, 0.50)
+    # in orthopyroxene; pycalphad on the same file gives liquid + orthopyroxene here too
+    asm2 = tern.assemblage(pts, facets, 0.03, 0.52)
     phases2 = {ph for ph, amt, xf, xs in asm2 if amt > 1e-3}
     assert "ORTHOPYROXENE" in phases2, phases2

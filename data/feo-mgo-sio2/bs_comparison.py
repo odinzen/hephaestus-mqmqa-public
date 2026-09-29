@@ -18,7 +18,6 @@ The Fig. 6 scan is page index 9 of the trove PDF (odinzen_assessment_workspace, 
 triangle vertices below were detected from the scan (corner-dot centroids; validated by checking
 that the marked compounds Fe2SiO4/Mg2SiO4/MgSiO3 map onto their labelled points).
 """
-import importlib.util
 import sys
 from pathlib import Path
 
@@ -110,13 +109,14 @@ def _smooth_polyline(xy, smooth=0.0025):
     return np.column_stack([x, y])
 
 
-def compute_isotherm_fields(ngrid=150, nsamp=9000):
+def compute_isotherm_fields(ngrid=150):
     """Build the equilibrium liquid phase-fraction on a fine cation grid at each matched level
-    and cache it. The liquidus isotherm at level T is the 1.0 contour of this field."""
-    spec = importlib.util.spec_from_file_location("ternary_diagram", HERE / "ternary_diagram.py")
-    td = importlib.util.module_from_spec(spec); spec.loader.exec_module(td)
+    and cache it. The liquidus isotherm at level T is the 1.0 contour of this field. The
+    equilibrium is the refined hull of vis3d; both sides of a liquid split count as liquid."""
     sys.path.insert(0, str(HERE.parents[1] / "python"))
-    from mqmqa import ternary as tern
+    import mqmqa
+    from mqmqa import vis3d
+    db = mqmqa.Database.read(str(HERE / "FeO-MgO-SiO2-combined.dat"))
 
     comps = []
     for i in range(ngrid + 1):
@@ -128,13 +128,11 @@ def compute_isotherm_fields(ngrid=150, nsamp=9000):
 
     fields = {}
     for c, Tk in zip(LEVELS_C, levels_K()):
-        pts, facets = td.build(Tk, nsamp=nsamp)
+        h = vis3d.Hull(db, Tk)
         frac = np.full(len(comps), np.nan)
         for k, (xfe, xsi) in enumerate(comps):
-            a = tern.assemblage(pts, facets, xfe, xsi)
-            if a is None:
-                continue
-            frac[k] = sum(amt for ph, amt, xf, xs in a if ph == "LIQUID")
+            a = h.assemblage(max(0.0, 1.0 - xfe - xsi), xsi)
+            frac[k] = sum(amt for ph, amt, x2, x3 in a if ph == "FEO-MGO-SIO2-LIQUID")
         fields[f"f_{c}"] = frac
         n_liq = int(np.nansum(frac > 0.9995))
         print(f"  isotherm {c} degC ({Tk:.0f} K): {n_liq}/{len(comps)} fully-liquid pts")

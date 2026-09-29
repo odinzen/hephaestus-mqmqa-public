@@ -113,8 +113,9 @@ Design:
 
 Verified this week: the ternary liquid is represented by random samples of the quadruplet
 fractions, and the liquidus at 1900 K moved between X_Fe = 0.337 and 0.451 across sampling seeds
-(model-exact value 0.3696). In 2D that is a small shift of a boundary. In 3D it shows up as ridges
-and dents that are sampling noise, not thermodynamics.
+(model-exact value 0.3696 at the time; 0.4171 since Si got its own chemical group). In 2D that
+is a small shift of a boundary. In 3D it shows up as ridges and dents that are sampling noise,
+not thermodynamics.
 
 Design, prerequisites before any 3D surface is trusted:
 - A fixed seed per request, so the same input always gives the same mesh.
@@ -495,7 +496,8 @@ What testing found, and what changed from the proposal because of it.
   `EXPORTED_RUNTIME_METHODS` (step 6).
 
 Validation (`tests/test_vis3d.py`): the 1900 K olivine tie-line of R7 is within 1e-3 of
-pycalphad (liquidus 0.3696, solidus 0.0803 on the join) for five seeds; seven further tie-lines
+pycalphad (liquidus 0.4171, solidus 0.0827 on the join, with Si in its own chemical group;
+0.3696 and 0.0803 before) for five seeds; seven further tie-lines
 (olivine, periclase, two liquids, a three-phase triangle, orthopyroxene) from 1700 to 2000 K agree
 within 1e-3; the section's fields equal the existing 2D lookup on the same candidates at every
 point of a 50-step grid; field areas converge as the lattice goes from 30 to 120.

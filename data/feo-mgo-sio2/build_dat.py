@@ -151,7 +151,10 @@ def build(excess=EXCESS, version="v0.1"):
     ap(" Fe+2                     Mg+2                     Si+4")
     ap(" O")
     ap("  2.00000      2.00000      4.00000")             # cation charges
-    ap("   1   1   1")                                    # cation groups
+    # Si in its own group: the two basic oxides extrapolate the silicate binaries
+    # asymmetrically (Toop-like). With all three in one group the ternary grew a two-liquid
+    # region near the orthosilicate join that neither binary has.
+    ap("   1   1   2")                                    # cation groups
     ap("  2.00000")                                       # anion charge magnitude
     ap("   1")                                            # anion group
     ap("   1   2   3")                                    # pair cation indices

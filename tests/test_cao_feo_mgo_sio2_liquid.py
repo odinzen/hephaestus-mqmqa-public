@@ -66,3 +66,21 @@ def test_binary_limit_reductions_are_exact(dbs):
             gq = _gbin(qdb, Q, comps, x, T)
             gr = _gbin(rdb, rph, comps, x, T)
             assert gq == pytest.approx(gr, abs=0.01), (comps, x, T, gq - gr)
+
+
+def test_single_quadruplet_energies_are_finite(dbs):
+    """One quadruplet alone: every term whose quadruplets are absent adds nothing. Their
+    mixing fractions are 0/0 there, which made the whole energy NaN at a pure oxide."""
+    import numpy as np
+    _, qdb, _, _ = dbs
+    inp = eq.build_inputs(qdb, 0, 1800.0)
+    n = len(inp["quads"])
+    for q in range(n):
+        X = [1.0 if k == q else 0.0 for k in range(n)]
+        g = eq.gibbs_per_quad(inp, X)
+        assert np.isfinite(g), inp["quads"][q]
+        if inp["qca"][q] == inp["qcb"][q]:          # a pure oxide: its reference energy only
+            ref = mqmqa.reference_energy(inp["qca"], inp["qcb"], inp["qax"], inp["qay"], X,
+                                         inp["pcat"], inp["pan"], inp["pG"], inp["pstoich"],
+                                         inp["Ztab"])
+            assert g == ref, (inp["quads"][q], g, ref)

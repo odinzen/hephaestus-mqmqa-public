@@ -653,7 +653,10 @@ static double liqm_minimize(LiqModel *m, const double *x, double *err)
     if (!isfinite(fn)) return NAN;
     double *Xt = m->Xt;
     for (int q = 0; q < nq; ++q) Xt[q] = X[q];
-    const double hs = 1e-5;          /* relative probe step */
+    /* relative probe steps: the gradient's error is truncation and wants a small step; the
+     * curvature's is rounding, ~1e-11 J over the step squared, and at 1e-5 that noise
+     * (0.1 J) buried the true curvature along fractions near 1e-6 and stalled the solve */
+    const double hs = 1e-5, hh = 1e-4;
     const double GTOL = 1e-3;        /* J per unit relative change */
     const double GSTALL = 1.0;
     double lam = 0.0, gain[10] = {0};   /* energy bought by each of the last ten steps */
@@ -711,21 +714,23 @@ static double liqm_minimize(LiqModel *m, const double *x, double *err)
                 H[a*k+b] = -(ua[a] * va[b] + ua[b] * va[a]) / (v * v) + 2 * u * va[a] * va[b] / (v * v * v);
         }
         /* differenced derivatives of M/n */
-#define EVAL(out, da, sa, db_, sb) do { \
+#define EVAL(out, h, da, sa, db_, sb) do { \
             for (int t = 0; t < nv; ++t) \
-                Xt[var[t]] = X[var[t]] * (1.0 + (sa) * hs * Nn[da][t] + (sb) * hs * Nn[db_][t]); \
+                Xt[var[t]] = X[var[t]] * (1.0 + (sa) * (h) * Nn[da][t] + (sb) * (h) * Nn[db_][t]); \
             out = liqm_mix(m, Xt); } while (0)
         for (int a = 0; a < k; ++a) {
             double fp, fm;
-            EVAL(fp, a, 1.0, a, 0.0);
-            EVAL(fm, a, -1.0, a, 0.0);
+            EVAL(fp, hs, a, 1.0, a, 0.0);
+            EVAL(fm, hs, a, -1.0, a, 0.0);
             g[a] += (fp - fm) / (2 * hs);
-            H[a*k+a] += (fp - 2 * fn + fm) / (hs * hs);
+            EVAL(fp, hh, a, 1.0, a, 0.0);
+            EVAL(fm, hh, a, -1.0, a, 0.0);
+            H[a*k+a] += (fp - 2 * fn + fm) / (hh * hh);
             for (int b = 0; b < a; ++b) {
                 double fpp, fpm, fmp, fmm;
-                EVAL(fpp, a, 1.0, b, 1.0); EVAL(fpm, a, 1.0, b, -1.0);
-                EVAL(fmp, a, -1.0, b, 1.0); EVAL(fmm, a, -1.0, b, -1.0);
-                double hab = (fpp - fpm - fmp + fmm) / (4 * hs * hs);
+                EVAL(fpp, hh, a, 1.0, b, 1.0); EVAL(fpm, hh, a, 1.0, b, -1.0);
+                EVAL(fmp, hh, a, -1.0, b, 1.0); EVAL(fmm, hh, a, -1.0, b, -1.0);
+                double hab = (fpp - fpm - fmp + fmm) / (4 * hh * hh);
                 H[a*k+b] += hab; H[b*k+a] += hab;
             }
         }
@@ -733,8 +738,9 @@ static double liqm_minimize(LiqModel *m, const double *x, double *err)
         /* Levenberg-Marquardt: the damping persists across iterations, easing after a
          * good step and growing after a failed one. No fraction may fall below a tenth of
          * its value in one step. Converged when the scaled gradient is below GTOL, about
-         * a hundred times the rounding noise of the differences; that leaves the energy
-         * within ~1e-9 J of the minimum. */
+         * a hundred times the rounding noise of the differences. Along the flattest
+         * directions (fractions near 1e-6) that still leaves up to ~0.7 mJ: measured
+         * against a solve converged to GTOL/1000 over five liquids, 1300 to 2400 K. */
         double gn = 0; for (int a = 0; a < k; ++a) gn += g[a] * g[a];
         gn = sqrt(gn);
         if (gn < GTOL) { converged = 1; break; }
@@ -986,14 +992,6 @@ static int liq_eval(vis3d_hull *h, double *px2, double *px3, double *pg, double 
     if (x1 < -1e-12 || x2 < -1e-12 || x3 < -1e-12) return 1;
     double x[3] = {x1 > 0 ? x1 : 0.0, x2 > 0 ? x2 : 0.0, x3 > 0 ? x3 : 0.0};
     double err = 0.0, g = liqm_minimize(&h->lm, x, &err);
-    if (!isfinite(g) && (x[0] == 0.0 || x[1] == 0.0 || x[2] == 0.0)) {
-        /* The excess routine returns NaN at some exact end-members (the FeO-SiO2 Q term
-         * at pure FeO); the energy is taken 1e-9 toward the centre, about 1e-4 J away. The
-         * sample stays on the corner or edge: moved inward it would lie a grid step inside,
-         * and the hull would no longer reach the corner. */
-        for (int i = 0; i < 3; ++i) x[i] += 1e-9 * (1.0 / 3.0 - x[i]);
-        g = liqm_minimize(&h->lm, x, &err);
-    }
     if (!isfinite(g)) {
         mqmqa_db_set_error("vis3d: the liquid could not be equilibrated at x2 = %.17g, "
                            "x3 = %.17g, T = %.2f K", x2, x3, h->T);
@@ -2370,17 +2368,12 @@ static int lq_set_T(Lq *q, double T)
     return 0;
 }
 
-/* liquid G per mole of cations at the current T; an exact end-member the excess routine
- * returns NaN for is taken 1e-9 toward the centre, as in the hull */
+/* liquid G per mole of cations at the current T */
 static int lq_gliq(Lq *q, double x2, double x3, double *g)
 {
     double x[3] = {1.0 - x2 - x3, x2, x3}, err;
     for (int i = 0; i < 3; ++i) if (x[i] < 0) x[i] = 0.0;
     *g = liqm_minimize(&q->sys->lm, x, &err);
-    if (!isfinite(*g) && (x[0] == 0.0 || x[1] == 0.0 || x[2] == 0.0)) {
-        for (int i = 0; i < 3; ++i) x[i] += 1e-9 * (1.0 / 3.0 - x[i]);
-        *g = liqm_minimize(&q->sys->lm, x, &err);
-    }
     if (!isfinite(*g)) {
         mqmqa_db_set_error("vis3d: the liquid could not be equilibrated at x2 = %.17g, "
                            "x3 = %.17g, T = %.2f K", x2, x3, q->sys->T);
@@ -2985,10 +2978,6 @@ static int gs_ref(vis3d_hull *h, int relative, const double gc[3], double x2, do
             for (int c = 0; c < 3; ++c) if (x[c] < 0) x[c] = 0;
             gliq = liqm_minimize(&h->lm, x, &err);
             if (!isfinite(gliq)) {
-                for (int c = 0; c < 3; ++c) x[c] += 1e-9 * (1.0 / 3.0 - x[c]);
-                gliq = liqm_minimize(&h->lm, x, &err);
-            }
-            if (!isfinite(gliq)) {
                 mqmqa_db_set_error("vis3d: the liquid could not be equilibrated at x2 = %.6f, "
                                    "x3 = %.6f, T = %.2f K", x2, x3, h->T);
                 return -4;
@@ -3039,10 +3028,6 @@ int vis3d_gibbs_surfaces(const mqmqa_db *db, const char *const *phases, int n_ph
             double x2 = (double)i / n, x3 = (double)j / n, x[3] = {1.0 - x2 - x3, x2, x3}, err;
             if (x[0] < 0) x[0] = 0;
             double g = liqm_minimize(&h->lm, x, &err);
-            if (!isfinite(g)) {   /* an exact end-member the excess routine cannot take */
-                for (int c = 0; c < 3; ++c) x[c] += 1e-9 * (1.0 / 3.0 - x[c]);
-                g = liqm_minimize(&h->lm, x, &err);
-            }
             if (!isfinite(g)) {
                 mqmqa_db_set_error("vis3d: the liquid could not be equilibrated at x2 = %.6f, "
                                    "x3 = %.6f, T = %.2f K", x2, x3, T);

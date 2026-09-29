@@ -470,6 +470,42 @@ double mqmqa_excess_energy(
         const int subq = soln_type == 1;
         const int grouped = needs_groups(grp, n_mix, si, sj);
 
+        const int qbase = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay,
+                                    A, B, Xn, Yn);
+        const double Xbase = X[qbase];
+
+        /* cation factor (A == B branch): spread over other cations */
+        double cation_factor = 0.0;
+        if (A == B) {
+            for (int m = 0; m < n_cat; ++m) {
+                if (m == A) continue;
+                const int qi = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay,
+                                         A, m, Xn, Yn);
+                if (qi >= 0)
+                    cation_factor += X[qi] / z_cation(qi, A, quad_ca, quad_cb, Za, Zb);
+            }
+            cation_factor *= z_cation(qbase, A, quad_ca, quad_cb, Za, Zb) / 2.0;
+        }
+
+        /* anion factor (X == Y branch): spread over other anions */
+        double anion_factor = 0.0;
+        if (Xn == Yn) {
+            for (int m = 0; m < n_an; ++m) {
+                if (m == Xn) continue;
+                const int qi = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay,
+                                         A, B, Xn, m);
+                if (qi >= 0)
+                    anion_factor += X[qi] / z_anion(qi, Xn, quad_ax, quad_ay, Zx, Zy);
+            }
+            anion_factor *= z_anion(qbase, Xn, quad_ax, quad_ay, Zx, Zy) / 2.0;
+        }
+
+        /* With none of the term's quadruplets present the weight is exactly zero, and
+         * the mixing fractions below can be 0/0 (a pure end-member); they are bounded,
+         * so the term adds nothing, and skipping it keeps that zero from becoming NaN. */
+        const double weight = Xbase + cation_factor + anion_factor;
+        if (weight == 0.0) continue;
+
         /* mixing term */
         double g;
         if (grouped && par_code[k] == 1) {
@@ -551,37 +587,7 @@ double mqmqa_excess_energy(
             }
         }
 
-        const int qbase = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay,
-                                    A, B, Xn, Yn);
-        const double Xbase = X[qbase];
-
-        /* cation factor (A == B branch): spread over other cations */
-        double cation_factor = 0.0;
-        if (A == B) {
-            for (int m = 0; m < n_cat; ++m) {
-                if (m == A) continue;
-                const int qi = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay,
-                                         A, m, Xn, Yn);
-                if (qi >= 0)
-                    cation_factor += X[qi] / z_cation(qi, A, quad_ca, quad_cb, Za, Zb);
-            }
-            cation_factor *= z_cation(qbase, A, quad_ca, quad_cb, Za, Zb) / 2.0;
-        }
-
-        /* anion factor (X == Y branch): spread over other anions */
-        double anion_factor = 0.0;
-        if (Xn == Yn) {
-            for (int m = 0; m < n_an; ++m) {
-                if (m == Xn) continue;
-                const int qi = find_quad(n_quads, quad_ca, quad_cb, quad_ax, quad_ay,
-                                         A, B, Xn, m);
-                if (qi >= 0)
-                    anion_factor += X[qi] / z_anion(qi, Xn, quad_ax, quad_ay, Zx, Zy);
-            }
-            anion_factor *= z_anion(qbase, Xn, quad_ax, quad_ay, Zx, Zy) / 2.0;
-        }
-
-        energy += 0.5 * g * (Xbase + cation_factor + anion_factor);
+        energy += 0.5 * g * weight;
     }
 #undef NIK
 

@@ -84,15 +84,7 @@ def liquid_points(db, phase, T, nsamp=12000, seed=0, lattice=60):
         for i in range(lattice + 1):
             for j in range(lattice + 1 - i):
                 x = dict(zip(order, (1.0 - (i + j) / lattice, i / lattice, j / lattice)))
-                try:
-                    g, Xq = vis3d.liquid_gibbs(db, p, T, x[order[1]], x[order[2]])
-                except vis3d.Vis3DError:
-                    # the excess routine is NaN at some exact end-members (the FeO-SiO2 Q
-                    # term at pure FeO); as in the hull, take the energy 1e-9 inward
-                    if min(x.values()) > 0.0:
-                        raise
-                    y = {e: v + 1e-9 * (1.0 / 3.0 - v) for e, v in x.items()}
-                    g, Xq = vis3d.liquid_gibbs(db, p, T, y[order[1]], y[order[2]])
+                g, Xq = vis3d.liquid_gibbs(db, p, T, x[order[1]], x[order[2]])
                 pts.append(PhasePoint(x["FE"], x["SI"], g, "LIQUID", Xq))
     return pts, inp
 

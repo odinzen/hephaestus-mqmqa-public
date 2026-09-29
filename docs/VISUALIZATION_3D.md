@@ -468,8 +468,11 @@ What testing found, and what changed from the proposal because of it.
   random-mixing distribution fitted exactly to the composition, then Levenberg-Marquardt steps in
   the constraint null space, scaled by the current fractions so no fraction reaches zero. The
   reference energy is linear in the fractions and is handled exactly; only mixing plus excess is
-  differenced. Over 900 random FeO-MgO-SiO2 compositions from 1300 to 2400 K it is never more than
-  6.5e-4 J above an SLSQP multi-start, and it matches pycalphad's liquid-only minimum to 1e-3 J.
+  differenced, the curvature with a ten times larger step than the gradient (at the gradient's
+  step, rounding noise buried the curvature along fractions near 1e-6 and stalled a CaO-MgO-SiO2
+  solve). Over 750 random states of five liquids from 1300 to 2400 K it ends at most 0.71 mJ
+  above the same solve converged a thousand times tighter, and it matches the energy of
+  pycalphad's liquid-only equilibrium state to 1e-3 J.
 - **The hull needs exact orientation tests.** Refinement puts many samples on one line in a nearly
   flat region; `mqmqa_lower_hull_2d` then loops without end. `vis3d_lower_hull` rounds points to an
   integer grid (2^-30 in composition, 2^-38 of the Gibbs range) and decides every orientation in

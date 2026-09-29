@@ -491,8 +491,8 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
   <div class="card" id="terncard">
     <h2>Ternary phase diagram &middot; FeO&ndash;MgO&ndash;SiO<sub>2</sub><span class="tern-badge">assessed</span></h2>
     <p class="tern-note">Liquidus projection of the open iron&ndash;magnesium&ndash;silicate slag
-      database: primary crystallizing phase across the join, with liquidus isotherms. Computed by
-      the 2-D minimizer and validated against pycalphad; reproduces the topology of Bowen &amp;
+      database: primary crystallizing phase across the join, with liquidus isotherms. Computed on
+      the refined equilibrium hull of the 3D view and checked against pycalphad; reproduces the topology of Bowen &amp;
       Schairer 1935. Move over the diagram to read a composition. This is a precomputed showcase of
       the built-in FeO&ndash;MgO&ndash;SiO<sub>2</sub> database only &mdash; it is not generated for
       other or uploaded systems. For those, use the live ternary section below, which solves
@@ -2750,7 +2750,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
 </script>
 <script>
 /* Ternary phase-diagram viewer: two precomputed views of the assessed FeO-MgO-SiO2 diagram
-   (both from the 2-D minimizer, validated vs pycalphad). "Liquidus projection" = primary
+   (both from the refined hull of vis3d, checked against pycalphad). "Liquidus projection" = primary
    crystallizing phase + liquidus isotherms; "Isothermal section" = the stable phase assemblages
    at a chosen temperature. Independent of the loaded database - this is the open slag DB result. */
 (function(){

@@ -1,0 +1,153 @@
+# Database library shelf list. HUMAN-OWNED: Michael decides what is announced.
+#
+# scripts/build_library.py turns this plus a workspace triage snapshot into web/library.json.
+# Progress stages and counts are read from the snapshot, never typed here. Every system shown
+# must be listed below with a blurb; a proprietary or unlisted system can never appear, and the
+# build fails rather than guess.
+#
+# DRAFT 2026-09-29 (Claude): first-pass shortlist for Michael to cut or extend.
+
+# What ships today: one entry per load button in web/index.html. The build checks that the
+# button and the file both exist, so a renamed or removed database fails loudly.
+[[available]]
+button = "example"
+file = "FeO-MgO-SiO2-combined.dat"
+title = "Open slag database"
+kind = "slag"
+blurb = "FeO-MgO-SiO2 melt with its solid phases, assessed from open literature with the MQMQA liquid."
+
+[[available]]
+button = "example-salt"
+file = "LiCl-KCl.dat"
+title = "Open salt database"
+kind = "salt"
+blurb = "LiCl-KCl molten salt, the electrolyte used in pyroprocessing and thermal batteries."
+
+[[available]]
+button = "example-alloy"
+file = "AlZn.tdb"
+title = "Open alloy database"
+kind = "alloy"
+blurb = "Al-Zn alloy phases in Thermo-Calc .tdb form."
+
+[[available]]
+button = "example-unified"
+file = "AlZn-NaClKClMgCl2.utdb"
+title = "Aluminium recycling demo"
+kind = "alloy"
+blurb = "Al-Zn alloy under a NaCl-KCl-MgCl2 salt flux, alloy and salt in one unified .utdb."
+
+[[available]]
+button = "example-steel"
+file = "FeC-FeOMgOSiO2.utdb"
+title = "Steelmaking demo"
+kind = "alloy"
+blurb = "Fe-C steel with an FeO-MgO-SiO2 slag in one unified .utdb."
+
+[[available]]
+button = "xtdb-alc"
+file = "AlC.xtdb"
+title = "Al-C (third generation)"
+kind = "alloy"
+blurb = "Al-C with third-generation Einstein-model unaries, in .xtdb form."
+
+[[available]]
+button = "xtdb-pbsn"
+file = "PbSn.xtdb"
+title = "Pb-Sn (classic)"
+kind = "alloy"
+blurb = "The Pb-Sn solder system in classic .xtdb form."
+
+# Announced systems. id = the assessment id in the workspace triage snapshot.
+# shelf: "in_progress" (being assessed now) or "planned" (on the list, not started as a database).
+
+[[system]]
+id = "na2o-sio2"
+title = "Na2O-SiO2"
+kind = "slag"
+shelf = "in_progress"
+blurb = "Sodium silicate melt, the base of soda-lime glass and a flux component in slags."
+
+[[system]]
+id = "nano3-kno3"
+title = "NaNO3-KNO3 (solar salt)"
+kind = "salt"
+shelf = "in_progress"
+blurb = "Nitrate salt used for heat transfer and thermal storage in concentrating solar power."
+
+[[system]]
+id = "li2co3-na2co3-k2co3"
+title = "Li2CO3-Na2CO3-K2CO3"
+kind = "salt"
+shelf = "in_progress"
+blurb = "Molten carbonate electrolyte for fuel cells and carbon capture."
+
+[[system]]
+id = "lif-bef2"
+title = "LiF-BeF2 (FLiBe)"
+kind = "salt"
+shelf = "in_progress"
+blurb = "Fluoride salt used as coolant and fuel carrier in molten-salt reactors."
+
+[[system]]
+id = "gainsn"
+title = "Ga-In-Sn"
+kind = "alloy"
+shelf = "in_progress"
+blurb = "Gallium-based liquid metal for cooling and flexible electronics."
+
+[[system]]
+id = "cu-o"
+title = "Cu-O"
+kind = "oxide"
+shelf = "in_progress"
+blurb = "Copper-oxygen, relevant to copper refining and oxide scales."
+
+[[system]]
+id = "refractory-oxides"
+title = "Refractory oxides"
+kind = "reference"
+shelf = "planned"
+blurb = "Pure-compound data for the high-melting oxides that line furnaces and ladles."
+
+[[system]]
+id = "silicate-minerals"
+title = "Silicate minerals"
+kind = "reference"
+shelf = "planned"
+blurb = "Pure-compound data for the silicates that crystallize from slags and magmas."
+
+[[system]]
+id = "sulfides"
+title = "Sulfides"
+kind = "reference"
+shelf = "planned"
+blurb = "Pure-compound data for metal sulfides, the building blocks of mattes."
+
+[[system]]
+id = "chlorides"
+title = "Chlorides"
+kind = "reference"
+shelf = "planned"
+blurb = "Pure-compound data for metal chlorides, the building blocks of salt fluxes and electrolytes."
+
+[[system]]
+id = "elements-ser"
+title = "Elements (SER)"
+kind = "reference"
+shelf = "planned"
+blurb = "Standard element reference data that every database is built on."
+
+[[system]]
+id = "gases-ref"
+title = "Gas species"
+kind = "reference"
+shelf = "planned"
+blurb = "Gas-phase reference data for vapor and atmosphere calculations."
+
+[[system]]
+id = "oxides-ref"
+title = "Alkali oxides"
+kind = "reference"
+shelf = "planned"
+blurb = "Reference data for Na2O, K2O and Li2O, the fluxing oxides in glass and slag."

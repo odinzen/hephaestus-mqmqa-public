@@ -165,6 +165,13 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
          padding:.05rem .3rem; border-radius:4px; }
 
   /* ternary phase-diagram showcase */
+  .v3-wrap { position:relative; max-width:52rem; margin:.4rem auto 0; }
+  .v3-wrap canvas { display:block; width:100%; cursor:crosshair; touch-action:none; }
+  .v3-corner { position:absolute; transform:translate(-50%, -140%); pointer-events:none;
+    font-weight:600; color:var(--ink); font-size:var(--fs-sm); white-space:nowrap; }
+  .v3-chip { display:inline-flex; align-items:center; gap:.35rem; cursor:pointer; user-select:none; }
+  .v3-chip i { display:inline-block; width:.9rem; height:.9rem; border-radius:3px; }
+  .v3-chip.off { opacity:.4; text-decoration:line-through; }
   .tern-note { color:var(--muted); font-size:var(--fs-sm); margin:.1rem 0 .9rem; max-width:none; }
   .tern-wrap { position:relative; max-width:52rem; margin:.2rem auto 0; }
   .tern-wrap canvas { width:100%; height:auto; display:block; touch-action:pinch-zoom; cursor:crosshair; }
@@ -571,6 +578,37 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       published data. For other systems, or if a result looks off, email
       <a href="mailto:info@odinzen.io">info@odinzen.io</a>.
     </div>
+  </div>
+
+  <div class="card" id="vis3dcard">
+    <h2>3D phase space<span class="tern-badge">live engine</span></h2>
+    <p class="tern-note">The liquidus surface over the composition triangle, with height as
+      temperature: each coloured field is where one solid crystallizes first, and the dark lines
+      between fields are the eutectic valleys. Drag to turn it; scroll to zoom. The green plane is a
+      temperature: drag the slider to move it, release, and the exact isothermal section at that
+      temperature is drawn in it. Click any point for the engine's own answer there (its liquidus and
+      the phases present at the plane's temperature); hovering only reads the drawn surface. Click a
+      legend entry to hide or show a field. Everything is computed in your browser by the open engine,
+      in the background, so the page stays responsive.</p>
+    <div class="tern-ctl">
+      <label>System
+        <select id="v3-sys">
+          <option value="slag">FeO&ndash;MgO&ndash;SiO&#8322;</option>
+          <option value="cas">CaO&ndash;Al&#8322;O&#8323;&ndash;SiO&#8322;</option>
+        </select>
+      </label>
+      <label class="tern-tlab">Temperature
+        <input type="range" id="v3-t" min="1300" max="3200" step="1" value="1873">
+        <b id="v3-tval">1873 K</b>
+      </label>
+      <label><input type="checkbox" id="v3-clip"> Cut the surface at the plane</label>
+      <button id="v3-go" class="seg-btn on" type="button" style="border-radius:8px">Start the 3D view</button>
+    </div>
+    <div class="v3-wrap" id="v3-wrap"></div>
+    <div class="tern-read" id="v3-status">Press Start: the engine computes an exact section first
+      (about ten seconds), then the liquidus surface (about a minute), then a finer one.</div>
+    <div class="tern-read" id="v3-read"></div>
+    <div class="legend" id="v3-legend"></div>
   </div>
 
   <div class="card" id="buildercard">
@@ -4280,5 +4318,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
   new MutationObserver(()=>{ if(handle) draw(); }).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 })();
 </script>
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.js"}}</script>
+<script type="module" src="./vis3d_view.js"></script>
 </body>
 </html>

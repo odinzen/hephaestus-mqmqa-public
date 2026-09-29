@@ -1,7 +1,9 @@
 # 3D phase-space visualization: red-team review and specification
 
-Status: steps 1 to 3 of section 7 implemented (`src/vis3d.h`, `src/vis3d.c`,
-`python/mqmqa/vis3d.py`, `tests/test_vis3d.py`); steps 4 to 7 not started. Section 8 records
+Status: steps 1 to 6 of section 7 implemented (`src/vis3d.h`, `src/vis3d.c`,
+`python/mqmqa/vis3d.py`, `tests/test_vis3d.py`, and in the browser `web/vis3d_engine.js`,
+`web/vis3d_worker.js`, `web/vis3d_view.js` with Three.js bundled under `web/vendor/three`); step 7
+is this document. Section 8 records
 where the implementation departs from this proposal and why. Target: the private `next-release`
 line, then the public release. The proposal below builds on the engine's existing ternary path,
 the C lower convex hull (`mqmqa_lower_hull_2d`) and the lever-rule assemblage lookup
@@ -454,7 +456,7 @@ Acceptance for every step: the full suite passes; shipped databases are bit-iden
 adds functions and changes no existing path); and every 3D view has a 2D counterpart it must agree
 with.
 
-## 8. Steps 1 to 3 as built
+## 8. Steps 1 to 6 as built
 
 What testing found, and what changed from the proposal because of it.
 
@@ -520,3 +522,32 @@ projection (`web/ternary_feo_mgo_sio2.json`, from the random sampler) agrees on 
 at 87% of its grid; at ten sampled disagreements the full hull sides with the new surface. A
 surface over 1300 to 3200 K takes about 80 s natively and in the browser engine alike, most of it
 in the liquid-only hulls of the split-liquid levels.
+
+**Step 4, Gibbs-energy surfaces.** `vis3d_gibbs_surfaces` exports the liquid on the lattice, each
+CEF solution as a curve and each compound as a point (a zero-length segment), and the refined hull as
+a patch labelled `HULL`, in J per mole of cations relative to the pure components' equilibrium plane
+or to the equilibrium itself; the value is in `scalar`, `z = scalar * z_per_joule` (a field appended
+to `VisOptions`, so the earlier offsets hold). Against equilibrium, where the equilibrium is the single
+liquid the reference is the liquid's own energy, not the hull's chords between samples, which lie up
+to ~10 J above it. Testing this found a gap in step 1: a shallow, rippled two-liquid region can dip
+below a hull edge away from its midpoint, so the gap test now samples the quarter points and keeps a
+dipping point as a hull sample whenever the same edge also rises (a rippled liquid). Heights above
+equilibrium are resolved to about 0.2 J.
+
+**Step 5, Python helpers.** `surface_arrays` and `prism_arrays` give the VTK layout with numpy
+alone (faces, wedge cells, one categorical label per cell); `to_polydata` and `to_unstructured` wrap
+them in PyVista objects when PyVista is installed. The prism stacks the lattice triangles of refined
+hulls at several temperatures, each wedge labelled with the assemblage at the centroid of its lower
+triangle: an overview at lattice resolution, with the exact boundaries in the sections.
+
+**Step 6, the browser.** A card after the live ternary: the engine runs in `vis3d_worker.js`, one
+instance, requests in order; `vis3d_engine.js` reads every result through fresh heap views after the
+call (`HEAP32`, `HEAPU32`, `HEAPF32`, `HEAPF64` are now exported for this) and the worker transfers
+the buffers. Nothing runs until Start; then the exact section at the default temperature (about ten
+seconds), a coarse liquidus (12 divisions, 50 K levels, about a minute) and a finer one. The slider
+moves a translucent plane and, on release, computes the exact section in it; the liquidus can be cut
+at the plane. Hover reads the drawn surface and says so; a click asks the engine for the liquidus and
+the equilibrium at that point. Each phase has one colour, and a field of several phases blends its
+members' colours. Without WebGL the card says so and points to the 2D diagrams. Three.js 0.186.1
+(MIT) is copied into `web/vendor/three` with its licence and the registry integrity check; an import
+map resolves `three` to it, so the page still makes no third-party requests.

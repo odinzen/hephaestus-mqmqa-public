@@ -177,6 +177,19 @@ header, with the source file name and the Hephaestus version. Hephaestus reads p
 files only and contains no decryption code, so an encrypted database cannot be opened or
 converted.
 
+## 3D phase space
+
+`mqmqa.vis3d` (`src/vis3d.c`) turns a three-cation, single-anion system into meshes for 3D
+views: `section` gives the phase regions of an isothermal section, `liquidus_surface` the
+liquidus over the triangle with its primary-phase fields and eutectic valleys, and
+`gibbs_surfaces` the Gibbs energies at one temperature relative to the equilibrium or to the
+pure components. Each rests on a refined equilibrium hull (`vis3d.Hull`) whose phase
+boundaries are located to a set tolerance (default 0.001 in cation fraction) independent of
+the sampling seed. `surface_arrays` and `prism_arrays` give the VTK layout with numpy alone,
+and `to_polydata` and `to_unstructured` build PyVista objects when PyVista is installed. The
+mesh is for looking at; `liquidus_point`, `Hull.assemblage` and `Hull.gibbs` give the numbers.
+Method and validation: `docs/VISUALIZATION_3D.md`, section 8.
+
 ## The browser app
 
 `web/index.html` is the zero-install face of the engine: the C core compiled to
@@ -186,7 +199,12 @@ or .utdb file (the steelmaking demo computes the real Fe-C diagram), Scheil
 solidification, and a multicomponent eutectic builder. A separate card reads the open
 XML `.xtdb` format (`src/xtdb.c`) and its third-generation models, an Einstein heat
 capacity valid to 0 K and a two-state liquid, computing an `.xtdb` file's binary diagram
-live; a third-generation Al-C database and a classic Pb-Sn assessment ship as examples. Everything runs in
+live; a third-generation Al-C database and a classic Pb-Sn assessment ship as examples. A
+3D card draws a ternary's liquidus surface (height is temperature, one colour per primary
+phase, the eutectic valleys as lines) with a movable temperature plane that shows the
+exact isothermal section; it computes in Web Workers (`web/vis3d_worker.js`) with
+Three.js bundled under `web/vendor/three` (MIT), and a click asks the engine for the
+liquidus and equilibrium at that point. Everything runs in
 the page: a loaded database never leaves the visitor's machine, the CSP blocks every
 third-party request, and the fonts are self-hosted. Serve it from any static host, or
 locally:

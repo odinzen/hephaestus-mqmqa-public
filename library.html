@@ -87,6 +87,7 @@
   .ladder i { height:.45rem; background:var(--line); display:block; }
   .ladder i.on { background:var(--spine, var(--brand)); }
   .stage { font-size:var(--fs-xs); color:var(--ink); }
+  .stage .hand { color:var(--muted); cursor:help; }
 
   .open { align-self:flex-start; margin-top:.2rem; padding:.3rem .75rem; font-size:var(--fs-sm);
           font-weight:600; cursor:pointer; background:transparent; color:var(--brand);
@@ -129,6 +130,7 @@
   const SHELVES = [
     { key:'available',   title:'On the shelf',   what:'Ships with the calculator. Open one to start calculating.' },
     { key:'in_progress', title:'Being assessed', what:'Measured data is being extracted and fitted into a database.' },
+    { key:'reference',   title:'Reference data', what:'Pure-compound data sets that the assessed databases are built from.' },
     { key:'planned',     title:'On the list',    what:'Accepted for the open collection; assessment starts after the current work.' },
   ];
   let data = null, kind = 'all', query = '';
@@ -187,7 +189,13 @@
       lad.setAttribute('aria-label', 'Stage ' + (item.stage + 1) + ' of ' + data.stages.length + ': ' + item.stage_label);
       data.stages.forEach((s, i) => { const seg = el('i', i <= item.stage ? 'on' : ''); seg.title = s; lad.appendChild(seg); });
       b.appendChild(lad);
-      b.appendChild(el('div', 'stage', item.stage_label));
+      const st = el('div', 'stage', item.stage_label);
+      if (item.stage_source === 'hand') {
+        const h = el('span', 'hand', ' · reported by the author');
+        h.title = 'Assessed outside the records this catalogue reads, so its stage is entered by hand.';
+        st.appendChild(h);
+      }
+      b.appendChild(st);
       const c = [];
       if (item.papers) c.push(plural(item.papers, 'paper', 'papers'));
       if (item.measurements) c.push(plural(item.measurements, 'measured value', 'measured values'));
@@ -228,14 +236,18 @@
 
   function render(){
     const root = document.getElementById('shelves'); root.textContent = '';
-    SHELVES.forEach(s => {
-      const items = (s.key === 'available' ? data.available : data.systems.filter(x => x.shelf === s.key)).filter(matches);
+    const onShelf = key => key === 'available' ? data.available : data.systems.filter(x => x.shelf === key);
+    // a shelf with nothing on it at all is hidden; one emptied by a filter says so
+    const shown = SHELVES.filter(s => onShelf(s.key).length);
+    const last = shown[shown.length - 1];
+    shown.forEach(s => {
+      const items = onShelf(s.key).filter(matches);
       const sec = el('section', 'shelf');
       const h = el('h2', null, s.title); h.appendChild(el('span', 'n', String(items.length)));
       sec.append(h, el('p', 'what', s.what));
       const books = el('div', 'books');
       items.forEach(it => books.appendChild(book(it, s.key)));
-      if (s.key === 'planned') books.appendChild(requestCard());
+      if (s === last) books.appendChild(requestCard());
       if (books.children.length) sec.appendChild(books);
       else sec.appendChild(el('div', 'empty', 'Nothing on this shelf matches the filter.'));
       root.appendChild(sec);

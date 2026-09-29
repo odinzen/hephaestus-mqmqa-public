@@ -74,6 +74,23 @@ MQMQA_API void vis3d_default_options(VisOptions *opt);
 MQMQA_API int vis3d_section(const mqmqa_db *db, const char *const *phases, int n_phases,
                             double T, const VisOptions *opt, VisMesh *out);
 
+/* Liquidus surface T_liq(x1, x2, x3) over the triangle, z = T_liq * z_per_kelvin: one patch
+ * per primary-phase field, labelled with the solid that crystallizes first, and the field
+ * boundaries (the univariant valleys) as two-point polylines, their vertices duplicated
+ * per patch. The liquidus of a composition is where the first solid's driving force
+ * against the stable liquid (the single liquid, or both liquids where it has split)
+ * reaches zero, found to t_tol; field boundaries are located to x_tol along lattice
+ * edges. Reads lattice_n, n_temps (>= 3 temperature levels spanning t_lo..t_hi), t_lo,
+ * t_hi, t_tol, x_tol, z_per_kelvin, and max_refine for the split-liquid hulls. A liquidus
+ * outside [t_lo, t_hi] anywhere is an error (-7) naming the composition. */
+MQMQA_API int vis3d_liquidus_surface(const mqmqa_db *db, const char *const *phases,
+                                     int n_phases, const VisOptions *opt, VisMesh *out);
+/* The liquidus temperature and primary phase (NUL-terminated, primary_len bytes) of one
+ * bulk composition, as the surface computes it. */
+MQMQA_API int vis3d_liquidus_point(const mqmqa_db *db, const char *const *phases, int n_phases,
+                                   const VisOptions *opt, double x2, double x3, double *T,
+                                   char *primary, int primary_len);
+
 /* Barycentric (x1, x2, x3) to Cartesian (X, Y): x1 at (0, 0), x2 at (1, 0), x3 at the
  * apex. The one place this transform lives. */
 MQMQA_API void vis3d_bary_to_xy(double x2, double x3, double *X, double *Y);
@@ -150,6 +167,10 @@ MQMQA_API const int32_t *vis3d_mesh_patch_phase(const VisMesh *m);
 MQMQA_API const float *vis3d_mesh_line_pos(const VisMesh *m);
 MQMQA_API const int32_t *vis3d_mesh_line_start(const VisMesh *m);
 MQMQA_API const char *vis3d_mesh_label(const VisMesh *m, int k);
+MQMQA_API int vis3d_liquidus_surface_js(const mqmqa_db *db, const char *phase_list,
+                                        int lattice_n, int n_temps, double t_lo, double t_hi,
+                                        double x_tol, double t_tol, double z_per_kelvin,
+                                        VisMesh *out);
 MQMQA_API int vis3d_section_js(const mqmqa_db *db, const char *phase_list, double T,
                                int lattice_n, double x_tol, uint32_t seed, int max_refine,
                                double z_per_kelvin, VisMesh *out);

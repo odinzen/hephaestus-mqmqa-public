@@ -793,8 +793,12 @@ double vis3d_liquid_gibbs(const mqmqa_db *db, int phase, double T, double x2, do
     if (uns) { mqmqa_db_set_error("%s", uns); return NAN; }
     LiqModel m;
     if (liqm_build(&m, db, phase, T)) { liqm_free(&m); mqmqa_db_set_error("vis3d: out of memory"); return NAN; }
-    double x[3] = {1.0 - x2 - x3, x2, x3}, err;
-    double g = (x[0] < 0 || x2 < 0 || x3 < 0) ? NAN : liqm_minimize(&m, x, &err);
+    /* a fraction a rounding step below zero (1 - 0.55 - 0.45) is zero, as in the hull */
+    double x[3] = {1.0 - x2 - x3, x2, x3}, err, g = NAN;
+    if (x[0] >= -1e-12 && x2 >= -1e-12 && x3 >= -1e-12) {
+        for (int i = 0; i < 3; ++i) if (x[i] < 0) x[i] = 0.0;
+        g = liqm_minimize(&m, x, &err);
+    }
     if (X_out) for (int q = 0; q < m.nq; ++q) X_out[q] = m.X[q];
     liqm_free(&m);
     return g;
@@ -1688,34 +1692,65 @@ int vis3d_hull_assemblage(const vis3d_hull *h, double x2, double x3, int *phase_
 
 typedef struct { char (*s)[LABEL_LEN]; int n, cap; } Labels;
 
-/* raw triangle soup, one label per triangle, plus boundary segments */
+/* Raw triangle soup, one label per triangle, plus boundary segments. A section sits at one
+ * temperature (tconst); a surface gives every corner its own (tz, segT). */
 typedef struct {
     double *v; int *lab; int nt, cap;       /* v: nt * 6 doubles (x2, x3 per corner) */
+    double *tz;                             /* nt * 3 corner temperatures, or NULL */
     double *seg; int ns, scap;              /* seg: ns * 4 doubles */
+    double *segT;                           /* ns * 2 end temperatures, or NULL */
+    double tconst;
 } Soup;
 
-static int soup_tri(Soup *S, int lab, const double *a, const double *b, const double *c)
+static int soup_tri_t(Soup *S, int lab, const double *a, const double *b, const double *c,
+                      const double *tabc)
 {
     /* counter-clockwise in (x2, x3), which the map to (X, Y) preserves, so every normal
-     * of a flat section points the same way; exactly degenerate slivers carry no area */
+     * points the same way; exactly degenerate slivers carry no area */
     double area2 = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
     if (fabs(area2) <= 1e-15) return 0;
-    if (area2 < 0) { const double *t = b; b = c; c = t; }
+    double ta = tabc ? tabc[0] : 0, tb = tabc ? tabc[1] : 0, tc = tabc ? tabc[2] : 0;
+    if (area2 < 0) { const double *t = b; b = c; c = t; double u = tb; tb = tc; tc = u; }
+    int old = S->cap;
     if (grow((void **)&S->v, &S->cap, S->nt + 1, 6 * sizeof(double))) return -5;
-    int *l = realloc(S->lab, (size_t)S->cap * sizeof(int));
-    if (!l) return -5;
-    S->lab = l;
+    if (S->cap != old) {
+        int *l = realloc(S->lab, (size_t)S->cap * sizeof(int));
+        if (!l) return -5;
+        S->lab = l;
+        if (tabc) {
+            double *z = realloc(S->tz, (size_t)S->cap * 3 * sizeof(double));
+            if (!z) return -5;
+            S->tz = z;
+        }
+    }
     double *d = S->v + 6*S->nt;
     d[0] = a[0]; d[1] = a[1]; d[2] = b[0]; d[3] = b[1]; d[4] = c[0]; d[5] = c[1];
+    if (tabc) { S->tz[3*S->nt] = ta; S->tz[3*S->nt+1] = tb; S->tz[3*S->nt+2] = tc; }
     S->lab[S->nt++] = lab;
+    return 0;
+}
+static int soup_tri(Soup *S, int lab, const double *a, const double *b, const double *c)
+{
+    return soup_tri_t(S, lab, a, b, c, NULL);
+}
+static int soup_seg_t(Soup *S, const double *a, const double *b, const double *tab)
+{
+    int old = S->scap;
+    if (grow((void **)&S->seg, &S->scap, S->ns + 1, 4 * sizeof(double))) return -5;
+    if (tab && S->scap != old) {
+        double *z = realloc(S->segT, (size_t)S->scap * 2 * sizeof(double));
+        if (!z) return -5;
+        S->segT = z;
+    }
+    double *d = S->seg + 4*S->ns;
+    d[0] = a[0]; d[1] = a[1]; d[2] = b[0]; d[3] = b[1];
+    if (tab) { S->segT[2*S->ns] = tab[0]; S->segT[2*S->ns+1] = tab[1]; }
+    S->ns++;
     return 0;
 }
 static int soup_seg(Soup *S, const double *a, const double *b)
 {
-    if (grow((void **)&S->seg, &S->scap, S->ns + 1, 4 * sizeof(double))) return -5;
-    double *d = S->seg + 4*S->ns++;
-    d[0] = a[0]; d[1] = a[1]; d[2] = b[0]; d[3] = b[1];
-    return 0;
+    return soup_seg_t(S, a, b, NULL);
 }
 
 /* ---- the section as an overlay of the lattice on the hull ----
@@ -2002,6 +2037,139 @@ static int join_t_junctions(const Soup *S, const int *vid, int nv, int *uf, int 
 
 static size_t align8(size_t s) { return (s + 7) & ~(size_t)7; }
 
+/* Vertices merged within a label (never across one), patches as connected components,
+ * everything copied into one arena. */
+static int soup_to_mesh(Soup *S, Labels *L, int nbin, double z_per_kelvin, VisMesh *out)
+{
+    int rc = 0;
+    VKey *keys = NULL; int *vid = NULL, *uf = NULL, *order = NULL, *pat = NULL;
+    /* vertices: merge equal coordinates within a label, never across labels */
+    int nc = 3 * S->nt;
+    keys = malloc((size_t)(nc ? nc : 1) * sizeof(VKey));
+    vid = malloc((size_t)(nc ? nc : 1) * sizeof(int));
+    if (!keys || !vid) { rc = -5; mqmqa_db_set_error("vis3d: out of memory"); goto done; }
+    for (int c = 0; c < nc; ++c) {
+        keys[c].x = llround(S->v[2*c] * 68719476736.0); keys[c].y = llround(S->v[2*c+1] * 68719476736.0);
+        keys[c].lab = S->lab[c / 3]; keys[c].id = c;
+    }
+    qsort(keys, (size_t)nc, sizeof(VKey), cmp_vkey);
+    int nv = 0;
+    for (int c = 0; c < nc; ++c) {
+        if (c > 0 && cmp_vkey(&keys[c], &keys[c-1]) == 0) { vid[keys[c].id] = nv - 1; continue; }
+        vid[keys[c].id] = nv++;
+    }
+    /* patches: connected components of triangles sharing a vertex */
+    uf = malloc((size_t)(nv ? nv : 1) * sizeof(int));
+    if (!uf) { rc = -5; mqmqa_db_set_error("vis3d: out of memory"); goto done; }
+    for (int v = 0; v < nv; ++v) uf[v] = v;
+    for (int t = 0; t < S->nt; ++t) {
+        int a = uf_find(uf, vid[3*t]);
+        for (int k = 1; k < 3; ++k) { int b = uf_find(uf, vid[3*t+k]); if (a != b) uf[b] = a; }
+    }
+    /* Where one triangle was subdivided and its neighbour was not, a vertex of one sits
+     * inside an edge of the other (a T-junction) and they share no vertex; join them. */
+    if ((rc = join_t_junctions(S, vid, nv, uf, nbin))) { mqmqa_db_set_error("vis3d: out of memory"); goto done; }
+    /* order triangles by (label, component) so each patch is one contiguous run */
+    order = malloc((size_t)(S->nt ? S->nt : 1) * sizeof(int));
+    pat = malloc((size_t)(nv ? nv : 1) * sizeof(int));
+    if (!order || !pat) { rc = -5; mqmqa_db_set_error("vis3d: out of memory"); goto done; }
+    for (int v = 0; v < nv; ++v) pat[v] = -1;
+    int npatch = 0;
+    int *root_patch = pat;   /* reused: patch id per component root */
+    int *tri_patch = malloc((size_t)(S->nt ? S->nt : 1) * sizeof(int));
+    int *patch_lab = malloc((size_t)(S->nt ? S->nt : 1) * sizeof(int));
+    if (!tri_patch || !patch_lab) { free(tri_patch); free(patch_lab); rc = -5; mqmqa_db_set_error("vis3d: out of memory"); goto done; }
+    for (int lab = 0; lab < L->n; ++lab)
+        for (int t = 0; t < S->nt; ++t) {
+            if (S->lab[t] != lab) continue;
+            int r = uf_find(uf, vid[3*t]);
+            if (root_patch[r] < 0) { root_patch[r] = npatch; patch_lab[npatch] = lab; npatch++; }
+            tri_patch[t] = root_patch[r];
+        }
+    int *pcount = calloc((size_t)npatch + 1, sizeof(int));
+    if (!pcount) { free(tri_patch); free(patch_lab); rc = -5; mqmqa_db_set_error("vis3d: out of memory"); goto done; }
+    for (int t = 0; t < S->nt; ++t) pcount[tri_patch[t] + 1]++;
+    for (int p = 0; p < npatch; ++p) pcount[p + 1] += pcount[p];
+    {
+        int *fill = malloc((size_t)(npatch ? npatch : 1) * sizeof(int));
+        if (!fill) { free(tri_patch); free(patch_lab); free(pcount); rc = -5; mqmqa_db_set_error("vis3d: out of memory"); goto done; }
+        for (int p = 0; p < npatch; ++p) fill[p] = pcount[p];
+        for (int t = 0; t < S->nt; ++t) order[fill[tri_patch[t]]++] = t;
+        free(fill);
+    }
+
+    /* one arena for the whole result */
+    size_t o_pos = 0;
+    size_t o_comp = align8(o_pos + (size_t)nv * 3 * sizeof(float));
+    size_t o_temp = align8(o_comp + (size_t)nv * 3 * sizeof(double));
+    size_t o_tri = align8(o_temp + (size_t)nv * sizeof(double));
+    size_t o_pst = align8(o_tri + (size_t)S->nt * 3 * sizeof(uint32_t));
+    size_t o_pph = align8(o_pst + (size_t)(npatch + 1) * sizeof(int32_t));
+    size_t o_lpos = align8(o_pph + (size_t)npatch * sizeof(int32_t));
+    size_t o_lst = align8(o_lpos + (size_t)S->ns * 2 * 3 * sizeof(float));
+    size_t o_lab = align8(o_lst + (size_t)(S->ns + 1) * sizeof(int32_t));
+    size_t total = o_lab + (size_t)L->n * LABEL_LEN;
+    char *A = malloc(total ? total : 1);
+    if (!A) { free(tri_patch); free(patch_lab); free(pcount); rc = -5; mqmqa_db_set_error("vis3d: out of memory"); goto done; }
+    out->arena = A;
+    out->pos = (float *)(A + o_pos);
+    out->comp = (double *)(A + o_comp);
+    out->temp = (double *)(A + o_temp);
+    out->scalar = NULL;
+    out->tri = (uint32_t *)(A + o_tri);
+    out->patch_start = (int32_t *)(A + o_pst);
+    out->patch_phase = (int32_t *)(A + o_pph);
+    out->line_pos = (float *)(A + o_lpos);
+    out->line_start = (int32_t *)(A + o_lst);
+    out->label = (char (*)[64])(A + o_lab);
+    out->n_vert = nv; out->n_tri = S->nt; out->n_patch = npatch;
+    out->n_line = S->ns; out->n_line_pts = 2 * S->ns; out->n_label = L->n;
+
+    /* vertices are renumbered in patch order so each patch's vertices are contiguous */
+    int *remap = malloc((size_t)(nv ? nv : 1) * sizeof(int));
+    if (!remap) { vis3d_free(out); free(tri_patch); free(patch_lab); free(pcount); rc = -5; mqmqa_db_set_error("vis3d: out of memory"); goto done; }
+    for (int v = 0; v < nv; ++v) remap[v] = -1;
+    int next = 0;
+    for (int k = 0; k < S->nt; ++k) {
+        int t = order[k];
+        for (int c = 0; c < 3; ++c) {
+            int v = vid[3*t+c];
+            if (remap[v] < 0) {
+                remap[v] = next;
+                double x2 = S->v[6*t+2*c], x3 = S->v[6*t+2*c+1], X, Y;
+                vis3d_bary_to_xy(x2, x3, &X, &Y);
+                double T = S->tz ? S->tz[3*t+c] : S->tconst;
+                out->pos[3*next] = (float)X; out->pos[3*next+1] = (float)Y;
+                out->pos[3*next+2] = (float)(T * z_per_kelvin);
+                out->comp[3*next] = 1.0 - x2 - x3; out->comp[3*next+1] = x2; out->comp[3*next+2] = x3;
+                out->temp[next] = T;
+                next++;
+            }
+            out->tri[3*k+c] = (uint32_t)remap[v];
+        }
+    }
+    free(remap);
+    for (int p = 0; p <= npatch; ++p) out->patch_start[p] = pcount[p];
+    for (int p = 0; p < npatch; ++p) out->patch_phase[p] = patch_lab[p];
+    for (int s = 0; s < S->ns; ++s) {
+        for (int e = 0; e < 2; ++e) {
+            double X, Y;
+            vis3d_bary_to_xy(S->seg[4*s+2*e], S->seg[4*s+2*e+1], &X, &Y);
+            out->line_pos[6*s+3*e] = (float)X; out->line_pos[6*s+3*e+1] = (float)Y;
+            double T = S->segT ? S->segT[2*s+e] : S->tconst;
+            out->line_pos[6*s+3*e+2] = (float)(T * z_per_kelvin);
+        }
+        out->line_start[s] = 2 * s;
+    }
+    out->line_start[S->ns] = 2 * S->ns;
+    for (int k = 0; k < L->n; ++k) memcpy(out->label[k], L->s[k], LABEL_LEN);
+    free(tri_patch); free(patch_lab); free(pcount);
+
+done:
+    free(keys); free(vid); free(uf); free(order); free(pat);
+    return rc;
+}
+
 void vis3d_free(VisMesh *m)
 {
     if (!m) return;
@@ -2039,7 +2207,6 @@ int vis3d_hull_section(const vis3d_hull *h, const VisOptions *opt_in, VisMesh *o
     Labels L = {0};
     Soup S = {0};
     Overlay O;
-    VKey *keys = NULL; int *vid = NULL, *uf = NULL, *order = NULL, *pat = NULL;
     rc = overlay_build(&O, h, &L, &S, n);
     /* lattice triangles, counter-clockwise, node (i, j) at x2 = i/n, x3 = j/n */
     for (int i = 0; i < n && !rc; ++i)
@@ -2054,129 +2221,652 @@ int vis3d_hull_section(const vis3d_hull *h, const VisOptions *opt_in, VisMesh *o
     overlay_free(&O);
     if (rc) { if (rc == -5) mqmqa_db_set_error("vis3d: out of memory"); goto done; }
 
-    /* vertices: merge equal coordinates within a label, never across labels */
-    int nc = 3 * S.nt;
-    keys = malloc((size_t)(nc ? nc : 1) * sizeof(VKey));
-    vid = malloc((size_t)(nc ? nc : 1) * sizeof(int));
-    if (!keys || !vid) { rc = -5; mqmqa_db_set_error("vis3d: out of memory"); goto done; }
-    for (int c = 0; c < nc; ++c) {
-        keys[c].x = llround(S.v[2*c] * 68719476736.0); keys[c].y = llround(S.v[2*c+1] * 68719476736.0);
-        keys[c].lab = S.lab[c / 3]; keys[c].id = c;
-    }
-    qsort(keys, (size_t)nc, sizeof(VKey), cmp_vkey);
-    int nv = 0;
-    for (int c = 0; c < nc; ++c) {
-        if (c > 0 && cmp_vkey(&keys[c], &keys[c-1]) == 0) { vid[keys[c].id] = nv - 1; continue; }
-        vid[keys[c].id] = nv++;
-    }
-    /* patches: connected components of triangles sharing a vertex */
-    uf = malloc((size_t)(nv ? nv : 1) * sizeof(int));
-    if (!uf) { rc = -5; mqmqa_db_set_error("vis3d: out of memory"); goto done; }
-    for (int v = 0; v < nv; ++v) uf[v] = v;
-    for (int t = 0; t < S.nt; ++t) {
-        int a = uf_find(uf, vid[3*t]);
-        for (int k = 1; k < 3; ++k) { int b = uf_find(uf, vid[3*t+k]); if (a != b) uf[b] = a; }
-    }
-    /* Where one triangle was subdivided and its neighbour was not, a vertex of one sits
-     * inside an edge of the other (a T-junction) and they share no vertex; join them. */
-    if ((rc = join_t_junctions(&S, vid, nv, uf, n))) { mqmqa_db_set_error("vis3d: out of memory"); goto done; }
-    /* order triangles by (label, component) so each patch is one contiguous run */
-    order = malloc((size_t)(S.nt ? S.nt : 1) * sizeof(int));
-    pat = malloc((size_t)(nv ? nv : 1) * sizeof(int));
-    if (!order || !pat) { rc = -5; mqmqa_db_set_error("vis3d: out of memory"); goto done; }
-    for (int v = 0; v < nv; ++v) pat[v] = -1;
-    int npatch = 0;
-    int *root_patch = pat;   /* reused: patch id per component root */
-    int *tri_patch = malloc((size_t)(S.nt ? S.nt : 1) * sizeof(int));
-    int *patch_lab = malloc((size_t)(S.nt ? S.nt : 1) * sizeof(int));
-    if (!tri_patch || !patch_lab) { free(tri_patch); free(patch_lab); rc = -5; mqmqa_db_set_error("vis3d: out of memory"); goto done; }
-    for (int lab = 0; lab < L.n; ++lab)
-        for (int t = 0; t < S.nt; ++t) {
-            if (S.lab[t] != lab) continue;
-            int r = uf_find(uf, vid[3*t]);
-            if (root_patch[r] < 0) { root_patch[r] = npatch; patch_lab[npatch] = lab; npatch++; }
-            tri_patch[t] = root_patch[r];
-        }
-    int *pcount = calloc((size_t)npatch + 1, sizeof(int));
-    if (!pcount) { free(tri_patch); free(patch_lab); rc = -5; mqmqa_db_set_error("vis3d: out of memory"); goto done; }
-    for (int t = 0; t < S.nt; ++t) pcount[tri_patch[t] + 1]++;
-    for (int p = 0; p < npatch; ++p) pcount[p + 1] += pcount[p];
-    {
-        int *fill = malloc((size_t)(npatch ? npatch : 1) * sizeof(int));
-        if (!fill) { free(tri_patch); free(patch_lab); free(pcount); rc = -5; mqmqa_db_set_error("vis3d: out of memory"); goto done; }
-        for (int p = 0; p < npatch; ++p) fill[p] = pcount[p];
-        for (int t = 0; t < S.nt; ++t) order[fill[tri_patch[t]]++] = t;
-        free(fill);
-    }
-
-    /* one arena for the whole result */
-    size_t o_pos = 0;
-    size_t o_comp = align8(o_pos + (size_t)nv * 3 * sizeof(float));
-    size_t o_temp = align8(o_comp + (size_t)nv * 3 * sizeof(double));
-    size_t o_tri = align8(o_temp + (size_t)nv * sizeof(double));
-    size_t o_pst = align8(o_tri + (size_t)S.nt * 3 * sizeof(uint32_t));
-    size_t o_pph = align8(o_pst + (size_t)(npatch + 1) * sizeof(int32_t));
-    size_t o_lpos = align8(o_pph + (size_t)npatch * sizeof(int32_t));
-    size_t o_lst = align8(o_lpos + (size_t)S.ns * 2 * 3 * sizeof(float));
-    size_t o_lab = align8(o_lst + (size_t)(S.ns + 1) * sizeof(int32_t));
-    size_t total = o_lab + (size_t)L.n * LABEL_LEN;
-    char *A = malloc(total ? total : 1);
-    if (!A) { free(tri_patch); free(patch_lab); free(pcount); rc = -5; mqmqa_db_set_error("vis3d: out of memory"); goto done; }
-    out->arena = A;
-    out->pos = (float *)(A + o_pos);
-    out->comp = (double *)(A + o_comp);
-    out->temp = (double *)(A + o_temp);
-    out->scalar = NULL;
-    out->tri = (uint32_t *)(A + o_tri);
-    out->patch_start = (int32_t *)(A + o_pst);
-    out->patch_phase = (int32_t *)(A + o_pph);
-    out->line_pos = (float *)(A + o_lpos);
-    out->line_start = (int32_t *)(A + o_lst);
-    out->label = (char (*)[64])(A + o_lab);
-    out->n_vert = nv; out->n_tri = S.nt; out->n_patch = npatch;
-    out->n_line = S.ns; out->n_line_pts = 2 * S.ns; out->n_label = L.n;
-
-    /* vertices are renumbered in patch order so each patch's vertices are contiguous */
-    int *remap = malloc((size_t)(nv ? nv : 1) * sizeof(int));
-    if (!remap) { vis3d_free(out); free(tri_patch); free(patch_lab); free(pcount); rc = -5; mqmqa_db_set_error("vis3d: out of memory"); goto done; }
-    for (int v = 0; v < nv; ++v) remap[v] = -1;
-    int next = 0;
-    double z = T * opt.z_per_kelvin;
-    for (int k = 0; k < S.nt; ++k) {
-        int t = order[k];
-        for (int c = 0; c < 3; ++c) {
-            int v = vid[3*t+c];
-            if (remap[v] < 0) {
-                remap[v] = next;
-                double x2 = S.v[6*t+2*c], x3 = S.v[6*t+2*c+1], X, Y;
-                vis3d_bary_to_xy(x2, x3, &X, &Y);
-                out->pos[3*next] = (float)X; out->pos[3*next+1] = (float)Y; out->pos[3*next+2] = (float)z;
-                out->comp[3*next] = 1.0 - x2 - x3; out->comp[3*next+1] = x2; out->comp[3*next+2] = x3;
-                out->temp[next] = T;
-                next++;
-            }
-            out->tri[3*k+c] = (uint32_t)remap[v];
-        }
-    }
-    free(remap);
-    for (int p = 0; p <= npatch; ++p) out->patch_start[p] = pcount[p];
-    for (int p = 0; p < npatch; ++p) out->patch_phase[p] = patch_lab[p];
-    for (int s = 0; s < S.ns; ++s) {
-        for (int e = 0; e < 2; ++e) {
-            double X, Y;
-            vis3d_bary_to_xy(S.seg[4*s+2*e], S.seg[4*s+2*e+1], &X, &Y);
-            out->line_pos[6*s+3*e] = (float)X; out->line_pos[6*s+3*e+1] = (float)Y;
-            out->line_pos[6*s+3*e+2] = (float)z;
-        }
-        out->line_start[s] = 2 * s;
-    }
-    out->line_start[S.ns] = 2 * S.ns;
-    for (int k = 0; k < L.n; ++k) memcpy(out->label[k], L.s[k], LABEL_LEN);
-    free(tri_patch); free(patch_lab); free(pcount);
+    S.tconst = T;
+    rc = soup_to_mesh(&S, &L, n, opt.z_per_kelvin, out);
 
 done:
-    free(keys); free(vid); free(uf); free(order); free(pat);
-    free(L.s); free(S.v); free(S.lab); free(S.seg);
+    free(L.s); free(S.v); free(S.lab); free(S.tz); free(S.seg); free(S.segT);
+    return rc;
+}
+
+/* ------------------------------------------------------------ liquidus surface */
+
+/* The liquidus of a composition is the highest temperature at which a solid is stable
+ * against the liquid. Solid S becomes stable once its Gibbs energy falls below the
+ * liquid's tangent plane at the bulk composition: the driving force D_S = G_S - plane(s_S)
+ * turns negative. The plane is that of the stable liquid: the liquid's own tangent, or,
+ * where the liquid has already split in two, their common tangent read from a refined
+ * liquid-only hull. A composition on an edge or at a corner of the triangle compares only
+ * the solids that lie on that edge or corner. */
+
+#define LAT_N 40              /* liquid lattice that flags a split liquid */
+#define SPLIT_EPS 1e-2        /* J; ten times the liquid solver's energy noise */
+
+typedef struct {
+    int dim;                  /* 2 inside the triangle, 1 on an edge, 0 at a corner */
+    double x2, x3, g0;
+    double g2, g3;            /* dim 2 */
+    double d2, d3, gd;        /* dim 1: the edge direction and the slope along it */
+} Plane;
+
+static double plane_at(const Plane *p, double s2, double s3)
+{
+    if (p->dim == 2) return p->g0 + p->g2 * (s2 - p->x2) + p->g3 * (s3 - p->x3);
+    if (p->dim == 1)
+        return p->g0 + p->gd * ((s2 - p->x2) * p->d2 + (s3 - p->x3) * p->d3) /
+                               (p->d2 * p->d2 + p->d3 * p->d3);
+    return p->g0;
+}
+
+/* components present at (x2, x3): bit 0 for x1, 1 for x2, 2 for x3 */
+static int face_of(double x2, double x3)
+{
+    return (1.0 - x2 - x3 > 1e-12) | ((x2 > 1e-12) << 1) | ((x3 > 1e-12) << 2);
+}
+
+typedef struct {
+    double T;
+    double *latG;             /* liquid G on the LAT_N lattice, or NULL until needed */
+    vis3d_hull *lh;           /* liquid-only hull, built when a composition splits here */
+} LqLevel;
+
+typedef struct {
+    vis3d_hull *sys;          /* phases, cation mapping, the liquid model at sys->T */
+    const mqmqa_db *db;
+    VisOptions opt;
+    const char *liq_name;
+    LqLevel *lev; int nlev;
+    double *s2, *s3, *sc;     /* per slot: stoichiometric composition and cations */
+} Lq;
+
+static int lq_set_T(Lq *q, double T)
+{
+    if (q->sys->T == T) return 0;
+    liqm_free(&q->sys->lm);
+    q->sys->T = T;
+    if (liqm_build(&q->sys->lm, q->db, q->sys->liq_db_phase, T)) {
+        mqmqa_db_set_error("vis3d: out of memory");
+        return -5;
+    }
+    return 0;
+}
+
+/* liquid G per mole of cations at the current T; an exact end-member the excess routine
+ * returns NaN for is taken 1e-9 toward the centre, as in the hull */
+static int lq_gliq(Lq *q, double x2, double x3, double *g)
+{
+    double x[3] = {1.0 - x2 - x3, x2, x3}, err;
+    for (int i = 0; i < 3; ++i) if (x[i] < 0) x[i] = 0.0;
+    *g = liqm_minimize(&q->sys->lm, x, &err);
+    if (!isfinite(*g) && (x[0] == 0.0 || x[1] == 0.0 || x[2] == 0.0)) {
+        for (int i = 0; i < 3; ++i) x[i] += 1e-9 * (1.0 / 3.0 - x[i]);
+        *g = liqm_minimize(&q->sys->lm, x, &err);
+    }
+    if (!isfinite(*g)) {
+        mqmqa_db_set_error("vis3d: the liquid could not be equilibrated at x2 = %.17g, "
+                           "x3 = %.17g, T = %.2f K", x2, x3, q->sys->T);
+        return -4;
+    }
+    return 0;
+}
+
+/* the single liquid's tangent at (x2, x3), by central differences inside its face */
+static int lq_plane_single(Lq *q, double x2, double x3, Plane *p)
+{
+    int face = face_of(x2, x3), rc;
+    double x[3] = {1.0 - x2 - x3, x2, x3}, xmin = 1.0;
+    int npres = 0;
+    for (int i = 0; i < 3; ++i) if (face >> i & 1) { npres++; if (x[i] < xmin) xmin = x[i]; }
+    memset(p, 0, sizeof *p);
+    p->x2 = x2; p->x3 = x3; p->dim = npres - 1;
+    if ((rc = lq_gliq(q, x2, x3, &p->g0))) return rc;
+    double d = fmin(1e-4, 0.25 * xmin), gp, gm;
+    if (p->dim == 2) {
+        if ((rc = lq_gliq(q, x2 + d, x3, &gp)) || (rc = lq_gliq(q, x2 - d, x3, &gm))) return rc;
+        p->g2 = (gp - gm) / (2 * d);
+        if ((rc = lq_gliq(q, x2, x3 + d, &gp)) || (rc = lq_gliq(q, x2, x3 - d, &gm))) return rc;
+        p->g3 = (gp - gm) / (2 * d);
+    } else if (p->dim == 1) {
+        if (!(face & 1)) { p->d2 = 1.0; p->d3 = -1.0; }        /* x1 = 0: x2 against x3 */
+        else if (!(face & 2)) { p->d2 = 0.0; p->d3 = 1.0; }    /* x2 = 0: x3 against x1 */
+        else { p->d2 = 1.0; p->d3 = 0.0; }                     /* x3 = 0: x2 against x1 */
+        if ((rc = lq_gliq(q, x2 + d * p->d2, x3 + d * p->d3, &gp)) ||
+            (rc = lq_gliq(q, x2 - d * p->d2, x3 - d * p->d3, &gm))) return rc;
+        p->gd = (gp - gm) / (2 * d);
+    }
+    return 0;
+}
+
+static int in_face(double s2, double s3, int face)
+{
+    double s[3] = {1.0 - s2 - s3, s2, s3};
+    for (int i = 0; i < 3; ++i) if (s[i] > 1e-12 && !(face >> i & 1)) return 0;
+    return 1;
+}
+
+static double cef_g_at(Lq *q, int k, double y, double T)
+{
+    Slot *s = &q->sys->slot[k];
+    if (s->mix0 >= 0) { s->Y[s->mix0] = 1.0 - y; s->Y[s->mix0 + 1] = y; }
+    return mqmqa_ph_cef_gibbs(q->db, s->index, s->Y, T, 0) / s->cat_mol;
+}
+
+/* The smallest driving force over the solids (or of solid `only`) against plane p at T,
+ * and which solid gives it; +inf when no solid lies in the composition's face. */
+static int lq_drive(Lq *q, const Plane *p, int face, double T, int only, double *Dmin, int *arg)
+{
+    *Dmin = INFINITY; *arg = -1;
+    for (int k = 1; k < q->sys->nslot; ++k) {
+        if (only >= 0 && k != only) continue;
+        Slot *s = &q->sys->slot[k];
+        double D = INFINITY;
+        if (s->kind == SLOT_STOICH) {
+            if (!in_face(q->s2[k], q->s3[k], face)) continue;
+            D = mqmqa_db_stoich_gibbs(q->db, s->index, T) / q->sc[k] - plane_at(p, q->s2[k], q->s3[k]);
+        } else {
+            int whole = in_face(s->p0[0], s->p0[1], face) && in_face(s->p1[0], s->p1[1], face);
+            double ylo = 0.0, yhi = s->mix0 >= 0 ? 1.0 : 0.0;
+#define DCEF(y) (cef_g_at(q, k, (y), T) - plane_at(p, s->p0[0] + (y) * (s->p1[0] - s->p0[0]), \
+                                                     s->p0[1] + (y) * (s->p1[1] - s->p0[1])))
+            if (whole && yhi > ylo) {
+                /* coarse scan, then golden section around the lowest sample */
+                int best = 0; double fb = INFINITY;
+                for (int t = 0; t <= 40; ++t) { double f = DCEF(t / 40.0); if (f < fb) { fb = f; best = t; } }
+                double a = fmax(0.0, (best - 1) / 40.0), b = fmin(1.0, (best + 1) / 40.0);
+                const double r = 0.6180339887498949;
+                double c = b - r * (b - a), d = a + r * (b - a), fc = DCEF(c), fd = DCEF(d);
+                while (b - a > 1e-10) {
+                    if (fc < fd) { b = d; d = c; fd = fc; c = b - r * (b - a); fc = DCEF(c); }
+                    else { a = c; c = d; fc = fd; d = a + r * (b - a); fd = DCEF(d); }
+                }
+                D = fmin(fb, fmin(fc, fd));
+            } else {
+                if (in_face(s->p0[0], s->p0[1], face)) D = fmin(D, DCEF(0.0));
+                if (yhi > ylo && in_face(s->p1[0], s->p1[1], face)) D = fmin(D, DCEF(1.0));
+            }
+#undef DCEF
+        }
+        if (!isfinite(D) && D != INFINITY) {
+            mqmqa_db_set_error("vis3d: %s has no finite Gibbs energy at %.2f K", s->name, T);
+            return -4;
+        }
+        if (D < *Dmin) { *Dmin = D; *arg = k; }
+    }
+    return 0;
+}
+
+/* Liquid lattice at a level, to flag compositions whose liquid has split. */
+static int lq_level_lattice(Lq *q, LqLevel *L)
+{
+    if (L->latG) return 0;
+    int rc = lq_set_T(q, L->T);
+    if (rc) return rc;
+    int n = (LAT_N + 1) * (LAT_N + 2) / 2, k = 0;
+    L->latG = malloc((size_t)n * sizeof(double));
+    if (!L->latG) { mqmqa_db_set_error("vis3d: out of memory"); return -5; }
+    for (int i = 0; i <= LAT_N; ++i)
+        for (int j = 0; j <= LAT_N - i; ++j, ++k)
+            if ((rc = lq_gliq(q, (double)i / LAT_N, (double)j / LAT_N, &L->latG[k]))) return rc;
+    return 0;
+}
+
+/* The stable liquid's plane at level L: the single tangent, or the two-liquid tie-line
+ * when the lattice finds liquid below that tangent and the refined liquid-only hull
+ * confirms a gap under (x2, x3). */
+static int lq_plane_level(Lq *q, LqLevel *L, double x2, double x3, Plane *p, int *split)
+{
+    int rc;
+    *split = 0;
+    if ((rc = lq_set_T(q, L->T)) || (rc = lq_plane_single(q, x2, x3, p))) return rc;
+    if (p->dim == 0) return 0;
+    if ((rc = lq_level_lattice(q, L))) return rc;
+    int face = face_of(x2, x3), k = 0, below = 0;
+    for (int i = 0; i <= LAT_N && !below; ++i)
+        for (int j = 0; j <= LAT_N - i; ++j, ++k) {
+            double a2 = (double)i / LAT_N, a3 = (double)j / LAT_N;
+            if (face_of(a2, a3) & ~face) continue;
+            if (L->latG[k] - plane_at(p, a2, a3) < -SPLIT_EPS) { below = 1; break; }
+        }
+    if (!below) return 0;
+    if (!L->lh) {
+        const char *nm[1] = {q->liq_name};
+        L->lh = vis3d_hull_build(q->db, nm, 1, L->T, &q->opt);
+        if (!L->lh) return last_build_rc;
+        if ((rc = lq_set_T(q, L->T))) return rc;
+    }
+    double w[3];
+    int f = locate(L->lh, x2, x3, w);
+    if (f < 0) return 0;
+    const double wall[3] = {1.0 / 3, 1.0 / 3, 1.0 / 3};
+    Inst in[3];
+    if (facet_instances(L->lh, f, wall, in) < 2) return 0;   /* one liquid after all */
+    const double *A = L->lh->P + 3*L->lh->facets[3*f], *B = L->lh->P + 3*L->lh->facets[3*f+1],
+                 *C = L->lh->P + 3*L->lh->facets[3*f+2];
+    double M[4] = {A[0] - C[0], A[1] - C[1], B[0] - C[0], B[1] - C[1]}, r[2] = {A[2] - C[2], B[2] - C[2]};
+    if (small_solve(M, r, 2)) return 0;
+    Plane t;
+    memset(&t, 0, sizeof t);
+    t.dim = 2; t.x2 = x2; t.x3 = x3; t.g2 = r[0]; t.g3 = r[1];
+    t.g0 = C[2] + r[0] * (x2 - C[0]) + r[1] * (x3 - C[1]);
+    *p = t;
+    *split = 1;
+    return 0;
+}
+
+/* driving force at level k, and whether the liquid there has split */
+static int lq_drive_level(Lq *q, int k, double x2, double x3, int only, double *D, int *arg, int *split)
+{
+    Plane p;
+    int rc = lq_plane_level(q, &q->lev[k], x2, x3, &p, split);
+    if (rc) return rc;
+    return lq_drive(q, &p, face_of(x2, x3), q->lev[k].T, only, D, arg);
+}
+
+static int lq_drive_single(Lq *q, double T, double x2, double x3, int only, double *D, int *arg)
+{
+    Plane p;
+    int rc;
+    if ((rc = lq_set_T(q, T)) || (rc = lq_plane_single(q, x2, x3, &p))) return rc;
+    return lq_drive(q, &p, face_of(x2, x3), T, only, D, arg);
+}
+
+/* Liquidus temperature of (x2, x3), of solid `only` or of the first solid of all (-1).
+ * Returns 0 with *T and *prim; with `only`, 1 when that solid is stable nowhere in the
+ * window and 2 when it is stable already at its top; <0 on error, including a liquidus
+ * outside the window. The
+ * scan starts at the level nearest the guess and assumes the driving force falls
+ * steadily with temperature, which the check at the top of the window guards. */
+static int lq_liquidus(Lq *q, double x2, double x3, int only, double guess, double *T, int *prim)
+{
+    int n = q->nlev, rc, arg;
+    double *D = malloc((size_t)n * sizeof(double)), *DS = malloc((size_t)n * sizeof(double));
+    int *A = malloc((size_t)n * sizeof(int)), *Sp = malloc((size_t)n * sizeof(int));
+    if (!D || !DS || !A || !Sp) {
+        free(D); free(DS); free(A); free(Sp);
+        mqmqa_db_set_error("vis3d: out of memory");
+        return -5;
+    }
+    for (int k = 0; k < n; ++k) D[k] = DS[k] = NAN;
+#define EVAL(k) do { if (isnan(D[k])) { \
+        if ((rc = lq_drive_level(q, (k), x2, x3, only, &D[k], &A[k], &Sp[k]))) goto out; } } while (0)
+#define EVALS(k) do { if (isnan(DS[k])) { \
+        if ((rc = lq_drive_single(q, q->lev[k].T, x2, x3, only, &DS[k], &arg))) goto out; } } while (0)
+    rc = 0;
+    int k0 = 0;
+    if (isfinite(guess))
+        for (k0 = 0; k0 < n - 1 && q->lev[k0 + 1].T > guess; ++k0) {}
+    /* First the single liquid, which is cheap. Where the liquid has split, the stable
+     * plane lies below the single tangent, so every driving force is larger: the true
+     * liquidus is at or below the single-liquid one, and the split check is needed only
+     * from there down. */
+    int k, below = 0;
+    EVALS(0);
+    if (DS[0] < 0) k = 0;
+    else {
+        k = k0;
+        EVALS(k);
+        while (k > 0 && DS[k] < 0) { --k; EVALS(k); }
+        while (k < n - 1 && DS[k] >= 0) { ++k; EVALS(k); }
+        below = DS[k] >= 0;
+    }
+    if (!below) {
+        EVAL(k);
+        if (k == 0 && D[0] < 0) {
+            if (only >= 0) { rc = 2; goto out; }   /* this solid alone: above the window */
+            mqmqa_db_set_error("vis3d: the liquidus at x2 = %.6f, x3 = %.6f lies above t_hi = %.1f K",
+                               x2, x3, q->lev[0].T);
+            rc = -7; goto out;
+        }
+        while (k < n - 1 && D[k] >= 0) { ++k; EVAL(k); }
+        below = D[k] >= 0;
+    }
+    if (below) {
+        if (only >= 0) { rc = 1; goto out; }
+        mqmqa_db_set_error("vis3d: the liquidus at x2 = %.6f, x3 = %.6f lies below t_lo = %.1f K",
+                           x2, x3, q->lev[n - 1].T);
+        rc = -7; goto out;
+    }
+    EVAL(k - 1);
+    /* now D[k-1] >= 0 > D[k] */
+    double Ta = q->lev[k].T, Tb = q->lev[k - 1].T;
+    if (!Sp[k] && !Sp[k - 1]) {
+        /* one liquid on both sides: regula falsi (Illinois) in T on the exact tangent */
+        double fa = D[k], fb = D[k - 1], Tr = Tb;
+        int side = 0;
+        for (int it = 0; it < 100 && Tb - Ta > q->opt.t_tol; ++it) {
+            Tr = (Ta * fb - Tb * fa) / (fb - fa);
+            if (!(Tr > Ta && Tr < Tb)) Tr = 0.5 * (Ta + Tb);
+            double fr;
+            if ((rc = lq_drive_single(q, Tr, x2, x3, only, &fr, &arg))) goto out;
+            if (fr < 0) { Ta = Tr; fa = fr; if (side == -1) fb *= 0.5; side = -1; }
+            else { Tb = Tr; fb = fr; if (side == 1) fa *= 0.5; side = 1; }
+        }
+        *T = 0.5 * (Ta + Tb);
+        double fd;
+        if ((rc = lq_drive_single(q, Ta, x2, x3, only, &fd, prim))) goto out;
+    } else {
+        /* A split liquid is only known at the levels: the driving force is smooth in T,
+         * so the root is interpolated through the two bracketing levels and the next one
+         * above; over one level spacing the curvature (heat-capacity terms) moves it by
+         * far less than t_tol. */
+        double t0 = q->lev[k].T, t1 = q->lev[k - 1].T, f0 = D[k], f1 = D[k - 1];
+        double r = t0 + (t1 - t0) * f0 / (f0 - f1);
+        if (k - 2 >= 0) {
+            EVAL(k - 2);
+            double t2 = q->lev[k - 2].T, f2 = D[k - 2];
+            /* Newton on the quadratic through the three levels, from the linear root */
+            for (int it = 0; it < 20; ++it) {
+                double l0 = ((r - t1) * (r - t2)) / ((t0 - t1) * (t0 - t2));
+                double l1 = ((r - t0) * (r - t2)) / ((t1 - t0) * (t1 - t2));
+                double l2 = ((r - t0) * (r - t1)) / ((t2 - t0) * (t2 - t1));
+                double f = f0 * l0 + f1 * l1 + f2 * l2;
+                double df = f0 * ((r - t1) + (r - t2)) / ((t0 - t1) * (t0 - t2))
+                          + f1 * ((r - t0) + (r - t2)) / ((t1 - t0) * (t1 - t2))
+                          + f2 * ((r - t0) + (r - t1)) / ((t2 - t0) * (t2 - t1));
+                if (df == 0) break;
+                double nr = r - f / df;
+                if (!(nr >= t0 && nr <= t1)) break;
+                if (fabs(nr - r) < 1e-6) { r = nr; break; }
+                r = nr;
+            }
+        }
+        *T = r;
+        *prim = A[k];
+    }
+out:
+#undef EVAL
+#undef EVALS
+    free(D); free(DS); free(A); free(Sp);
+    return rc;
+}
+
+/* ---- the surface over the lattice ----
+ * Every point evaluated (lattice nodes, subdivision midpoints) and every edge crossing
+ * is cached by its coordinates on a 2^-36 grid, so two triangles that share an edge share
+ * its crossing exactly. */
+typedef struct {
+    int64_t k[4];             /* point: (x, y, 0, 0); edge: both ends, canonical order */
+    double T, x2, x3;
+    int prim, prim2, status;  /* status for edges: 0 crossing, 1 a third field on the edge */
+    int used;
+} LqEntry;
+
+typedef struct { LqEntry *e; int cap, n; } LqCache;
+
+static uint64_t lq_hash(const int64_t k[4])
+{
+    uint64_t h = 1469598103934665603ULL;
+    for (int i = 0; i < 4; ++i) { h ^= (uint64_t)k[i]; h *= 1099511628211ULL; h ^= h >> 29; }
+    return h;
+}
+
+static LqEntry *lq_find(LqCache *c, const int64_t k[4], int *fresh)
+{
+    if (c->n * 2 + 2 > c->cap) {
+        int nc = c->cap ? c->cap * 2 : 4096;
+        LqEntry *ne = calloc((size_t)nc, sizeof(LqEntry));
+        if (!ne) return NULL;
+        for (int i = 0; i < c->cap; ++i)
+            if (c->e[i].used) {
+                uint64_t h = lq_hash(c->e[i].k) & (uint64_t)(nc - 1);
+                while (ne[h].used) h = (h + 1) & (uint64_t)(nc - 1);
+                ne[h] = c->e[i];
+            }
+        free(c->e); c->e = ne; c->cap = nc;
+    }
+    uint64_t h = lq_hash(k) & (uint64_t)(c->cap - 1);
+    while (c->e[h].used) {
+        if (!memcmp(c->e[h].k, k, sizeof c->e[h].k)) { *fresh = 0; return &c->e[h]; }
+        h = (h + 1) & (uint64_t)(c->cap - 1);
+    }
+    memset(&c->e[h], 0, sizeof c->e[h]);
+    memcpy(c->e[h].k, k, sizeof c->e[h].k);
+    c->e[h].used = 1; c->n++;
+    *fresh = 1;
+    return &c->e[h];
+}
+
+static int64_t q36(double v) { return llround(v * 68719476736.0); }
+
+typedef struct {
+    Lq *q; LqCache pts, edges; Soup *S; Labels *L; int *slot_label;
+    double last_T;            /* guess for the next point */
+} LqMesh;
+
+static int lq_point(LqMesh *M, double x2, double x3, double *T, int *prim)
+{
+    int64_t k[4] = {q36(x2), q36(x3), 0, 0};
+    int fresh;
+    LqEntry *e = lq_find(&M->pts, k, &fresh);
+    if (!e) { mqmqa_db_set_error("vis3d: out of memory"); return -5; }
+    if (fresh) {
+        int rc = lq_liquidus(M->q, x2, x3, -1, M->last_T, &e->T, &e->prim);
+        if (rc) { e->used = 0; M->pts.n--; return rc < 0 ? rc : -7; }
+        M->last_T = e->T;
+    }
+    *T = e->T; *prim = e->prim;
+    return 0;
+}
+
+/* liquidus of solid s alone at a point: +inf above the window, -inf below */
+static int lq_solid_T(LqMesh *M, double x2, double x3, int s, double *T)
+{
+    int prim, rc = lq_liquidus(M->q, x2, x3, s, M->last_T, T, &prim);
+    if (rc == 1) { *T = -INFINITY; return 0; }
+    if (rc == 2) { *T = INFINITY; return 0; }
+    return rc;
+}
+
+/* The field boundary on edge a-b (primary phases pa at a, pb at b): where the two solids'
+ * liquidus temperatures meet, bisected to x_tol / 2. Status 1 when a third solid comes
+ * first somewhere on the edge, so the caller subdivides. */
+static int lq_crossing(LqMesh *M, const double *a, int pa, const double *b, int pb,
+                       double *c, double *Tc, int *status)
+{
+    if (b[0] < a[0] || (b[0] == a[0] && b[1] < a[1])) {
+        const double *t = a; a = b; b = t;
+        int u = pa; pa = pb; pb = u;
+    }
+    int64_t k[4] = {q36(a[0]), q36(a[1]), q36(b[0]), q36(b[1])};
+    int fresh, rc;
+    LqEntry *e = lq_find(&M->edges, k, &fresh);
+    if (!e) { mqmqa_db_set_error("vis3d: out of memory"); return -5; }
+    if (fresh) {
+        double lo[2] = {a[0], a[1]}, hi[2] = {b[0], b[1]};
+        e->status = 0;
+        while (hypot(hi[0] - lo[0], hi[1] - lo[1]) > 0.5 * M->q->opt.x_tol) {
+            double m[2] = {0.5 * (lo[0] + hi[0]), 0.5 * (lo[1] + hi[1])}, Tm;
+            int pm;
+            if ((rc = lq_point(M, m[0], m[1], &Tm, &pm))) { e->used = 0; M->edges.n--; return rc; }
+            if (pm == pa) { lo[0] = m[0]; lo[1] = m[1]; }
+            else if (pm == pb) { hi[0] = m[0]; hi[1] = m[1]; }
+            else { e->status = 1; break; }
+        }
+        if (!e->status) {
+            e->x2 = 0.5 * (lo[0] + hi[0]); e->x3 = 0.5 * (lo[1] + hi[1]);
+            double Ta, Tb;
+            if ((rc = lq_solid_T(M, e->x2, e->x3, pa, &Ta)) || (rc = lq_solid_T(M, e->x2, e->x3, pb, &Tb))) {
+                e->used = 0; M->edges.n--; return rc;
+            }
+            e->T = isfinite(Ta) && isfinite(Tb) ? 0.5 * (Ta + Tb) : (isfinite(Ta) ? Ta : Tb);
+        }
+    }
+    c[0] = e->x2; c[1] = e->x3; *Tc = e->T; *status = e->status;
+    return 0;
+}
+
+static int lq_label(LqMesh *M, int slot, int *lab)
+{
+    if (M->slot_label[slot] >= 0) { *lab = M->slot_label[slot]; return 0; }
+    Labels *L = M->L;
+    if (grow((void **)&L->s, &L->cap, L->n + 1, LABEL_LEN)) return -5;
+    strncpy(L->s[L->n], M->q->sys->slot[slot].name, LABEL_LEN - 1);
+    L->s[L->n][LABEL_LEN - 1] = '\0';
+    M->slot_label[slot] = *lab = L->n++;
+    return 0;
+}
+
+static int lq_tri(LqMesh *M, const double p[3][2], int depth)
+{
+    double T[3];
+    int pr[3], lab[3], rc;
+    for (int v = 0; v < 3; ++v)
+        if ((rc = lq_point(M, p[v][0], p[v][1], &T[v], &pr[v])) || (rc = lq_label(M, pr[v], &lab[v]))) return rc;
+    double edge = 0.0;
+    for (int e = 0; e < 3; ++e) edge = fmax(edge, hypot(p[e][0] - p[(e+1)%3][0], p[e][1] - p[(e+1)%3][1]));
+    int leaf = edge <= M->q->opt.x_tol || depth > 40;
+    if (pr[0] == pr[1] && pr[1] == pr[2]) return soup_tri_t(M->S, lab[0], p[0], p[1], p[2], T);
+    int three = pr[0] != pr[1] && pr[1] != pr[2] && pr[0] != pr[2];
+    double c[3][2], Tc[3];
+    int st = 0;
+    if (!three || leaf)
+        for (int e = 0; e < 3 && !st; ++e) {
+            int a = e, b = (e + 1) % 3;
+            if (pr[a] == pr[b]) continue;
+            if ((rc = lq_crossing(M, p[a], pr[a], p[b], pr[b], c[e], &Tc[e], &st))) return rc;
+            if (st && leaf) {   /* too small to split further: the edge midpoint stands in */
+                c[e][0] = 0.5 * (p[a][0] + p[b][0]); c[e][1] = 0.5 * (p[a][1] + p[b][1]);
+                Tc[e] = 0.5 * (T[a] + T[b]); st = 0;
+            }
+        }
+    if ((three && !leaf) || st) {
+        /* subdivide into four */
+        double m[3][2];
+        for (int e = 0; e < 3; ++e) { m[e][0] = 0.5 * (p[e][0] + p[(e+1)%3][0]); m[e][1] = 0.5 * (p[e][1] + p[(e+1)%3][1]); }
+        double t[4][3][2] = {
+            {{p[0][0],p[0][1]},{m[0][0],m[0][1]},{m[2][0],m[2][1]}},
+            {{m[0][0],m[0][1]},{p[1][0],p[1][1]},{m[1][0],m[1][1]}},
+            {{m[2][0],m[2][1]},{m[1][0],m[1][1]},{p[2][0],p[2][1]}},
+            {{m[0][0],m[0][1]},{m[1][0],m[1][1]},{m[2][0],m[2][1]}}};
+        for (int k = 0; k < 4; ++k)
+            if ((rc = lq_tri(M, (const double (*)[2])t[k], depth + 1))) return rc;
+        return 0;
+    }
+    if (three) {
+        /* a leaf around a ternary invariant point: the crossings' centroid, within x_tol */
+        double J[2] = {(c[0][0] + c[1][0] + c[2][0]) / 3.0, (c[0][1] + c[1][1] + c[2][1]) / 3.0}, TJ;
+        int pj;
+        if ((rc = lq_point(M, J[0], J[1], &TJ, &pj))) return rc;
+        for (int k = 0; k < 3; ++k) {
+            int prv = (k + 2) % 3;
+            double t1[3] = {T[k], Tc[k], TJ}, t2[3] = {T[k], TJ, Tc[prv]}, ts[2] = {Tc[k], TJ};
+            if ((rc = soup_tri_t(M->S, lab[k], p[k], c[k], J, t1))) return rc;
+            if ((rc = soup_tri_t(M->S, lab[k], p[k], J, c[prv], t2))) return rc;
+            if ((rc = soup_seg_t(M->S, c[k], J, ts))) return rc;
+        }
+        return 0;
+    }
+    int k = (pr[0] != pr[1] && pr[0] != pr[2]) ? 0 : (pr[1] != pr[0] && pr[1] != pr[2]) ? 1 : 2;
+    int k1 = (k + 1) % 3, k2 = (k + 2) % 3;
+    double t1[3] = {T[k], Tc[k], Tc[k2]}, t2[3] = {Tc[k], T[k1], T[k2]}, t3[3] = {Tc[k], T[k2], Tc[k2]};
+    double ts[2] = {Tc[k], Tc[k2]};
+    if ((rc = soup_tri_t(M->S, lab[k], p[k], c[k], c[k2], t1))) return rc;
+    if ((rc = soup_tri_t(M->S, lab[k1], c[k], p[k1], p[k2], t2))) return rc;
+    if ((rc = soup_tri_t(M->S, lab[k1], c[k], p[k2], c[k2], t3))) return rc;
+    return soup_seg_t(M->S, c[k], c[k2], ts);
+}
+
+static int lq_open(Lq *q, const mqmqa_db *db, const char *const *phases, int n_phases,
+                   const VisOptions *opt_in)
+{
+    memset(q, 0, sizeof *q);
+    if (opt_in) q->opt = *opt_in; else vis3d_default_options(&q->opt);
+    VisOptions *o = &q->opt;
+    if (!db || !(o->t_lo > 0) || !(o->t_hi > o->t_lo) || o->n_temps < 3 || !(o->t_tol > 0) ||
+        !(o->x_tol > 0) || o->lattice_n < 1 || o->lattice_n > 2000) {
+        mqmqa_db_set_error("vis3d: the liquidus needs 0 < t_lo < t_hi, n_temps >= 3, positive "
+                           "t_tol and x_tol, and lattice_n in 1..2000");
+        return -1;
+    }
+    q->db = db;
+    q->sys = calloc(1, sizeof *q->sys);
+    if (!q->sys) { mqmqa_db_set_error("vis3d: out of memory"); return -5; }
+    q->sys->db = db; q->sys->T = o->t_hi;
+    int rc = resolve_phases(q->sys, phases, n_phases);
+    if (rc) return rc;
+    q->liq_name = q->sys->slot[0].name;
+    int ns = q->sys->nslot;
+    q->s2 = calloc((size_t)ns, sizeof(double)); q->s3 = calloc((size_t)ns, sizeof(double));
+    q->sc = calloc((size_t)ns, sizeof(double));
+    q->nlev = o->n_temps;
+    q->lev = calloc((size_t)q->nlev, sizeof(LqLevel));
+    double *ev = malloc((size_t)q->sys->ndbel * sizeof(double));
+    if (!q->s2 || !q->s3 || !q->sc || !q->lev || !ev) { free(ev); mqmqa_db_set_error("vis3d: out of memory"); return -5; }
+    for (int k = 0; k < ns; ++k) {
+        if (q->sys->slot[k].kind != SLOT_STOICH) continue;
+        mqmqa_db_stoich_elems(db, q->sys->slot[k].index, ev);
+        double mol[3] = {0, 0, 0}, cat = 0;
+        for (int i = 0; i < 3; ++i) { mol[i] = ev[q->sys->cat_el[i]]; cat += mol[i]; }
+        q->s2[k] = mol[1] / cat; q->s3[k] = mol[2] / cat; q->sc[k] = cat;
+    }
+    free(ev);
+    for (int k = 0; k < q->nlev; ++k)
+        q->lev[k].T = o->t_hi - (o->t_hi - o->t_lo) * k / (q->nlev - 1);
+    if (ns < 2) { mqmqa_db_set_error("vis3d: the liquidus needs at least one solid"); return -2; }
+    return 0;
+}
+
+static void lq_close(Lq *q)
+{
+    for (int k = 0; k < q->nlev && q->lev; ++k) { free(q->lev[k].latG); vis3d_hull_free(q->lev[k].lh); }
+    free(q->lev); free(q->s2); free(q->s3); free(q->sc);
+    vis3d_hull_free(q->sys);
+    memset(q, 0, sizeof *q);
+}
+
+int vis3d_liquidus_point(const mqmqa_db *db, const char *const *phases, int n_phases,
+                         const VisOptions *opt, double x2, double x3, double *T,
+                         char *primary, int primary_len)
+{
+    Lq q;
+    int rc = lq_open(&q, db, phases, n_phases, opt), prim = -1;
+    if (!rc) {
+        if (x2 < -1e-12 || x3 < -1e-12 || x2 + x3 > 1.0 + 1e-12) {
+            mqmqa_db_set_error("vis3d: composition outside the triangle");
+            rc = -1;
+        } else rc = lq_liquidus(&q, fmax(x2, 0.0), fmax(x3, 0.0), -1, NAN, T, &prim);
+        if (rc > 0) rc = -7;
+    }
+    if (!rc && primary && primary_len > 0) {
+        strncpy(primary, q.sys->slot[prim].name, (size_t)primary_len - 1);
+        primary[primary_len - 1] = '\0';
+    }
+    lq_close(&q);
+    return rc;
+}
+
+int vis3d_liquidus_surface(const mqmqa_db *db, const char *const *phases, int n_phases,
+                           const VisOptions *opt, VisMesh *out)
+{
+    if (!out) { mqmqa_db_set_error("vis3d: no output mesh"); return -1; }
+    memset(out, 0, sizeof *out);
+    Lq q;
+    int rc = lq_open(&q, db, phases, n_phases, opt);
+    Labels L = {0};
+    Soup S = {0};
+    LqMesh M;
+    memset(&M, 0, sizeof M);
+    M.q = &q; M.S = &S; M.L = &L; M.last_T = NAN;
+    if (!rc) {
+        M.slot_label = malloc((size_t)q.sys->nslot * sizeof(int));
+        if (!M.slot_label) { rc = -5; mqmqa_db_set_error("vis3d: out of memory"); }
+        else for (int k = 0; k < q.sys->nslot; ++k) M.slot_label[k] = -1;
+    }
+    int n = q.opt.lattice_n;
+    for (int i = 0; i < n && !rc; ++i)
+        for (int j = 0; j < n - i && !rc; ++j) {
+            double up[3][2] = {{(double)i/n, (double)j/n}, {(double)(i+1)/n, (double)j/n}, {(double)i/n, (double)(j+1)/n}};
+            rc = lq_tri(&M, (const double (*)[2])up, 0);
+            if (!rc && i + j + 2 <= n) {
+                double dn[3][2] = {{(double)(i+1)/n, (double)j/n}, {(double)(i+1)/n, (double)(j+1)/n}, {(double)i/n, (double)(j+1)/n}};
+                rc = lq_tri(&M, (const double (*)[2])dn, 0);
+            }
+        }
+    if (!rc) rc = soup_to_mesh(&S, &L, n, q.opt.z_per_kelvin, out);
+    if (rc == -5) mqmqa_db_set_error("vis3d: out of memory");
+    free(M.pts.e); free(M.edges.e); free(M.slot_label);
+    free(L.s); free(S.v); free(S.lab); free(S.tz); free(S.seg); free(S.segT);
+    lq_close(&q);
     return rc;
 }
 
@@ -2230,6 +2920,35 @@ int vis3d_section_js(const mqmqa_db *db, const char *phase_list, double T, int l
         }
     }
     int rc = vis3d_section(db, names, k, T, &o, out);
+    free(buf); free(names);
+    return rc;
+}
+
+int vis3d_liquidus_surface_js(const mqmqa_db *db, const char *phase_list, int lattice_n,
+                              int n_temps, double t_lo, double t_hi, double x_tol,
+                              double t_tol, double z_per_kelvin, VisMesh *out)
+{
+    VisOptions o;
+    vis3d_default_options(&o);
+    o.lattice_n = lattice_n; o.n_temps = n_temps; o.t_lo = t_lo; o.t_hi = t_hi;
+    o.x_tol = x_tol; o.t_tol = t_tol; o.z_per_kelvin = z_per_kelvin;
+    if (!phase_list || !*phase_list) return vis3d_liquidus_surface(db, NULL, 0, &o, out);
+    int n = 1;
+    for (const char *c = phase_list; *c; ++c) n += *c == ',';
+    char *buf = malloc(strlen(phase_list) + 1);
+    const char **names = malloc((size_t)n * sizeof(char *));
+    if (!buf || !names) { free(buf); free(names); mqmqa_db_set_error("vis3d: out of memory"); return -5; }
+    strcpy(buf, phase_list);
+    int k = 0;
+    for (char *tok = buf, *c = buf; ; ++c)
+        if (*c == ',' || *c == '\0') {
+            int end = *c == '\0';
+            *c = '\0';
+            names[k++] = tok;
+            if (end) break;
+            tok = c + 1;
+        }
+    int rc = vis3d_liquidus_surface(db, names, k, &o, out);
     free(buf); free(names);
     return rc;
 }

@@ -50,6 +50,11 @@ _ffi.cdef(
     double vis3d_hull_gibbs(const void *h, double x2, double x3);
     int vis3d_hull_section(const void *h, const VisOptions *opt, VisMesh *out);
     int vis3d_lower_hull(const double *pts, int n, int *facets, int max_facets);
+    int vis3d_liquidus_surface(const void *db, const char *const *phases, int n_phases,
+                               const VisOptions *opt, VisMesh *out);
+    int vis3d_liquidus_point(const void *db, const char *const *phases, int n_phases,
+                             const VisOptions *opt, double x2, double x3, double *T,
+                             char *primary, int primary_len);
     int vis3d_hull_assemblage(const void *h, double x2, double x3, int *phase_out,
                               double *amt_out, double *comp_out, int max_out);
     """,
@@ -65,9 +70,18 @@ def _error():
     return _ffi.string(_lib.mqmqa_db_error()).decode()
 
 
-def _options(lattice_n, x_tol, seed, max_refine, z_per_kelvin):
+def _options(lattice_n, x_tol, seed, max_refine, z_per_kelvin, t_lo=None, t_hi=None,
+             n_temps=None, t_tol=None):
     o = _ffi.new("VisOptions *")
     _lib.vis3d_default_options(o)
+    if t_lo is not None:
+        o.t_lo = t_lo
+    if t_hi is not None:
+        o.t_hi = t_hi
+    if n_temps is not None:
+        o.n_temps = n_temps
+    if t_tol is not None:
+        o.t_tol = t_tol
     if lattice_n is not None:
         o.lattice_n = lattice_n
     if x_tol is not None:
@@ -231,13 +245,42 @@ def section(db, T, phases=None, lattice_n=None, x_tol=None, seed=None, max_refin
     return _take_mesh(m, _lib.vis3d_section(_handle(db), arr, n, float(T), o, m), T)
 
 
+def _liquidus_options(t_lo, t_hi, n_temps, lattice_n, x_tol, t_tol, max_refine, z_per_kelvin):
+    if n_temps is None:
+        n_temps = max(3, int(round((t_hi - t_lo) / 25.0)) + 1)   # levels about 25 K apart
+    return _options(lattice_n, x_tol, None, max_refine, z_per_kelvin, t_lo, t_hi, n_temps, t_tol)
+
+
+def liquidus_point(db, x2, x3, t_lo, t_hi, phases=None, n_temps=None, x_tol=None, t_tol=None,
+                   max_refine=None):
+    """(T_liquidus in K, primary phase) of one bulk composition."""
+    arr, n, keep = _phase_args(phases)
+    o = _liquidus_options(t_lo, t_hi, n_temps, None, x_tol, t_tol, max_refine, None)
+    T = _ffi.new("double *")
+    name = _ffi.new("char[64]")
+    rc = _lib.vis3d_liquidus_point(_handle(db), arr, n, o, float(x2), float(x3), T, name, 64)
+    if rc != 0:
+        raise Vis3DError(f"{_error()} (code {rc})")
+    return T[0], _ffi.string(name).decode()
+
+
+def liquidus_surface(db, t_lo, t_hi, phases=None, n_temps=None, lattice_n=None, x_tol=None,
+                     t_tol=None, max_refine=None, z_per_kelvin=None):
+    """The liquidus surface: one patch per primary-phase field, field boundaries as lines.
+    `temp` holds each vertex's liquidus temperature."""
+    arr, n, keep = _phase_args(phases)
+    o = _liquidus_options(t_lo, t_hi, n_temps, lattice_n, x_tol, t_tol, max_refine, z_per_kelvin)
+    m = _ffi.new("VisMesh *")
+    return _take_mesh(m, _lib.vis3d_liquidus_surface(_handle(db), arr, n, o, m), None)
+
+
 def _take_mesh(m, rc, T):
     if rc != 0:
         raise Vis3DError(f"{_error()} (code {rc})")
     try:
         nv, nt, np_, nl = m.n_vert, m.n_tri, m.n_patch, m.n_line
         return Section(
-            T=float(T),
+            T=float(T) if T is not None else float("nan"),
             pos=_copy(m.pos, "float *", nv * 3, np.float32, (nv, 3)),
             comp=_copy(m.comp, "double *", nv * 3, np.float64, (nv, 3)),
             temp=_copy(m.temp, "double *", nv, np.float64),

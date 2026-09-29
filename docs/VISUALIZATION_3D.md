@@ -1,7 +1,7 @@
 # 3D phase-space visualization: red-team review and specification
 
-Status: steps 1 and 2 of section 7 implemented (`src/vis3d.h`, `src/vis3d.c`,
-`python/mqmqa/vis3d.py`, `tests/test_vis3d.py`); steps 3 to 7 not started. Section 8 records
+Status: steps 1 to 3 of section 7 implemented (`src/vis3d.h`, `src/vis3d.c`,
+`python/mqmqa/vis3d.py`, `tests/test_vis3d.py`); steps 4 to 7 not started. Section 8 records
 where the implementation departs from this proposal and why. Target: the private `next-release`
 line, then the public release. The proposal below builds on the engine's existing ternary path,
 the C lower convex hull (`mqmqa_lower_hull_2d`) and the lever-rule assemblage lookup
@@ -454,7 +454,7 @@ Acceptance for every step: the full suite passes; shipped databases are bit-iden
 adds functions and changes no existing path); and every 3D view has a 2D counterpart it must agree
 with.
 
-## 8. Steps 1 and 2 as built
+## 8. Steps 1 to 3 as built
 
 What testing found, and what changed from the proposal because of it.
 
@@ -497,3 +497,26 @@ pycalphad (liquidus 0.3696, solidus 0.0803 on the join) for five seeds; seven fu
 (olivine, periclase, two liquids, a three-phase triangle, orthopyroxene) from 1700 to 2000 K agree
 within 1e-3; the section's fields equal the existing 2D lookup on the same candidates at every
 point of a 50-step grid; field areas converge as the lattice goes from 30 to 120.
+
+**Step 3, the liquidus surface.** Bisecting each node in temperature with a hull per trial (R1)
+would cost hours. The liquidus of a composition is where a solid first becomes stable against the
+liquid, so `vis3d_liquidus_surface` finds it directly: the driving force of each solid against the
+stable liquid's tangent plane at the bulk composition, and the temperature where the smallest one
+reaches zero. Where the liquid is one phase that plane is exact (the liquid's own tangent) and the
+root is found to `t_tol` by regula falsi. Where the liquid has split, the plane is the two liquids'
+common tangent from a refined liquid-only hull, available at the `n_temps` levels, and the root is
+interpolated through three levels; a split liquid lies below the single tangent, so the check is
+needed only below the single-liquid liquidus. A composition on an edge or at a corner compares only
+the solids on it. Field boundaries are located to `x_tol` by bisection on which solid comes first;
+a lattice triangle holding three fields is subdivided toward `x_tol`. A liquidus outside
+`[t_lo, t_hi]` is an error naming the composition.
+
+Validation: the liquid end of the 1900 K olivine tie-line gives 1900.000 K; four single-liquid
+compositions agree with pycalphad's liquidus within 0.02 K; at three compositions (two with a split
+liquid) the refined full hull two degrees above the liquidus holds no solid and two degrees below
+holds the primary phase. pycalphad puts a solid 8 and 18 K higher at the two split-liquid
+compositions, where its equilibrium misses a two-liquid state 26 and 111 J lower. The shipped
+projection (`web/ternary_feo_mgo_sio2.json`, from the random sampler) agrees on the primary phase
+at 87% of its grid; at ten sampled disagreements the full hull sides with the new surface. A
+surface over 1300 to 3200 K takes about 80 s natively and in the browser engine alike, most of it
+in the liquid-only hulls of the split-liquid levels.

@@ -108,6 +108,12 @@ def test_liquid_minimizer_reaches_the_single_phase_minimum(fms):
     assert checked >= 20
 
 
+def test_liquid_on_an_edge_despite_rounding(fms):
+    """1 - 0.55 - 0.45 is -5.6e-17 in floating point: the MgO-SiO2 edge, not outside it."""
+    g, X = vis3d.liquid_gibbs(fms, LIQ, 1623.26, 0.55, 0.45)
+    assert np.isfinite(g) and X[0] == 0.0
+
+
 def test_same_input_same_hull(fms):
     a = vis3d.Hull(fms, 1900.0, seed=3)
     b = vis3d.Hull(fms, 1900.0, seed=3)
@@ -350,3 +356,103 @@ def test_refuses_rather_than_approximates(fms):
         vis3d.Hull(salt, 900.0)
     with pytest.raises(vis3d.Vis3DError, match="lattice_n"):
         vis3d.section(fms, 1900.0, lattice_n=0)
+
+
+# ---------------------------------------------------------- step 3: the liquidus surface
+
+WINDOW = (1300.0, 3200.0)     # the whole FeO-MgO-SiO2 liquidus, MgO melting at 3098 K
+
+
+def _pyc_liquidus(x2, x3, T_lo, T_hi):
+    """pycalphad's liquidus: bisection on whether its equilibrium holds a solid."""
+    from pycalphad import Database, equilibrium, variables as v
+    dbf = _pyc_equilibrium.dbf = getattr(_pyc_equilibrium, "dbf", None) or Database(str(FMS))
+    x_fe = 1.0 - x2 - x3
+    tot = 1.0 + x_fe + x2 + 2.0 * x3
+
+    def solids(T):
+        eq = equilibrium(dbf, ["FE", "MG", "SI", "O"], PHASES,
+                         {v.T: T, v.P: 1e5, v.N: 1, v.X("FE"): x_fe / tot,
+                          v.X("MG"): x2 / tot, v.X("SI"): x3 / tot})
+        return sorted({str(n) for n, a in zip(np.ravel(eq.Phase.values), np.ravel(eq.NP.values))
+                       if str(n) not in ("", "nan") and str(n) != LIQ and a > 1e-6})
+
+    assert solids(T_lo) and not solids(T_hi)
+    while T_hi - T_lo > 0.05:
+        mid = 0.5 * (T_lo + T_hi)
+        if solids(mid):
+            T_lo = mid
+        else:
+            T_hi = mid
+    return 0.5 * (T_lo + T_hi), solids(T_lo)
+
+
+def test_liquidus_at_the_liquid_end_of_the_1900K_tieline(fms):
+    """The liquid end of the 1900 K olivine tie-line (join X_Fe 0.3695579 from pycalphad) has
+    its liquidus at exactly 1900 K, with olivine first to crystallize."""
+    x_fe = 0.3695579 * 2.0 / 3.0
+    T, prim = vis3d.liquidus_point(fms, 1.0 - x_fe - 1.0 / 3.0, 1.0 / 3.0, *WINDOW, t_tol=1e-3)
+    assert prim == "OLIVINE"
+    assert abs(T - 1900.0) < 0.01
+
+
+@pytest.mark.parametrize("x2, x3", [(0.5, 0.1), (0.3, 0.3), (0.2, 0.2), (0.3, 0.5)])
+def test_liquidus_matches_pycalphad_where_the_liquid_is_one_phase(fms, x2, x3):
+    pytest.importorskip("pycalphad")
+    T, prim = vis3d.liquidus_point(fms, x2, x3, *WINDOW, t_tol=1e-2)
+    T_ref, sol = _pyc_liquidus(x2, x3, T - 20.0, T + 20.0)
+    assert sol == [prim]
+    assert abs(T - T_ref) < 0.1, (T, T_ref)       # pycalphad bisected to 0.05 K
+
+
+@pytest.mark.parametrize("x2, x3", [(0.1, 0.3), (0.05, 0.45), (0.3, 0.5)])
+def test_liquidus_agrees_with_the_full_equilibrium(fms, x2, x3):
+    """Two degrees above the liquidus the refined hull holds no solid; two below it holds the
+    primary phase. The first two compositions have a liquid split in two at their liquidus,
+    where pycalphad (which puts a solid 8 and 18 K higher) misses the two-liquid state."""
+    T, prim = vis3d.liquidus_point(fms, x2, x3, *WINDOW, t_tol=1e-2)
+    above = {p for p, _, _, _ in vis3d.Hull(fms, T + 2.0).assemblage(x2, x3)}
+    below = {p for p, _, _, _ in vis3d.Hull(fms, T - 2.0).assemblage(x2, x3)}
+    assert above == {LIQ}
+    assert prim in below
+
+
+def _check_surface(s, zpk=1e-3):
+    nt, nv = len(s.tri), len(s.comp)
+    assert s.patch_start[0] == 0 and s.patch_start[-1] == nt and np.all(np.diff(s.patch_start) > 0)
+    owner = np.full(nv, -1)
+    for p in range(len(s.patch_phase)):
+        v = np.unique(s.tri[s.patch_start[p]:s.patch_start[p + 1]])
+        assert np.all(owner[v] == -1)
+        owner[v] = p
+    ar = _areas(s)
+    assert np.all(ar > 0) and abs(ar.sum() - 0.5) < 1e-9
+    assert np.allclose(s.pos[:, 2], s.temp * zpk, rtol=1e-6)
+    assert np.all((s.temp >= WINDOW[0]) & (s.temp <= WINDOW[1]))
+
+
+def test_liquidus_surface(fms):
+    """One patch per primary-phase field, tiling the triangle; the corners carry the oxides'
+    melting points; the fields and the valleys between them converge as the lattice goes
+    from 10 to 20."""
+    area = {}
+    for n in (10, 20):
+        s = vis3d.liquidus_surface(fms, *WINDOW, lattice_n=n)
+        _check_surface(s)
+        assert sorted(s.labels) == ["CRISTOBALITE", "OLIVINE", "ORTHOPYROXENE", "PERICLASE", "WUSTITE"]
+        assert len(s.patch_phase) == len(s.labels)
+        ar, tl = _areas(s), s.tri_label
+        area[n] = {lab: ar[tl == k].sum() for k, lab in enumerate(s.labels)}
+    for corner, name in (((0.0, 0.0), "WUSTITE"), ((1.0, 0.0), "PERICLASE"), ((0.0, 1.0), "CRISTOBALITE")):
+        i = np.argmin((s.comp[:, 1] - corner[0]) ** 2 + (s.comp[:, 2] - corner[1]) ** 2)
+        T, prim = vis3d.liquidus_point(fms, *corner, *WINDOW)
+        assert prim == name and abs(s.temp[i] - T) < 1e-9
+    for lab in area[20]:
+        assert abs(area[10][lab] - area[20][lab]) < 0.01, lab
+
+
+def test_liquidus_outside_the_window_is_an_error(fms):
+    with pytest.raises(vis3d.Vis3DError, match="above t_hi"):
+        vis3d.liquidus_point(fms, 0.9, 0.05, 1300.0, 2500.0)
+    with pytest.raises(vis3d.Vis3DError, match="below t_lo"):
+        vis3d.liquidus_point(fms, 0.1, 0.3, 1700.0, 3200.0)

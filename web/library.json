@@ -68,7 +68,8 @@
    "stage_label": "Data extracted",
    "papers": 4,
    "measurements": 9,
-   "phase_equilibria": 6
+   "phase_equilibria": 6,
+   "stage_source": "records"
   },
   {
    "id": "nano3-kno3",
@@ -80,7 +81,8 @@
    "stage_label": "Data extracted",
    "papers": 11,
    "measurements": 68,
-   "phase_equilibria": 2
+   "phase_equilibria": 2,
+   "stage_source": "records"
   },
   {
    "id": "li2co3-na2co3-k2co3",
@@ -92,7 +94,8 @@
    "stage_label": "Data extracted",
    "papers": 8,
    "measurements": 93,
-   "phase_equilibria": 3
+   "phase_equilibria": 3,
+   "stage_source": "records"
   },
   {
    "id": "lif-bef2",
@@ -104,19 +107,34 @@
    "stage_label": "Data extracted",
    "papers": 5,
    "measurements": 41,
-   "phase_equilibria": 2
+   "phase_equilibria": 2,
+   "stage_source": "records"
   },
   {
    "id": "gainsn",
    "title": "Ga-In-Sn",
    "kind": "alloy",
    "shelf": "in_progress",
-   "blurb": "Gallium-based liquid metal for cooling and flexible electronics.",
+   "blurb": "Gallium-based liquid metal for cooling and flexible electronics, and the base of the Ga-In-Sn-Sb assessment.",
    "stage": 2,
    "stage_label": "Model drafted",
    "papers": 16,
    "measurements": 0,
-   "phase_equilibria": 0
+   "phase_equilibria": 0,
+   "stage_source": "records"
+  },
+  {
+   "id": "ga-in-sn-sb",
+   "title": "Ga-In-Sn-Sb",
+   "kind": "alloy",
+   "shelf": "in_progress",
+   "blurb": "Ga-In-Sn liquid metal with antimony, for growing (Ga,In)Sb semiconductor crystals from low-melting melts.",
+   "stage": 2,
+   "stage_label": "Model fitted, write-up in progress",
+   "papers": 0,
+   "measurements": 0,
+   "phase_equilibria": 0,
+   "stage_source": "hand"
   },
   {
    "id": "cu-o",
@@ -128,91 +146,99 @@
    "stage_label": "Data extracted",
    "papers": 2,
    "measurements": 8,
-   "phase_equilibria": 0
+   "phase_equilibria": 0,
+   "stage_source": "records"
   },
   {
    "id": "refractory-oxides",
    "title": "Refractory oxides",
    "kind": "reference",
-   "shelf": "planned",
+   "shelf": "reference",
    "blurb": "Pure-compound data for the high-melting oxides that line furnaces and ladles.",
    "stage": 3,
    "stage_label": "Endmember data built",
    "papers": 30,
    "measurements": 1122,
-   "phase_equilibria": 0
+   "phase_equilibria": 0,
+   "stage_source": "records"
   },
   {
    "id": "silicate-minerals",
    "title": "Silicate minerals",
    "kind": "reference",
-   "shelf": "planned",
+   "shelf": "reference",
    "blurb": "Pure-compound data for the silicates that crystallize from slags and magmas.",
    "stage": 3,
    "stage_label": "Endmember data built",
    "papers": 5,
    "measurements": 499,
-   "phase_equilibria": 0
+   "phase_equilibria": 0,
+   "stage_source": "records"
   },
   {
    "id": "sulfides",
    "title": "Sulfides",
    "kind": "reference",
-   "shelf": "planned",
+   "shelf": "reference",
    "blurb": "Pure-compound data for metal sulfides, the building blocks of mattes.",
    "stage": 3,
    "stage_label": "Endmember data built",
    "papers": 16,
    "measurements": 398,
-   "phase_equilibria": 0
+   "phase_equilibria": 0,
+   "stage_source": "records"
   },
   {
    "id": "chlorides",
    "title": "Chlorides",
    "kind": "reference",
-   "shelf": "planned",
+   "shelf": "reference",
    "blurb": "Pure-compound data for metal chlorides, the building blocks of salt fluxes and electrolytes.",
    "stage": 1,
    "stage_label": "Data extracted",
    "papers": 20,
    "measurements": 463,
-   "phase_equilibria": 0
+   "phase_equilibria": 0,
+   "stage_source": "records"
   },
   {
    "id": "elements-ser",
    "title": "Elements (SER)",
    "kind": "reference",
-   "shelf": "planned",
+   "shelf": "reference",
    "blurb": "Standard element reference data that every database is built on.",
    "stage": 1,
    "stage_label": "Data extracted",
    "papers": 18,
    "measurements": 783,
-   "phase_equilibria": 0
+   "phase_equilibria": 0,
+   "stage_source": "records"
   },
   {
    "id": "gases-ref",
    "title": "Gas species",
    "kind": "reference",
-   "shelf": "planned",
+   "shelf": "reference",
    "blurb": "Gas-phase reference data for vapor and atmosphere calculations.",
    "stage": 1,
    "stage_label": "Data extracted",
    "papers": 3,
    "measurements": 505,
-   "phase_equilibria": 0
+   "phase_equilibria": 0,
+   "stage_source": "records"
   },
   {
    "id": "oxides-ref",
    "title": "Alkali oxides",
    "kind": "reference",
-   "shelf": "planned",
+   "shelf": "reference",
    "blurb": "Reference data for Na2O, K2O and Li2O, the fluxing oxides in glass and slag.",
    "stage": 1,
    "stage_label": "Data extracted",
    "papers": 7,
    "measurements": 34,
-   "phase_equilibria": 0
+   "phase_equilibria": 0,
+   "stage_source": "records"
   }
  ]
 }

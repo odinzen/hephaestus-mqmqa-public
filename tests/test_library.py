@@ -89,6 +89,35 @@ def test_missing_button_or_file_refused(web):
         build([], [], web, bad_file)
 
 
+def hand(sid, **kw):
+    e = {"id": sid, "title": sid, "kind": "alloy", "shelf": "in_progress", "blurb": "b",
+         "source": "outside_workspace", "stage": 2, "evidence": "repo x, ledger row 2"}
+    e.update(kw)
+    return e
+
+
+def test_hand_staged_entry(web):
+    d = build([], [hand("ga-in-sn-sb", stage_label="Model fitted")], web)
+    s = d["systems"][0]
+    assert s["stage_source"] == "hand" and s["stage_label"] == "Model fitted"
+
+
+def test_hand_staged_needs_evidence(web):
+    with pytest.raises(bl.LibraryError, match="evidence"):
+        build([], [hand("x", evidence="  ")], web)
+
+
+def test_hand_staged_cannot_shadow_a_tracked_system(web):
+    # otherwise a hand entry could bypass the classification check
+    with pytest.raises(bl.LibraryError, match="must come from the snapshot"):
+        build([row("fe-al", cls="proprietary")], [hand("fe-al")], web)
+
+
+def test_hand_staged_stage_range(web):
+    with pytest.raises(bl.LibraryError, match="outside"):
+        build([], [hand("x", stage=7)], web)
+
+
 def test_committed_library_json_follows_the_rules():
     d = json.loads((ROOT / "web" / "library.json").read_text("utf-8"))
     html = (ROOT / "web" / "index.html").read_text("utf-8")
@@ -96,6 +125,7 @@ def test_committed_library_json_follows_the_rules():
         assert f'id="{s["button"]}"' in html and (ROOT / "web" / s["file"]).is_file()
     for s in d["systems"]:
         assert s["shelf"] in bl.SHELVES and s["kind"] in bl.KINDS
-        assert s["stage_label"] == bl.PUBLIC_STAGES[s["stage"]]
+        if s["stage_source"] == "records":
+            assert s["stage_label"] == bl.PUBLIC_STAGES[s["stage"]]
         # only counts and human blurbs are published, never raw workspace status notes
         assert set(s) == {f for f in bl.Announced.__dataclass_fields__}

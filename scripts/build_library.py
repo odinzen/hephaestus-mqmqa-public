@@ -27,7 +27,7 @@ SHELF_FILE = ROOT / "scripts" / "library.toml"
 WEB = ROOT / "web"
 
 KINDS = {"slag", "salt", "alloy", "oxide", "reference"}
-SHELVES = {"in_progress", "planned"}
+SHELVES = {"in_progress", "reference", "planned"}
 SHOWABLE = {"public_academic", "in_development"}
 
 # Public wording for the workspace readiness ladder (workbench.engine.triage, stages 0-5).
@@ -60,6 +60,7 @@ class Announced:
     papers: int
     measurements: int
     phase_equilibria: int
+    stage_source: str = "records"  # "hand" for systems assessed outside the workspace
 
 
 def _check_kind(kind: str, where: str) -> None:
@@ -80,6 +81,26 @@ def shipped(entries: list[dict], index_html: str, web: Path) -> list[Shipped]:
     return out
 
 
+def hand_staged(e: dict, by_id: dict) -> Announced:
+    """A system assessed outside the workspace, so there is no snapshot row to read.
+
+    Allowed only with named evidence, and the build prints every such entry, because a
+    hand-typed stage is exactly the kind of fact that goes stale.
+    """
+    sid = e["id"]
+    if sid in by_id:
+        raise LibraryError(f"{sid}: the workspace tracks this system, so its stage must come from the snapshot")
+    if not e.get("evidence", "").strip():
+        raise LibraryError(f"{sid}: a hand-staged entry needs an evidence note saying where its stage comes from")
+    stage = int(e["stage"])
+    if not 0 <= stage < len(PUBLIC_STAGES):
+        raise LibraryError(f"{sid}: stage {stage} is outside 0..{len(PUBLIC_STAGES) - 1}")
+    return Announced(id=sid, title=e["title"], kind=e["kind"], shelf=e["shelf"], blurb=e["blurb"],
+                     stage=stage, stage_label=e.get("stage_label") or PUBLIC_STAGES[stage],
+                     papers=int(e.get("papers", 0)), measurements=0, phase_equilibria=0,
+                     stage_source="hand")
+
+
 def announced(entries: list[dict], triage: list[dict]) -> list[Announced]:
     by_id = {r["id"]: r for r in triage}
     listed = {e["id"] for e in entries}
@@ -91,6 +112,12 @@ def announced(entries: list[dict], triage: list[dict]) -> list[Announced]:
     out = []
     for e in entries:
         sid = e["id"]
+        if e["shelf"] not in SHELVES:
+            raise LibraryError(f"{sid}: shelf {e['shelf']!r} is not one of {sorted(SHELVES)}")
+        _check_kind(e["kind"], sid)
+        if e.get("source") == "outside_workspace":
+            out.append(hand_staged(e, by_id))
+            continue
         r = by_id.get(sid)
         if r is None:
             raise LibraryError(f"{sid}: not in the triage snapshot (renamed or removed?)")
@@ -99,9 +126,6 @@ def announced(entries: list[dict], triage: list[dict]) -> list[Announced]:
             raise LibraryError(f"{sid}: classification {cls!r} can never be shown publicly")
         if "propri" in (r.get("status") or "").lower():
             raise LibraryError(f"{sid}: workspace status mentions proprietary; resolve before announcing")
-        if e["shelf"] not in SHELVES:
-            raise LibraryError(f"{sid}: shelf {e['shelf']!r} is not one of {sorted(SHELVES)}")
-        _check_kind(e["kind"], sid)
         stage = STAGE_INDEX[int(r["stage"])]
         out.append(Announced(
             id=sid, title=e["title"], kind=e["kind"], shelf=e["shelf"], blurb=e["blurb"],
@@ -134,6 +158,18 @@ def main() -> int:
     except LibraryError as e:
         print(f"build_library: {e}", file=sys.stderr)
         return 1
+    for s in data["systems"]:
+        if s["stage_source"] == "hand":
+            print(f"hand-staged, check by hand: {s['id']} at '{s['stage_label']}'")
+    # Rewrite only when the catalogue itself changed, so an automatic refresh leaves the file
+    # (and its "as of" date) alone on days when nothing moved.
+    try:
+        previous = json.loads(args.out.read_text("utf-8"))
+    except (OSError, ValueError):
+        previous = None
+    if previous and {**previous, "as_of": None} == {**data, "as_of": None}:
+        print(f"{args.out.relative_to(ROOT)} unchanged (as of {previous['as_of']})")
+        return 0
     args.out.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n", "utf-8")
     print(f"wrote {args.out.relative_to(ROOT)}: {len(data['available'])} available, "
           f"{len(data['systems'])} announced")

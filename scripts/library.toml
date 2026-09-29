@@ -59,7 +59,9 @@ kind = "alloy"
 blurb = "The Pb-Sn solder system in classic .xtdb form."
 
 # Announced systems. id = the assessment id in the workspace triage snapshot.
-# shelf: "in_progress" (being assessed now) or "planned" (on the list, not started as a database).
+# shelf: "in_progress" (being assessed now), "reference" (pure-compound reference data sets) or
+# "planned" (on the list, not started). A system assessed outside the workspace sets
+# source = "outside_workspace" with a hand stage (0-3) and an evidence note; the build prints it.
 
 [[system]]
 id = "na2o-sio2"
@@ -94,7 +96,18 @@ id = "gainsn"
 title = "Ga-In-Sn"
 kind = "alloy"
 shelf = "in_progress"
-blurb = "Gallium-based liquid metal for cooling and flexible electronics."
+blurb = "Gallium-based liquid metal for cooling and flexible electronics, and the base of the Ga-In-Sn-Sb assessment."
+
+[[system]]
+id = "ga-in-sn-sb"
+title = "Ga-In-Sn-Sb"
+kind = "alloy"
+shelf = "in_progress"
+source = "outside_workspace"
+stage = 2
+stage_label = "Model fitted, write-up in progress"
+evidence = "gainsn-assessment repo (quaternary assembly 2026-09-08) and publications ledger row 2"
+blurb = "Ga-In-Sn liquid metal with antimony, for growing (Ga,In)Sb semiconductor crystals from low-melting melts."
 
 [[system]]
 id = "cu-o"
@@ -107,47 +120,47 @@ blurb = "Copper-oxygen, relevant to copper refining and oxide scales."
 id = "refractory-oxides"
 title = "Refractory oxides"
 kind = "reference"
-shelf = "planned"
+shelf = "reference"
 blurb = "Pure-compound data for the high-melting oxides that line furnaces and ladles."
 
 [[system]]
 id = "silicate-minerals"
 title = "Silicate minerals"
 kind = "reference"
-shelf = "planned"
+shelf = "reference"
 blurb = "Pure-compound data for the silicates that crystallize from slags and magmas."
 
 [[system]]
 id = "sulfides"
 title = "Sulfides"
 kind = "reference"
-shelf = "planned"
+shelf = "reference"
 blurb = "Pure-compound data for metal sulfides, the building blocks of mattes."
 
 [[system]]
 id = "chlorides"
 title = "Chlorides"
 kind = "reference"
-shelf = "planned"
+shelf = "reference"
 blurb = "Pure-compound data for metal chlorides, the building blocks of salt fluxes and electrolytes."
 
 [[system]]
 id = "elements-ser"
 title = "Elements (SER)"
 kind = "reference"
-shelf = "planned"
+shelf = "reference"
 blurb = "Standard element reference data that every database is built on."
 
 [[system]]
 id = "gases-ref"
 title = "Gas species"
 kind = "reference"
-shelf = "planned"
+shelf = "reference"
 blurb = "Gas-phase reference data for vapor and atmosphere calculations."
 
 [[system]]
 id = "oxides-ref"
 title = "Alkali oxides"
 kind = "reference"
-shelf = "planned"
+shelf = "reference"
 blurb = "Reference data for Na2O, K2O and Li2O, the fluxing oxides in glass and slag."

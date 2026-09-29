@@ -71,7 +71,7 @@
   }
 
   function liquidus(M, db, o) {
-    const nTemps = o.nTemps || Math.max(3, Math.round((o.tHi - o.tLo) / 25) + 1);
+    const nTemps = o.nTemps || Math.max(3, Math.ceil((o.tHi - o.tLo) / 25) + 1);
     return withString(M, phaseList(o), pl => meshCall(M, 'liquidus surface', mesh =>
       M._vis3d_liquidus_surface_js(db, pl, o.latticeN || 30, nTemps, o.tLo, o.tHi,
                                    o.xTol || 1e-3, o.tTol || 1.0, o.zPerKelvin || 1e-3, mesh)));
@@ -110,7 +110,7 @@
   }
 
   function liquidusPoint(M, db, x2, x3, o) {
-    const nTemps = o.nTemps || Math.max(3, Math.round((o.tHi - o.tLo) / 25) + 1);
+    const nTemps = o.nTemps || Math.max(3, Math.ceil((o.tHi - o.tLo) / 25) + 1);
     const T = M._malloc(8), name = M._malloc(64);
     try {
       const rc = withString(M, phaseList(o), pl => M._vis3d_liquidus_point_js(

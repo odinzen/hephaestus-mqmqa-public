@@ -225,7 +225,7 @@ function init() {
     for (const s of steps) {
       say('liquidus', 'computing the ' + s.label + ' liquidus surface (' + s.latticeN +
         ' divisions), about a minute; you can rotate and read points meanwhile\u2026');
-      const r = await ask('liquidus', { tLo: sys.tLo, tHi: sys.tHi, nTemps: Math.round((sys.tHi - sys.tLo) / 50) + 1,
+      const r = await ask('liquidus', { tLo: sys.tLo, tHi: sys.tHi, nTemps: Math.ceil((sys.tHi - sys.tLo) / 50) + 1,
         latticeN: s.latticeN, xTol: s.xTol, zPerKelvin: zpk }, 'slow');
       if (gen !== generation) return;
       if (liquidus) world.remove(liquidus);

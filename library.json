@@ -1,0 +1,218 @@
+{
+ "as_of": "2026-09-29",
+ "stages": [
+  "Sources gathered",
+  "Data extracted",
+  "Model drafted",
+  "Endmember data built"
+ ],
+ "available": [
+  {
+   "button": "example",
+   "file": "FeO-MgO-SiO2-combined.dat",
+   "title": "Open slag database",
+   "kind": "slag",
+   "blurb": "FeO-MgO-SiO2 melt with its solid phases, assessed from open literature with the MQMQA liquid."
+  },
+  {
+   "button": "example-salt",
+   "file": "LiCl-KCl.dat",
+   "title": "Open salt database",
+   "kind": "salt",
+   "blurb": "LiCl-KCl molten salt, the electrolyte used in pyroprocessing and thermal batteries."
+  },
+  {
+   "button": "example-alloy",
+   "file": "AlZn.tdb",
+   "title": "Open alloy database",
+   "kind": "alloy",
+   "blurb": "Al-Zn alloy phases in Thermo-Calc .tdb form."
+  },
+  {
+   "button": "example-unified",
+   "file": "AlZn-NaClKClMgCl2.utdb",
+   "title": "Aluminium recycling demo",
+   "kind": "alloy",
+   "blurb": "Al-Zn alloy under a NaCl-KCl-MgCl2 salt flux, alloy and salt in one unified .utdb."
+  },
+  {
+   "button": "example-steel",
+   "file": "FeC-FeOMgOSiO2.utdb",
+   "title": "Steelmaking demo",
+   "kind": "alloy",
+   "blurb": "Fe-C steel with an FeO-MgO-SiO2 slag in one unified .utdb."
+  },
+  {
+   "button": "xtdb-alc",
+   "file": "AlC.xtdb",
+   "title": "Al-C (third generation)",
+   "kind": "alloy",
+   "blurb": "Al-C with third-generation Einstein-model unaries, in .xtdb form."
+  },
+  {
+   "button": "xtdb-pbsn",
+   "file": "PbSn.xtdb",
+   "title": "Pb-Sn (classic)",
+   "kind": "alloy",
+   "blurb": "The Pb-Sn solder system in classic .xtdb form."
+  }
+ ],
+ "systems": [
+  {
+   "id": "na2o-sio2",
+   "title": "Na2O-SiO2",
+   "kind": "slag",
+   "shelf": "in_progress",
+   "blurb": "Sodium silicate melt, the base of soda-lime glass and a flux component in slags.",
+   "stage": 1,
+   "stage_label": "Data extracted",
+   "papers": 4,
+   "measurements": 9,
+   "phase_equilibria": 6
+  },
+  {
+   "id": "nano3-kno3",
+   "title": "NaNO3-KNO3 (solar salt)",
+   "kind": "salt",
+   "shelf": "in_progress",
+   "blurb": "Nitrate salt used for heat transfer and thermal storage in concentrating solar power.",
+   "stage": 1,
+   "stage_label": "Data extracted",
+   "papers": 11,
+   "measurements": 68,
+   "phase_equilibria": 2
+  },
+  {
+   "id": "li2co3-na2co3-k2co3",
+   "title": "Li2CO3-Na2CO3-K2CO3",
+   "kind": "salt",
+   "shelf": "in_progress",
+   "blurb": "Molten carbonate electrolyte for fuel cells and carbon capture.",
+   "stage": 1,
+   "stage_label": "Data extracted",
+   "papers": 8,
+   "measurements": 93,
+   "phase_equilibria": 3
+  },
+  {
+   "id": "lif-bef2",
+   "title": "LiF-BeF2 (FLiBe)",
+   "kind": "salt",
+   "shelf": "in_progress",
+   "blurb": "Fluoride salt used as coolant and fuel carrier in molten-salt reactors.",
+   "stage": 1,
+   "stage_label": "Data extracted",
+   "papers": 5,
+   "measurements": 41,
+   "phase_equilibria": 2
+  },
+  {
+   "id": "gainsn",
+   "title": "Ga-In-Sn",
+   "kind": "alloy",
+   "shelf": "in_progress",
+   "blurb": "Gallium-based liquid metal for cooling and flexible electronics.",
+   "stage": 2,
+   "stage_label": "Model drafted",
+   "papers": 16,
+   "measurements": 0,
+   "phase_equilibria": 0
+  },
+  {
+   "id": "cu-o",
+   "title": "Cu-O",
+   "kind": "oxide",
+   "shelf": "in_progress",
+   "blurb": "Copper-oxygen, relevant to copper refining and oxide scales.",
+   "stage": 1,
+   "stage_label": "Data extracted",
+   "papers": 2,
+   "measurements": 8,
+   "phase_equilibria": 0
+  },
+  {
+   "id": "refractory-oxides",
+   "title": "Refractory oxides",
+   "kind": "reference",
+   "shelf": "planned",
+   "blurb": "Pure-compound data for the high-melting oxides that line furnaces and ladles.",
+   "stage": 3,
+   "stage_label": "Endmember data built",
+   "papers": 30,
+   "measurements": 1122,
+   "phase_equilibria": 0
+  },
+  {
+   "id": "silicate-minerals",
+   "title": "Silicate minerals",
+   "kind": "reference",
+   "shelf": "planned",
+   "blurb": "Pure-compound data for the silicates that crystallize from slags and magmas.",
+   "stage": 3,
+   "stage_label": "Endmember data built",
+   "papers": 5,
+   "measurements": 499,
+   "phase_equilibria": 0
+  },
+  {
+   "id": "sulfides",
+   "title": "Sulfides",
+   "kind": "reference",
+   "shelf": "planned",
+   "blurb": "Pure-compound data for metal sulfides, the building blocks of mattes.",
+   "stage": 3,
+   "stage_label": "Endmember data built",
+   "papers": 16,
+   "measurements": 398,
+   "phase_equilibria": 0
+  },
+  {
+   "id": "chlorides",
+   "title": "Chlorides",
+   "kind": "reference",
+   "shelf": "planned",
+   "blurb": "Pure-compound data for metal chlorides, the building blocks of salt fluxes and electrolytes.",
+   "stage": 1,
+   "stage_label": "Data extracted",
+   "papers": 20,
+   "measurements": 463,
+   "phase_equilibria": 0
+  },
+  {
+   "id": "elements-ser",
+   "title": "Elements (SER)",
+   "kind": "reference",
+   "shelf": "planned",
+   "blurb": "Standard element reference data that every database is built on.",
+   "stage": 1,
+   "stage_label": "Data extracted",
+   "papers": 18,
+   "measurements": 783,
+   "phase_equilibria": 0
+  },
+  {
+   "id": "gases-ref",
+   "title": "Gas species",
+   "kind": "reference",
+   "shelf": "planned",
+   "blurb": "Gas-phase reference data for vapor and atmosphere calculations.",
+   "stage": 1,
+   "stage_label": "Data extracted",
+   "papers": 3,
+   "measurements": 505,
+   "phase_equilibria": 0
+  },
+  {
+   "id": "oxides-ref",
+   "title": "Alkali oxides",
+   "kind": "reference",
+   "shelf": "planned",
+   "blurb": "Reference data for Na2O, K2O and Li2O, the fluxing oxides in glass and slag.",
+   "stage": 1,
+   "stage_label": "Data extracted",
+   "papers": 7,
+   "measurements": 34,
+   "phase_equilibria": 0
+  }
+ ]
+}

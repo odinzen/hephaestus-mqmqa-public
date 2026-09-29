@@ -317,6 +317,11 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
               aria-expanded="false" aria-label="Gas constant R">R</button>
       <div class="gasr-menu" id="gasr-menu" role="menu"></div>
     </div>
+    <div class="gasr" id="dbmenu">
+      <button class="theme-toggle" id="dbmenu-toggle" type="button" aria-haspopup="true"
+              aria-expanded="false" aria-label="Database menu" title="Database menu">&#9776;</button>
+      <div class="gasr-menu" id="dbmenu-menu" role="menu"></div>
+    </div>
     <button class="theme-toggle" id="theme-toggle" type="button"
             aria-label="Toggle light and dark background" title="Toggle light / dark"></button>
   </header>
@@ -2733,6 +2738,30 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
   btn.addEventListener('click', () => open(!box.classList.contains('open')));
   document.addEventListener('click', e => { if (!box.contains(e.target)) open(false); });
   sync();
+})();
+
+// Database menu: the library of shipped, in-progress and planned databases opens in its own
+// window and loads a shipped database back here through the buttons in section 1.
+(function(){ const box=document.getElementById('dbmenu'), btn=document.getElementById('dbmenu-toggle'),
+      menu=document.getElementById('dbmenu-menu'); if(!box) return;
+  const open = on => { box.classList.toggle('open', on); btn.setAttribute('aria-expanded', on); };
+  const items = [
+    ['Database library', 'What ships today, what is being assessed from the literature, and what is on the list. Opens in its own window.',
+     () => { const w = window.open('library.html', 'hmqmqa-library', 'width=1180,height=860');
+             if (w) w.focus(); else window.location.href = 'library.html'; }],
+    ['Request a database', 'How to send the published papers for a system the library does not cover yet.',
+     () => document.getElementById('litcard').scrollIntoView({ block:'start' })],
+  ];
+  items.forEach(([label, tip, act]) => {
+    const b = rOption('gasr-opt', label, tip);
+    b.setAttribute('role', 'menuitem');
+    b.addEventListener('click', () => { open(false); act(); });
+    menu.appendChild(b);
+  });
+  box.addEventListener('mouseenter', () => open(true));
+  box.addEventListener('mouseleave', () => open(false));
+  btn.addEventListener('click', () => open(!box.classList.contains('open')));
+  document.addEventListener('click', e => { if (!box.contains(e.target)) open(false); });
 })();
 
 (function(){ const root=document.documentElement, btn=document.getElementById('theme-toggle'); if(!btn) return;

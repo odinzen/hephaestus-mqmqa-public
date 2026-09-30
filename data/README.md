@@ -18,6 +18,16 @@ version that is shared, including one converted to another file format, must be 
 under CC BY-SA 4.0 with the same credits and without technical measures that restrict it.
 Releases up to and including v0.6.0 were published under CC BY 4.0 and keep those terms.
 
+## Shipped databases
+
+Every database the calculator ships is listed in `databases.toml`, and each one's source lives
+here under `data/<system>/` with its `PROVENANCE.md`. The copies in `web/` are generated from
+these sources by `scripts/sync_databases.py`, which also generates the calculator's load
+buttons; never edit a database in `web/` directly. To add one, put its source in its system
+folder, add an entry to `databases.toml`, and run the sync. Store one format per database
+(`.dat` for slags and salts, `.tdb` for alloys, `.utdb` only for an alloy and a melt together,
+`.xtdb` for third-generation data); the calculator converts to the others on demand.
+
 ## Scope and status
 
 - `cao-sio2/` - CaO-SiO2 liquid slag, MQMQA (ChemSage SUBQ). Version 0.1.

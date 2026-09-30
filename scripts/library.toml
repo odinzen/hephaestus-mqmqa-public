@@ -1,62 +1,14 @@
 # Database library shelf list. HUMAN-OWNED: Michael decides what is announced.
 #
-# scripts/build_library.py turns this plus a workspace triage snapshot into web/library.json.
+# scripts/build_library.py turns this, data/databases.toml and a workspace triage snapshot into
+# web/library.json.
 # Progress stages and counts are read from the snapshot, never typed here. Every system shown
 # must be listed below with a blurb; a proprietary or unlisted system can never appear, and the
 # build fails rather than guess.
 #
 # DRAFT 2026-09-29 (Claude): first-pass shortlist for Michael to cut or extend.
 
-# What ships today: one entry per load button in web/index.html. The build checks that the
-# button and the file both exist, so a renamed or removed database fails loudly.
-[[available]]
-button = "example"
-file = "FeO-MgO-SiO2-combined.dat"
-title = "Open slag database"
-kind = "slag"
-blurb = "FeO-MgO-SiO2 melt with its solid phases, assessed from open literature with the MQMQA liquid."
-
-[[available]]
-button = "example-salt"
-file = "LiCl-KCl.dat"
-title = "Open salt database"
-kind = "salt"
-blurb = "LiCl-KCl molten salt, the electrolyte used in pyroprocessing and thermal batteries."
-
-[[available]]
-button = "example-alloy"
-file = "AlZn.tdb"
-title = "Open alloy database"
-kind = "alloy"
-blurb = "Al-Zn alloy phases in Thermo-Calc .tdb form."
-
-[[available]]
-button = "example-unified"
-file = "AlZn-NaClKClMgCl2.utdb"
-title = "Aluminium recycling demo"
-kind = "alloy"
-blurb = "Al-Zn alloy under a NaCl-KCl-MgCl2 salt flux, alloy and salt in one unified .utdb."
-
-[[available]]
-button = "example-steel"
-file = "FeC-FeOMgOSiO2.utdb"
-title = "Steelmaking demo"
-kind = "alloy"
-blurb = "Fe-C steel with an FeO-MgO-SiO2 slag in one unified .utdb."
-
-[[available]]
-button = "xtdb-alc"
-file = "AlC.xtdb"
-title = "Al-C (third generation)"
-kind = "alloy"
-blurb = "Al-C with third-generation Einstein-model unaries, in .xtdb form."
-
-[[available]]
-button = "xtdb-pbsn"
-file = "PbSn.xtdb"
-title = "Pb-Sn (classic)"
-kind = "alloy"
-blurb = "The Pb-Sn solder system in classic .xtdb form."
+# What ships today comes from data/databases.toml (entries with a card), not from here.
 
 # Announced systems. id = the assessment id in the workspace triage snapshot.
 # shelf: "in_progress" (being assessed now), "reference" (pure-compound reference data sets) or

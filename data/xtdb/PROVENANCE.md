@@ -19,7 +19,7 @@ Verified: pure-Al melting 933.47 K (exact), Al4C3 peritectic ~2429 K (literature
 graphite Cp ~8.5 and Al4C3 Cp approaching 7*3R. The engine matches an independent Python
 evaluator (`../xtdb-alc/xtdb_ref.py`) to < 1e-6 J/mol-atom.
 
-## PbSn.xtdb (in `web/`, shipped next to the calculator)
+## PbSn.xtdb (this directory)
 
 Classic assessment (2nd-generation SGTE unaries + Redlich-Kister excess) written in XTDB, to
 exercise the legacy path through the same reader. Parameters transcribed from:

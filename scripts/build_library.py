@@ -1,7 +1,7 @@
 """Build web/library.json, the data behind the Database library window.
 
-Inputs are the human-owned shelf list (scripts/library.toml) and a triage snapshot exported
-from the assessment workspace:
+Inputs are the human-owned shelf list (scripts/library.toml), the shipped-database registry
+(data/databases.toml) and a triage snapshot exported from the assessment workspace:
 
     python -m workbench.engine.triage --json -o triage.json     # in the workspace
     python scripts/build_library.py triage.json                  # here
@@ -24,6 +24,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SHELF_FILE = ROOT / "scripts" / "library.toml"
+REGISTRY = ROOT / "data" / "databases.toml"
 WEB = ROOT / "web"
 
 KINDS = {"slag", "salt", "alloy", "oxide", "reference"}
@@ -153,6 +154,14 @@ def main() -> int:
     args = ap.parse_args()
     triage = json.loads(args.triage.read_text("utf-8"))
     shelf = tomllib.loads(SHELF_FILE.read_text("utf-8"))
+    if "available" in shelf:
+        print("build_library: library.toml must not list [[available]]; shipped databases live in "
+              "data/databases.toml", file=sys.stderr)
+        return 1
+    # the shelf shows every registry entry the calculator can load
+    registry = tomllib.loads(REGISTRY.read_text("utf-8")).get("database", [])
+    shelf["available"] = [{k: e[k] for k in ("button", "file", "title", "kind", "blurb")}
+                          for e in registry if e.get("card")]
     try:
         data = build(triage, shelf, (WEB / "index.html").read_text("utf-8"), WEB, date.today().isoformat())
     except LibraryError as e:

@@ -1,0 +1,125 @@
+# Registry of every database the calculator ships. The single place a database is added.
+#
+# scripts/sync_databases.py reads this file to copy each source into web/ (the shipped copy is
+# never edited by hand), to generate the calculator's load buttons in web/index.html, and to
+# fail loudly if a source is missing, a web copy has drifted, or a database file sits in web/
+# without an entry here. scripts/build_library.py reads it for the library's "On the shelf".
+#
+# To add a database: put its source (or build script output) in data/<system>/ with a
+# PROVENANCE.md, add an entry below, and run scripts/sync_databases.py (the session-start
+# refresh runs it too).
+#
+# Format by physics: .dat for MQMQA slags and salts, .tdb for alloy solid solutions, .utdb only
+# when one calculation needs an alloy and a melt together, .xtdb for third-generation data.
+# Store one format per database; the calculator converts to the others on demand.
+#
+# Fields: file (name in web/), source (path under data/), format, and for a loadable database
+# card ("load" for section 1, "xtdb" for the XTDB card), button (element id), label (button text)
+# plus title, kind and blurb for the library. A .utdb lists the sources of its halves in parts.
+# An entry with no card is shipped without a load button; its comment says what uses it.
+
+[[database]]
+file = "FeO-MgO-SiO2-combined.dat"
+source = "data/feo-mgo-sio2/FeO-MgO-SiO2-combined.dat"
+format = "dat"
+card = "load"
+button = "example"
+label = "Load the open slag database"
+title = "Open slag database"
+kind = "slag"
+blurb = "FeO-MgO-SiO2 melt with its solid phases, assessed from open literature with the MQMQA liquid."
+
+[[database]]
+file = "LiCl-KCl.dat"
+source = "data/licl-kcl/LiCl-KCl.dat"
+format = "dat"
+card = "load"
+button = "example-salt"
+label = "Load the open salt database"
+title = "Open salt database"
+kind = "salt"
+blurb = "LiCl-KCl molten salt, the electrolyte used in pyroprocessing and thermal batteries."
+
+[[database]]
+file = "AlZn.tdb"
+source = "data/al-zn/AlZn.tdb"
+format = "tdb"
+card = "load"
+button = "example-alloy"
+label = "Load the open alloy TDB"
+title = "Open alloy database"
+kind = "alloy"
+blurb = "Al-Zn alloy phases in Thermo-Calc .tdb form."
+
+[[database]]
+file = "AlZn-NaClKClMgCl2.utdb"
+source = "data/unified/AlZn-NaClKClMgCl2.utdb"
+format = "utdb"
+parts = ["data/al-zn/AlZn.tdb", "data/nacl-kcl-mgcl2/NaCl-KCl-MgCl2.dat"]
+card = "load"
+button = "example-unified"
+label = "Al recycling demo (alloy + salt flux, .utdb)"
+title = "Aluminium recycling demo"
+kind = "alloy"
+blurb = "Al-Zn alloy under a NaCl-KCl-MgCl2 salt flux, alloy and salt in one unified .utdb."
+
+[[database]]
+file = "FeC-FeOMgOSiO2.utdb"
+source = "data/unified/FeC-FeOMgOSiO2.utdb"
+format = "utdb"
+parts = ["data/fe-c/FeC.tdb", "data/feo-mgo-sio2/FeO-MgO-SiO2-combined.dat"]
+card = "load"
+button = "example-steel"
+label = "Steelmaking demo (steel + slag, .utdb)"
+title = "Steelmaking demo"
+kind = "alloy"
+blurb = "Fe-C steel with an FeO-MgO-SiO2 slag in one unified .utdb."
+
+[[database]]
+file = "AlC.xtdb"
+source = "data/xtdb/AlC.xtdb"
+format = "xtdb"
+card = "xtdb"
+button = "xtdb-alc"
+label = "Al–C example (3rd-gen, .xtdb)"
+title = "Al-C (third generation)"
+kind = "alloy"
+blurb = "Al-C with third-generation Einstein-model unaries, in .xtdb form."
+
+[[database]]
+file = "PbSn.xtdb"
+source = "data/xtdb/PbSn.xtdb"
+format = "xtdb"
+card = "xtdb"
+button = "xtdb-pbsn"
+label = "Pb–Sn example (classic, .xtdb)"
+title = "Pb-Sn (classic)"
+kind = "alloy"
+blurb = "The Pb-Sn solder system in classic .xtdb form."
+
+# Shipped without a load button.
+
+# Not referenced by the page; tests/test_utdb_roundtrip.py reads it from web/.
+[[database]]
+file = "AlZn-LiClKCl.utdb"
+source = "data/unified/AlZn-LiClKCl.utdb"
+format = "utdb"
+parts = ["data/al-zn/AlZn.tdb", "data/licl-kcl/LiCl-KCl.dat"]
+
+# Not referenced by the page; tests/test_fec_steel.py reads it from web/.
+[[database]]
+file = "FeC.tdb"
+source = "data/fe-c/FeC.tdb"
+format = "tdb"
+
+# Read by the calculator's CaO-Al2O3-SiO2 cards and web/vis3d_view.js.
+[[database]]
+file = "CaO-Al2O3-SiO2.dat"
+source = "data/cao-al2o3-sio2/CaO-Al2O3-SiO2.dat"
+format = "dat"
+
+# Read by the slag-gas card.
+[[database]]
+file = "nasa_gas.dat"
+source = "data/gas/nasa_gas.dat"
+format = "dat"

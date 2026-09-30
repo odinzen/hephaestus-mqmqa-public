@@ -121,8 +121,17 @@ def with_blocks(index_html: str, entries: list[Entry], eol: str = "\n") -> str:
     return index_html
 
 
-def sync(root: Path = ROOT, check: bool = False) -> list[str]:
-    """Return what changed (or, with check, what would change). Raises SyncError on a refusal."""
+def uncommitted(paths: list[str], root: Path) -> set[str]:
+    r = subprocess.run(["git", "status", "--porcelain", "--", *paths], cwd=root, capture_output=True, text=True)
+    return {ln[3:].strip() for ln in r.stdout.splitlines()}
+
+
+def sync(root: Path = ROOT, check: bool = False, committed_only: bool = False) -> list[str]:
+    """Return what changed (or, with check, what would change). Raises SyncError on a refusal.
+
+    committed_only is for unattended runs: a source with uncommitted edits is work in progress,
+    so its shipped copy is held back and reported rather than overwritten.
+    """
     entries = load_registry(root)
     check_registry(entries, root)
     stray = unregistered_web_files(entries, root)
@@ -132,7 +141,12 @@ def sync(root: Path = ROOT, check: bool = False) -> list[str]:
     if hidden:
         raise SyncError(f".gitignore would hide {', '.join(hidden)}; add a !<path> whitelist line")
     changes = []
-    for e in drifted(entries, root):
+    drift = drifted(entries, root)
+    held = uncommitted([e.source for e in drift], root) if committed_only and drift else set()
+    for e in drift:
+        if e.source in held:
+            changes.append(f"held: web/{e.file} not updated, {e.source} has uncommitted edits")
+            continue
         changes.append(f"web/{e.file} {'differs from' if (root / 'web' / e.file).exists() else 'missing, copy of'} {e.source}")
         if not check:
             shutil.copyfile(root / e.source, root / "web" / e.file)
@@ -153,14 +167,16 @@ def sync(root: Path = ROOT, check: bool = False) -> list[str]:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--check", action="store_true", help="report only; exit 1 if anything is out of sync")
+    ap.add_argument("--committed-only", action="store_true",
+                    help="leave a web/ copy alone when its source has uncommitted edits (for automatic runs)")
     args = ap.parse_args()
     try:
-        changes = sync(check=args.check)
+        changes = sync(check=args.check, committed_only=args.committed_only)
     except SyncError as e:
         print(f"sync_databases: {e}", file=sys.stderr)
         return 1
     for c in changes:
-        print(("out of sync: " if args.check else "synced: ") + c)
+        print(c if c.startswith("held:") else ("out of sync: " if args.check else "synced: ") + c)
     if not changes:
         print("databases in sync")
     return 1 if args.check and changes else 0

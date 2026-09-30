@@ -124,3 +124,18 @@ def test_gitignored_shipped_file_refused(tmp_path):
     (root / ".gitignore").write_text("web/*.dat\n")
     with pytest.raises(sd.SyncError, match="gitignore would hide"):
         sd.sync(root)
+
+
+def test_committed_only_holds_back_work_in_progress(tmp_path):
+    root = scratch(tmp_path, DAT)
+    sd.sync(root)
+    git = lambda *a: subprocess.run(["git", *a], cwd=root, check=True, capture_output=True)
+    git("init", "-q")
+    git("add", "-A")
+    git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "base")
+    (root / "data" / "s" / "a.dat").write_text("half-finished fit")
+    held = sd.sync(root, committed_only=True)
+    assert any(c.startswith("held:") for c in held)
+    assert (root / "web" / "a.dat").read_text() == "A"         # shipped copy untouched
+    sd.sync(root)                                               # a deliberate manual run copies
+    assert (root / "web" / "a.dat").read_text() == "half-finished fit"

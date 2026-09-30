@@ -336,7 +336,9 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <button class="filebtn ghost" id="example" type="button" data-shipped="FeO-MgO-SiO2-combined.dat">Load the open slag database</button>
       <button class="filebtn ghost" id="example-salt" type="button" data-shipped="LiCl-KCl.dat">Load the open salt database</button>
       <button class="filebtn ghost" id="example-alloy" type="button" data-shipped="AlZn.tdb">Load the open alloy TDB</button>
+      <button class="filebtn ghost" id="example-fec" type="button" data-shipped="FeC.tdb">Load the open steel TDB (Fe-C)</button>
       <button class="filebtn ghost" id="example-unified" type="button" data-shipped="AlZn-NaClKClMgCl2.utdb">Al recycling demo (alloy + salt flux, .utdb)</button>
+      <button class="filebtn ghost" id="example-alzn-licl" type="button" data-shipped="AlZn-LiClKCl.utdb">Al-Zn + LiCl-KCl demo (alloy + salt, .utdb)</button>
       <button class="filebtn ghost" id="example-steel" type="button" data-shipped="FeC-FeOMgOSiO2.utdb">Steelmaking demo (steel + slag, .utdb)</button>
       <!-- /shipped-databases:load -->
       <span id="loadmsg" class="muted">No database loaded yet.</span>
@@ -2489,6 +2491,7 @@ function pdSetXWindow(lo, hi){
 // uploaded files always start on the neutral full join
 const PD_PRESETS = {
   'FeC-FeOMgOSiO2.utdb': { alloy: { x:[0,25], T:[1150,1850] } },
+  'FeC.tdb': { alloy: { x:[0,25], T:[1150,1850] } },
 };
 function applyPdPreset(){
   const pre = (window._pdPreset||{})[window.alloyMode?'alloy':'melt'];

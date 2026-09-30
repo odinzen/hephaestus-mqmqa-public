@@ -29,11 +29,25 @@
    "blurb": "Al-Zn alloy phases in Thermo-Calc .tdb form."
   },
   {
+   "button": "example-fec",
+   "file": "FeC.tdb",
+   "title": "Open steel database",
+   "kind": "alloy",
+   "blurb": "Fe-C, the basic steel system: liquid, ferrite, austenite, cementite and graphite, with magnetic ordering in ferrite and austenite."
+  },
+  {
    "button": "example-unified",
    "file": "AlZn-NaClKClMgCl2.utdb",
    "title": "Aluminium recycling demo",
    "kind": "alloy",
    "blurb": "Al-Zn alloy under a NaCl-KCl-MgCl2 salt flux, alloy and salt in one unified .utdb."
+  },
+  {
+   "button": "example-alzn-licl",
+   "file": "AlZn-LiClKCl.utdb",
+   "title": "Alloy and salt demo",
+   "kind": "alloy",
+   "blurb": "Al-Zn alloy with the LiCl-KCl molten salt in one unified .utdb."
   },
   {
    "button": "example-steel",

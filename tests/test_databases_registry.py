@@ -141,3 +141,18 @@ def test_committed_only_holds_back_work_in_progress(tmp_path):
     assert (root / "web" / "a.dat").read_text() == "A"         # shipped copy untouched
     sd.sync(root)                                               # a deliberate manual run copies
     assert (root / "web" / "a.dat").read_text() == "half-finished fit"
+
+
+def test_uncommitted_web_edit_is_never_overwritten(tmp_path):
+    root = scratch(tmp_path, DAT)
+    sd.sync(root)
+    git = lambda *a: subprocess.run(["git", *a], cwd=root, check=True, capture_output=True)
+    git("init", "-q")
+    git("add", "-A")
+    git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "base")
+    (root / "web" / "a.dat").write_text("someone's newer copy")
+    for kwargs in ({}, {"committed_only": True}):                # manual and automatic runs
+        assert any("uncommitted edits; move them" in c for c in sd.sync(root, **kwargs))
+        assert (root / "web" / "a.dat").read_text() == "someone's newer copy"
+    sd.sync(root, force=True)
+    assert (root / "web" / "a.dat").read_text() == "A"

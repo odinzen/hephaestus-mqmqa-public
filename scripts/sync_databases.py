@@ -126,11 +126,13 @@ def uncommitted(paths: list[str], root: Path) -> set[str]:
     return {ln[3:].strip() for ln in r.stdout.splitlines()}
 
 
-def sync(root: Path = ROOT, check: bool = False, committed_only: bool = False) -> list[str]:
+def sync(root: Path = ROOT, check: bool = False, committed_only: bool = False,
+         force: bool = False) -> list[str]:
     """Return what changed (or, with check, what would change). Raises SyncError on a refusal.
 
-    committed_only is for unattended runs: a source with uncommitted edits is work in progress,
-    so its shipped copy is held back and reported rather than overwritten.
+    A web/ copy with uncommitted edits is someone's work in progress and is never overwritten
+    unless force is set; the edits belong in the source. committed_only, for unattended runs,
+    also holds back a copy whose source has uncommitted edits.
     """
     entries = load_registry(root)
     check_registry(entries, root)
@@ -142,9 +144,13 @@ def sync(root: Path = ROOT, check: bool = False, committed_only: bool = False) -
         raise SyncError(f".gitignore would hide {', '.join(hidden)}; add a !<path> whitelist line")
     changes = []
     drift = drifted(entries, root)
-    held = uncommitted([e.source for e in drift], root) if committed_only and drift else set()
+    dirty = uncommitted([p for e in drift for p in (e.source, f"web/{e.file}")], root) if drift else set()
     for e in drift:
-        if e.source in held:
+        if f"web/{e.file}" in dirty and not force:
+            changes.append(f"held: web/{e.file} has uncommitted edits; move them into {e.source} "
+                           "(or rerun with --force to discard them)")
+            continue
+        if committed_only and e.source in dirty:
             changes.append(f"held: web/{e.file} not updated, {e.source} has uncommitted edits")
             continue
         changes.append(f"web/{e.file} {'differs from' if (root / 'web' / e.file).exists() else 'missing, copy of'} {e.source}")
@@ -169,9 +175,11 @@ def main() -> int:
     ap.add_argument("--check", action="store_true", help="report only; exit 1 if anything is out of sync")
     ap.add_argument("--committed-only", action="store_true",
                     help="leave a web/ copy alone when its source has uncommitted edits (for automatic runs)")
+    ap.add_argument("--force", action="store_true",
+                    help="overwrite web/ copies even when they carry uncommitted edits")
     args = ap.parse_args()
     try:
-        changes = sync(check=args.check, committed_only=args.committed_only)
+        changes = sync(check=args.check, committed_only=args.committed_only, force=args.force)
     except SyncError as e:
         print(f"sync_databases: {e}", file=sys.stderr)
         return 1

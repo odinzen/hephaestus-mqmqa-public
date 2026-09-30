@@ -130,11 +130,11 @@
    "shelf": "in_progress",
    "blurb": "Ga-In-Sn liquid metal with antimony, for growing (Ga,In)Sb semiconductor crystals from low-melting melts.",
    "stage": 2,
-   "stage_label": "Model fitted, write-up in progress",
+   "stage_label": "Model drafted",
    "papers": 0,
    "measurements": 0,
    "phase_equilibria": 0,
-   "stage_source": "hand"
+   "stage_source": "records"
   },
   {
    "id": "cu-o",

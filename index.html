@@ -332,11 +332,13 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <label class="filebtn">Choose a .dat or .tdb file
         <input type="file" id="file" accept=".dat,.DAT,.tdb,.TDB,.utdb,.UTDB,.xtdb,.XTDB,text/plain">
       </label>
-      <button class="filebtn ghost" id="example" type="button">Load the open slag database</button>
-      <button class="filebtn ghost" id="example-salt" type="button">Load the open salt database</button>
-      <button class="filebtn ghost" id="example-alloy" type="button">Load the open alloy TDB</button>
-      <button class="filebtn ghost" id="example-unified" type="button">Al recycling demo (alloy + salt flux, .utdb)</button>
-      <button class="filebtn ghost" id="example-steel" type="button">Steelmaking demo (steel + slag, .utdb)</button>
+      <!-- shipped-databases:load (generated from data/databases.toml by scripts/sync_databases.py) -->
+      <button class="filebtn ghost" id="example" type="button" data-shipped="FeO-MgO-SiO2-combined.dat">Load the open slag database</button>
+      <button class="filebtn ghost" id="example-salt" type="button" data-shipped="LiCl-KCl.dat">Load the open salt database</button>
+      <button class="filebtn ghost" id="example-alloy" type="button" data-shipped="AlZn.tdb">Load the open alloy TDB</button>
+      <button class="filebtn ghost" id="example-unified" type="button" data-shipped="AlZn-NaClKClMgCl2.utdb">Al recycling demo (alloy + salt flux, .utdb)</button>
+      <button class="filebtn ghost" id="example-steel" type="button" data-shipped="FeC-FeOMgOSiO2.utdb">Steelmaking demo (steel + slag, .utdb)</button>
+      <!-- /shipped-databases:load -->
       <span id="loadmsg" class="muted">No database loaded yet.</span>
     </div>
     <div class="row rnote-row" id="rnote-row" hidden>
@@ -751,8 +753,10 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <label class="filebtn">Choose an .xtdb file
         <input type="file" id="xtdb-file" accept=".xtdb,.XTDB,text/xml,application/xml">
       </label>
-      <button class="filebtn ghost" id="xtdb-alc" type="button">Al&ndash;C example (3rd-gen, .xtdb)</button>
-      <button class="filebtn ghost" id="xtdb-pbsn" type="button">Pb&ndash;Sn example (classic, .xtdb)</button>
+      <!-- shipped-databases:xtdb (generated from data/databases.toml by scripts/sync_databases.py) -->
+      <button class="filebtn ghost" id="xtdb-alc" type="button" data-shipped-xtdb="AlC.xtdb">Al–C example (3rd-gen, .xtdb)</button>
+      <button class="filebtn ghost" id="xtdb-pbsn" type="button" data-shipped-xtdb="PbSn.xtdb">Pb–Sn example (classic, .xtdb)</button>
+      <!-- /shipped-databases:xtdb -->
       <span id="xtdb-msg" class="muted">Al&ndash;C is the third-generation assessment of He et&nbsp;al. (2021); Pb&ndash;Sn is a classic assessment written in the XTDB format.</span>
     </div>
     <div class="row rnote-row" id="xtdb-rnote-row" hidden>
@@ -1156,11 +1160,9 @@ document.querySelectorAll('#xtdb-saveas-row [data-fmt]').forEach(b => b.addEvent
   if (window._xtdbHandle) saveConverted('xtdb_write_', window._xtdbHandle, window._xtdbName || 'database',
                                         b.dataset.fmt, api.xtdbErr, document.getElementById('xtdb-saveas-msg'));
 }));
-document.getElementById('example').addEventListener('click', () => loadShipped('FeO-MgO-SiO2-combined.dat'));
-document.getElementById('example-salt').addEventListener('click', () => loadShipped('LiCl-KCl.dat'));
-document.getElementById('example-alloy').addEventListener('click', () => loadShipped('AlZn.tdb'));
-document.getElementById('example-unified').addEventListener('click', () => loadShipped('AlZn-NaClKClMgCl2.utdb'));
-document.getElementById('example-steel').addEventListener('click', () => loadShipped('FeC-FeOMgOSiO2.utdb'));
+// The load buttons are generated from data/databases.toml; each names its file in data-shipped.
+document.querySelectorAll('[data-shipped]').forEach(b =>
+  b.addEventListener('click', () => loadShipped(b.dataset.shipped)));
 
 function loadDatabase(text, name) {
   const M = api.M;
@@ -4337,8 +4339,8 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     try { loadXtdb(await (await fetch('./'+file)).text(), file, false); }   // shipped demo: do not pin
     catch(e){ msg.textContent='Could not load '+file+' next to this page.'; }
   }
-  document.getElementById('xtdb-alc').addEventListener('click', ()=>loadShippedXtdb('AlC.xtdb'));
-  document.getElementById('xtdb-pbsn').addEventListener('click', ()=>loadShippedXtdb('PbSn.xtdb'));
+  document.querySelectorAll('[data-shipped-xtdb]').forEach(b =>
+    b.addEventListener('click', ()=>loadShippedXtdb(b.dataset.shippedXtdb)));
   document.getElementById('xtdb-file').addEventListener('change', async e=>{
     const f=e.target.files[0]; if(!f) return; loadXtdb(await f.text(), f.name);
   });

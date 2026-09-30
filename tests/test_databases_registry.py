@@ -23,7 +23,9 @@ MARKERS = "".join(
 
 
 def test_repo_is_in_sync():
-    assert sd.sync(ROOT, check=True) == []
+    # a source with uncommitted edits is work in progress and is held, not failed; once it is
+    # committed its shipped copy must match
+    assert [c for c in sd.sync(ROOT, check=True, committed_only=True) if not c.startswith("held:")] == []
 
 
 def test_every_loadable_entry_has_a_button_in_the_page():

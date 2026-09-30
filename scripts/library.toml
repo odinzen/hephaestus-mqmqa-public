@@ -103,10 +103,6 @@ id = "ga-in-sn-sb"
 title = "Ga-In-Sn-Sb"
 kind = "alloy"
 shelf = "in_progress"
-source = "outside_workspace"
-stage = 2
-stage_label = "Model fitted, write-up in progress"
-evidence = "gainsn-assessment repo (quaternary assembly 2026-09-08) and publications ledger row 2"
 blurb = "Ga-In-Sn liquid metal with antimony, for growing (Ga,In)Sb semiconductor crystals from low-melting melts."
 
 [[system]]

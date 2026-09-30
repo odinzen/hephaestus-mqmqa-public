@@ -895,8 +895,9 @@ static int setup_liquid(vis3d_hull *h, int p)
 }
 
 /* A CEF phase qualifies when every constituent is a system element, one sublattice
- * mixes two cations and the others hold one constituent each (the line phases the
- * existing ternary sections sample). *skip is set for a phase outside the system. */
+ * mixes two cations (or two sublattices mix the same two, an M1/M2 ordering phase taken
+ * at internal equilibrium) and the others hold one constituent each: the line phases the
+ * ternary sections sample. *skip is set for a phase outside the system. */
 static int setup_cef(vis3d_hull *h, int p, Slot *s, int *skip)
 {
     const mqmqa_db *db = h->db;
@@ -922,8 +923,8 @@ static int setup_cef(vis3d_hull *h, int p, Slot *s, int *skip)
         else if (nc[k] != 1) nmix += 2;
         ncon += nc[k];
     }
-    if (nmix > 1) {
-        mqmqa_db_set_error("vis3d: CEF phase %s mixes on more than one sublattice or more "
+    if (nmix > 2 || (nmix == 2 && !isfinite(mqmqa_ph_cef_line_gibbs(db, p, 0.5, h->T, 0, NULL)))) {
+        mqmqa_db_set_error("vis3d: CEF phase %s mixes more than one cation pair or more "
                            "than two constituents; only line solutions are sampled",
                            mqmqa_db_phase_name(db, p));
         return -2;
@@ -933,15 +934,18 @@ static int setup_cef(vis3d_hull *h, int p, Slot *s, int *skip)
     s->Y = malloc((size_t)ncon * sizeof(double));
     if (!s->Y) { mqmqa_db_set_error("vis3d: out of memory"); return -5; }
     for (int i = 0; i < ncon; ++i) s->Y[i] = 1.0;
-    /* composition at both ends of the line */
+    /* composition at both ends of the line (the site fractions the line sampler uses) */
     for (int end = 0; end < 2; ++end) {
         double mol[3] = {0, 0, 0}, cat = 0.0;
+        if (!isfinite(mqmqa_ph_cef_line_gibbs(db, p, end ? 1.0 : 0.0, h->T, 0, s->Y))) {
+            mqmqa_db_set_error("vis3d: %s has no finite Gibbs energy at the end of its line, "
+                               "T = %.2f K", mqmqa_db_phase_name(db, p), h->T);
+            return -4;
+        }
         int flat = 0;
         for (int k = 0; k < nsub; ++k)
             for (int c = 0; c < nc[k]; ++c, ++flat) {
-                double y = 1.0;
-                if (flat == mix) y = end ? 0.0 : 1.0;
-                else if (mix >= 0 && flat == mix + 1) y = end ? 1.0 : 0.0;
+                double y = s->Y[flat];
                 char sym[NAME_MAX]; el_of(mqmqa_ph_cef_constituent(db, p, k, c), sym);
                 int w = in_system(h, sym);
                 if (w < 3) { mol[w] += sr[k] * y; cat += sr[k] * y; }
@@ -1020,8 +1024,7 @@ static int cef_point(vis3d_hull *h, int k, double y)
 {
     Slot *s = &h->slot[k];
     if (y < 0) y = 0; if (y > 1) y = 1;
-    if (s->mix0 >= 0) { s->Y[s->mix0] = 1.0 - y; s->Y[s->mix0 + 1] = y; }
-    double g = mqmqa_ph_cef_gibbs(h->db, s->index, s->Y, h->T, 0);
+    double g = mqmqa_ph_cef_line_gibbs(h->db, s->index, y, h->T, 0, s->Y);
     if (!isfinite(g)) {
         mqmqa_db_set_error("vis3d: %s has no finite Gibbs energy at y = %.6f, T = %.2f K",
                            s->name, y, h->T);
@@ -2419,8 +2422,7 @@ static int in_face(double s2, double s3, int face)
 static double cef_g_at(Lq *q, int k, double y, double T)
 {
     Slot *s = &q->sys->slot[k];
-    if (s->mix0 >= 0) { s->Y[s->mix0] = 1.0 - y; s->Y[s->mix0 + 1] = y; }
-    return mqmqa_ph_cef_gibbs(q->db, s->index, s->Y, T, 0) / s->cat_mol;
+    return mqmqa_ph_cef_line_gibbs(q->db, s->index, y, T, 0, s->Y) / s->cat_mol;
 }
 
 /* The smallest driving force over the solids (or of solid `only`) against plane p at T,
@@ -3057,8 +3059,7 @@ int vis3d_gibbs_surfaces(const mqmqa_db *db, const char *const *phases, int n_ph
             double prev[2] = {0, 0}, tprev = 0;
             for (int t = 0; t <= m && !rc; ++t) {
                 double y = (double)t / m;
-                s->Y[s->mix0] = 1.0 - y; s->Y[s->mix0 + 1] = y;
-                double g = mqmqa_ph_cef_gibbs(db, s->index, s->Y, T, 0) / s->cat_mol;
+                double g = mqmqa_ph_cef_line_gibbs(db, s->index, y, T, 0, s->Y) / s->cat_mol;
                 double p[2] = {s->p0[0] + y * (s->p1[0] - s->p0[0]), s->p0[1] + y * (s->p1[1] - s->p0[1])};
                 double r;
                 if ((rc = gs_ref(h, relative, gc, p[0], p[1], NAN, &r))) break;

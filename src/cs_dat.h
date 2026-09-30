@@ -127,6 +127,12 @@ MQMQA_API int mqmqa_ph_cef_num_constituents(const mqmqa_db *db, int p);
 MQMQA_API const char *mqmqa_ph_cef_constituent(const mqmqa_db *db, int p, int s, int i);
 MQMQA_API double mqmqa_ph_cef_gibbs(const mqmqa_db *db, int p, const double *Y,
                                     double T, int per_mole_atoms);
+/* Gibbs energy along a CEF phase's composition line (y = site-weighted fraction of the
+ * second constituent over its mixing sublattices). Two sublattices mixing the same pair
+ * are taken at internal equilibrium (minimum over the site distribution); Y_out, when not
+ * NULL, receives the site fractions. NaN (error set) for any other layout. */
+MQMQA_API double mqmqa_ph_cef_line_gibbs(const mqmqa_db *db, int p, double y, double T,
+                                         int per_mole_atoms, double *Y_out);
 
 /* --- Stoichiometric compounds (solid oxides etc., for later equilibrium) --- */
 MQMQA_API int mqmqa_db_num_stoich(const mqmqa_db *db);
@@ -177,7 +183,8 @@ MQMQA_API double mqmqa_equilibrate_db(const mqmqa_db *db, int phase, double T,
  * phase tags to phase_out (>=0 a database phase index; <0 the compound -(j+1)) and
  * their molar amounts to amt_out; *gm_out is the Gibbs energy per mole cation.
  * Returns the number of stable phases, or negative on failure (-3 when the liquid's
- * excess is refused, with the reason in mqmqa_db_error()). */
+ * excess is refused, -4 when a CEF phase is not a line solution; the reason is in
+ * mqmqa_db_error()). */
 MQMQA_API int mqmqa_equilibrium_ternary(const mqmqa_db *db, int liq_phase,
                                         const int *cef_phases, int n_cef, double T,
                                         int nliq, int ncef, int elem_a, int elem_b,

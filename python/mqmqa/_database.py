@@ -5,6 +5,7 @@ accessors and frees it on garbage collection. Names come back uppercased, as the
 reader uppercases the file to match pycalphad.
 """
 
+import numbers
 import os
 
 from ._abi import _ffi, _lib, _GasConstantInfo
@@ -81,16 +82,31 @@ class Database(_GasConstantInfo):
     def phase_index(self, name):
         return _lib.mqmqa_db_phase_index(self._db, name.encode())
 
+    def _phase(self, p, cef=False):
+        """p checked as a phase index of this database (a CEF one when cef is set): the C
+        accessors index without checking, so a -1 from phase_index would read outside
+        the phase table."""
+        n = _lib.mqmqa_db_num_phases(self._db)
+        if not isinstance(p, numbers.Integral) or not 0 <= p < n:
+            raise IndexError(f"{self.source or 'database'} has no phase {p!r} ({n} phases; "
+                             "phase_index gives -1 for a name not in the file)")
+        if cef and _lib.mqmqa_db_phase_kind(self._db, p) != 1:
+            raise ValueError(f"phase {p} of {self.source or 'database'} is not a CEF phase")
+        return int(p)
+
     def is_subq(self, p):
+        p = self._phase(p)
         return _lib.mqmqa_db_phase_is_subq(self._db, p)
 
     def cations(self, p):
+        p = self._phase(p)
         n = _lib.mqmqa_ph_num_cations(self._db, p)
         return [dict(name=_s(_lib.mqmqa_ph_cation(self._db, p, i)),
                      charge=_lib.mqmqa_ph_cation_charge(self._db, p, i),
                      group=_lib.mqmqa_ph_cation_group(self._db, p, i)) for i in range(n)]
 
     def anions(self, p):
+        p = self._phase(p)
         n = _lib.mqmqa_ph_num_anions(self._db, p)
         return [dict(name=_s(_lib.mqmqa_ph_anion(self._db, p, k)),
                      charge=_lib.mqmqa_ph_anion_charge(self._db, p, k),
@@ -99,6 +115,7 @@ class Database(_GasConstantInfo):
     def pairs(self, p, T):
         """Pair (MQMG) data: 0-based cation/anion indices, cation stoichiometry,
         zeta, and Gibbs energy evaluated at T. Lists are aligned by pair."""
+        p = self._phase(p)
         n = _lib.mqmqa_ph_num_pairs(self._db, p)
         cat = _ffi.new("int[]", n)
         an = _ffi.new("int[]", n)
@@ -115,6 +132,7 @@ class Database(_GasConstantInfo):
     def mqmz(self, p):
         """Coordination entries, canonicalized (A<=B, X<=Y). Z is flat [n*4],
         ready for mqmqa.coordination."""
+        p = self._phase(p)
         n = _lib.mqmqa_ph_num_mqmz(self._db, p)
         A = _ffi.new("int[]", n)
         B = _ffi.new("int[]", n)
@@ -127,6 +145,7 @@ class Database(_GasConstantInfo):
     def mqmx(self, p, T):
         """Excess (MQMX) parameters with L evaluated at T. mix: 0 cation, 1
         anion, -1 other. code: 0 Q, 1 G, 2 B, 3 R."""
+        p = self._phase(p)
         n = _lib.mqmqa_ph_num_mqmx(self._db, p)
         arrs = {k: _ffi.new("int[]", n) for k in ("mix", "code", "A", "B", "X", "Y", "p", "q")}
         L = _ffi.new("double[]", n)
@@ -142,17 +161,20 @@ class Database(_GasConstantInfo):
     def excess_unsupported(self, p):
         """Why the engine refuses MQMQA phase p's excess (the phase and the first term it
         cannot evaluate), or None when every term is evaluated."""
+        p = self._phase(p)
         return _s(_lib.mqmqa_ph_excess_unsupported(self._db, p))
 
     # --- CEF (SUBL) solution phases ---
     def phase_kind(self, p):
         """0 for MQMQA (SUBQ/SUBG), 1 for CEF (SUBL)."""
+        p = self._phase(p)
         return _lib.mqmqa_db_phase_kind(self._db, p)
 
     def cef_sublattices(self, p):
         """The CEF sublattice model: a list of dicts, one per sublattice, each with
         the site multiplicity and its constituent names (in the reader's order, which
         is the order site fractions are supplied to cef_gibbs)."""
+        p = self._phase(p, cef=True)
         n_subl = _lib.mqmqa_ph_cef_num_subl(self._db, p)
         ncon = _ffi.new("int[]", n_subl)
         site = _ffi.new("double[]", n_subl)
@@ -166,9 +188,27 @@ class Database(_GasConstantInfo):
     def cef_gibbs(self, p, Y, T, per_mole_atoms=True):
         """Molar Gibbs energy of a CEF phase at site fractions Y (flattened by
         sublattice, in the order cef_sublattices reports) and temperature T."""
+        p = self._phase(p, cef=True)
         flat = [float(v) for v in Y]
+        n = _lib.mqmqa_ph_cef_num_constituents(self._db, p)
+        if len(flat) != n:
+            raise ValueError(f"phase {p} takes {n} site fractions, got {len(flat)}")
         Yc = _ffi.new("double[]", flat)
         return _lib.mqmqa_ph_cef_gibbs(self._db, p, Yc, float(T), 1 if per_mole_atoms else 0)
+
+    def cef_line_gibbs(self, p, y, T, per_mole_atoms=True):
+        """(G, site fractions) of a CEF phase along its composition line: y is the
+        site-weighted fraction of the second constituent of its first mixing sublattice.
+        Two sublattices mixing the same pair (M1/M2 ordering) are taken at internal
+        equilibrium. Raises for any other layout."""
+        p = self._phase(p, cef=True)
+        n = _lib.mqmqa_ph_cef_num_constituents(self._db, p)
+        Yc = _ffi.new("double[]", max(n, 1))
+        g = _lib.mqmqa_ph_cef_line_gibbs(self._db, p, float(y), float(T),
+                                         1 if per_mole_atoms else 0, Yc)
+        if g != g:
+            raise ValueError(_s(_lib.mqmqa_db_error()) or "cef_line_gibbs failed")
+        return g, [Yc[i] for i in range(n)]
 
     @property
     def stoich(self):

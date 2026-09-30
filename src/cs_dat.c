@@ -1270,6 +1270,102 @@ double mqmqa_ph_cef_gibbs(const mqmqa_db *db, int p, const double *Y, double T,
     return g;
 }
 
+#define LINE_GRID 32
+#define LINE_GOLDEN_ITERS 90
+
+/* Site fractions for the first mixing sublattice at u = Y(B) there and the rest from the
+ * line constraint; every other sublattice pinned at 1. */
+static void line_fill(const SublPhase *cf, const int *mixs, const int *bidx, int nmix,
+                      double y, double u, double *Y)
+{
+    double R = 0.0;
+    for (int m = 0; m < nmix; ++m) R += cf->site_ratio[mixs[m]];
+    for (int s = 0; s < cf->n_subl; ++s)
+        for (int i = 0; i < cf->subl_ncon[s]; ++i) Y[cf->subl_off[s] + i] = 1.0;
+    double yb[2];
+    yb[0] = u;
+    if (nmix == 2) {
+        double v = (y * R - cf->site_ratio[mixs[0]] * u) / cf->site_ratio[mixs[1]];
+        yb[1] = v < 0.0 ? 0.0 : (v > 1.0 ? 1.0 : v);
+    }
+    for (int m = 0; m < nmix; ++m) {
+        int off = cf->subl_off[mixs[m]];
+        Y[off + bidx[m]] = yb[m];
+        Y[off + 1 - bidx[m]] = 1.0 - yb[m];
+    }
+}
+
+/* A CEF "line" phase at y, the site-weighted fraction of constituent B (the second
+ * constituent of the first mixing sublattice) over its mixing sublattices. With one
+ * mixing sublattice this is exactly mqmqa_ph_cef_gibbs at Y = (1-y, y). With two that mix
+ * the same pair (an M1/M2 ordering phase such as orthopyroxene), G is minimized over how
+ * B divides between them at fixed y: the phase is taken at internal equilibrium, as
+ * pycalphad treats it. The minimizing site fractions go to Y_out when it is not NULL.
+ * NaN, with the error set, for any other layout. */
+double mqmqa_ph_cef_line_gibbs(const mqmqa_db *db, int p, double y, double T,
+                               int per_mole_atoms, double *Y_out)
+{
+    const Db *d = (const Db *)db;
+    if (p < 0 || p >= d->n_phases || !d->phases[p].cef) return NAN;
+    const SublPhase *cf = d->phases[p].cef;
+    int mixs[2], bidx[2], nmix = 0;
+    const char *A = NULL, *B = NULL;
+    for (int s = 0; s < cf->n_subl; ++s) {
+        int nc = cf->subl_ncon[s];
+        if (nc == 1) continue;
+        const char *c0 = cf->con_name[cf->subl_off[s]], *c1 = cf->con_name[cf->subl_off[s] + 1];
+        if (nc != 2 || nmix == 2) {
+            mqmqa_db_set_error("%s: only one binary mixing sublattice, or two mixing the same "
+                               "pair, can be sampled along a line", d->phases[p].name);
+            return NAN;
+        }
+        if (nmix == 0) { A = c0; B = c1; bidx[0] = 1; }
+        else if (!strcmp(c0, A) && !strcmp(c1, B)) bidx[1] = 1;
+        else if (!strcmp(c0, B) && !strcmp(c1, A)) bidx[1] = 0;
+        else {
+            mqmqa_db_set_error("%s: its two mixing sublattices hold different pairs",
+                               d->phases[p].name);
+            return NAN;
+        }
+        mixs[nmix++] = s;
+    }
+    if (y < 0.0) y = 0.0;
+    if (y > 1.0) y = 1.0;
+    double *Y = malloc((size_t)cf->n_con * sizeof(double));
+    if (!Y) return NAN;
+    double g;
+    if (nmix < 2) {
+        line_fill(cf, mixs, bidx, nmix, y, y, Y);
+        g = mqmqa_ph_cef_gibbs(db, p, Y, T, per_mole_atoms);
+    } else {
+        double r0 = cf->site_ratio[mixs[0]], r1 = cf->site_ratio[mixs[1]], R = r0 + r1;
+        double lo = fmax(0.0, (y * R - r1) / r0), hi = fmin(1.0, y * R / r0);
+        #define G_AT(u) (line_fill(cf, mixs, bidx, nmix, y, (u), Y), \
+                         mqmqa_ph_cef_gibbs(db, p, Y, T, per_mole_atoms))
+        double best_u = lo, best_g = G_AT(lo);
+        for (int k = 1; k <= LINE_GRID; ++k) {
+            double u = lo + (hi - lo) * k / LINE_GRID, gu = G_AT(u);
+            if (gu < best_g) { best_g = gu; best_u = u; }
+        }
+        /* golden section on the grid cell either side of the best node */
+        double step = (hi - lo) / LINE_GRID;
+        double a = fmax(lo, best_u - step), b = fmin(hi, best_u + step);
+        const double r = 0.6180339887498949;
+        double c = b - r * (b - a), e = a + r * (b - a), gc = G_AT(c), ge = G_AT(e);
+        for (int it = 0; it < LINE_GOLDEN_ITERS && b - a > 1e-15; ++it) {
+            if (gc < ge) { b = e; e = c; ge = gc; c = b - r * (b - a); gc = G_AT(c); }
+            else         { a = c; c = e; gc = ge; e = a + r * (b - a); ge = G_AT(e); }
+        }
+        double um = gc < ge ? c : e;
+        if (!(fmin(gc, ge) < best_g)) um = best_u;
+        g = G_AT(um);           /* leaves Y at the minimum */
+        #undef G_AT
+    }
+    if (Y_out) memcpy(Y_out, Y, (size_t)cf->n_con * sizeof(double));
+    free(Y);
+    return g;
+}
+
 int mqmqa_db_num_stoich(const mqmqa_db *db) { return ((const Db *)db)->n_stoich; }
 const char *mqmqa_db_stoich_name(const mqmqa_db *db, int i) { return ((const Db *)db)->stoich[i].name; }
 void mqmqa_db_stoich_elems(const mqmqa_db *db, int i, double *out)

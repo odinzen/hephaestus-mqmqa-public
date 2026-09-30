@@ -154,8 +154,9 @@ def cef_line_points(cdb, phase, T, x_si_line, n_cations, n=61):
     p = cdb.phase_index(phase) if isinstance(phase, str) else phase
     pts = []
     for xFe in np.linspace(1e-4, 1 - 1e-4, n):
-        y = [xFe, 1.0 - xFe, 1.0, 1.0]  # reader order [Fe, Mg], Si, O
-        g_formula = cdb.cef_gibbs(p, y, T, per_mole_atoms=False)
+        # line parameter = Mg fraction (reader order [Fe, Mg]); a two-site phase comes back
+        # at its internal order equilibrium, with its site fractions
+        g_formula, y = cdb.cef_line_gibbs(p, 1.0 - xFe, T, per_mole_atoms=False)
         g_cat = g_formula / n_cations
         # cation fractions: metals total (n_cations - n_si), Si = n_si
         n_si = x_si_line * n_cations

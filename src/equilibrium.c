@@ -119,25 +119,25 @@ int mqmqa_equilibrium_ternary_ex(const mqmqa_db *db, int liq_phase,
             if (isfinite(g)) cand_add(&C, fa, fb, g, liq_phase);
         }
 
-    /* ---- CEF solid solutions: sample the single binary mixing sublattice ---- */
-    for (int p = 0; p < n_cef; ++p) {
+    /* ---- CEF solid solutions: sample each composition line (an M1/M2 ordering
+     * phase at its internal equilibrium, see mqmqa_ph_cef_line_gibbs) ---- */
+    int cef_bad = 0;
+    for (int p = 0; p < n_cef && !cef_bad; ++p) {
         int ph = cef_phases[p];
         int nsub = mqmqa_ph_cef_num_subl(db, ph);
         int *nc = malloc((size_t)nsub*sizeof(int));
         double *sr = malloc((size_t)nsub*sizeof(double));
         mqmqa_ph_cef_subl_ncon(db, ph, nc);
         mqmqa_ph_cef_site_ratio(db, ph, sr);
-        int ntot = 0, mix = -1;
-        for (int s = 0; s < nsub; ++s) { ntot += nc[s]; if (nc[s]==2 && mix<0) mix = s; }
+        int ntot = 0, mixing = 0;
+        for (int s = 0; s < nsub; ++s) { ntot += nc[s]; if (nc[s] > 1) mixing = 1; }
         double *Y = malloc((size_t)ntot*sizeof(double));
-        int samples = (mix >= 0) ? ncef : 1;
+        int samples = mixing ? ncef : 1;
         for (int t = 0; t <= samples; ++t) {
-            double yb = (mix >= 0) ? (double)t/samples : 0.0;
-            int flat = 0;
-            for (int s = 0; s < nsub; ++s)
-                for (int ci = 0; ci < nc[s]; ++ci)
-                    Y[flat++] = (nc[s]==1) ? 1.0 : (ci==0 ? 1.0-yb : yb);
-            double ma=0, mb=0, catmol=0; flat=0;
+            double yb = mixing ? (double)t/samples : 0.0;
+            double gf = mqmqa_ph_cef_line_gibbs(db, ph, yb, T, 0, Y);
+            if (!isfinite(gf)) { cef_bad = 1; break; }
+            double ma=0, mb=0, catmol=0; int flat=0;
             for (int s = 0; s < nsub; ++s)
                 for (int ci = 0; ci < nc[s]; ++ci, ++flat) {
                     char sym[ELEN]; el_of(mqmqa_ph_cef_constituent(db, ph, s, ci), sym);
@@ -146,13 +146,15 @@ int mqmqa_equilibrium_ternary_ex(const mqmqa_db *db, int liq_phase,
                     if (!strcmp(sym, L.ea)) ma += m;
                     if (!strcmp(sym, L.eb)) mb += m;
                 }
-            if (catmol > 0) {
-                double gf = mqmqa_ph_cef_gibbs(db, ph, Y, T, 0);
-                cand_add(&C, ma/catmol, mb/catmol, gf/catmol, ph);
-            }
-            if (mix < 0) break;
+            if (catmol > 0) cand_add(&C, ma/catmol, mb/catmol, gf/catmol, ph);
+            if (!mixing) break;
         }
         free(nc); free(sr); free(Y);
+    }
+    if (cef_bad) {
+        free(C.xyz); free(C.tag);
+        free(L.cat_sym); free(L.cat_q); free(L.tgt); free(L.Xout);
+        return -4;
     }
 
     /* ---- stoichiometric compounds (respecting the suspend mask) ---- */

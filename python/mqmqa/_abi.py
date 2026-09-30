@@ -151,6 +151,8 @@ _ffi.cdef(
     const char *mqmqa_ph_cef_constituent(const void *db, int p, int s, int i);
     double mqmqa_ph_cef_gibbs(const void *db, int p, const double *Y,
                               double T, int per_mole_atoms);
+    double mqmqa_ph_cef_line_gibbs(const void *db, int p, double y, double T,
+                                   int per_mole_atoms, double *Y_out);
 
     double mqmqa_cef_gibbs(
         double T, int n_subl,

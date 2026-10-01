@@ -311,8 +311,8 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
         <h1>hephaestus-mqmqa</h1>
       </div>
       <p class="tag">The user-friendly, multilingual calculator for thermodynamic databases:
-         slags, salts, and alloys, speaking ChemSage .dat, Thermo-Calc .tdb, and the unified
-         .utdb. No code to write and nothing to install: pick a database, click the
+         slags, salts, and alloys, speaking ChemSage .dat, Thermo-Calc .tdb, the unified
+         .utdb, and the XML .xtdb. No code to write and nothing to install: pick a database, click the
          diagram, read the numbers. Everything runs in your browser; nothing is uploaded.</p>
     </div>
     <button class="theme-toggle" id="tunit-toggle" type="button"
@@ -334,7 +334,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
   <div class="card">
     <h2>1 &middot; Load a thermodynamic database</h2>
     <div class="row">
-      <label class="filebtn">Choose a .dat or .tdb file
+      <label class="filebtn">Choose a .dat, .tdb, .utdb, or .xtdb file
         <input type="file" id="file" accept=".dat,.DAT,.tdb,.TDB,.utdb,.UTDB,.xtdb,.XTDB,text/plain">
       </label>
       <!-- shipped-databases:load (generated from data/databases.toml by scripts/sync_databases.py) -->
@@ -372,7 +372,9 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       solid-solution systems). The <b>.utdb</b> unified dialect, a documented open extension of
       TDB (<a href="https://github.com/odinzen/hephaestus-mqmqa-public/blob/main/docs/UNIFIED_TDB_SPEC.md">open specification</a>),
       holds both at once: one file can carry an alloy, a slag, and a salt together (see the
-      recycling and steelmaking demos). Every shipped system's sources, modeling judgments,
+      recycling and steelmaking demos). The open XML <b>.xtdb</b> format (Sundman et al.,
+      Calphad 90 (2025) 102849) loads here too and opens in the third-generation card below.
+      Every shipped system's sources, modeling judgments,
       and known limits are in its PROVENANCE file in the
       <a href="https://github.com/odinzen/hephaestus-mqmqa-public/tree/main/data">open data directory</a>;
       code and databases live in the

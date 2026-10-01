@@ -88,6 +88,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
   .rnote-row { margin-top:.45rem; gap:.4rem; align-items:center; }
   .rnote-row[hidden] { display:none; }
   .rdecl-opt { position:relative; }
+  .rdecl-lab { margin-right:.6rem; }
   .rdecl-opt .tip { left:0; bottom:calc(100% + .45rem); }
   .rnote-box { margin-top:.75rem; padding:.55rem .7rem; background:var(--field);
                border:1px solid var(--line); border-radius:8px; }
@@ -346,6 +347,8 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <button class="filebtn ghost" id="example-alzn-licl" type="button" data-shipped="AlZn-LiClKCl.utdb">Al-Zn + LiCl-KCl demo (alloy + salt, .utdb)</button>
       <button class="filebtn ghost" id="example-steel" type="button" data-shipped="FeC-FeOMgOSiO2.utdb">Steelmaking demo (steel + slag, .utdb)</button>
       <!-- /shipped-databases:load -->
+      <button class="filebtn ghost more" id="more-dbs" type="button"
+              title="Open the database library: what ships, what is being assessed, and what is on the list">More&hellip;</button>
       <span id="loadmsg" class="muted">No database loaded yet.</span>
     </div>
     <div class="rnote-box" id="rnote-row" hidden>
@@ -893,7 +896,7 @@ window.renderRNote = (row, noteEl, declEl, handle, noteFn, srcFn, ownFn, declare
   const src = srcFn(handle);
   if (src === 0) return;
   const lab = document.createElement('span');
-  lab.className = 'muted'; lab.textContent = 'Declare the R it was assessed with:';
+  lab.className = 'muted rdecl-lab'; lab.textContent = 'Declare the R it was assessed with:';
   declEl.appendChild(lab);
   R_CHOICES.forEach((c, i) => {
     const b = rOption('seg-btn rdecl-opt', c.label, R_DECLARE_TIPS[i]);
@@ -1093,9 +1096,9 @@ function escHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<'
 function renderUploadedButtons(){
   document.querySelectorAll('.filebtn.uploaded').forEach(b => b.remove());
   // Anchor after the LAST built-in button in the load row, so session uploads always pin last
-  // (never ahead of the shipped examples), whatever the built-in set is.
+  // (never ahead of the shipped examples), whatever the built-in set is. "More..." stays last.
   const builtins = [...document.getElementById('example-steel').parentElement
-    .querySelectorAll('.filebtn:not(.uploaded)')];
+    .querySelectorAll('.filebtn:not(.uploaded):not(.more)')];
   let anchor = builtins[builtins.length - 1] || document.getElementById('example-steel');
   uploadedDBs.forEach((u, i) => {
     const btn = document.createElement('button');
@@ -2765,10 +2768,12 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
 (function(){ const box=document.getElementById('dbmenu'), btn=document.getElementById('dbmenu-toggle'),
       menu=document.getElementById('dbmenu-menu'); if(!box) return;
   const open = on => { box.classList.toggle('open', on); btn.setAttribute('aria-expanded', on); };
+  const openLibrary = () => { const w = window.open('library.html', 'hmqmqa-library', 'width=1180,height=860');
+                              if (w) w.focus(); else window.location.href = 'library.html'; };
+  document.getElementById('more-dbs')?.addEventListener('click', openLibrary);
   const items = [
     ['Database library', 'What ships today, what is being assessed from the literature, and what is on the list. Opens in its own window.',
-     () => { const w = window.open('library.html', 'hmqmqa-library', 'width=1180,height=860');
-             if (w) w.focus(); else window.location.href = 'library.html'; }],
+     openLibrary],
     ['Request a database', 'How to send the published papers for a system the library does not cover yet.',
      () => document.getElementById('litcard').scrollIntoView({ block:'start' })],
   ];

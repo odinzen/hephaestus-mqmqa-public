@@ -89,6 +89,11 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
   .rnote-row[hidden] { display:none; }
   .rdecl-opt { position:relative; }
   .rdecl-opt .tip { left:0; bottom:calc(100% + .45rem); }
+  .rnote-box { margin-top:.75rem; padding:.55rem .7rem; background:var(--field);
+               border:1px solid var(--line); border-radius:8px; }
+  .rnote-box[hidden] { display:none; }
+  .rnote-head { display:block; font-size:var(--fs-xs); font-weight:600;
+                color:var(--muted); letter-spacing:.02em; margin-bottom:.4rem; }
 
   .card { background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
           padding:1.1rem 1.15rem; box-shadow:0 1px 2px var(--shadow); margin:1rem 0; }
@@ -343,11 +348,15 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <!-- /shipped-databases:load -->
       <span id="loadmsg" class="muted">No database loaded yet.</span>
     </div>
-    <div class="row rnote-row" id="rnote-row" hidden>
-      <span id="rnote" class="muted"></span>
-      <span class="rdecl" id="rdecl"></span>
+    <div class="rnote-box" id="rnote-row" hidden>
+      <span class="rnote-head">Gas constant recorded in this file</span>
+      <div class="row" style="gap:.4rem; align-items:center">
+        <span id="rnote" class="muted"></span>
+        <span class="rdecl" id="rdecl"></span>
+      </div>
     </div>
-    <div class="row saveas" id="saveas-row" style="margin-top:.55rem" hidden>
+    <div class="row saveas" id="saveas-row"
+         style="margin-top:.85rem; padding-top:.85rem; border-top:1px solid var(--line)" hidden>
       <span class="muted">Save this database as</span>
       <button class="filebtn ghost" type="button" data-fmt="tdb">.tdb</button>
       <button class="filebtn ghost" type="button" data-fmt="utdb">.utdb</button>
@@ -761,11 +770,15 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <!-- /shipped-databases:xtdb -->
       <span id="xtdb-msg" class="muted">Al&ndash;C is the third-generation assessment of He et&nbsp;al. (2021); Pb&ndash;Sn is a classic assessment written in the XTDB format.</span>
     </div>
-    <div class="row rnote-row" id="xtdb-rnote-row" hidden>
-      <span id="xtdb-rnote" class="muted"></span>
-      <span class="rdecl" id="xtdb-rdecl"></span>
+    <div class="rnote-box" id="xtdb-rnote-row" hidden>
+      <span class="rnote-head">Gas constant recorded in this file</span>
+      <div class="row" style="gap:.4rem; align-items:center">
+        <span id="xtdb-rnote" class="muted"></span>
+        <span class="rdecl" id="xtdb-rdecl"></span>
+      </div>
     </div>
-    <div class="row saveas" id="xtdb-saveas-row" style="margin-top:.55rem" hidden>
+    <div class="row saveas" id="xtdb-saveas-row"
+         style="margin-top:.85rem; padding-top:.85rem; border-top:1px solid var(--line)" hidden>
       <span class="muted">Save this XTDB database as</span>
       <button class="filebtn ghost" type="button" data-fmt="xtdb">.xtdb</button>
       <button class="filebtn ghost" type="button" data-fmt="tdb">.tdb</button>

@@ -175,6 +175,13 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
   .v3-wrap canvas { display:block; width:100%; cursor:crosshair; touch-action:none; }
   .v3-corner { position:absolute; transform:translate(-50%, -140%); pointer-events:none;
     font-weight:600; color:var(--ink); font-size:var(--fs-sm); white-space:nowrap; }
+  .v3-axis { position:absolute; transform:translate(calc(-100% - 14px), -50%); pointer-events:none;
+    color:var(--muted); font-size:var(--fs-xs); white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .v3-axis-title { position:absolute; transform:translate(calc(-50% - 62px), -50%) rotate(-90deg); pointer-events:none;
+    color:var(--muted); font-size:var(--fs-xs); font-weight:600; white-space:nowrap; }
+  #v3-status { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .v3-pin { position:absolute; transform:translate(7px, -125%); pointer-events:none;
+    color:var(--pointer); font-weight:700; font-size:var(--fs-xs); }
   .v3-chip { display:inline-flex; align-items:center; gap:.35rem; cursor:pointer; user-select:none; }
   .v3-chip i { display:inline-block; width:.9rem; height:.9rem; border-radius:3px; }
   .v3-chip.off { opacity:.4; text-decoration:line-through; }
@@ -610,7 +617,8 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       between fields are the eutectic valleys. Drag to turn it; scroll to zoom. The green plane is a
       temperature: drag the slider to move it, release, and the exact isothermal section at that
       temperature is drawn in it. Click any point for the engine's own answer there (its liquidus and
-      the phases present at the plane's temperature); hovering only reads the drawn surface. Click a
+      the phases present at the plane's temperature); each click is numbered on the plot and saved in
+      the list below. Hovering only reads the drawn surface. Click a
       legend entry to hide or show a field. Everything is computed in your browser by the open engine,
       in the background, so the page stays responsive.</p>
     <div class="tern-ctl">
@@ -627,11 +635,11 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <label><input type="checkbox" id="v3-clip"> Cut the surface at the plane</label>
       <button id="v3-go" class="seg-btn on" type="button" style="border-radius:8px">Start the 3D view</button>
     </div>
+    <div class="tern-read" id="v3-status">Press Start; what is running, its time left, and the queue show here.</div>
     <div class="v3-wrap" id="v3-wrap"></div>
-    <div class="tern-read" id="v3-status">Press Start: the engine computes an exact section first
-      (about ten seconds), then the liquidus surface (about a minute), then a finer one.</div>
     <div class="tern-read" id="v3-read"></div>
     <div class="legend" id="v3-legend"></div>
+    <div id="v3-hist" class="calc-hist"></div>
   </div>
 
   <div class="card" id="buildercard">

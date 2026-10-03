@@ -1,35 +1,89 @@
 # FeO-SiO2-liquid.dat provenance
 
-Open FeO-SiO2 liquid-slag MQMQA database, **v0.3 (activity-pinned excess + FeO(l)
-recalibration)**. The Fe-side counterpart of `data/mgo-sio2`, and the second binary the
-FeO-MgO-SiO2 ternary slag needs (for the olivine + orthopyroxene + liquid diagram).
-**Iron-saturated**: all iron is Fe2+ / FeO, no Fe3+ - matching the iron-crucible conditions
-of Bowen & Schairer's phase-equilibrium work, and avoiding redox for now.
+Open FeO-SiO2 liquid-slag MQMQA database, **v0.4 (assessed against the phase diagram and the
+activities together)**. The Fe-side counterpart of `data/mgo-sio2`, and the second binary the
+FeO-MgO-SiO2 ternary slag needs. **Iron-saturated**: all iron is Fe2+ / FeO, no Fe3+ -
+matching the iron-crucible conditions of Bowen & Schairer's phase-equilibrium work.
 
-Built by `build_dat.py` (endmembers) and `v03_fit.py` (excess + calibration); validated by
-`validate.py` (endmembers) and `validate_v03.py` (interior mixing). Run:
+Built by `build_dat.py`, which holds the assessed parameters (`ASSESSED_EXCESS`,
+`FEO_LIQ_BETA`), from `assessment/assess.py` against `assessment/dataset.py`. Run:
 
-    C:/Users/busta/miniforge3/envs/calphad/python.exe data/feo-sio2/validate_v03.py
+    C:/Users/busta/miniforge3/envs/calphad/python.exe data/feo-sio2/assessment/assess.py [--fit] [--write]
 
-## Pure-oxide liquid endmembers (open)
+## Pure-oxide endmembers (open)
 
-| Quantity | FeO | SiO2 | Source | Access |
-|---|---|---|---|---|
-| dHf(298) from elements | -272.044 kJ/mol | -908.4 kJ/mol (cristobalite) | NIST-JANAF (Chase 1998) / R&H 1995 | open |
-| S(298), third law | 60.752 J/mol/K | 43.4 J/mol/K | NIST-JANAF / R&H 1995 | open |
-| Cp(T) solid, Haas-Fisher a,b,c | 50.663, 8.711e-3, -3.134e5 | 72.75, 1.300e-3, -4.132e6 | fit to JANAF FeO(cr) 298-1500 K (max resid 0.35) / R&H | open |
-| Fusion Tm | 1650 K | 1996 K | NIST-JANAF | open |
-| Fusion dHfus | 24.058 kJ/mol | 9.581 kJ/mol | NIST-JANAF | open |
+| Quantity | FeO (iron-saturated wustite) | SiO2 (cristobalite) | Source |
+|---|---|---|---|
+| Solid G(T) | Fe0.947O + 0.053 Fe, per mole O | beta-cristobalite Cp, effective 298 K constants | Robie & Hemingway 1995 p. 190; SGTE Fe (espei) / R&H 1995 |
+| dHf, S298 used (effective) | -266.6125 kJ, 57.126 J/K | -905.5885 kJ, 50.8333 J/K | fitted to the tables, see below |
+| Cp a, b, c | 41.672, 1.540e-2, 1.01017e6 | 72.75, 1.300e-3, -4.132e6 | |
+| Fusion Tm, dHfus | 1650 K, 24.058 kJ | 1996 K, 9.581 kJ | NIST-JANAF (Chase 1998) |
 
-The FeO numbers are the NIST-JANAF (Chase 1998) critically-evaluated values for stoichiometric
-FeO, already digitized in the assessment workspace
-(`assessments/FeO-SiO2/data_tables/paper_nist_janaf__table_JANAF_web_table_Fe-020.csv`); the
-Haas-Fisher Cp is a least-squares fit to the six tabulated FeO(crystal) Cp points (298-1500 K).
-SiO2 is identical to `data/mgo-sio2` (Robie-Hemingway solid, JANAF fusion). Both endmember Gibbs
-energies read back by the engine match a direct H - T*S evaluation to ~1e-7 J/mol, and both
-reproduce their fusion temperatures exactly (dG_fus = 0 at Tm).
+**FeO.** Until 2026-09-29 this was NIST-JANAF stoichiometric FeO, which is 9-10 kJ more stable
+than iron-saturated wustite at 1200-1600 K: at 1200 K it put the iron-wustite oxygen buffer
+at -195.0 kJ against -185.9 kJ from R&H wustite (-185.0 kJ measured). The slags are
+iron-saturated, so the solid is Fe0.947O plus 0.053 Fe per mole of O (R&H 1995 wustite with
+the SGTE GHSERFE iron from `espei.refdata`, its analytic Cp without the small magnetic term).
+A Cp of the a, b, c form is fitted to that sum over 400-1600 K and dHf/S298 are its effective
+298 K constants (G within 53 J of the sum, 600-1600 K). This removed the conflict v0.3 papered
+over with a -69.8 J/K FeO(l) correction.
 
-## v0.3 excess (pinned on measured iron-saturated activities)
+**SiO2.** R&H give the beta-cristobalite Cp; the repository had paired it with the alpha
+298 K values. dHf/S298 are now the effective constants of the beta form (G within 12.6 J of
+the R&H cristobalite table, 600-1800 K); the true 298 K values stay as `dHf_ref`/`S298_ref`
+for formation-from-oxides conversions.
+
+## v0.4 assessment
+
+The solids are the ones the ternaries use: fayalite from `data/olivine/endmembers.py` (R&H),
+wustite and cristobalite as above. The liquid excess and the FeO(l) below-melting slope are
+fitted in one weighted least squares to:
+
+- **Liquidus**: Bowen & Schairer 1932 (Am. J. Sci. 24, 177-213) Table 1, twelve
+  iron-saturated points, total Fe as FeO (sigma 2 K near fayalite, 5 K elsewhere), each also
+  checked for another solid crystallizing first.
+- **Two liquids**: their Fig. 4 (p. 200) draws cristobalite + two liquids at 1690 degC
+  (1963 K) with liquids at 42.8 and 3.0 wt% FeO (x_SiO2 0.615 and 0.975). They could not
+  measure above 1515 degC in iron; the point is Greig's (1927, Am. J. Sci. 14, 479) by a
+  short extrapolation, so it carries sigma 10 K and 0.02 in x. The residual is the model's
+  own three-phase temperature (cristobalite on the two-liquid tangent), not a liquidus read
+  at the measured composition, which inside the model's gap would be metastable.
+- **a(FeO)**: the 23 Bjorkman 1985 points (below). Those below 1644 K are referred to the
+  supercooled iron-saturated melt, so they are fitted up to one offset in ln a (0.24).
+
+Excess (Q terms on (Fe,Si,O,O), chi_Fe^p chi_Si^q): [0,0] -58713.8 + 40.268 T, [1,0]
+-28132.9, [0,3] -24367.9, [0,5] +102533.0 J/mol; FeO(l) below 1650 K: -28.34 (T - 1650)
+J/mol. No [0,1]: in a binary it equals [0,0] minus [1,0] exactly. The [0,5] term is what
+lets the two-liquid field reach its measured temperature (the four-term form put it at
+1883 K); adding a [0,7] improved the cost from 35.7 to 31.2 only with alternating
+coefficients up to 178 kJ, so it was not kept.
+
+| Target | Model | Measured |
+|---|---|---|
+| wustite-fayalite eutectic | 1456 K, x 0.255 | 1450 K |
+| fayalite congruent | 1475 K | 1478 K |
+| fayalite-silica eutectic | 1460 K, x 0.417 | 1451 K |
+| monotectic (silica + two liquids) | 1937 K, liquids 0.536 / 0.958 | 1963 K, 0.615 / 0.975 |
+| a(FeO) | RMS 0.57 sigma (0.03 in ln a) | |
+
+Weighted RMS residual 1.14 over 50 residuals.
+
+### Limits
+
+- The iron-rich limb of the two liquids sits 0.07 in x on the FeO side of Greig's
+  extrapolated value in every form tried; the silica-rich limb and the temperature are close.
+- The two tridymite points at 1533 and 1638 K, 0.013 apart in x, pull in opposite
+  directions (+2 and -5 sigma); the model has one silica phase, cristobalite.
+- The sub-1644 K activity offset and the FeO(l) slope are nuisance-like: both concern the
+  supercooled FeO liquid, which no measurement sees directly.
+- The excess entropy is large (+40.3 J/K on the [0,0] term): the total entropy of mixing at
+  the fayalite composition comes out -4.0 J/K per mole of oxide at 1800 K. A strongly
+  ordered melt can have that, but no measurement here constrains it; it is what reconciles
+  the 2153 K activities with the lower-temperature data and the diagram. Flagged, not
+  tested against.
+
+## History: v0.3 (activity-pinned excess + FeO(l) recalibration)
+
 
 v0.2 fixed the excess depth by scaling the MgO-SiO2 liquid (no FeO-SiO2 activity data were
 digitized then) and reproduced fayalite melting with an **unphysical** `b00 = +78.62 J/mol/K`
@@ -77,7 +131,7 @@ the uncertain supercooled FeO liquid, not the calorimetric solid.
 Result: **`beta = -69.84 J/mol/K`** (FeO(l) destabilized by +12.0 kJ/mol at 1478 K). Fayalite
 melts congruently at exactly 1478 K.
 
-### Honest limits (v0.4 targets)
+### Limits of v0.3 (addressed by v0.4)
 
 - **High-X_FeO systematic.** The measured a(FeO) coefficient turns slightly *positive*
   (a(FeO) > X_FeO by ~5%) for X_FeO > 0.8, while it is strongly negative on the silica-rich

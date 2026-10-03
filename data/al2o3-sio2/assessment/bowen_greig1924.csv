@@ -1,0 +1,16 @@
+# Bowen & Greig 1924, J. Am. Ceram. Soc. 7(4), 238-254, doi:10.1111/j.1151-2916.1924.tb18190.x
+# (public-domain scan, archive.org sim_american-ceramic-society-journal_1924-04_7_4), Tables Ia
+# (Pt-Rh furnace, thermoelement) and Ib (iridium furnace, optical pyrometer), pp. 243-244, read
+# from the page images. Weight percent Al2O3, degC as printed; sigma_K is ours. The 5 wt%
+# cristobalite point sits 70 K above an eutectic only 0.5 wt% away; slow cristobalite solution in
+# these viscous melts likely reads it high, so it carries a wider sigma. Not scored: their
+# 1810 C invariant (mullite -> corundum + liquid), the melting mode still disputed.
+kind,Al2O3_wt,T_C,sigma_K,primary,locator
+liquidus,5,1615,30,cristobalite,Table Ia (1611 glass + cristobalite / 1618 all glass)
+eutectic,5.5,1545,10,mullite+cristobalite,Table Ia (1542 crystalline / 1546 glass at 5-7 wt%)
+liquidus,7,1615,10,mullite,Table Ia (1608 / 1614 very rare crystals)
+liquidus,10,1665,10,mullite,Table Ia (1663 very rare crystals / 1667 all glass)
+liquidus,15,1705,10,mullite,Table Ia (1700 / 1703 very rare crystals)
+liquidus,25,1740,15,mullite,Table Ib (1728 / 1753 all glass; 1740 +-13)
+liquidus,50,1800,15,mullite,Table Ib (1800 rare crystals; 1800 +-10)
+liquidus,70.6,1912,15,corundum,Table Ib (69.3 all glass / 71.8 corundum + glass at 1912; +-1.8 wt%)

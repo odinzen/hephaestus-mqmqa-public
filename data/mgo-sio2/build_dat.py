@@ -29,14 +29,16 @@ OXIDES = {
     "MgO": dict(
         # dHf/S298 = CODATA key values (-601.5 kJ/mol, 26.95 J/mol/K); Cp a,b,c fit to
         # the NIST-JANAF periclase Cp tabulation (298-2000 K, max resid 0.32 J/mol/K).
-        # MgO melting is well established (unlike CaO): Tm = 3098 K (2825 degC), dHfus
-        # ~ 77 kJ/mol (NIST-JANAF).
+        # Fusion: NIST-JANAF 4th ed. (as copied by Barin 1995 p. 1014), Tm = 3105 K and dHfus =
+        # 77.822 kJ/mol; JANAF's dHfus is an estimate (no calorimetry of liquid MgO exists).
+        # Until 2026-10-02: 3098 K (McNally et al. 1961) with 77.0 kJ.
         dHf=-601500.0, S298=26.95, a=48.2425, b=3.906019e-3, c=-1.1082e6,
-        Tm=3098.0, dHfus=77000.0,
+        Tm=3105.0, dHfus=77822.0,
         n_cat=1, n_an=2, cation="Mg", anion="O", stoich_el={"Mg": 1.0, "O": 1.0},
     ),
     "SiO2": dict(
-        dHf=-908400.0, S298=43.4, a=72.75, b=1.300e-3, c=-4.132e6,
+        dHf=-905588.5, S298=50.8333, a=72.75, b=1.300e-3, c=-4.132e6,
+        dHf_ref=-908400.0, S298_ref=43.4,   # see dbbuild STARTER_OXIDES
         Tm=1996.0, dHfus=9581.0,
         n_cat=1, n_an=2, cation="Si", anion="O", stoich_el={"Si": 1.0, "O": 2.0},
     ),
@@ -65,10 +67,17 @@ def solid_gibbs_coeffs(dHf, S298, a, b, c):
 
 
 def liquid_gibbs_coeffs(ox):
-    """Solid coefficients plus the fusion contribution dHfus*(1 - T/Tm)."""
+    """Solid coefficients plus the fusion contribution dHfus*(1 - T/Tm), and, when the oxide has a
+    dCp_fus, a liquid heat capacity that much above the crystal's at every T, with dHfus and the
+    fusion entropy kept at Tm: dG = dCp*[(T - Tm) - T*ln(T/Tm)]."""
     A, B, C, D, E, F = solid_gibbs_coeffs(ox["dHf"], ox["S298"], ox["a"], ox["b"], ox["c"])
     A += ox["dHfus"]
     B += -ox["dHfus"] / ox["Tm"]
+    dcp = ox.get("dCp_fus", 0.0)
+    if dcp:
+        A += -dcp * ox["Tm"]
+        B += dcp * (1.0 + math.log(ox["Tm"]))
+        C += -dcp
     return [A, B, C, D, E, F]
 
 
@@ -108,11 +117,55 @@ def _mqmx_block(excess):
     return out
 
 
-MGO_TM = 3098.0  # MgO melting point (K); the liquid correction applies only below it
+# Liquid MgO's heat capacity above the crystal's (J/mol/K), assessed with the liquid under a prior
+# from first-principles MD, liquid Cp = 78 +- 15 J/mol/K near Tm (de Koker & Stixrude 2009,
+# doi:10.1111/j.1365-246X.2009.04142.x). Replaces, 2026-10-02, a free below-Tm slope (MGO_LIQ_BETA)
+# whose fitted 8.7 J/K meant a fusion enthalpy near 50 kJ that no independent source supports.
+# Every file with an MgO liquid reads it through OXIDES["MgO"]["dCp_fus"].
+MGO_LIQ_DCP = 33.1727
+OXIDES["MgO"]["dCp_fus"] = MGO_LIQ_DCP
+
+# The assessed liquid (assessment/assess.py, 2026-10-02 fit "D", cost 25.9): silica powers 0-3, 5, 7
+# and 2, each a + b*T, with MGO_LIQ_DCP and the enstatite correction co-assessed, on the measured
+# enstatite Cp (Thieblot et al. 1999). Liquidus read at the exact saturation temperature and the
+# periclase-forsterite eutectic scored as the invariant. Known shortfall: that eutectic is 2074 K at
+# x 0.274 (measured 2123 K, 0.265); the dome sits high (consolute 2374 vs 2240 K) and the monotectic
+# low (1936 vs 1968 K). (q, a, b) for L*Y_SiO2^q, or (p, q, a, b) with a Y_MgO^p factor as well.
+# The ternary builders read it from here. Order follows assess.TERMS.
+ASSESSED_EXCESS = [(0, -60626.1, -12.1469), (1, -4914.14, 36.2029), (3, 26179.3, -14.9814),
+                   (5, 97557.2, -29.8921), (7, 59810.5, -11.0686), (2, -62870.8, 17.0638)]
+
+
+# Composition (x_SiO2) of maximum Mg-Si short-range order in the liquid, set through the
+# coordination numbers of the (Mg,Si/O,O) quadruplet. 1/3 (forsterite) is the
+# charge-proportional default and is written without an explicit mixed row.
+MGSI_SRO_X = 1.0 / 3.0
+
+
+def mgsi_mixed_z(x_sro=None):
+    """(Z_Mg, Z_Si, Z_O, Z_O) of the (Mg,Si/O,O) quadruplet ordering most at x_SiO2 = x_sro, with
+    the quadruplet charge balance 2/Z_Mg + 4/Z_Si = 4/Z_O kept; None at the default."""
+    x = MGSI_SRO_X if x_sro is None else x_sro
+    if abs(x - 1.0 / 3.0) < 1e-12:
+        return None
+    z_o = 2 * Z_PER_CHARGE
+    r = x / (1.0 - x)                      # Z_Mg / Z_Si
+    z_mg = (2.0 + 4.0 * r) * z_o / 4.0
+    return (z_mg, z_mg / r, z_o, z_o)
+
+
+def assessed_excess(li=(1, 2, 3, 3)):
+    """ASSESSED_EXCESS as Q terms on the quadruplet li (MgO first, SiO2 second). An entry is
+    (q, a, b) for a silica-power term or (p, q, a, b) with an MgO power p as well."""
+    out = []
+    for t in ASSESSED_EXCESS:
+        p, q, a, b = t if len(t) == 4 else (0, *t)
+        out.append(dict(code="Q", li=list(li), exp=[p, q, 0, 0], coeffs=[a, b, 0, 0, 0, 0]))
+    return out
 
 
 def build(excess=None, version=None, z_si=None, z_o_si=None, zeta_si=None,
-          z_mixed=None, dcp_fus_sio2=None, mgo_liq_beta=0.0):
+          z_mixed=None, dcp_fus_sio2=None, mgo_liq_dcp=None):
     """SiO2 pure-quadruplet coordination overrides (the v0.4 lever). Defaults (None)
     give the charge-proportional base (Z_Si=2.7549, Z_O=1.3774, zeta=1.3774) used in
     v0.1-v0.2. Setting z_si / z_o_si / zeta_si independently makes SiO2 non-charge-
@@ -121,7 +174,11 @@ def build(excess=None, version=None, z_si=None, z_o_si=None, zeta_si=None,
     L = []
     ap = L.append
 
-    ver = version or ("v0.2" if excess else "v0.1")
+    # None means the assessed liquid; pass [] for an ideal one
+    excess = assessed_excess() if excess is None else excess
+    # None: the assessed Mg-Si ordering; False: charge-proportional (no explicit mixed row)
+    z_mixed = mgsi_mixed_z() if z_mixed is None else (z_mixed or None)
+    ver = version or ("v0.3" if excess else "v0.1")
     ap(f" System MgO-SiO2  open oxide-slag database {ver}"
        "  (provenance: data/mgo-sio2/PROVENANCE.md)")
     # number of MQMZ coordination rows: 2 pure quads, +1 if the mixed (Mg,Si)/O
@@ -143,6 +200,8 @@ def build(excess=None, version=None, z_si=None, z_o_si=None, zeta_si=None,
     order = ["MgO", "SiO2"]
     for name in order:
         ox = OXIDES[name]
+        if name == "MgO" and mgo_liq_dcp is not None:
+            ox = dict(ox, dCp_fus=mgo_liq_dcp)
         se = ox["stoich_el"]
         stoich_el = [se.get(el, 0.0) for el, _ in ELEMENTS]
         coeffs = liquid_gibbs_coeffs(ox)
@@ -157,16 +216,7 @@ def build(excess=None, version=None, z_si=None, z_o_si=None, zeta_si=None,
             coeffs[0] += -dcp_fus_sio2 * Tm
             coeffs[1] += dcp_fus_sio2 * (1.0 + math.log(Tm))
             coeffs[2] += -dcp_fus_sio2
-        # optional MgO(l) below-melting recalibration dG = beta*(T - MGO_TM), continuous at
-        # MgO's 1650... 3098 K melting point and zero above it (mirrors the FeO-SiO2 v0.3
-        # FeO(l) treatment). Fixes forsterite congruent melting against the measured (R&H)
-        # forsterite; orthogonal to the MgO-SiO2 activities. Two temperature intervals.
         intervals = [(6000.0, coeffs)]
-        if name == "MgO" and mgo_liq_beta:
-            corr = list(coeffs)
-            corr[0] += -MGO_TM * mgo_liq_beta
-            corr[1] += mgo_liq_beta
-            intervals = [(MGO_TM, corr), (6000.0, coeffs)]
         ap(f" {name}")
         # eq_type=1 (plain Gibbs, no additional terms), n_intervals, then n_el stoich
         ap(f"   1   {len(intervals)}   " + "   ".join(f"{s:.1f}" for s in stoich_el))

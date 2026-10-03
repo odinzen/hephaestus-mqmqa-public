@@ -56,7 +56,7 @@ def set_L(inp, params, T):
     act.set_excess_L(inp, L)
 
 # melting anchors: compound -> (x_SiO2, Tm_published K)
-MELTS = {"CS(pseudowoll)": (0.5, 1817.0), "C2S(gamma)": (1.0 / 3.0, 2403.0)}
+MELTS = {"CS(pseudowoll)": (0.5, 1817.0), "C2S": (1.0 / 3.0, 2403.0)}
 W_MELT = 1.0  # weight per melting residual relative to one ln(a) residual
 
 

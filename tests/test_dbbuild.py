@@ -3,9 +3,10 @@
 Strongest checks: rebuild the shipped, pycalphad-validated FeO-MgO-SiO2 liquid database through
 the generic builder and confirm it reproduces the hand-written .dat numerically and loads in the
 engine; fit the FeO-SiO2 excess to the measured activities behind v0.3 through the
-engine-as-optimizer and check it reaches the least-squares minimum, consistent with the shipped
+engine-as-optimizer and check it reaches the least-squares minimum, consistent with the v0.3
 parameters; and confirm the four-component free cap is enforced.
 """
+import importlib.util
 import math
 import re
 import sys
@@ -22,24 +23,41 @@ from mqmqa import dbbuild as db
 
 SHIPPED = ROOT / "data" / "feo-mgo-sio2" / "FeO-MgO-SiO2-liquid.dat"
 
-FEO_LIQ_BETA = -69.84464900364951
-MGO_LIQ_BETA = 2.9753836245721774
-SHIPPED_FEO_SIO2 = (-42839.42808976104, 17.829765801117908)   # v0.3 a00, b00
+# v0.3 FeO-SiO2 a00, b00: the one-term activity fit published with the JORS paper
+V03_FEO_SIO2 = (-42839.42808976104, 17.829765801117908)
+
+
+def _fms_builder():
+    spec = importlib.util.spec_from_file_location(
+        "fms_bd_test", ROOT / "data" / "feo-mgo-sio2" / "build_dat.py")
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+
+def _terms(excess):
+    return [db.ExcessTerm(a=ex["coeffs"][0], b=ex["coeffs"][1], p=ex["exp"][0], q=ex["exp"][1])
+            for ex in excess]
 
 
 def feo_mgo_sio2_spec():
-    feo = db.starter_component("FeO", liq_beta=FEO_LIQ_BETA)
-    mgo = db.starter_component("MgO", liq_beta=MGO_LIQ_BETA)
+    """The shipped ternary's parameters, taken from its builder (the single source)."""
+    fms = _fms_builder()
+    feo = db.starter_component("FeO", liq_beta=fms.FEO_LIQ_BETA)
+    mgo = db.starter_component("MgO", liq_dcp=fms.MGO_LIQ_DCP)
     sio2 = db.starter_component("SiO2", group=2)
-    feo_sio2 = db.BinaryExcess("FeO", "SiO2", [
-        db.ExcessTerm(a=SHIPPED_FEO_SIO2[0], b=SHIPPED_FEO_SIO2[1], p=0, q=0)],
-        source="v0.3 activity-pinned (Bjorkman 1985 a(FeO); Bowen-Schairer 1932 melting)")
-    mgo_sio2 = db.BinaryExcess("MgO", "SiO2", [
-        db.ExcessTerm(-44468.8, -1.60, 0, 0), db.ExcessTerm(-50864.2, -0.30, 0, 1),
-        db.ExcessTerm(1448.2, -0.70, 0, 3), db.ExcessTerm(116056.4, -10.80, 0, 5),
-        db.ExcessTerm(-1177.5, -0.30, 0, 7)],
-        source="assessed silica-weighted set (data/mgo-sio2/assessment)")
-    return db.SystemSpec("FeO-MgO-SiO2", [feo, mgo, sio2], [feo_sio2, mgo_sio2],
+    feo_sio2 = db.BinaryExcess("FeO", "SiO2", _terms(fms.EX_FEO_SIO2),
+                               source="assessed (data/feo-sio2/assessment)")
+    mgo_sio2 = db.BinaryExcess("MgO", "SiO2", _terms(fms.EX_MGO_SIO2),
+                               source="assessed silica-weighted set (data/mgo-sio2/assessment)")
+    # the ternary-level terms (data/feo-mgo-sio2/assessment), in the order the builder writes them
+    name = {1: "FeO", 2: "MgO", 3: "SiO2"}
+    ternary = [db.BinaryExcess(name[ex["li"][0]], name[ex["li"][1]],
+                               [db.ExcessTerm(a=ex["coeffs"][0], b=ex["coeffs"][1], p=ex["exp"][0],
+                                              q=ex["exp"][1], add_cat=name.get(ex["add"], ""),
+                                              r=ex["exp"][2])])
+               for ex in fms.ternary_excess()]
+    return db.SystemSpec("FeO-MgO-SiO2", [feo, mgo, sio2], [feo_sio2, mgo_sio2, *ternary],
                          version="v0.1", provenance="data/feo-mgo-sio2/PROVENANCE.md")
 
 
@@ -104,14 +122,14 @@ def test_binary_fit_reaches_feo_sio2_least_squares_minimum():
     """The engine-as-optimizer fit of Delta_g(Fe,Si)/O = a + b*T to the 23 measured a(FeO)
     points (Bjorkman 1985) checked for what the data determine: it sits at the least-squares
     minimum, it does not move under a last-digit change to the input, the residual is the
-    known RMS ln a, and the shipped v0.3 parameters agree with it within the data's
+    known RMS ln a, and the v0.3 parameters agree with it within the data's
     uncertainty.
 
-    The shipped value (-42839.4 + 17.83*T, in data/ and the published provenance) is the
-    fit as first run, which stopped early in the flat a-b valley. It lies 78.6 J/mol in a from
-    the minimum (-42760.8 + 17.7832*T) but moves L(T) by only 5 J/mol at the ~1580 K data and
-    22 J/mol at 2153 K, where the data leave L uncertain by about 1.0 and 2.5 kJ/mol. Updating
-    the shipped value to the minimum is deferred to the JORS revision."""
+    The v0.3 value (-42839.4 + 17.83*T, published with the JORS paper) is the fit as first
+    run, which stopped early in the flat a-b valley. It lies 78.6 J/mol in a from the minimum
+    (-42760.8 + 17.7832*T) but moves L(T) by only 5 J/mol at the ~1580 K data and 22 J/mol at
+    2153 K, where the data leave L uncertain by about 1.0 and 2.5 kJ/mol. The shipped liquid
+    is now the v0.4 assessment against the phase diagram as well; this checks the fitter."""
     feo, sio2 = db.starter_component("FeO"), db.starter_component("SiO2")
     pts = _bjorkman_points()
     be = db.fit_binary_excess(feo, sio2, pts, powers=[(0, 0)], fit_entropy=True)
@@ -137,11 +155,11 @@ def test_binary_fit_reaches_feo_sio2_least_squares_minimum():
     cost_fit = 0.5 * r_fit @ r_fit
     cost_min = min(cost_fit, 0.5 * np.sum(_ln_a_residuals(feo, sio2, pts, *ab(L_gn)) ** 2))
 
-    # 1) At the minimum. The early-stopped shipped fit is 4.6e-6 above it in relative cost.
+    # 1) At the minimum. The early-stopped v0.3 fit is 4.6e-6 above it in relative cost.
     # For this fit the Gauss-Newton step never lowered the cost in 18 runs on perturbed
     # activities; it raised it by up to 3.3e-10, the noise of the finite-difference
     # activities. 1e-8 sits 30x above that noise and corresponds to about 3.7 J/mol in a
-    # along the valley toward the shipped point.
+    # along the valley toward the v0.3 point.
     assert (cost_fit - cost_min) / cost_min < 1e-8, (
         f"fit cost {cost_fit:.12g} is above the least-squares minimum {cost_min:.12g}")
 
@@ -156,7 +174,7 @@ def test_binary_fit_reaches_feo_sio2_least_squares_minimum():
     assert abs(be2.terms[0].b - b) < 1e-3, f"b moved {be2.terms[0].b - b:+.5f} J/mol/K"
 
     # 3) RMS ln a = 0.0675, rounded to four decimals. The minimum gives 0.0674926 in every
-    # run (to 1e-9) and the shipped early-stopped fit 0.0674927, so this pins how well the
+    # run (to 1e-9) and the early-stopped v0.3 fit 0.0674927, so this pins how well the
     # model fits the data, not the optimizer (check 1 does that). As a measure of the scatter
     # of points digitized to 0.01-0.02 in a, only the first two figures carry physical meaning.
     # The second line confirms this test's residuals are the fit's own objective; they agree
@@ -164,18 +182,18 @@ def test_binary_fit_reaches_feo_sio2_least_squares_minimum():
     assert abs(be.rms_ln_a - 0.0675) < 5e-5, f"RMS ln a {be.rms_ln_a:.6f}"
     assert abs(math.sqrt(2 * cost_fit / len(pts)) - be.rms_ln_a) < 1e-9
 
-    # 4) The shipped parameters agree with the fit within the data's standard uncertainty
+    # 4) The v0.3 parameters agree with the fit within the data's standard uncertainty
     # of L(T), from the covariance s^2 (J^T J)^-1 with s^2 = 2*cost/(n - 2), at each data
-    # temperature: 1035, 1013 and 2481 J/mol at 1578, 1590 and 2153 K. The shipped values
+    # temperature: 1035, 1013 and 2481 J/mol at 1578, 1590 and 2153 K. The v0.3 values
     # differ by 5, 5 and 22 J/mol, so a one-sigma bound holds with a wide margin.
     cov = (2 * cost_min / (len(pts) - 2)) * np.linalg.inv(J.T @ J)
     for T in Ts:
         w = (T - T_lo) / (T_hi - T_lo)
         g = np.array([1 - w, w])
         sigma = math.sqrt(g @ cov @ g)
-        L_ship = SHIPPED_FEO_SIO2[0] + SHIPPED_FEO_SIO2[1] * T
-        assert abs(L_ship - (a + b * T)) < sigma, (
-            f"shipped L({T:.0f} K) {L_ship:.1f} vs fit {a + b * T:.1f}, sigma {sigma:.1f}")
+        L_v03 = V03_FEO_SIO2[0] + V03_FEO_SIO2[1] * T
+        assert abs(L_v03 - (a + b * T)) < sigma, (
+            f"v0.3 L({T:.0f} K) {L_v03:.1f} vs fit {a + b * T:.1f}, sigma {sigma:.1f}")
 
 
 if __name__ == "__main__":

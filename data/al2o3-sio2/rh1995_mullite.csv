@@ -1,0 +1,21 @@
+# Robie & Hemingway 1995, USGS Bull. 2131 (public domain), high-T table of mullite
+# 3Al2O3.2SiO2 (p. 307). Extracted from the bulletin's text layer by script, not retyped; every row
+# passes -(G-H298)/T = S - (H-H298)/T to 0.010 J/K. dfH298 in kJ/mol, the rest J/mol/K.
+formula,phase,page,T_K,Cp,S,HT_minus_H298_over_T,dfH298_kJ
+Al6Si2O13,mullite,307,298.15,326.13,275.00,0.00,-6819.2
+Al6Si2O13,mullite,307,300,327.73,277.02,2.02,-6819.2
+Al6Si2O13,mullite,307,400,392.44,381.04,92.29,-6819.2
+Al6Si2O13,mullite,307,500,431.98,473.17,156.55,-6819.2
+Al6Si2O13,mullite,307,600,458.88,554.45,204.83,-6819.2
+Al6Si2O13,mullite,307,700,478.40,626.72,242.59,-6819.2
+Al6Si2O13,mullite,307,800,493.16,691.61,273.03,-6819.2
+Al6Si2O13,mullite,307,900,504.65,750.39,298.15,-6819.2
+Al6Si2O13,mullite,307,1000,513.76,804.05,319.27,-6819.2
+Al6Si2O13,mullite,307,1100,521.10,853.37,337.30,-6819.2
+Al6Si2O13,mullite,307,1200,527.05,898.98,352.87,-6819.2
+Al6Si2O13,mullite,307,1300,531.91,941.36,366.46,-6819.2
+Al6Si2O13,mullite,307,1400,535.88,980.93,378.43,-6819.2
+Al6Si2O13,mullite,307,1500,539.13,1018.02,389.04,-6819.2
+Al6Si2O13,mullite,307,1600,541.76,1052.90,398.50,-6819.2
+Al6Si2O13,mullite,307,1700,543.88,1085.81,406.99,-6819.2
+Al6Si2O13,mullite,307,1800,545.56,1116.95,414.65,-6819.2

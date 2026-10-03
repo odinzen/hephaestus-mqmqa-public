@@ -36,13 +36,18 @@ OXIDES = {
         n_cat=1, n_an=2, cation="Ca", anion="O", stoich_el={"Ca": 1.0, "O": 1.0},
     ),
     "SiO2": dict(
-        dHf=-908400.0, S298=43.4, a=72.75, b=1.300e-3, c=-4.132e6,
+        dHf=-905588.5, S298=50.8333, a=72.75, b=1.300e-3, c=-4.132e6,
+        dHf_ref=-908400.0, S298_ref=43.4,   # see dbbuild STARTER_OXIDES
         Tm=1996.0, dHfus=9581.0,
         n_cat=1, n_an=2, cation="Si", anion="O", stoich_el={"Si": 1.0, "O": 2.0},
     ),
 }
 
 ELEMENTS = [("Ca", 40.078), ("Si", 28.085), ("O", 15.9994)]
+
+# Supercooled CaO(l): slope of a correction below Tm, dG = beta*(T - Tm), the CaO counterpart of the
+# MgO(l) slope MgO-SiO2 used until 2026-10-02 (CaO's fusion enthalpy is an estimate). Zero until assessed.
+CAO_LIQ_BETA = 0.0
 
 # Charge-proportional coordination, the FactSage-style oxide convention (base factor
 # 1.3774438 per divalent cation, i.e. Z = 0.68872 * charge). These are model-framework
@@ -108,7 +113,20 @@ def _mqmx_block(excess):
     return out
 
 
-def build(excess=None, version=None):
+# The assessed v0.4 liquid (assessment/assess.py, 2026-09-29, on the Robie-Hemingway calcium
+# silicates of silicates.py): (q, a, b) for L*chi_Si^q with L = a + b*T. The assessment writes
+# CaO-SiO2-liquid.dat from these and the ternary builders read them from here.
+ASSESSED_EXCESS = [(0, -163606.6684, 21.3484), (1, 35882.4193, -6.2765), (3, -291412.2982, 0.0),
+                   (5, 363485.787, 0.0), (7, -22759.972, 0.0)]
+
+
+def assessed_excess(li=(1, 2, 3, 3)):
+    """ASSESSED_EXCESS as Q terms on the quadruplet li (CaO first, SiO2 second)."""
+    return [dict(code="Q", li=list(li), exp=[0, q, 0, 0], coeffs=[a, b, 0, 0, 0, 0])
+            for q, a, b in ASSESSED_EXCESS]
+
+
+def build(excess=None, version=None, cao_liq_beta=None):
     L = []
     ap = L.append
 
@@ -134,10 +152,18 @@ def build(excess=None, version=None):
         se = ox["stoich_el"]
         stoich_el = [se.get(el, 0.0) for el, _ in ELEMENTS]
         coeffs = liquid_gibbs_coeffs(ox)
+        beta = (CAO_LIQ_BETA if cao_liq_beta is None else cao_liq_beta) if name == "CaO" else 0.0
+        intervals = [(6000.0, coeffs)]
+        if beta:
+            corr = list(coeffs)
+            corr[0] += -ox["Tm"] * beta
+            corr[1] += beta
+            intervals = [(ox["Tm"], corr), (6000.0, coeffs)]
         ap(f" {name}")
-        # eq_type=1 (plain Gibbs, no additional terms), n_intervals=1, then n_el stoich
-        ap("   1   1   " + "   ".join(f"{s:.1f}" for s in stoich_el))
-        ap(_coeff_line(6000.0, coeffs))
+        # eq_type=1 (plain Gibbs, no additional terms), n_intervals, then n_el stoich
+        ap(f"   1   {len(intervals)}   " + "   ".join(f"{s:.1f}" for s in stoich_el))
+        for t_max, cf in intervals:
+            ap(_coeff_line(t_max, cf))
         # five quadruplet-stoichiometry values: [n_cation, n_anion, 0, 0, 0]
         ap("  " + "   ".join(f"{v:.5f}" for v in
                              [se.get(ox["cation"], 0.0), se.get(ox["anion"], 0.0), 0.0, 0.0, 0.0]))

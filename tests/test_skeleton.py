@@ -1,8 +1,11 @@
 """Toolchain proof: C library reachable from Python and numerically correct."""
 
 import math
+import sys
+from pathlib import Path
 
-from mqmqa import R, ideal_entropy_binary
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "python"))
+from mqmqa import R, ideal_entropy_binary  # noqa: E402
 
 
 def test_gas_constant():

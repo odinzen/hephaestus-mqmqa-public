@@ -1,10 +1,44 @@
-# Al2O3-SiO2 v0.1 — provenance and limits
+# Al2O3-SiO2 v0.2 - provenance and limits
 
 Third slag binary and the opening brick of the CaO-Al2O3-SiO2 ternary campaign. MQMQA
 liquid (Si+4, Al+3 / O-2; components SiO2 and AlO1.5) + cristobalite, corundum, and
 mullite. Built 2026-08-26 from the gathered set (Rankin & Wright 1915; Robie & Hemingway
 1995) plus the endmembers already shipped with the family. No value derives from any
 prior assessment or commercial database.
+
+## v0.2 (2026-09-30): refit to Bowen & Greig 1924
+
+v0.1 was fitted to one number, the Rankin & Wright (1915) silica-side eutectic (1883 K, 13 wt%
+Al2O3). That value belongs to the sillimanite picture Bowen & Greig (1924) overturned: they
+measured the cristobalite + mullite eutectic at 1545 +- 5 C (1818 K) and 5.5 wt% Al2O3, and the
+mullite liquidus from 7 to 50 wt%. v0.2 is fitted to their quench brackets
+(`assessment/bowen_greig1924.csv`, read from the page images of the public-domain scan, Tables Ia
+and Ib, pp. 243-244), each liquidus point scored only where the liquid is stable
+(`assessment/assess.py`):
+
+| Data | Measured | v0.2 |
+|---|---|---|
+| eutectic T, x_AlO1.5 | 1818 K, 0.064 | 1846 K, 0.064 |
+| mullite liquidus, 7-50 wt% (5 points) | 1888-2073 K | within 31 K |
+| cristobalite liquidus, 5 wt% | 1888 K | 1849 K |
+| corundum liquidus, 70.6 wt% | 2185 K | mullite first at 2139 K |
+
+Cost 131 -> 15.3. Their 5 wt% cristobalite point sits 70 K above an eutectic 0.5 wt% away,
+likely read high from slow cristobalite solution in these viscous melts, and carries a 30 K
+sigma. The corundum point is the disputed mullite melting (below): the model melts mullite
+congruently, so mullite, not corundum, crystallizes first there.
+
+Liquid excess, Q terms (p on SiO2, q on AlO1.5), J/mol:
+
+    (0,0) 80191.65 - 23.25 T    (5,0) -1234.85 - 0.75 T    (0,1) -23050.36 - 2.08 T
+
+Temperature parts carry a prior of 0 +- 15 J/K. No stable liquid demixing anywhere on the join
+at 1700-2400 K (checked on the liquid alone). The terms live in `build_dat.ASSESSED_EXCESS`;
+the CaO-Al2O3-SiO2 file reads them there.
+
+Mullite (below) is unchanged: the Robie & Hemingway Cp equation it carries matches their
+high-temperature table (`rh1995_mullite.csv`, bulletin p. 307, extracted by script) within 7 J
+to 1800 K.
 
 ## Endmembers
 
@@ -29,35 +63,14 @@ The Al2SiO5 polymorphs (kyanite, andalusite, sillimanite; R&H data are in the
 workspace manifest) are deliberately absent: mullite is the stable compound on the
 1-atm melting diagram.
 
-## The compound-identity revision (why only one R&W invariant is used)
+## Mullite melting (reported, not fitted)
 
-Rankin & Wright (1915) drew this binary with "sillimanite" (Al2SiO5, 62.9 wt% Al2O3)
-as the compound; Bowen & Greig (1924) showed the stable compound is mullite (71.8 wt%).
-R&W's Al-rich invariants (their congruent melting at 2089 K and their compound-corundum
-eutectic at 64 wt%) are therefore topologically unusable with the modern compound - a
-eutectic at 64 wt% cannot sit between mullite and corundum. Their silica-side eutectic
-does not suffer from this and is the fitted target:
-
-  cristobalite + compound eutectic: 1883.15 K, liquid 13 wt% Al2O3 (x_AlO1.5 = 0.1497).
-
-## Liquid excess (fitted)
-
-Delta_g(Si,Al)/O = 9317.3 + 33855.3*chi_Si^5   J/mol   (Q-code (0,0) + (5,0) terms)
-
-Fitted 2026-08-26; the eutectic is reproduced exactly (1883.2 K, x = 0.150). The
-silica-local chi_Si^5 form is the family's established silica-side lever; a global
-positive term was tried and rejected (it drags the eutectic composition silica-ward
-and overheats the mullite liquidus). Verified: no stable liquid demixing anywhere on
-the join at 1900-2300 K.
-
-## Predictions (reported, not fitted)
-
-- Mullite melts CONGRUENTLY at 2291 K in this model; the mullite + corundum eutectic
-  sits at 2239 K, x_AlO1.5 = 0.88. The literature is famously split - Aksay & Pask:
-  peritectic ~2101 K; Klug: congruent ~2163 K. v0.1 lands on the congruent side,
-  ~130 K above Klug; the Al-rich liquid is unconstrained by data here, and this is the
-  known weak flank (a v0.2 would fit Al-rich liquidus data and/or melt-mixing
-  enthalpies from an MLIP triangulation, the family method).
+v0.2 melts mullite congruently at 2140 K, with the mullite + corundum eutectic at 2136 K and
+x_AlO1.5 = 0.80. The literature is split: Bowen & Greig 1924 saw mullite break down to corundum
++ liquid at 1810 +- 10 C (2083 K); Aksay & Pask put it peritectic near 2101 K; Klug et al.
+congruent near 2163 K. v0.2 sits between the congruent and peritectic readings. Rankin &
+Wright's own Al-rich invariants assume sillimanite (62.9 wt%) and cannot be placed with mullite
+(71.8 wt%); they are not used.
 
 ## Validation
 
@@ -67,5 +80,6 @@ the join at 1900-2300 K.
   1e-4, sampling-limited), 2000 K.
 - Full engine test suite passes.
 
-Repro: `build_dat.py` (writes Al2O3-SiO2.dat; carries the sqrt-term stoich writer),
-`v01_fit.py` (evaluates; `--fit` re-optimizes).
+Repro: `build_dat.py` (writes Al2O3-SiO2.dat with the assessed liquid; carries the sqrt-term
+stoich writer), `assessment/assess.py` (v0.2 fit; `--fit` re-optimizes), `v01_fit.py`
+(invariant report; its `--fit` is the superseded v0.1 fit).

@@ -139,10 +139,10 @@ if __name__ == "__main__":
     print("=" * 70)
     print("Compound melting (type is the physics; T is solid-model-limited):")
     known = {"CS(pseudowoll)": "congruent 1817 K",
-             "C2S(gamma)": "congruent 2403 K",
+             "C2S": "congruent 2403 K",
              "C3S2(rankinite)": "PERITECTIC ~1737 K",
              "C3S": "peritectic / limited stability window"}
-    for name in ("CS(pseudowoll)", "C2S(gamma)", "C3S2(rankinite)", "C3S"):
+    for name in ("CS(pseudowoll)", "C2S", "C3S2(rankinite)", "C3S"):
         _, xC, Tmax, kind, _ = classify_compound(db, p, name)
         tt = f"{Tmax:6.0f} K" if Tmax else "   -  "
         print(f"  {name:18s} x={xC:.3f}  {tt}  {kind}")

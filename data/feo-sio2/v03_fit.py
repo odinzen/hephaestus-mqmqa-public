@@ -135,7 +135,7 @@ def fit_beta(excess_coeffs):
         db, p = build_db(excess_coeffs, beta=beta)
         Tc = congruent_T(db, p)
         return (Tc if Tc is not None else 900.0) - T_FAYALITE_CONGRUENT
-    return brentq(melt_err, -80.0, 0.0, xtol=1e-4)
+    return brentq(melt_err, -150.0, 0.0, xtol=1e-4)
 
 
 def main(write=True):

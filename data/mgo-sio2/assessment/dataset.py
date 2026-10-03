@@ -23,11 +23,29 @@ INVARIANTS = [
          x=1.0/3.0, sigx=0.005, solids=("M2S(forsterite)",),
          src="Bowen & Andersen 1914 (MgO 57.2 wt%)"),
     dict(name="enstatite peritectic", type="peritectic", T=1830.0, sigT=15.0,
-         x=0.55, sigx=0.04, solids=("MS(enstatite)",),
-         src="evaluated (Bowen & Andersen 1914; Greig 1927)"),
+         x=0.512, sigx=0.01, solids=("MS(enstatite)",),
+         src="Bowen & Andersen 1914 Table I(b, c): 1557 C, liquid MgSiO3 97.5 + SiO2 2.5 wt%"),
     dict(name="enstatite-cristobalite eutectic", type="eutectic", T=1816.0, sigT=15.0,
-         x=0.545, sigx=0.03, solids=("MS(enstatite)", "SiO2(cristobalite)"),
-         src="evaluated (~64 wt% SiO2)"),
+         x=0.553, sigx=0.01, solids=("MS(enstatite)", "SiO2(cristobalite)"),
+         src="Bowen & Andersen 1914 Table I(d): 1543 C, MgSiO3 87.5 + SiO2 12.5 wt%"),
+]
+
+# --- Liquidus: quench brackets (midpoint), x mole fraction SiO2, T in K, primary solid ---
+# Between the invariants, where the invariants alone leave the curves free: without these
+# the fit put forsterite on an incongruent melt and the enstatite-cristobalite eutectic at
+# x = 0.59 (2026-09-30). Bowen & Andersen 1914, Am. J. Sci. (4) 37, 487; Greig 1927, Am. J.
+# Sci. (5) 13, 1 (Table IV A). 1914 degC read as printed (within a few K of ITS-90 here).
+LIQUIDUS = [
+    dict(x=0.4809, T=1903.0, sig=20.0, phase="M2S(forsterite)",
+         src="B&A Table I(a): MgO 42 SiO2 58 wt%, glass + minute forsterite at 1625 C"),
+    dict(x=0.5000, T=1850.15, sig=10.0, phase="M2S(forsterite)",
+         src="B&A Table I(a): MgSiO3, forsterite 1576 C, glass only 1578 C"),
+    dict(x=0.5141, T=1829.15, sig=10.0, phase="MS(enstatite)",
+         src="B&A Table I(e): MgO 38.8 SiO2 61.2 wt%, 1555 / 1557 C"),
+    dict(x=0.5439, T=1825.15, sig=10.0, phase="MS(enstatite)",
+         src="B&A Table I(e): MgO 36 SiO2 64 wt%, 1550 / 1554 C"),
+    dict(x=0.5877, T=1933.65, sig=10.0, phase="SiO2(cristobalite)",
+         src="Greig 1927 Table IV A: MgO 32 SiO2 68 wt%, cristobalite 1654 C, glass 1667 C"),
 ]
 
 # --- Liquid-liquid immiscibility: conjugate compositions vs temperature ---

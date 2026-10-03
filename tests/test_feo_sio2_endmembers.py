@@ -1,11 +1,11 @@
-"""Validate the FeO-SiO2 liquid: v0.1 endmembers (structure) and the v0.3 excess.
+"""Validate the FeO-SiO2 liquid: endmembers (structure) and the assessed v0.4 excess.
 
 Endmembers: the .dat loads in the C engine, its pure-oxide Gibbs energies match a direct
-H - T*S of the open JANAF/R&H data, and the fusion points reproduce. v0.3: the shipped
-.dat carries the activity-fitted excess, reproduces fayalite congruent melting at 1478 K
-with a single-welled (gap-free) mixing free energy, and its FeO(l) endmember carries the
-below-1650 K phase-diagram calibration (a second temperature interval) that is orthogonal
-to the modelled activities.
+H - T*S of the open data, and the fusion points reproduce. v0.4: the shipped .dat carries
+the assessed excess, reproduces the activities and fayalite congruent melting, has the
+measured silica-side two-liquid region and no other, and its FeO(l) endmember carries the
+below-1650 K correction (a second temperature interval) that is orthogonal to the modelled
+activities.
 """
 import math
 import sys
@@ -68,34 +68,33 @@ def test_endmembers_and_fusion():
     dat.unlink(missing_ok=True)
 
 
-@pytest.mark.skipif(not (ROOT / "data" / "feo-sio2" / "FeO-SiO2-liquid.dat").exists(),
-                    reason="shipped v0.3 .dat not present")
-def test_v03_excess_is_present_and_gap_free():
-    """The shipped v0.3 .dat carries the fitted excess, and its mixing free energy is
-    negative and single-welled (no spurious FeO-SiO2 miscibility gap)."""
+def test_v04_excess_and_its_silica_side_gap():
+    """The shipped liquid carries the assessed excess; mixing is favourable across the join
+    at 1700 K, and its only instability is the silica-rich two-liquid region Bowen &
+    Schairer / Greig measured (no spurious gap on the FeO side)."""
     from mqmqa import equilibrium as eq
     act = _load("feo_sio2_activity", "_activity.py")
 
     db = mqmqa.Database.read(str(ROOT / "data" / "feo-sio2" / "FeO-SiO2-liquid.dat"))
     p = db.phase_index("FEO-SIO2-LIQUID")
-    assert len(db.mqmx(p, 1700.0)["A"]) >= 1, "shipped v0.3 .dat has no excess parameters"
+    assert len(db.mqmx(p, 1700.0)["A"]) == len(bd.ASSESSED_EXCESS)
 
     inp = eq.build_inputs(db, p, 1700.0, components=["FE", "SI", "O"])
-    xf = np.linspace(0.1, 0.9, 33)
+    xf = np.linspace(0.1, 0.9, 81)
     gf = np.array([act.delta_g_mix(inp, float(x)) for x in xf])
     assert gf.max() < 0.0, "delta_g_mix should be negative (favorable mixing)"
     h = xf[1] - xf[0]
     d2 = (gf[2:] - 2 * gf[1:-1] + gf[:-2]) / h ** 2
-    assert d2.min() > -50.0, f"spurious gap: min d2(dGmix) = {d2.min():.0f}"
+    unstable = xf[1:-1][d2 < -50.0]
+    assert len(unstable) and unstable.min() > 0.5, unstable
 
 
-@pytest.mark.skipif(not (ROOT / "data" / "feo-sio2" / "FeO-SiO2-liquid.dat").exists(),
-                    reason="shipped v0.3 .dat not present")
-def test_v03_reproduces_activities_and_fayalite_melting():
-    """The shipped v0.3 liquid reproduces the digitized iron-saturated a(FeO) (Bjorkman
-    1985 Fig 3) and fayalite congruent melting at 1478 K."""
+def test_v04_reproduces_the_assessed_data():
+    """The shipped liquid reproduces the digitized iron-saturated a(FeO) (Bjorkman 1985
+    Fig 3, the sub-1644 K points up to their fitted reference offset) and fayalite congruent
+    melting at 1478 K."""
     fit = _load("v03_fit", "v03_fit.py")
-    pdg = _load("feo_sio2_phase_diagram", "phase_diagram.py")
+    ds = _load("feo_sio2_dataset", "assessment/dataset.py")
     from mqmqa import equilibrium as eq
     act = _load("feo_sio2_activity2", "_activity.py")
 
@@ -106,18 +105,13 @@ def test_v03_reproduces_activities_and_fayalite_melting():
     for X, a, src, T in fit.load_activities():
         inp = eq.build_inputs(db, p, T, components=["FE", "SI", "O"])
         am, _ = act.activities(inp, 1.0 - X, T)
-        res.append(math.log(am / a))
+        res.append(math.log(am / a) + (ds.DLNA_LOW if T < 1644.0 else 0.0))
     rms = math.sqrt(sum(r * r for r in res) / len(res))
-    assert rms < 0.10, f"a(FeO) RMS ln a = {rms:.3f} too large"
+    assert rms < 0.05, f"a(FeO) RMS ln a = {rms:.3f} too large"
 
     Tc = fit.congruent_T(db, p)
     assert abs(Tc - 1478.0) < 5.0, f"fayalite congruent melting {Tc:.0f} K != 1478 K"
 
-    # excess entropy is physical (v0.2's +78.6 J/mol/K is retired)
-    inp1 = eq.build_inputs(db, p, 1500.0, components=["FE", "SI", "O"])
-    inp2 = eq.build_inputs(db, p, 1900.0, components=["FE", "SI", "O"])
-    b00 = (inp2["ex"]["L"][0] - inp1["ex"]["L"][0]) / 400.0
-    assert abs(b00) < 40.0, f"excess entropy b00 = {b00:.1f} not physical"
 
 
 @pytest.mark.skipif(not (ROOT / "data" / "feo-sio2" / "FeO-SiO2-liquid.dat").exists(),

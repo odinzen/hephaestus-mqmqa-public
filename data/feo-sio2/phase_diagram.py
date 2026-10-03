@@ -24,10 +24,22 @@ sys.path.insert(0, str(HERE.parents[1] / "python"))
 
 import build_dat as bd
 import _activity as act
+import importlib.util as _ilu
+
+# Fayalite is the olivine endmember of data/olivine/endmembers.py (Robie-Hemingway Cp to
+# 1490 K), the same function the FeO-MgO-SiO2 databases use. Before 2026-09-29 it was a
+# Neumann-Kopp sum, which matched the measured compound only by cancelling the SiO2 Cp
+# error (build_dat); corrected, the sum sat ~10 kJ below it at 1478 K.
+USE_SHARED_SOLIDS = True
+_spec = _ilu.spec_from_file_location("feo_ol_em", HERE.parent / "olivine" / "endmembers.py")
+em = _ilu.module_from_spec(_spec)
+_spec.loader.exec_module(em)
 
 T0 = 298.15
 COMPONENTS = ["FE", "SI", "O"]
-S298_FEO, S298_SIO2 = bd.OXIDES["FeO"]["S298"], bd.OXIDES["SiO2"]["S298"]
+# formation from the oxides is a 298 K quantity: the true SiO2 values, not the effective
+# constants its high-T Cp form carries (build_dat)
+S298_FEO, S298_SIO2 = bd.OXIDES["FeO"]["S298"], bd.OXIDES["SiO2"]["S298_ref"]
 
 # fayalite Fe2SiO4, S298 = 151.0 J/mol/K (Robie-Hemingway 1995 / NEA iron 2013).
 S298_FAYALITE = 151.0
@@ -35,7 +47,7 @@ S298_FAYALITE = 151.0
 #   dHf_ox = dHf(fayalite, elements) - 2 dHf(FeO) - dHf(SiO2)
 #          = -1478.2 - 2(-272.044) - (-908.4) kJ/mol = -25.71 kJ/mol.
 DHF_FAYALITE_ELEM = -1478200.0  # R&H 1995 (NEA iron 2013: -1476.8; within ~1.4 kJ)
-DHF_OX_FAYALITE = DHF_FAYALITE_ELEM - 2 * bd.OXIDES["FeO"]["dHf"] - bd.OXIDES["SiO2"]["dHf"]
+DHF_OX_FAYALITE = DHF_FAYALITE_ELEM - 2 * bd.OXIDES["FeO"]["dHf"] - bd.OXIDES["SiO2"]["dHf_ref"]
 
 
 def solid_oxide_gibbs(ox, T):
@@ -58,6 +70,8 @@ def solid_gibbs_per_formula_unit(name, T):
     n_feo, n_sio2, dHf_ox, S298 = SOLIDS[name]
     nunits = n_feo + n_sio2
     x = n_sio2 / nunits
+    if USE_SHARED_SOLIDS and name == "Fa(fayalite)":
+        return em.gibbs("fayalite", T) / nunits, x
     dSf_ox = S298 - n_feo * S298_FEO - n_sio2 * S298_SIO2
     g = (n_feo * solid_oxide_gibbs(bd.OXIDES["FeO"], T)
          + n_sio2 * solid_oxide_gibbs(bd.OXIDES["SiO2"], T)

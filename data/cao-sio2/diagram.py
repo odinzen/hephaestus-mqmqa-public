@@ -76,7 +76,7 @@ def eutectic(db, p, n1, n2, lo=1300.0, hi=2600.0):
 # published invariants (K), classic CaO-SiO2 diagram / Abdul 2023 Table 9
 PUBLISHED = {
     "CS(pseudowoll) congruent": 1817.0,
-    "C2S(gamma) congruent": 2403.0,
+    "C2S congruent": 2403.0,
     "CS-C3S2 eutectic": 1733.0,       # 1460 C
     "CS-SiO2 eutectic": 1709.0,       # 1436 C (tridymite; we carry cristobalite)
 }
@@ -89,7 +89,7 @@ def main():
     print("=" * 62)
 
     for name, tag in (("CS(pseudowoll)", "CS(pseudowoll) congruent"),
-                      ("C2S(gamma)", "C2S(gamma) congruent")):
+                      ("C2S", "C2S congruent")):
         T = congruent_T(db, p, name)
         pub = PUBLISHED[tag]
         s = f"{T:6.0f} K" if T else "  none"

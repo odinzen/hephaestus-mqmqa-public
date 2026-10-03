@@ -76,8 +76,11 @@ class Component:
     dHfus: float              # enthalpy of fusion (J/mol)
     source: str               # provenance: citation + locator for every number above
     liq_beta: float = 0.0     # optional below-Tm liquid recalibration slope (J/mol/K)
+    liq_dcp: float = 0.0      # optional liquid Cp above the crystal's (J/mol/K), dHfus and dSfus kept at Tm
     z_cat: float = 0.0        # explicit cation coordination; 0 = charge * z_per_charge
     group: int = 1            # chemical group of the excess interpolation (SiO2 alone in slags)
+    dHf_ref: float = None     # true 298 K values when dHf/S298 are effective constants of a
+    S298_ref: float = None    # high-T Cp form (SiO2); formation-from-oxides uses these
 
 
 @dataclass
@@ -89,9 +92,9 @@ class ExcessTerm:
 
     add_cat/r express a TERNARY dependence (Poschmann Eq. 25-26, the FactSage
     additional-mixing-constituent mechanism): the term is further multiplied by the
-    third cation's pair-fraction factor with exponent r. pycalphad evaluates this;
-    the C engine's support status is checked at read time - do not ship a file
-    carrying add_cat until the engine evaluates it.
+    third cation's pair-fraction factor with exponent r. The engine evaluates it in a
+    single-anion liquid, with or without chemical groups (mqmqa_excess_term_status says
+    which cases it refuses); pycalphad evaluates it too.
     """
     a: float                  # L enthalpy part (J/mol)
     b: float = 0.0            # L entropy/temperature part (J/mol/K)
@@ -166,6 +169,10 @@ def liquid_gibbs_coeffs(comp: Component):
     A, B, C, D, E, F = solid_gibbs_coeffs(comp.dHf, comp.S298, comp.a, comp.b, comp.c)
     A += comp.dHfus
     B += -comp.dHfus / comp.Tm
+    if comp.liq_dcp:                                   # dG = dCp*[(T - Tm) - T*ln(T/Tm)]
+        A += -comp.liq_dcp * comp.Tm
+        B += comp.liq_dcp * (1.0 + math.log(comp.Tm))
+        C += -comp.liq_dcp
     return [A, B, C, D, E, F]
 
 
@@ -269,22 +276,28 @@ def write_dat(spec: SystemSpec, anion_sym="O", anion_charge=2.0, z_per_charge=No
 # --------------------------------------------------------------- open starter oxide library
 # Well-sourced open endmembers, ready to drop into a Component. Every number traces to an open
 # compilation (see the per-oxide `source`). Users add their own the same way.
-def _oxide(name, cation, charge, n_cation, n_oxygen, dHf, S298, a, b, c, Tm, dHfus, source):
+def _oxide(name, cation, charge, n_cation, n_oxygen, dHf, S298, a, b, c, Tm, dHfus, source,
+           dHf_ref=None, S298_ref=None):
     return Component(name=name, cation=cation, charge=charge, n_cation=n_cation,
                      n_oxygen=n_oxygen, dHf=dHf, S298=S298, a=a, b=b, c=c, Tm=Tm,
-                     dHfus=dHfus, source=source)
+                     dHfus=dHfus, source=source, dHf_ref=dHf_ref, S298_ref=S298_ref)
 
 
 STARTER_OXIDES = {
-    "SiO2": _oxide("SiO2", "Si", 4.0, 1.0, 2.0, -908400.0, 43.4, 72.75, 1.300e-3, -4.132e6,
+    # beta-cristobalite: the R&H Cp form holds above the 523 K alpha-beta transition, so
+    # dHf/S298 are the effective 298 K constants that put it on the R&H table (G within
+    # 13 J, 600-1800 K); the alpha-cristobalite values -908400 / 43.4 are kept as _ref
+    "SiO2": _oxide("SiO2", "Si", 4.0, 1.0, 2.0, -905588.5, 50.8333, 72.75, 1.300e-3, -4.132e6,
                    1996.0, 9581.0,
-                   "Robie & Hemingway 1995 (USGS Bull. 2131) + NIST-JANAF (Chase 1998)"),
+                   "Robie & Hemingway 1995 (USGS Bull. 2131) + NIST-JANAF (Chase 1998)",
+                   dHf_ref=-908400.0, S298_ref=43.4),
     "MgO": _oxide("MgO", "Mg", 2.0, 1.0, 1.0, -601500.0, 26.95, 48.2425, 3.906019e-3, -1.1082e6,
-                  3098.0, 77000.0,
+                  3105.0, 77822.0,
                   "CODATA (dHf,S298) + NIST-JANAF periclase Cp/fusion (Chase 1998)"),
-    "FeO": _oxide("FeO", "Fe", 2.0, 1.0, 1.0, -272044.0, 60.752, 50.66300, 8.711283e-3,
-                  -3.13381e5, 1650.0, 24058.0,
-                  "NIST-JANAF FeO(cr) (Chase 1998); Haas-Fisher fit to 6 points 298-1500 K"),
+    "FeO": _oxide("FeO", "Fe", 2.0, 1.0, 1.0, -266612.5, 57.1260, 41.67195, 1.539999e-2,
+                  1.01017e6, 1650.0, 24058.0,
+                  "iron-saturated wustite Fe0.947O + 0.053 Fe (Robie & Hemingway 1995; SGTE Fe), "
+                  "as data/feo-sio2/build_dat.py; fusion NIST-JANAF (Chase 1998)"),
     "CaO": _oxide("CaO", "Ca", 2.0, 1.0, 1.0, -635100.0, 38.1, 51.85, 2.444e-3, -9.340e5,
                   2845.0, 79500.0,
                   "dHf/S298 CODATA; Tm CRC Handbook (2845 K); dHfus JANAF/MgO-analog estimate"),

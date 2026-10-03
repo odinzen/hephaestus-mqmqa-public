@@ -104,3 +104,19 @@ The validation script reports the load, the endmember round-trip against an inde
 H - T*S evaluation of the open Robie-Hemingway/JANAF data, the reproduction of the
 published fusion points (dG_fus -> 0 at Tm(SiO2)=1996 K and Tm(CaO)=3200 K), and the
 pure-oxide-limit reduction. See `PROVENANCE.md` for the citation behind each number.
+
+## Before an assessment ships
+
+Three checks, for every assessment that goes public:
+
+1. **One Gibbs function per phase.** A fitting script never carries its own copy or correction of
+   a phase's energy. A correction (polymorph shift, heat-capacity fix, enthalpy shift) lives in the
+   module the builder writes from, and the fit imports it.
+2. **The fitting code matches the shipped file.** `tests/test_fit_tools_match_shipped.py` compares
+   each binary's fitting solids with the shipped files at 800-2200 K; a new assessment adds its
+   solids there. From 2026-08-22 to 2026-09-29 the MgO-SiO2 and CaO-SiO2 fitting code made pure
+   cristobalite 2.3 kJ more stable than any shipped file, and every fit in that window was made
+   against it.
+3. **Quoted numbers come from the shipped file.** Every invariant, liquidus or activity quoted in a
+   `PROVENANCE.md`, a table or a paper is recomputed from the written file with all its phases, and
+   only stable equilibria count.

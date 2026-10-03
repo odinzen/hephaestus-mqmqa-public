@@ -17,7 +17,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[1] / "python"))
 
 from mqmqa import dbbuild
-from mqmqa.dbbuild import BinaryExcess, SystemSpec, solid_gibbs_coeffs
+from mqmqa.dbbuild import ExcessTerm, BinaryExcess, SystemSpec, solid_gibbs_coeffs
 
 # the cao-al2o3 endmember, reused verbatim (explicit file load; both builders are build_dat)
 _spec = importlib.util.spec_from_file_location("caal_build", HERE.parent / "cao-al2o3" / "build_dat.py")
@@ -70,12 +70,24 @@ def solid_x_and_units(name):
     return n_al / (n_si + n_al), n_si + n_al
 
 
-def build(terms=(), out=None):
+# Liquid excess (p, q, a, b), p on SiO2 and q on AlO1.5, assessed 2026-09-30 against Bowen &
+# Greig 1924 (assessment/assess.py; cost 131 -> 15.3). The v0.1 terms were fitted to the Rankin &
+# Wright 1915 sillimanite-era eutectic (1883 K, 13 wt% Al2O3), which Bowen & Greig superseded.
+ASSESSED_EXCESS = [(0, 0, 80191.65, -23.25), (5, 0, -1234.85, -0.75), (0, 1, -23050.36, -2.08)]
+
+
+def assessed_terms():
+    return [ExcessTerm(a=a, b=b, p=p, q=q) for p, q, a, b in ASSESSED_EXCESS]
+
+
+def build(terms=None, out=None):
+    """Write the .dat; terms None means the assessed liquid, () an ideal one."""
+    terms = assessed_terms() if terms is None else terms
     spec = SystemSpec(
         "SiO2-AlO1.5", [SIO2, ALO15],
         [BinaryExcess("SiO2", "AlO1.5", list(terms))] if terms else [],
-        version="v0.1",
-        provenance="R&W 1915 silica-side eutectic + R&H 1995 mullite + shipped-system "
+        version="v0.2",
+        provenance="Bowen & Greig 1924 liquidus + R&H 1995 mullite + shipped-system "
                    "endmembers; see PROVENANCE.md")
     lines = dbbuild.write_dat(spec).splitlines()
     lines[1] = "    3    1    2    3"      # 3 elements, 1 solution (2 cations), 3 stoich

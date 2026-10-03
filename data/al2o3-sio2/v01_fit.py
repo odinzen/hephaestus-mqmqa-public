@@ -142,11 +142,12 @@ def evaluate(terms, label):
     return m
 
 
-# Fitted 2026-08-26 to the silica-side eutectic (T, x), hit exactly. The silica-local
-# chi_Si^5 form is the family's silica-gap lever; a global positive term was tried and
-# rejected (it drags the eutectic composition silica-ward and overheats the mullite
-# liquidus). No stable liquid demixing at 1900-2300 K (checked).
-STORED = [9317.3, 33855.3]
+# Fitted to the silica-side eutectic (T, x), hit exactly. The silica-local chi_Si^5 form
+# is the family's silica-gap lever; a global positive term was tried and rejected (it
+# drags the eutectic composition silica-ward and overheats the mullite liquidus). Refit
+# 2026-09-29 on the corrected SiO2 (beta-cristobalite constants, dbbuild): was
+# [9317.3, 33855.3]. No stable liquid demixing at 1900-2300 K (checked).
+STORED = [16332.59836598, 31686.77057538]
 
 
 def terms_from(vec):
@@ -168,10 +169,11 @@ def main():
         sol = least_squares(residual, STORED if STORED[1] else [STORED[0], -10000.0],
                             diff_step=0.08, xtol=1e-9)
         print("fitted:", sol.x, "cost", sol.cost)
-        vec = sol.x
+        evaluate(terms_from(sol.x), f"v0.1 form L = {sol.x[0]:.1f} + {sol.x[1]:.1f} chi_Si")
     else:
-        vec = STORED
-    evaluate(terms_from(vec), f"L = {vec[0]:.1f} + {vec[1]:.1f} chi_Si")
+        # the shipped liquid is v0.2 (build_dat.ASSESSED_EXCESS, assessment/assess.py); this
+        # evaluates and writes it, the v0.1 targets above being superseded by Bowen & Greig
+        evaluate(build_dat.assessed_terms(), "v0.2 (build_dat.ASSESSED_EXCESS)")
 
 
 if __name__ == "__main__":

@@ -21,15 +21,19 @@ T0 = 298.15
 # --- open published pure-oxide data (per-number citation in PROVENANCE.md) ---
 OXIDES = {
     "FeO": dict(
-        # NIST-JANAF (Chase 1998): dHf(298) = -272.044 kJ/mol, S(298) = 60.752 J/mol/K.
-        # Cp a,b,c fit to the JANAF FeO(crystal) tabulation 298-1500 K (max resid 0.35).
-        # FeO melting Tm = 1650 K, dHfus = 24.058 kJ/mol (JANAF).
-        dHf=-272044.0, S298=60.752, a=50.66300, b=8.711283e-3, c=-3.13381e5,
+        # Iron-saturated wustite per mole of O: Fe0.947O + 0.053 Fe (Robie & Hemingway 1995,
+        # p.190; the Fe from SGTE GHSERFE via espei, without its small magnetic term). The
+        # slags here are iron-saturated, and this reproduces the iron-wustite oxygen buffer;
+        # the JANAF stoichiometric FeO used before 2026-09-29 was 9-10 kJ too stable at
+        # 1200-1600 K. Cp a,b,c fit 400-1600 K; dHf/S298 are the effective 298 K constants
+        # of that form (G within 53 J of the table, 600-1600 K). Melting: JANAF.
+        dHf=-266612.5, S298=57.1260, a=41.67195, b=1.539999e-2, c=1.01017e6,
         Tm=1650.0, dHfus=24058.0,
         cation="Fe", anion="O", charge=2.0, stoich_el={"Fe": 1.0, "O": 1.0}, quad=(1.0, 1.0),
     ),
     "SiO2": dict(  # identical to data/mgo-sio2 (Robie-Hemingway solid; NIST-JANAF fusion)
-        dHf=-908400.0, S298=43.4, a=72.75, b=1.300e-3, c=-4.132e6,
+        dHf=-905588.5, S298=50.8333, a=72.75, b=1.300e-3, c=-4.132e6,
+        dHf_ref=-908400.0, S298_ref=43.4,   # see dbbuild STARTER_OXIDES
         Tm=1996.0, dHfus=9581.0,
         cation="Si", anion="O", charge=4.0, stoich_el={"Si": 1.0, "O": 2.0}, quad=(1.0, 2.0),
     ),
@@ -73,6 +77,19 @@ def _mqmx_block(excess):
 
 
 FEO_TM = 1650.0  # FeO melting point (K); the liquid correction applies only below it
+
+# The assessed v0.4 liquid (assessment/assess.py, 2026-09-29): (p, q, a, b) for the Q term
+# chi_Fe^p chi_Si^q with L = a + b*T, and the FeO(l) below-melting slope. The assessment
+# writes FeO-SiO2-liquid.dat from these and the ternary builders read them from here.
+ASSESSED_EXCESS = [(0, 0, -58713.8001, 40.2683), (1, 0, -28132.8735, 0.0),
+                   (0, 3, -24367.8708, 0.0), (0, 5, 102532.9712, 0.0)]
+FEO_LIQ_BETA = -28.3391
+
+
+def assessed_excess(li=(1, 2, 3, 3)):
+    """ASSESSED_EXCESS as Q terms on the quadruplet li (FeO first, SiO2 second)."""
+    return [dict(code="Q", li=list(li), exp=[p, q, 0, 0], coeffs=[a, b, 0, 0, 0, 0])
+            for p, q, a, b in ASSESSED_EXCESS]
 
 
 def _feo_liquid_intervals(ox, feo_liq_beta):

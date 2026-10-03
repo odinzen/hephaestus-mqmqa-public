@@ -1,7 +1,8 @@
 # MgO-SiO2-liquid.dat provenance
 
-Open MgO-SiO2 liquid-slag MQMQA database, now at **v0.4** (central liquid + silica-rich
-miscibility gap). Built by `build_dat.py`; endmembers validated by `validate.py`, the v0.2
+Open MgO-SiO2 liquid-slag MQMQA database. The shipped liquid is the CALPHAD assessment
+described under "Assessed liquid (shipped)" below; the v0.2-v0.5 sections record how it got
+there. Built by `build_dat.py`; endmembers validated by `validate.py`, the v0.2
 central excess by `validate_v02.py`, invariants classified by `phase_hull.py`; fits
 reproduced by `v02_fit.py` (central) and `v04_fit.py` (+ silica gap), the gap-lever mapped
 in `v04_explore.py`. Second system in the open slag family (after CaO-SiO2); chosen because
@@ -372,36 +373,70 @@ that reproduces the measured mixing enthalpy. Worst-case invariant error drops f
   Robie-Hemingway 1995). The MQM method is from the published Pelton papers; NO FactSage/FToxid
   or other optimized-TDB parameters are used.
 
-## Assessed liquid (shipped) and the immiscibility model-form limit
+## Assessed liquid (shipped)
 
-The shipped `MgO-SiO2-liquid.dat` is now the CALPHAD-ASSESSED liquid: fit by weighted
-least-squares to the WHOLE experimental dataset at once (assessment/assess.py +
-assessment/dataset.py) - the four invariants, the two-liquid immiscibility binodal from
-FIVE studies (Greig 1927; Ol'shanskii 1951; Hageman & Oonk 1986; Warshaw; Toropov & Bondar),
-the experimental consolute (2240 K, Hageman & Oonk rapid-quench; Belmonte 2017), and the
-MLIP/calorimetry mixing enthalpy - not point-fit to a few landmarks. Liquid excess in the
-verified equivalent-fraction basis (Q-code (0,q) term = L*Y_SiO2^q, q = 0,1,3,5,7, each with
-an enthalpy and a temperature/entropy coefficient, mirroring the Wu/Eriksson/Pelton form).
-Result: all four invariants within ~40 K, calorimetry matched, the isolated immiscibility
-dome pulled from v0.5's ~3175 K to ~2410 K (measured consolute 2240), RMS residual ~1.8 sigma.
+The shipped `MgO-SiO2-liquid.dat` is the CALPHAD-assessed liquid: fitted by weighted least
+squares to the whole dataset at once (`assessment/assess.py` + `assessment/dataset.py`): the
+four invariants, the two-liquid binodal from five studies (Greig 1927; Ol'shanskii 1951;
+Hageman & Oonk 1986; Warshaw; Toropov & Bondar), the consolute (2240 K, Hageman & Oonk;
+Belmonte 2017), the monotectic itself (1968 K, Greig), the cristobalite liquidus at x 0.985,
+and the MLIP/calorimetry mixing enthalpy. Excess on (Mg,Si,O,O) as L*chi_Si^q, q = 0, 1, 3, 5,
+7, each a + b*T; the values live in `build_dat.ASSESSED_EXCESS`, which the ternary builders
+read.
 
-**Definitive immiscibility limit (established by the assessment, not just point-fitting).**
-The STABLE two-liquid field (with cristobalite in the hull) still comes out ~2310-2390 K, not
-the measured 1968-2240 K: cristobalite preempts the silica-rich liquid ~340 K too high. This
-was run to ground by co-assessing the SOLIDS with the liquid - relaxing the SiO2 dCp_fus (to its
-physical bound) and the compound formation enthalpies (within the Charlu-Newton-Kleppa
-uncertainty), with the cristobalite liquidus at high silica as an explicit target. It barely
-moved (cristobalite liquidus 2418 -> 2318 K). Root cause: the deep, ordered MgO-rich liquid that
-the invariants and calorimetry REQUIRE makes the cristobalite tie-line preempt, and cristobalite
-is pinned by the SiO2 melting point (1996 K) + the enstatite-cristobalite eutectic, so it cannot
-be destabilised to stop it. This binary's phases are line compounds (no solid solutions), so
-richer solid-solution modelling does not apply here; the wall is the single-common-anion liquid's
-intrinsic wide-gap-vs-low-dome tension. The published FActoxid assessment reproduces the stable
-field only with its full expert-optimised parameter set (the moat). So the immiscibility
-COMPOSITION is captured and the dome height is now close, but the immiscibility TEMPERATURE is a
-documented model-form limit. Immiscibility data DOIs: Hudon-Jung-Baker 2004 (10.1029/2003JB002659),
-2005 (10.1093/petrology/egi037); Hudon-Baker 2002 (10.1016/S0022-3093(02)01043-8); Belmonte 2017
-(10.1016/j.chemgeo.2016.11.011); Greig 1927 / Hageman-Oonk 1986 (no DOI).
+**Solids (2026-09-29).** Forsterite and enstatite are the Robie-Hemingway endmembers of
+`data/olivine/endmembers.py`, the same functions the olivine and pyroxene solutions use, with
+the enstatite high-temperature correction (`ENSTATITE_DG_1830`) co-assessed here. SiO2 is the
+corrected beta-cristobalite (see data/feo-sio2/PROVENANCE.md).
+
+**Correction (2026-09-29).** From v0.2 (2026-08-22) the phase model passed pure cristobalite
+through the compound formula, adding the quartz-to-cristobalite enthalpy shift meant only for
+compounds quoted against quartz. Cristobalite came out 2.3 kJ too stable, melting in effect
+near 2475 K. That produced the earlier finding that cristobalite "preempts the two liquids
+~340 K too high" and the "definitive immiscibility limit" recorded here, and it distorted
+every fit since. The shipped .dat files were never affected (their SiO2 melts at 1996 K); the
+fits against the phase model were. With the fix the previous parameters scored 21.7 instead of
+95.3 on the same data, and the refit gives:
+
+| Target | Model | Measured |
+|---|---|---|
+| periclase-forsterite eutectic | 2145 K | 2123 K |
+| forsterite congruent | 2134 K | 2163 K |
+| enstatite peritectic | 1836 K | 1830 K |
+| enstatite-cristobalite eutectic | 1820 K | 1816 K |
+| monotectic (cristobalite + two liquids) | 1920 K, liquids 0.64 / 0.97 | 1968 K, 0.60 / 0.99 |
+| consolute | 2410 K | 2240 K |
+| dH_mix at x 1/3 and 1/2 | -24.2, -18.1 kJ | -24.5, -22.4 kJ |
+
+Weighted RMS residual 1.75. The remaining misfit is the two-liquid dome: it spans 490 K in the
+model against 272 K measured, so the monotectic sits 48 K low while the consolute sits 170 K
+high.
+
+**Refit with the liquidus (2026-09-30).** That fit scored invariant temperatures only, and
+invariants computed pairwise can be metastable: its "periclase-forsterite eutectic" (2145 K) lay
+above forsterite's own melting (2134 K), so forsterite melted incongruently, and the
+enstatite-cristobalite eutectic had drifted to x 0.59. The dataset now also carries the Bowen &
+Andersen (1914) Table I quench brackets and the Greig (1927) Table IV A cristobalite liquidus (five
+points, `dataset.LIQUIDUS`), each scored where the liquid is stable on the full hull, and the
+measured liquid compositions of all three invariants. One MgO-side term, Y_MgO^2 (a + b T), joins
+the silica powers; temperature parts carry a prior of 0 +- 15 J/K, and the consolute residual has a
+slope while the gap is still open at 3200 K (a flat penalty let the gap stay open). Cost 31.5:
+
+| Target | Model | Measured |
+|---|---|---|
+| liquidus x 0.48-0.59 (5 points) | within 10 K | B&A 1914, Greig 1927 |
+| enstatite-cristobalite eutectic | 1823 K, x 0.542 | 1816 K, 0.553 |
+| enstatite peritectic | 1829 K, x 0.519 | 1830 K, 0.512 |
+| periclase-forsterite eutectic | 2130 K, x 0.328 | 2123 K, 0.265 |
+| forsterite congruent | 2119 K | 2163 K |
+| monotectic | 1961 K | 1968 K |
+| consolute | 2375 K | 2240 K |
+
+Open limit: forsterite melts 10 K below the periclase-forsterite eutectic (measured 40 K above
+it), i.e. marginally incongruent, and 44 K low. Neither an MgO(l) below-melting slope
+(`MGO_LIQ_BETA`, tested and held at zero: it moves forsterite and the eutectic together) nor the
+MgO-side term reorders them without dropping forsterite's melting by hundreds of kelvin. The
+enstatite correction is now 9500.2 J per Mg2Si2O6.
 
 ## Scope: condensed phases only (no gas phase)
 
@@ -413,7 +448,8 @@ binary oxide phase diagram, but it is a real scope boundary, not a detail:
   SiO2 -> SiO(g) + 1/2 O2, plus SiO2(g)), and MgO loses Mg(g) further up. A gas phase would
   cap how hot the condensed field persists and change the bulk composition by mass loss - the
   KEMS activity work these databases lean on literally measures that vapour. This is a second,
-  independent reason the modelled two-liquid dome (consolute ~3115 K) is unphysical: at those
+  independent reason a very tall modelled two-liquid dome (v0.4 put its consolute at ~3115 K;
+  the assessed liquid at 2410 K) would be unphysical: at those
   temperatures the condensed phases would be substantially boiled off, so the dome could never
   reach them. It reinforces (does not replace) the missing-entropy limitation above.
 - **Simplifications can mis-rank stability.** Like the omitted gas, the Neumann-Kopp solid Cp,

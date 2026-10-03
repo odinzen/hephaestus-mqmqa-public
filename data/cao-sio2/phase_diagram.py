@@ -43,7 +43,8 @@ import build_dat as bd
 import _activity as act
 
 T0 = 298.15
-S298_CAO, S298_SIO2 = bd.OXIDES["CaO"]["S298"], bd.OXIDES["SiO2"]["S298"]
+# formation from the oxides is a 298 K quantity: the true SiO2 values (build_dat)
+S298_CAO, S298_SIO2 = bd.OXIDES["CaO"]["S298"], bd.OXIDES["SiO2"]["S298_ref"]
 
 # alpha-quartz -> cristobalite enthalpy shift (our SiO2 endmember is cristobalite;
 # Abdul's dHf_ox is vs alpha-quartz). dHf(cristobalite) - dHf(quartz) ~ +2300 J/mol,
@@ -62,14 +63,23 @@ def solid_oxide_gibbs(ox, T):
 
 # Solid phases: name -> (n_CaO, n_SiO2, dHf_ox_quartz[J/mol], S298[J/mol/K], note).
 # x_SiO2 of the compound = n_SiO2 / (n_CaO + n_SiO2); formula units = n_CaO + n_SiO2.
+# The dHf_ox/S298 columns are the Neumann-Kopp form (USE_SHARED_SOLIDS = False).
 SOLIDS = {
     "CaO(lime)":            (1, 0,        0.0,  S298_CAO, "endmember"),
     "SiO2(cristobalite)":   (0, 1,        0.0,  S298_SIO2, "endmember"),
-    "CS(pseudowoll)":       (1, 1,   -81922.72, 85.2,  "cyclowollastonite; S298~woll+dStrans"),
+    "CS(pseudowoll)":       (1, 1,   -81922.72, 85.2,  "pseudowollastonite"),
     "C3S2(rankinite)":      (3, 2,  -229136.76, 210.6, "rankinite"),
-    "C2S(gamma)":           (2, 1,  -136816.80, 120.5, "gamma-C2S; high-T alpha not resolved"),
-    "C3S":                  (3, 1,  -112884.32, 168.6, "triclinic-C3S; stable ~1250-2070 C"),
+    "C2S":                  (2, 1,  -136816.80, 120.5, "larnite, alpha' above 970 K, alpha above 1710 K"),
+    "C3S":                  (3, 1,  -112884.32, 168.6, "hatrurite (triclinic C3S)"),
 }
+
+# The compounds come from data/cao-sio2/silicates.py (Robie-Hemingway 1995 tables, the
+# same definitions the CaO-Al2O3-SiO2 and CaO-FeO-MgO-SiO2 files use). False restores the
+# Neumann-Kopp compounds of v0.3 for comparison.
+USE_SHARED_SOLIDS = True
+import silicates as _sil
+SHARED_SOLIDS = {"CS(pseudowoll)": "CaSiO3", "C3S2(rankinite)": "Ca3Si2O7",
+                 "C2S": "Ca2SiO4", "C3S": "Ca3SiO5"}
 
 
 def solid_gibbs_per_formula_unit(name, T):
@@ -78,6 +88,13 @@ def solid_gibbs_per_formula_unit(name, T):
     n_cao, n_sio2, dHf_ox_qz, S298, _ = SOLIDS[name]
     nunits = n_cao + n_sio2
     x = n_sio2 / nunits
+    if n_cao == 0 or n_sio2 == 0:
+        # a pure oxide is its own endmember; the quartz correction below is for compounds
+        # whose dHf_ox is quoted against quartz (applied here it made cristobalite 2.3 kJ
+        # too stable, 2026-08-22 to 2026-09-29)
+        return solid_oxide_gibbs(bd.OXIDES["CaO" if n_sio2 == 0 else "SiO2"], T), x
+    if USE_SHARED_SOLIDS and name in SHARED_SOLIDS:
+        return _sil.gibbs(SHARED_SOLIDS[name], T) / nunits, x
     dHf_ox = dHf_ox_qz + DHF_QZ_TO_CRIST * n_sio2  # to cristobalite reference
     dSf_ox = S298 - n_cao * S298_CAO - n_sio2 * S298_SIO2
     g = (n_cao * solid_oxide_gibbs(bd.OXIDES["CaO"], T)
@@ -138,9 +155,8 @@ def diagnose(db, p, name, Tm_pub):
     dGmix = act.delta_g_mix(inp, x)  # per unit, liquid ref
     dgfus_ca = _dgfus_oxide(bd.OXIDES["CaO"], Tm_pub)
     dgfus_si = _dgfus_oxide(bd.OXIDES["SiO2"], Tm_pub)
-    dHf_ox = dHf_ox_qz + DHF_QZ_TO_CRIST * n_sio2
-    dSf_ox = S298 - n_cao * S298_CAO - n_sio2 * S298_SIO2
-    dGf_ox = (dHf_ox - Tm_pub * dSf_ox) / nunits  # per unit
+    dGf_ox = gs - ((n_cao * solid_oxide_gibbs(bd.OXIDES["CaO"], Tm_pub)
+                    + n_sio2 * solid_oxide_gibbs(bd.OXIDES["SiO2"], Tm_pub)) / nunits)
 
     # liquid ref -> solid-oxide ref for the melt (per unit)
     dGmix_solidref = dGmix + (n_cao / nunits) * dgfus_ca + (n_sio2 / nunits) * dgfus_si
@@ -164,7 +180,7 @@ if __name__ == "__main__":
     print("\n" + "=" * 70)
     print("CONSISTENCY DIAGNOSIS at the published melting points")
     print("=" * 70)
-    for name, Tm in (("CS(pseudowoll)", 1817.0), ("C2S(gamma)", 2403.0)):
+    for name, Tm in (("CS(pseudowoll)", 1817.0), ("C2S", 2403.0)):
         diagnose(db, p, name, Tm)
     print("\n  Reading: the liquid (from the v0.2 activity fit) is far less stable than")
     print("  the calorimetric compounds at their melting points, so nothing melts. The")

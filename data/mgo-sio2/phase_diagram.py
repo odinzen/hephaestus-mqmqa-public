@@ -42,10 +42,23 @@ import mqmqa
 from mqmqa import equilibrium as eq
 import build_dat as bd
 import _activity as act
+import importlib.util as _ilu
+
+# Forsterite and enstatite are the olivine/opx endmembers of data/olivine/endmembers.py
+# (Robie-Hemingway Cp, plus the enstatite high-T correction defined there), the same
+# functions the FeO-MgO-SiO2 databases use, so this binary and the ternaries share one
+# solid. Before 2026-09-29 they were Neumann-Kopp sums, which matched the measured
+# compounds only by cancelling the SiO2 Cp error (build_dat).
+USE_SHARED_SOLIDS = True
+_spec = _ilu.spec_from_file_location("mgo_ol_em", HERE.parent / "olivine" / "endmembers.py")
+em = _ilu.module_from_spec(_spec)
+_spec.loader.exec_module(em)
+SHARED_SOLIDS = {"M2S(forsterite)": "forsterite", "MS(enstatite)": "enstatite"}
 
 T0 = 298.15
 COMPONENTS = ["MG", "SI", "O"]
-S298_MGO, S298_SIO2 = bd.OXIDES["MgO"]["S298"], bd.OXIDES["SiO2"]["S298"]
+# formation from the oxides is a 298 K quantity: the true SiO2 values (build_dat)
+S298_MGO, S298_SIO2 = bd.OXIDES["MgO"]["S298"], bd.OXIDES["SiO2"]["S298_ref"]
 
 # alpha-quartz -> cristobalite enthalpy shift (our SiO2 endmember is cristobalite;
 # Charlu-Newton-Kleppa dHf_ox is vs alpha-quartz). dHf(cristobalite) - dHf(quartz)
@@ -157,14 +170,25 @@ def solid_gibbs_per_formula_unit(name, T):
     dHf_ox_qz = DHF_OX_OVERRIDE.get(name, dHf_ox_qz)
     nunits = n_mgo + n_sio2
     x = n_sio2 / nunits
+    if n_mgo == 0 or n_sio2 == 0:
+        # a pure oxide is its own endmember; the quartz correction below is for compounds
+        # whose dHf_ox is quoted against quartz (applied here it made cristobalite 2.3 kJ
+        # too stable, 2026-08-22 to 2026-09-29)
+        return solid_oxide_gibbs(bd.OXIDES["MgO" if n_sio2 == 0 else "SiO2"], T), x
     dHf_ox = dHf_ox_qz + DHF_QZ_TO_CRIST * n_sio2  # to cristobalite reference
+
+    if USE_SHARED_SOLIDS and name in SHARED_SOLIDS:
+        g = em.gibbs(SHARED_SOLIDS[name], T)
+        if name == "MS(enstatite)":
+            g += em.enstatite_ht(T)
+        return g / nunits, x
 
     if USE_COMPOUND_CP and name in RH_COMPOUND_CP:
         # Compound built from its OWN measured Cp(T), kept on the engine's endmember
         # scale: dHf(298) from elements = n*dHf_oxide + dHf_ox (same anchor as the
         # Neumann-Kopp form), then the compound's own H(T)-H298 and S(298)+S(T)-S298.
         dHf_elem = (n_mgo * bd.OXIDES["MgO"]["dHf"]
-                    + n_sio2 * bd.OXIDES["SiO2"]["dHf"] + dHf_ox)
+                    + n_sio2 * bd.OXIDES["SiO2"]["dHf_ref"] + dHf_ox)
         dH, dS = compound_HS(name, T)
         g = dHf_elem + dH - T * (S298 + dS)
         return g / nunits, x

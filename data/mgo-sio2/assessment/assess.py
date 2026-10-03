@@ -6,12 +6,14 @@ Liquid excess in the verified equivalent-fraction basis: each term is L*Y_SiO2^q
 L = a + b*T (a = enthalpy omega, b = the entropy/temperature part eta), on the (Mg,Si,O,O)
 quadruplet. A rich silica-side polynomial (q = 0,1,3,5,7) mirrors the published
 Wu/Eriksson/Pelton form (const + linear ordering + high-power silica, each with its own
-temperature dependence). Solids and endmembers are held at their measured values (the
-compound calorimetry already constrains them); only the liquid is assessed here.
+temperature dependence). Forsterite and enstatite are the shared olivine/opx endmembers
+(data/olivine/endmembers.py, Robie-Hemingway); the enstatite high-T correction defined
+there is co-assessed here, since R&H fit orthoenstatite only to 1000 K.
 
 Run:  PYTHONPATH=python python assess.py [--fit] [--write]
 """
 import sys
+import tempfile
 from pathlib import Path
 import numpy as np
 from scipy.optimize import least_squares
@@ -24,37 +26,65 @@ sys.path.insert(0, str(HERE.parents[2] / "python"))
 import build_dat as bd
 import mqmqa
 import phase_diagram as pdg
+import phase_hull as ph
 import v05_fit as vf
 from mqmqa import equilibrium as eq
 import _activity as act
 import dataset as ds
 
-pdg.USE_COMPOUND_CP = False
+pdg.USE_SHARED_SOLIDS = True
 COMP = pdg.COMPONENTS
 
 # excess term powers q (each carries a + b*T). Index maps to the parameter vector as
-# [a_q0, b_q0, a_q1, b_q1, ...]. Then 3 SOLID parameters (co-assessed, bounded):
-#   [-3] SiO2 dCp_fus (J/mol/K, 0..20; liquid silica Cp above cristobalite)
-#   [-2] forsterite dHf_ox vs quartz (J/mol; Charlu-Newton-Kleppa -60250 +- 2000)
-#   [-1] enstatite  dHf_ox vs quartz (J/mol; -36860 +- 2000)
-QPOW = [0, 1, 3, 5, 7]
-NLIQ = 2 * len(QPOW)
-# bounds: liquid params free; solid params within measured uncertainty
-LOWER = [-np.inf] * NLIQ + [0.0, -62250.0, -38860.0]
-UPPER = [np.inf] * NLIQ + [20.0, -58250.0, -34860.0]
+# [a_q0, b_q0, a_q1, b_q1, ...]. Then 2 SOLID parameters (co-assessed, bounded):
+#   [-2] SiO2 dCp_fus (J/mol/K, 0..20; liquid silica Cp above cristobalite)
+#   [-1] enstatite high-T correction at 1830 K (J per Mg2Si2O6; endmembers.ENSTATITE_DG_1830)
+# (p, q): Y_MgO^p Y_SiO2^q, silica powers only. An MgO-side term (2, 0) was tried 2026-09-30 and
+# dropped: with Fe and Mg in one group it acts on Fe-Si pairs in the ternary too, and it put the
+# FeO-MgO-SiO2 Fe-rich olivine liquidus 30-50 K low, without making forsterite congruent.
+# (0, 2), 2026-10-01: in a binary any MgO-power term is a combination of silica powers 0-2, so
+# this is the MgO-side freedom the stable liquidus needs, extrapolated into the ternaries like the
+# other silica terms (not through the Fe+Mg group). Its temperature part has a loose prior so the
+# data decide whether the MgO-rich melt is stabilized by entropy or by enthalpy.
+TERMS = [(0, 0), (0, 1), (0, 3), (0, 5), (0, 7), (0, 2)]
+B_PRIOR_TERM = {(0, 2): 40.0}
+QPOW = [q for _, q in TERMS]
+NLIQ = 2 * len(TERMS)
+B_PRIOR = 15.0          # J/mol/K, on each excess term's temperature part
+# after the liquid: MgO(l) heat capacity above the crystal's, SiO2 dCp_fus, enstatite high-T correction
+# after the liquid: the Mg-Si ordering composition as an offset from 1/3 (see build_dat.MGSI_SRO_X),
+# then the three below
+LOWER = [-np.inf] * NLIQ + [-0.05, 0.0, 0.0, 0.0]
+UPPER = [np.inf] * NLIQ + [0.03, 60.0, 1e-6, 40000.0]      # dCp_fus pinned: SiO2(l) is shared by every file
+# liquid MgO Cp 78 +- 15 J/mol/K near Tm from first-principles MD (de Koker & Stixrude 2009), less the
+# crystal's Cp at Tm from the periclase fit: the prior on MGO_LIQ_DCP. (Until 2026-10-02 a free
+# below-Tm slope here went to 8.7 J/K, a fusion enthalpy near 50 kJ no independent source supports.)
+_MGO = bd.OXIDES["MgO"]
+DCP_PRIOR = (78.0 - (_MGO["a"] + _MGO["b"] * _MGO["Tm"] + _MGO["c"] / _MGO["Tm"] ** 2), 15.0)
+
+
+def set_enstatite(dg_1830):
+    pdg.em.ENSTATITE_DG_1830 = dg_1830
+    pdg.em.ENSTATITE_HT_B = dg_1830 / (1830.0 - pdg.em.ENSTATITE_T_BREAK)
+
+
+def z_mixed(pp):
+    return bd.mgsi_mixed_z(1.0 / 3.0 + pp[NLIQ]) or False
 
 
 def build_db(pp):
     excess = []
-    for i, q in enumerate(QPOW):
+    for i, (pw, q) in enumerate(TERMS):
         a, b = pp[2 * i], pp[2 * i + 1]
-        excess.append(dict(code="Q", li=[1, 2, 3, 3], exp=[0, q, 0, 0],
+        excess.append(dict(code="Q", li=[1, 2, 3, 3], exp=[pw, q, 0, 0],
                            coeffs=[a, b, 0, 0, 0, 0]))
-    dcp_fus, dHf_forst, dHf_enst = pp[-3], pp[-2], pp[-1]
-    pdg.DHF_OX_OVERRIDE = {"M2S(forsterite)": dHf_forst, "MS(enstatite)": dHf_enst}
+    dcp_fus, ens_dg = pp[-2], pp[-1]
+    set_enstatite(ens_dg)
     import os
-    path = HERE / f"_assess_{os.getpid()}.dat"
-    path.write_text(bd.build(excess, version="assess", dcp_fus_sio2=dcp_fus), encoding="ascii")
+    # scratch copy per process (parallel fits), outside the repository
+    path = Path(tempfile.gettempdir()) / f"_mgo-sio2_assess_{os.getpid()}.dat"
+    path.write_text(bd.build(excess, version="assess", dcp_fus_sio2=dcp_fus, mgo_liq_dcp=pp[-3],
+                             z_mixed=z_mixed(pp)), encoding="ascii")
     db = mqmqa.Database.read(str(path))
     return db, db.phase_index("MGO-SIO2-LIQUID"), excess
 
@@ -82,6 +112,34 @@ def cristobalite_liquidus_T(db, p, xL, lo=1750.0, hi=2600.0):
     return 0.5 * (lo + hi)
 
 
+def monotectic_T(db, p, lo=1850.0, hi=2150.0):
+    """Temperature at which cristobalite touches the two-liquid common tangent (silica + L1
+    + L2), or None with no gap at lo; outside the bracket, the nearer edge."""
+    def f(T):
+        gap = vf.gap(db, p, T)
+        if gap is None:
+            return None
+        x1, x2 = gap
+        inp = eq.build_inputs(db, p, T, components=COMP)
+        g = lambda x: pdg.liquid_gibbs_per_formula_unit(inp, x, T)
+        chord = (g(x2) - g(x1)) / (x2 - x1)
+        return (pdg.solid_gibbs_per_formula_unit("SiO2(cristobalite)", T)[0]
+                - (g(x2) + (1.0 - x2) * chord))
+    flo = f(lo)
+    if flo is None:
+        return None
+    fhi = f(hi)
+    while fhi is None and hi > lo + 25.0:
+        hi -= 25.0
+        fhi = f(hi)
+    if fhi is None or flo * fhi > 0:
+        return lo if (fhi is None or flo > 0) else hi
+    for _ in range(40):
+        m = 0.5 * (lo + hi)
+        lo, hi = (m, hi) if f(lo) * f(m) > 0 else (lo, m)
+    return 0.5 * (lo + hi)
+
+
 def dh_mix(db, p, x, T=2100.0, dT=40.0):
     g = lambda TT: act.delta_g_mix(eq.build_inputs(db, p, TT, components=COMP), x)
     return (g(T) - T * (g(T + dT) - g(T - dT)) / (2 * dT)) / 1000.0
@@ -100,6 +158,101 @@ def consolute(db, p, lo=1990.0, hi=3200.0, step=35.0):
     return Tclose, xc
 
 
+def _hull(db, p, T, xs):
+    inp = eq.build_inputs(db, p, T, components=COMP)
+    pts = [(float(x), pdg.liquid_gibbs_per_formula_unit(inp, float(x), T), "L") for x in xs]
+    for name in pdg.SOLIDS:
+        g, xc = pdg.solid_gibbs_per_formula_unit(name, T)
+        pts.append((xc, g, name))
+    return ph.lower_hull(pts)
+
+
+def liquidus_point(db, p, x, lo=1600.0, hi=2400.0, n=26):
+    """(T, primary solid) at composition x: the lowest T at which the liquid at x is on the
+    lower hull of the liquid and every solid, so a metastable liquidus cannot score."""
+    xs = np.unique(np.round(np.concatenate([np.linspace(0.02, 0.985, 50),
+                                            x + np.linspace(-0.03, 0.03, 13)]), 6))
+    def on_hull(T):
+        return any(abs(q[0] - x) < 1e-9 and q[2] == "L" for q in _hull(db, p, T, xs))
+    if on_hull(lo) or not on_hull(hi):
+        return None, None
+    for _ in range(n):
+        m = 0.5 * (lo + hi)
+        lo, hi = (lo, m) if on_hull(m) else (m, hi)
+    left, right = ph.hull_bracket(_hull(db, p, lo, xs), x)
+    solids = [q[2] for q in (left, right) if q[2] != "L"]
+    # The sampled hull only finds the primary phase: with the liquid on a 0.005 grid it read the
+    # steep periclase liquidus 16 K low at x 0.265 (2026-10-02). The temperature comes from the
+    # exact saturation of that phase.
+    # A tangent at a composition inside the two-liquid gap is metastable (x 0.588 sits in it at
+    # the monotectic), so the refined value stands only where the liquid at x is on its own hull.
+    sat = [t for t in (saturation_T(db, p, s, x, hi - 80.0, hi + 80.0) for s in solids)
+           if t and _liquid_on_own_hull(db, p, x, t)]
+    T = max(sat) if sat else hi
+    return T, (solids[0] if len(solids) == 1 else "+".join(solids) or None)
+
+
+def eutectic_pe_fo(db, p, lo=0.12, hi=0.33, n=16):
+    """(T, x) of the periclase-forsterite eutectic: where the two saturation curves cross on
+    the MgO side of forsterite, with the liquid stable there. (None, None) if they do not."""
+    def gap(x):
+        return (saturation_T(db, p, "MgO(periclase)", x, 1500.0, 3300.0, clamp=True)
+                - saturation_T(db, p, "M2S(forsterite)", x, 1500.0, 3300.0, clamp=True))
+    if gap(lo) <= 0 or gap(hi) >= 0:
+        return None, None
+    for _ in range(n):
+        m = 0.5 * (lo + hi)
+        lo, hi = (m, hi) if gap(m) > 0 else (lo, m)
+    x = 0.5 * (lo + hi)
+    T = saturation_T(db, p, "M2S(forsterite)", x, 1500.0, 3300.0)
+    return (T, x) if T and _liquid_on_own_hull(db, p, x, T) else (None, None)
+
+
+def _liquid_on_own_hull(db, p, x, T):
+    x = round(x, 6)                                         # the grid is rounded too
+    xs = np.unique(np.round(np.append(np.linspace(0.002, 0.998, 499), x), 6))
+    inp = eq.build_inputs(db, p, T, components=COMP)
+    pts = [(float(v), pdg.liquid_gibbs_per_formula_unit(inp, float(v), T), "L") for v in xs]
+    return any(abs(q[0] - x) < 1e-9 for q in ph.lower_hull(pts))
+
+
+def saturation_T(db, p, solid, x, lo, hi, h=1e-4, clamp=False):
+    """T at which `solid` touches the tangent to the liquid at x. Not bracketed: None, or
+    with clamp the end of the window it lies beyond."""
+    def above_tangent(T):
+        inp = eq.build_inputs(db, p, T, components=COMP)
+        g = lambda v: pdg.liquid_gibbs_per_formula_unit(inp, v, T)
+        gs, xs = pdg.solid_gibbs_per_formula_unit(solid, T)
+        return gs - (g(x) + (g(x + h) - g(x - h)) / (2 * h) * (xs - x))
+    f_lo, f_hi = above_tangent(lo), above_tangent(hi)
+    if f_lo * f_hi > 0:
+        return (hi if f_hi < 0 else lo) if clamp else None
+    for _ in range(30):
+        m = 0.5 * (lo + hi)
+        f_m = above_tangent(m)
+        lo, f_lo, hi = (m, f_m, hi) if f_m * f_lo > 0 else (lo, f_lo, m)
+    return 0.5 * (lo + hi)
+
+
+def eutectic_x(db, p, T, n1, n2):
+    """Liquid composition on the two-solid chord at the eutectic T."""
+    g1, x1 = pdg.solid_gibbs_per_formula_unit(n1, T)
+    g2, x2 = pdg.solid_gibbs_per_formula_unit(n2, T)
+    xs = np.linspace(min(x1, x2) + 0.005, max(x1, x2) - 0.005, 400)
+    inp = eq.build_inputs(db, p, T, components=COMP)
+    gl = np.array([pdg.liquid_gibbs_per_formula_unit(inp, float(x), T) for x in xs])
+    return float(xs[np.argmin(gl - (g1 + (g2 - g1) * (xs - x1) / (x2 - x1)))])
+
+
+def peritectic_x(db, p, T):
+    """Liquid the forsterite tangent touches at the enstatite peritectic T."""
+    gf, xf = pdg.solid_gibbs_per_formula_unit("M2S(forsterite)", T)
+    xs = np.linspace(0.45, 0.62, 350)
+    inp = eq.build_inputs(db, p, T, components=COMP)
+    gl = np.array([pdg.liquid_gibbs_per_formula_unit(inp, float(x), T) for x in xs])
+    return float(xs[np.argmin((gl - gf) / (xs - xf))])
+
+
 def residuals(pp, detail=False):
     db, p, _ = build_db(pp)
     r = vf.all_invariants(db, p)
@@ -114,10 +267,45 @@ def residuals(pp, detail=False):
                "forsterite congruent": "forsterite",
                "enstatite peritectic": "enst_peri",
                "enstatite-cristobalite eutectic": "encr_eut"}
-    for d in ds.INVARIANTS:
+    # The MgO side is scored on the stable hull: the liquidus at the measured eutectic liquid and
+    # at forsterite. The pairwise invariants vf.all_invariants gives there let the periclase field
+    # run past forsterite unseen (2026-10-01: periclase first up to x 0.35, liquidus 2794 K at the
+    # eutectic composition, measured 2123 K).
+    # The periclase-forsterite eutectic is scored as the invariant itself, T and liquid x, where
+    # the two saturation curves cross. Scored as the liquidus at the measured x (until
+    # 2026-10-02), a fit could match that point 12 K away while the eutectic sat 45 K low.
+    d = ds.INVARIANTS[0]
+    Te, xe = eutectic_pe_fo(db, p)
+    add(f"T[{d['name']}]", ((Te - d["T"]) / d["sigT"]) if Te else vf.PENALTY,
+        f"{Te:.0f}/{d['T']:.0f}" if Te else "none (periclase field past forsterite?)")
+    add(f"x[{d['name']}]", ((xe - d["x"]) / d["sigx"]) if Te else vf.PENALTY,
+        f"{xe:.3f}/{d['x']:.3f}" if Te else "none")
+    for d in ds.INVARIANTS[1:2]:
+        T, prim = liquidus_point(db, p, round(d["x"], 6), 1600.0, 3200.0)
+        ok = prim is not None and all(s in d["solids"] for s in prim.split("+"))
+        add(f"T[{d['name']}] (stable liquidus)", ((T - d["T"]) / d["sigT"]) if T else vf.PENALTY,
+            f"{T:.0f}/{d['T']:.0f} {prim}{'' if ok else ' (want ' + '/'.join(d['solids']) + ')'}"
+            if T else "none")
+    for d in ds.INVARIANTS[2:]:
         v = r[inv_map[d["name"]]]
         add(f"T[{d['name']}]", ((v - d["T"]) / d["sigT"]) if v else vf.PENALTY,
             f"{v:.0f}/{d['T']:.0f}" if v else "none")
+
+    # silica-side invariant liquid compositions
+    for d, key, fx in [(ds.INVARIANTS[3], "encr_eut",
+                        lambda T: eutectic_x(db, p, T, "MS(enstatite)", "SiO2(cristobalite)")),
+                       (ds.INVARIANTS[2], "enst_peri", lambda T: peritectic_x(db, p, T))]:
+        T = r[key]
+        xv = fx(T) if T else None
+        add(f"x[{d['name']}]", ((xv - d["x"]) / d["sigx"]) if xv else vf.PENALTY,
+            f"{xv:.3f}/{d['x']:.3f}" if xv else "none")
+
+    # liquidus between the invariants
+    for d in ds.LIQUIDUS:
+        T, prim = liquidus_point(db, p, d["x"])
+        ok = prim == d["phase"]
+        add(f"liq@x{d['x']:.3f}", ((T - d["T"]) / d["sig"]) if T else vf.PENALTY,
+            f"{T:.0f}/{d['T']:.0f} {prim}{'' if ok else ' (want ' + d['phase'] + ')'}" if T else "none")
 
     # immiscibility binodal conjugates (isolated binodal at each measured T)
     for d in ds.BINODAL:
@@ -131,18 +319,37 @@ def residuals(pp, detail=False):
     # consolute (dome height + critical composition)
     Tc, xc = consolute(db, p)
     for d in ds.CONSOLUTE:
-        add("consolute_T", ((Tc - d["T"]) / d["sigT"]) if Tc else vf.PENALTY,
-            f"{Tc}/{d['T']:.0f}" if Tc else "none")
+        if Tc:
+            add("consolute_T", (Tc - d["T"]) / d["sigT"], f"{Tc}/{d['T']:.0f}")
+        else:
+            # still open at 3200 K: charge the scan's top plus the width left there, so the
+            # fit feels which way closes it (a flat penalty it would ignore)
+            g = vf.gap(db, p, 3200.0)
+            w = (g[1] - g[0]) if g else 0.0
+            add("consolute_T", (3200.0 - d["T"]) / d["sigT"] + w / 0.05, f"open at 3200 K, width {w:.2f}")
         add("consolute_x", ((xc - d["x_c"]) / d["sigx"]) if (Tc and xc) else 0.0,
             f"{xc:.2f}/{d['x_c']:.2f}" if xc else "-")
 
     # cristobalite liquidus at high silica = the preemption constraint. At the monotectic
     # cristobalite coexists with the silica-rich liquid (~0.985) at ~1968 K; our models put
     # this ~340 K too high (dome preempts). Target it directly.
-    for xL, Ttgt, sig in [(0.985, 1975.0, 40.0), (0.90, 1955.0, 60.0)]:
+    # (a liquidus read at x = 0.90 would sit inside the model's gap, so the monotectic
+    # itself is scored below instead)
+    for xL, Ttgt, sig in [(0.985, 1975.0, 40.0)]:
         Tc = cristobalite_liquidus_T(db, p, xL)
         add(f"crist_liq@x{xL:.2f}", ((Tc - Ttgt) / sig) if Tc else vf.PENALTY,
             f"{Tc:.0f}/{Ttgt:.0f}" if Tc else "none")
+    Tm = monotectic_T(db, p)
+    add("monotectic T (silica + L1 + L2)", ((Tm - vf.T_MONO) / 10.0) if Tm else vf.PENALTY,
+        f"{Tm:.0f}/{vf.T_MONO:.0f}" if Tm else "none")
+
+    # the temperature parts stay modest: a large b on a high silica power keeps the two-liquid
+    # field open to 3200 K (2026-09-30), which no measurement supports
+    for i, (pw, q) in enumerate(TERMS):
+        add(f"prior b(p={pw},q={q})", pp[2 * i + 1] / B_PRIOR_TERM.get((pw, q), B_PRIOR),
+            f"{pp[2 * i + 1]:.1f}/0")
+
+    add("prior MgO(l) dCp", (pp[-3] - DCP_PRIOR[0]) / DCP_PRIOR[1], f"{pp[-3]:.1f}/{DCP_PRIOR[0]:.1f} J/K")
 
     # mixing enthalpy
     for d in ds.DH_MIX:
@@ -152,20 +359,50 @@ def residuals(pp, detail=False):
     return (np.asarray(out, float), rows) if detail else np.asarray(out, float)
 
 
-def fit(p0):
+def _init_worker():
     vf.RES = vf.FAST
+
+
+def _res_fast(pp):
+    return residuals(np.asarray(pp, float))
+
+
+def fit(p0, workers=13):
+    """Levenberg-style least squares with the forward-difference Jacobian computed in
+    parallel, one process per parameter. Each step is 3% of the parameter's typical size,
+    not of its value, so a parameter starting at zero still moves."""
+    from multiprocessing import Pool
+    _init_worker()
+    typ = []
+    for _ in TERMS:
+        typ += [2e4, 10.0]
+    typ += [0.005, 10.0, 10.0, 2000.0]
+    typ = np.array(typ)
+    lo, hi = np.array(LOWER, float), np.array(UPPER, float)
     n = [0]
-    def fun(pp):
-        n[0] += 1
-        res = residuals(pp)
-        print(f"  eval {n[0]:3d}  cost={0.5*float(res@res):8.3f}")
-        return res
-    xs = []
-    for _ in QPOW:
-        xs += [3e5, 1e2]
-    xs += [10.0, 2000.0, 2000.0]              # solid-param scales
-    sol = least_squares(fun, p0, diff_step=0.03, max_nfev=400, x_scale=xs,
-                        bounds=(LOWER, UPPER))
+    with Pool(workers, initializer=_init_worker) as pool:
+        cache = {}
+
+        def fun(x):
+            key = tuple(np.round(x, 9))
+            if key not in cache:
+                cache[key] = _res_fast(x)
+                n[0] += 1
+                r = cache[key]
+                print(f"  eval {n[0]:3d}  cost={0.5 * float(r @ r):8.3f}  p0="
+                      + ",".join(f"{v:.6g}" for v in x), flush=True)
+            return cache[key]
+
+        def jac(x):
+            h = 0.03 * np.maximum(np.abs(x), typ)
+            h = np.where(x + h > hi, -h, h)
+            pts = [x + np.eye(len(x))[i] * h[i] for i in range(len(x))]
+            cols = pool.map(_res_fast, pts)
+            f0 = fun(x)
+            return np.column_stack([(c - f0) / hi_ for c, hi_ in zip(cols, h)])
+
+        sol = least_squares(fun, np.asarray(p0, float), jac=jac, x_scale=typ,
+                            bounds=(lo, hi), max_nfev=40, ftol=1e-4, xtol=1e-4)
     return sol.x
 
 
@@ -175,19 +412,36 @@ def report(pp, write=False):
     print("\n  per-datum residuals (model/target):")
     for tag, rr, info in rows:
         print(f"    {tag:26s} {info:14s}  r={rr:+6.2f}")
+    print(f"  Mg-Si ordering peaks at x_SiO2 = {1.0 / 3.0 + pp[NLIQ]:.4f}")
     print(f"\n  total cost = {0.5*float(res@res):.3f}   RMS residual = {np.sqrt(np.mean(res**2)):.2f}")
     if write:
         _, _, excess = build_db(pp)
         (HERE.parent / "MgO-SiO2-liquid.dat").write_text(
-            bd.build(excess, version="assess"), encoding="ascii")
-        print("  wrote MgO-SiO2-liquid.dat")
+            bd.build(excess, version="assess", dcp_fus_sio2=pp[-2], mgo_liq_dcp=pp[-3],
+                     z_mixed=z_mixed(pp)), encoding="ascii")
+        print("  wrote MgO-SiO2-liquid.dat; enstatite correction to record in "
+              f"data/olivine/endmembers.py: ENSTATITE_DG_1830 = {pp[-1]:.1f}")
 
 
 if __name__ == "__main__":
-    # start from the first-pass liquid result + solids at their measured values
-    # (dCp_fus=0, forsterite -60250, enstatite -36860).
-    p0 = [-44468.8, -1.6, -50864.2, -0.3, 1448.2, -0.7, 116056.4, -10.8, -1177.5, -0.3,
-          0.0, -60250.0, -36860.0]
-    pp = fit(p0) if "--fit" in sys.argv else p0
+    # Assessed 2026-09-29 on the shared Robie-Hemingway forsterite/enstatite and the corrected
+    # SiO2, after the phase model stopped applying the quartz correction to pure cristobalite
+    # (which had made it 2.3 kJ too stable): total cost 30.5, RMS 1.75. --fit re-runs from it.
+    # The liquid lives in build_dat.ASSESSED_EXCESS and the enstatite correction in
+    # data/olivine/endmembers.py; the SiO2 dCp_fus assessed to zero.
+    ASSESSED = [v for t in bd.ASSESSED_EXCESS for v in t[-2:]]
+    ASSESSED += [0.0] * (NLIQ - len(ASSESSED)) + [bd.MGSI_SRO_X - 1.0 / 3.0, bd.MGO_LIQ_DCP, 0.0, pdg.em.ENSTATITE_DG_1830]
+    for arg in sys.argv:
+        if arg.startswith("--p0="):
+            ASSESSED = [float(v) for v in arg[5:].split(",")]
+    # --dcp=X holds MGO_LIQ_DCP at X: the ternary liquidus at 1500-1700 K depends on it far more
+    # than the binary data above 1816 K do (2026-10-02)
+    for arg in sys.argv:
+        if arg.startswith("--dcp="):
+            ASSESSED[-3] = float(arg[6:])
+            LOWER[-3], UPPER[-3] = ASSESSED[-3], ASSESSED[-3] + 1e-6
+    workers = next((int(a.split("=", 1)[1]) for a in sys.argv if a.startswith("--workers=")), 13)
+    pp = fit(ASSESSED, workers) if "--fit" in sys.argv else ASSESSED
     report(pp, write=("--write" in sys.argv))
     print("\n  params:", [round(float(x), 1) for x in pp])
+    print("  params_full:", ",".join(repr(float(x)) for x in pp))

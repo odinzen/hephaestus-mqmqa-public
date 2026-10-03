@@ -1,0 +1,41 @@
+table,pyroxene_wt,En,Di,added,added_wt,T_lo_C,T_hi_C,primary
+I,90,0,100,SiO2,10,1375,1380,pyroxene
+I,80,0,100,SiO2,20,1448,1453,silica
+I,75,0,100,SiO2,25,1577,1583,silica
+text p209,100,0,100,none,0,1391,1391,pyroxene
+text p209,84,0,100,SiO2,16,1362,1362,pyroxene+silica
+II,85,0,100,Mg2SiO4,15,1412,1415,forsterite
+II,80,0,100,Mg2SiO4,20,1448,1453,forsterite
+II,70,0,100,Mg2SiO4,30,1550,1554,forsterite
+text p210,88,0,100,Mg2SiO4,12,1386.5,1386.5,forsterite+pyroxene
+III fo-px,95,81,19,SiO2,5,1520,1524,pyroxene
+III fo-px,97,81,19,SiO2,3,1525,1529,forsterite+pyroxene
+III fo-px,95,63,37,SiO2,5,1482,1486,pyroxene
+III fo-px,97,63,37,SiO2,3,1485,1490,forsterite+pyroxene
+III fo-px,97,44,56,SiO2,3,1430,1435,pyroxene
+III fo-px,98,25,75,SiO2,2,1407,1410,pyroxene
+III fo-px,100,20,80,none,0,1390,1392,pyroxene
+III px-silica,85,63,37,SiO2,15,1483,1487,pyroxene+silica
+III px-silica,87,25,75,SiO2,13,1380,1384,pyroxene+silica
+III silica,80,81,19,SiO2,20,1610,1620,silica
+III silica,80,63,37,SiO2,20,1587,1593,silica
+III silica,80,44,56,SiO2,20,1556,1562,silica
+III silica,80,25,75,SiO2,20,1538,1543,silica
+III silica,80,17,83,SiO2,20,1502,1507,silica
+III pyroxene,92,72,28,SiO2,8,1504,1508,pyroxene
+III pyroxene,92,53,47,SiO2,8,1457,1461,pyroxene
+III pyroxene,92,44,56,SiO2,8,1427,1432,pyroxene
+III pyroxene,92,35,65,SiO2,8,1407,1413,pyroxene
+III pyroxene,92,25,75,SiO2,8,1386,1390,pyroxene
+III pyroxene,92,7,93,SiO2,8,1377,1382,pyroxene
+III forsterite,100,81,19,none,0,1550,1554,forsterite
+III forsterite,100,72,28,none,0,1530,1534,forsterite
+III forsterite,100,63,37,none,0,1512,1516,forsterite
+III forsterite,100,53,47,none,0,1490,1494,forsterite
+III forsterite,100,44,56,none,0,1459,1464,forsterite
+III forsterite,100,35,65,none,0,1428,1432,forsterite
+III forsterite,80,33,67,Mg2SiO4,20,1550,1555,forsterite
+III forsterite,90,25,75,Mg2SiO4,10,1468,1472,forsterite
+III forsterite,80,17,83,Mg2SiO4,20,1518,1523,forsterite
+III forsterite,89,13,87,Mg2SiO4,11,1430,1434,forsterite
+III forsterite,92,13,87,Mg2SiO4,8,1407,1412,forsterite

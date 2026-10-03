@@ -23,9 +23,9 @@ whose ends fall on different phases (liquidus = its liquid end, solidus = its ol
 
 STATUS (v0.2). BOTH congruent endpoints are reproduced: forsterite 2163 K (X_Fe=0) and
 fayalite 1476 K (X_Fe=1), vs 2163 / 1478 measured. The forsterite end was reconciled by the
-MgO(l) below-3098 K liquidus calibration (build_dat.MGO_LIQ_BETA, fit_mgo_beta below), which
-puts the liquid on the same measured (Robie-Hemingway) forsterite the olivine CEF uses; the
-fayalite end already followed from the FeO-SiO2 v0.3 FeO(l) calibration. The loop topology and
+MgO-SiO2 assessment, which is made on the same measured (Robie-Hemingway) forsterite the
+olivine CEF uses (no separate MgO(l) calibration since 2026-09-29); the fayalite end follows
+from the FeO-SiO2 assessment on the same fayalite. The loop topology and
 width match Bowen & Schairer's lens. Residual limit: the interior liquidus inherits the
 ternary liquid-minimizer error described above (a warm-started, polynomial-smoothed
 multi-start; an exact ternary minimizer / the C multiphase hull would remove it). The solid
@@ -52,32 +52,6 @@ NATOMS = 7.0  # atoms per (Mg,Fe)2SiO4 formula unit
 def olivine_G(cdb, pol, xFe, T):
     # reader alphabetizes the metal sublattice to [FE, MG]; per-formula Gibbs
     return cdb.cef_gibbs(pol, [xFe, 1.0 - xFe, 1.0, 1.0], T, per_mole_atoms=False)
-
-
-def fit_mgo_beta(T_forsterite=2163.0):
-    """The MGO_LIQ_BETA in build_dat: the MgO(l) below-3098 K correction that makes the
-    MgO-SiO2 liquid melt the measured (Robie-Hemingway) forsterite - the olivine CEF
-    endmember - congruently at 2163 K. Orthogonal to the activities (pure MgO endmember
-    shift), so this is a single-point analytic solve, not an optimization. Returns beta;
-    the value is cached in build_dat.MGO_LIQ_BETA."""
-    import importlib.util
-
-    def _load(name, rel):
-        spec = importlib.util.spec_from_file_location(name, HERE.parents[1] / rel)
-        m = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(m)
-        return m
-
-    from mqmqa import equilibrium as eqm
-    mgo_bd = _load("mgo_bd_fit", "data/mgo-sio2/build_dat.py")
-    actM = _load("mgo_act_fit", "data/mgo-sio2/_activity.py")
-    olv = _load("olv_em_fit", "data/olivine/endmembers.py")
-    db = mqmqa.Database.read(str(HERE.parents[0] / "mgo-sio2" / "MgO-SiO2-liquid.dat"))
-    p = db.phase_index("MGO-SIO2-LIQUID")
-    inp = eqm.build_inputs(db, p, T_forsterite)
-    liq = actM.gm(inp, 1.0 / 3.0) * NATOMS  # MgO-SiO2 liquid per Mg2SiO4 formula
-    fo = olv.gibbs("forsterite", T_forsterite)
-    return (fo - liq) / (2.0 * (T_forsterite - mgo_bd.MGO_TM))
 
 
 def _liquid_curve(db, p, T, xs, nstart=6):

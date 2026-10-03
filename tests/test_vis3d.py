@@ -31,7 +31,7 @@ X_TOL = 1e-3
 FMS = ROOT / "data" / "feo-mgo-sio2" / "FeO-MgO-SiO2-combined.dat"
 CAS = ROOT / "web" / "CaO-Al2O3-SiO2.dat"
 LIQ = "FEO-MGO-SIO2-LIQUID"
-PHASES = [LIQ, "OLIVINE", "ORTHOPYROXENE", "CRISTOBALITE", "PERICLASE", "WUSTITE"]
+PHASES = [LIQ, "OLIVINE", "ORTHOPYROXENE", "MAGNESIOWUSTITE", "CRISTOBALITE"]
 
 
 @pytest.fixture(scope="module")
@@ -142,7 +142,6 @@ def test_olivine_tieline_converges_to_the_model_value_for_every_seed(fms):
     ref, _ = _pyc_equilibrium(T, x_fe, x_si)
     assert [p for p, _, _ in ref] == [LIQ, "OLIVINE"]
     liq_ref, sol_ref = ref[0][1], ref[1][1]
-    assert abs(liq_ref / (2 / 3) - 0.4171) < 1e-3 and abs(sol_ref / (2 / 3) - 0.0827) < 1e-3
     liq, sol = [], []
     for seed in range(5):
         got = _mine(_hull(fms, T, seed), x_fe, x_si)
@@ -305,8 +304,9 @@ def test_section_matches_the_2d_assemblage_lookup(fms):
 
 
 def test_section_boundaries_converge_with_the_lattice(fms):
-    """Field areas at lattice 30, 60 and 120: the changes shrink, and the last is below
-    what a boundary shift of X_TOL along the whole boundary length would give."""
+    """Field areas at lattice 30, 60 and 120: the changes shrink (or are already zero to
+    rounding, when every seam is a straight tie-line), and the last is below what a boundary
+    shift of X_TOL along the whole boundary length would give."""
     h = _hull(fms, 1900.0)
     area = {}
     for n in (30, 60, 120):
@@ -318,7 +318,7 @@ def test_section_boundaries_converge_with_the_lattice(fms):
     labs = set(area[30]) | set(area[60]) | set(area[120])
     d1 = sum(abs(area[30].get(l, 0) - area[120].get(l, 0)) for l in labs)
     d2 = sum(abs(area[60].get(l, 0) - area[120].get(l, 0)) for l in labs)
-    assert d2 < d1
+    assert d2 < d1 or d2 < 1e-12
     boundary_length = 6.0   # generous: the seams of this section total well under this
     assert d2 < X_TOL * boundary_length
 
@@ -397,9 +397,11 @@ def _pyc_liquidus(x2, x3, T_lo, T_hi):
 
 
 def test_liquidus_at_the_liquid_end_of_the_1900K_tieline(fms):
-    """The liquid end of the 1900 K olivine tie-line (join X_Fe 0.4170896 from pycalphad) has
-    its liquidus at exactly 1900 K, with olivine first to crystallize."""
-    x_fe = 0.4170896 * 2.0 / 3.0
+    """The liquid end of the 1900 K olivine tie-line (from pycalphad) has its liquidus at
+    exactly 1900 K, with olivine first to crystallize."""
+    pytest.importorskip("pycalphad")
+    ref, _ = _pyc_equilibrium(1900.0, 0.20, 1.0 / 3.0)
+    x_fe = ref[0][1]
     T, prim = vis3d.liquidus_point(fms, 1.0 - x_fe - 1.0 / 3.0, 1.0 / 3.0, *WINDOW, t_tol=1e-3)
     assert prim == "OLIVINE"
     assert abs(T - 1900.0) < 0.01
@@ -417,11 +419,11 @@ def test_liquidus_matches_pycalphad_where_the_liquid_is_one_phase(fms, x2, x3):
 @pytest.mark.parametrize("x2, x3", [(0.1, 0.3), (0.05, 0.45), (0.3, 0.5)])
 def test_liquidus_agrees_with_the_full_equilibrium(fms, x2, x3):
     """Two degrees above the liquidus the refined hull holds no solid; two below it holds the
-    primary phase. The first two compositions have a liquid split in two at their liquidus,
-    where pycalphad (which puts a solid 8 and 18 K higher) misses the two-liquid state."""
+    primary phase. Hulls at x_tol 1e-4: two degrees under a flat silica liquidus the primary
+    phase can be under 1e-3 of the mass (0.0007 at (0.05, 0.45))."""
     T, prim = vis3d.liquidus_point(fms, x2, x3, *WINDOW, t_tol=1e-2)
-    above = {p for p, _, _, _ in vis3d.Hull(fms, T + 2.0).assemblage(x2, x3)}
-    below = {p for p, _, _, _ in vis3d.Hull(fms, T - 2.0).assemblage(x2, x3)}
+    above = {p for p, _, _, _ in vis3d.Hull(fms, T + 2.0, x_tol=1e-4).assemblage(x2, x3)}
+    below = {p for p, _, _, _ in vis3d.Hull(fms, T - 2.0, x_tol=1e-4).assemblage(x2, x3)}
     assert above == {LIQ}
     assert prim in below
 
@@ -448,11 +450,12 @@ def test_liquidus_surface(fms):
     for n in (10, 20):
         s = vis3d.liquidus_surface(fms, *WINDOW, lattice_n=n)
         _check_surface(s)
-        assert sorted(s.labels) == ["CRISTOBALITE", "OLIVINE", "ORTHOPYROXENE", "PERICLASE", "WUSTITE"]
+        assert sorted(s.labels) == ["CRISTOBALITE", "MAGNESIOWUSTITE", "OLIVINE", "ORTHOPYROXENE"]
         assert len(s.patch_phase) == len(s.labels)
         ar, tl = _areas(s), s.tri_label
         area[n] = {lab: ar[tl == k].sum() for k, lab in enumerate(s.labels)}
-    for corner, name in (((0.0, 0.0), "WUSTITE"), ((1.0, 0.0), "PERICLASE"), ((0.0, 1.0), "CRISTOBALITE")):
+    for corner, name in (((0.0, 0.0), "MAGNESIOWUSTITE"), ((1.0, 0.0), "MAGNESIOWUSTITE"),
+                         ((0.0, 1.0), "CRISTOBALITE")):
         i = np.argmin((s.comp[:, 1] - corner[0]) ** 2 + (s.comp[:, 2] - corner[1]) ** 2)
         T, prim = vis3d.liquidus_point(fms, *corner, *WINDOW)
         assert prim == name and abs(s.temp[i] - T) < 1e-9
@@ -480,7 +483,8 @@ def test_gibbs_surfaces_against_equilibrium(fms):
     """Heights above equilibrium at 1900 K: zero wherever the equilibrium is the single
     liquid, never below it beyond the ~0.2 J the refined hull resolves in flat two-liquid
     regions, and the hull patch at zero. On the olivine join the liquid rises off zero
-    exactly across the liquid end of the tie-line (join X_Fe 0.4171)."""
+    exactly across the liquid end of the tie-line (from pycalphad)."""
+    pytest.importorskip("pycalphad")
     s = vis3d.gibbs_surfaces(fms, 1900.0, relative=True, lattice_n=30)
     assert s.labels[-1] == "HULL" and LIQ in s.labels
     assert np.allclose(s.pos[:, 2], s.scalar * 1e-5, rtol=1e-5) and np.all(s.temp == 1900.0)
@@ -491,9 +495,11 @@ def test_gibbs_surfaces_against_equilibrium(fms):
     assert len(single) > 50 and np.all(s.scalar[single] == 0.0)
     assert np.abs(s.scalar[_patch_vertices(s, "HULL")]).max() < 0.1
     height = {tuple(np.round(s.comp[i, 1:], 9)): s.scalar[i] for i in v}
-    x_fe_liq = 0.4170896 * 2.0 / 3.0                    # 0.2781, between two join nodes
-    liquid_side, solid_side = (round(11 / 30, 9), round(1 / 3, 9)), (round(0.4, 9), round(1 / 3, 9))
-    assert 1 - 11 / 30 - 1 / 3 > x_fe_liq > 1 - 0.4 - 1 / 3
+    x_fe_liq = _pyc_equilibrium(1900.0, 0.20, 1.0 / 3.0)[0][0][1]
+    # the lattice-30 join nodes either side of it (x2 = Mg = 2/3 - x_fe)
+    k = int(np.floor((2.0 / 3.0 - x_fe_liq) * 30))
+    liquid_side, solid_side = (round(k / 30, 9), round(1 / 3, 9)), (round((k + 1) / 30, 9), round(1 / 3, 9))
+    assert 1 - k / 30 - 1 / 3 > x_fe_liq > 1 - (k + 1) / 30 - 1 / 3
     assert height[liquid_side] == 0.0 and height[solid_side] > 1.0
 
 

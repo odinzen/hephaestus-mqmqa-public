@@ -22,7 +22,7 @@ sys.path.insert(0, str(HERE.parents[1] / "python"))
 import mqmqa                    # noqa: E402
 from mqmqa import vis3d         # noqa: E402
 
-PHASES = ["CRISTOBALITE", "OLIVINE", "ORTHOPYROXENE", "PERICLASE", "WUSTITE"]
+PHASES = ["CRISTOBALITE", "OLIVINE", "ORTHOPYROXENE", "MAGNESIOWUSTITE"]
 NGRID = 150
 T_LO, T_HI = 1300.0, 3200.0     # below every liquidus of the system, above MgO melting
 

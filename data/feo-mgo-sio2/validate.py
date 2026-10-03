@@ -98,7 +98,7 @@ def _beta_matched_mgo_reference():
     # the assessed excess, in binary (Mg=1,Si=2,O=3) indexing (matches the shipped .dat)
     excess = [dict(code="Q", li=[1, 2, 3, 3], exp=ex["exp"], coeffs=list(ex["coeffs"]))
               for ex in bd.EX_MGO_SIO2]
-    txt = mgo_bd.build(excess=excess, version="beta-ref", mgo_liq_beta=bd.MGO_LIQ_BETA)
+    txt = mgo_bd.build(excess=excess, version="beta-ref")      # same MgO(l) heat capacity
     ref = HERE / "_mgo_beta_ref.dat"
     ref.write_text(txt, encoding="ascii")
     return ref
@@ -107,10 +107,9 @@ def _beta_matched_mgo_reference():
 def check_binary_reduction(tol=1e-2):
     """Ternary at a binary edge == the shipped binary .dat.
 
-    The ternary MgO(l) carries the forsterite-liquidus recalibration (MGO_LIQ_BETA), which
-    the shipped MgO-SiO2 binary does not, so the edge is compared against a beta-matched
-    MgO-SiO2 reference (same assessed excess, same beta) built on the fly - isolating the
-    excess transcription from the deliberate endmember calibration.
+    The edge is compared against a MgO-SiO2 reference built on the fly from the same assessed
+    excess and the same MgO(l) (both read data/mgo-sio2 MGO_LIQ_DCP), isolating the excess
+    transcription.
 
     Tolerance is 1e-2 J, not machine precision: the MgO-SiO2 builder stores endmember
     coefficients at 8 significant figures (%.8E) while the ternary writes full precision

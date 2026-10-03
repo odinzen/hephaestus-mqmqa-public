@@ -34,7 +34,7 @@ def main():
     pdb = Database(str(path))
     phases = sorted(pdb.phases.keys())
     print("1) phases read:", phases)
-    assert len(phases) == 8
+    assert len(phases) == 4 + len(bc.STOICH)    # liquid, ol, opx, cpx + stoichiometric
 
     # 2) splice is verbatim: the liquid SUBQ block is byte-identical to the standalone file,
     # and the CEF phase Gibbs equals the standalone solids database.
@@ -48,7 +48,7 @@ def main():
     gcs = s.cef_gibbs(s.phase_index("CLINOPYROXENE"), [1, 0.3, 0.7, 1, 1], 1800.0, per_mole_atoms=True)
     print(f"   combined cpx vs standalone solids db: {abs(gc - gcs):.2e} J/mol-atom")
 
-    # 3) after the CaO(l) melting calibration: physical primary-phase fields
+    # 3) primary-phase fields
     def prim(ca, fe, mg, si, Tlo=1400, Thi=2200):
         el = {"CA": ca, "FE": fe, "MG": mg, "SI": si, "O": ca + fe + mg + 2 * si}
         tot = sum(el.values())
@@ -62,7 +62,7 @@ def main():
             if sol:
                 return float(Tt), sol[0]
         return None, None
-    print("3) crystallization (calibrated primary-phase fields):")
+    print("3) crystallization (primary-phase fields):")
     for name, (ca, fe, mg, si) in [("mafic (CaO10/FeO15/MgO35/SiO40)", (.10, .15, .35, .40)),
                                    ("Ca-rich (CaO40/FeO5/MgO10/SiO45)", (.40, .05, .10, .45)),
                                    ("Fe-rich (CaO10/FeO40/MgO10/SiO40)", (.10, .40, .10, .40))]:

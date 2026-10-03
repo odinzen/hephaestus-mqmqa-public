@@ -26,7 +26,7 @@ pytest.importorskip("scipy")
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "python"))
 DDIR = ROOT / "data" / "feo-mgo-sio2"
-PHASES = ["FEO-MGO-SIO2-LIQUID", "OLIVINE", "ORTHOPYROXENE", "CRISTOBALITE", "PERICLASE", "WUSTITE"]
+PHASES = ["FEO-MGO-SIO2-LIQUID", "OLIVINE", "ORTHOPYROXENE", "MAGNESIOWUSTITE", "CRISTOBALITE"]
 
 
 def _load(name, path):
@@ -73,13 +73,12 @@ def _pyc(dbf, x_fe, x_si, T):
     return phases, float(eq.GM.values.squeeze())
 
 
-# interior points (solid-solid / solid-solid-solid) that both solvers pin exactly at 1600 K
 INTERIOR = [
-    (0.20, 0.30, {"OLIVINE", "WUSTITE"}),
+    (0.20, 0.30, {"OLIVINE", "MAGNESIOWUSTITE"}),
     (0.12, 0.46, {"OLIVINE", "ORTHOPYROXENE"}),
     (0.06, 0.52, {"CRISTOBALITE", "ORTHOPYROXENE"}),
-    (0.30, 0.10, {"OLIVINE", "PERICLASE", "WUSTITE"}),
-    (0.08, 0.12, {"OLIVINE", "PERICLASE", "WUSTITE"}),
+    (0.30, 0.10, {"OLIVINE", "MAGNESIOWUSTITE"}),
+    (0.08, 0.12, {"OLIVINE", "MAGNESIOWUSTITE"}),
 ]
 
 
@@ -92,9 +91,7 @@ def test_combined_dat_stoich_matches_python():
     bc.build()
     dbf = Database(str(DDIR / "FeO-MgO-SiO2-combined.dat"))
     T = 1750.0
-    for ph, ox, atoms in [("CRISTOBALITE", td._feo.OXIDES["SiO2"], 3),
-                          ("PERICLASE", td._mgo.OXIDES["MgO"], 2),
-                          ("WUSTITE", td._feo.OXIDES["FeO"], 2)]:
+    for ph, ox, atoms in [("CRISTOBALITE", td._feo.OXIDES["SiO2"], 3)]:
         r = calculate(dbf, list(dbf.elements), ph, T=T, P=1e5, N=1)
         gm_formula = float(r.GM.values.squeeze()) * atoms
         assert abs(gm_formula - td._solid_oxide_g(ox, T)) < 1e-3

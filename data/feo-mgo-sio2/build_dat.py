@@ -5,9 +5,9 @@ two shipped binary liquids plus a near-ideal FeO-MgO edge - no new ternary fit:
 
   - MgO-SiO2 excess: the assessed 5-term silica-weighted set (data/mgo-sio2, Y-basis
     (0,q) = chi_Si^q, q = 0,1,3,5,7 each a + b*T), on (Mg,Si,O,O).
-  - FeO-SiO2 excess: the v0.3 activity-pinned symmetric term (data/feo-sio2,
-    Delta_g(Fe,Si)/O = -42839.4 + 17.83*T), on (Fe,Si,O,O), AND the FeO(l) below-1650 K
-    phase-diagram recalibration (a second temperature interval on the FeO endmember).
+  - FeO-SiO2 excess: the assessed v0.4 set (data/feo-sio2, [0,0] a + b*T plus [1,0],
+    [0,3], [0,5]), on (Fe,Si,O,O), AND the FeO(l) below-1650 K correction assessed with it
+    (a second temperature interval on the FeO endmember).
   - FeO-MgO edge: IDEAL. Molten (Fe,Mg)O is a near-ideal solution of two similar divalent
     oxides (complete miscibility, magnesiowustite is nearly ideal); no excess term is added
     for v0.1. A small interaction from a full assessment is a documented v0.2 target.
@@ -38,14 +38,11 @@ def _load(name, rel):
 _feo = _load("bd_feo_sio2", "feo-sio2/build_dat.py")
 _mgo = _load("bd_mgo_sio2", "mgo-sio2/build_dat.py")
 
-# FeO(l) v0.3 below-melting correction (from data/feo-sio2/v03_fit.py)
-FEO_LIQ_BETA = -69.84464900364951
-# MgO(l) below-melting correction, fit so the MgO-SiO2 liquid melts the measured (Robie-
-# Hemingway) forsterite - the olivine CEF endmember, data/olivine - congruently at 2163 K
-# (Bowen & Schairer 1935). Analytic single-point fit, verified to reproduce 2163 K exactly;
-# see olivine_join.py::fit_mgo_beta. Orthogonal to the MgO-SiO2 activities (a pure MgO
-# endmember shift), so it moves only the absolute stability / forsterite liquidus.
-MGO_LIQ_BETA = 2.9753836245721774
+# FeO(l) below-melting correction, assessed with the FeO-SiO2 liquid (data/feo-sio2/assessment)
+FEO_LIQ_BETA = _feo.FEO_LIQ_BETA
+# MgO(l) carries the liquid heat capacity assessed with the MgO-SiO2 liquid (data/mgo-sio2,
+# MGO_LIQ_DCP), inside _mgo.liquid_gibbs_coeffs; nothing to add here.
+MGO_LIQ_DCP = _mgo.MGO_LIQ_DCP
 
 Z_PER_CHARGE = _feo.Z_PER_CHARGE  # 1.3774438 / 2, identical in both binaries
 assert Z_PER_CHARGE == _mgo.Z_PER_CHARGE
@@ -65,20 +62,28 @@ OXIDES = {
 ORDER = ["FeO", "MgO", "SiO2"]
 
 # --- excess terms, remapped to ternary indices (Fe=1, Mg=2, Si=3, O=4) ---
-# FeO-SiO2 v0.3 (activity-pinned symmetric), on (Fe,Si,O,O):
-EX_FEO_SIO2 = [
-    dict(code="Q", li=[1, 3, 4, 4], exp=[0, 0, 0, 0],
-         coeffs=[-42839.42808976104, 17.829765801117908, 0, 0, 0, 0]),
-]
+# FeO-SiO2 assessed, on (Fe,Si,O,O):
+EX_FEO_SIO2 = _feo.assessed_excess(li=(1, 3, 4, 4))
 # MgO-SiO2 assessed (silica-weighted (0,q)=chi_Si^q), on (Mg,Si,O,O); q is on Si (position 2):
-EX_MGO_SIO2 = [
-    dict(code="Q", li=[2, 3, 4, 4], exp=[0, 0, 0, 0], coeffs=[-44468.8, -1.60, 0, 0, 0, 0]),
-    dict(code="Q", li=[2, 3, 4, 4], exp=[0, 1, 0, 0], coeffs=[-50864.2, -0.30, 0, 0, 0, 0]),
-    dict(code="Q", li=[2, 3, 4, 4], exp=[0, 3, 0, 0], coeffs=[1448.2, -0.70, 0, 0, 0, 0]),
-    dict(code="Q", li=[2, 3, 4, 4], exp=[0, 5, 0, 0], coeffs=[116056.4, -10.80, 0, 0, 0, 0]),
-    dict(code="Q", li=[2, 3, 4, 4], exp=[0, 7, 0, 0], coeffs=[-1177.5, -0.30, 0, 0, 0, 0]),
-]
-EXCESS = EX_FEO_SIO2 + EX_MGO_SIO2  # FeO-MgO edge is ideal (no term)
+EX_MGO_SIO2 = _mgo.assessed_excess(li=(2, 3, 4, 4))
+# Ternary-level terms, assessed in assessment/assess.py: the Fe-Si interaction with Mg as the
+# additional cation, the Mg-Si interaction with Fe (Poschmann Eq. 25-26, r = 1), and the FeO-MgO
+# interaction, J. Zero terms are not written.
+# assessed 2026-10-01 on the MgO-SiO2 v0.3 liquid (assessment/assess.py; cost 139.6 -> 126.6; B&S 1935
+# liquidus 18/26/22 K mean absolute in the olivine/pyroxene/silica fields, 29 of 37 primary; N&M solidus
+# still 41 K (ol+px) and 28 K (ol+mw) low)
+TERNARY_EXCESS = (-2173.8, 5739.0, -11765.6)
+
+
+def ternary_excess(vals=None):
+    t_fesi_mg, t_mgsi_fe, a_femg = TERNARY_EXCESS if vals is None else vals
+    q = lambda li, add, c: dict(code="Q", li=li, exp=[0, 0, 1 if add else 0, 0],
+                                coeffs=[c, 0, 0, 0, 0, 0], add=add)
+    return [t for t in (q([1, 3, 4, 4], 2, t_fesi_mg), q([2, 3, 4, 4], 1, t_mgsi_fe),
+                        q([1, 2, 4, 4], 0, a_femg)) if t["coeffs"][0]]
+
+
+EXCESS = EX_FEO_SIO2 + EX_MGO_SIO2 + ternary_excess()
 
 
 def _fmt(x):
@@ -96,14 +101,12 @@ def _below_tm_intervals(base, Tm, beta):
 
 
 def _intervals(name):
-    """Endmember Gibbs intervals. FeO carries the v0.3 below-1650 K activity/liquidus
-    calibration; MgO carries the below-3098 K forsterite-liquidus calibration."""
+    """Endmember Gibbs intervals. FeO carries the assessed below-1650 K correction; MgO's liquid
+    heat capacity is already in its fusion coefficients."""
     d = OXIDES[name]
     base = d["src"].liquid_gibbs_coeffs(d["ox"])
     if name == "FeO":
         return _below_tm_intervals(base, _feo.FEO_TM, FEO_LIQ_BETA)
-    if name == "MgO":
-        return _below_tm_intervals(base, _mgo.MGO_TM, MGO_LIQ_BETA)
     return [(6000.0, base)]
 
 
@@ -115,7 +118,8 @@ def _mqmx_block(excess):
                    + "   " + "   ".join(str(e) for e in ex["exp"]))
         out.append("  " + "   ".join("0.00000000" for _ in range(6)))
         out.append("  " + "   ".join("0.00000000" for _ in range(6)))
-        out.append("   0   0   " + "   ".join(_fmt(c) for c in ex["coeffs"]))
+        # a ternary term names its additional cation (1-based; exp[2] is its exponent r)
+        out.append(f"   {ex.get('add', 0)}   0   " + "   ".join(_fmt(c) for c in ex["coeffs"]))
     out.append("   0")
     return out
 
@@ -133,7 +137,8 @@ def build(excess=EXCESS, version="v0.1"):
 
     ap(" FeO-MgO-SiO2-liquid")
     ap(" SUBQ")
-    ap("   3   3")                                       # n_pairs, n_quads (MQMZ rows)
+    z_mgsi = _mgo.mgsi_mixed_z()                          # the binary's Mg-Si ordering, if not default
+    ap(f"   3   {3 if z_mgsi is None else 4}")            # n_pairs, n_quads (MQMZ rows)
     for name in ORDER:
         d = OXIDES[name]
         stoich_el = [d["stoich"].get(el, 0.0) for el, _ in ELEMENTS]
@@ -164,6 +169,9 @@ def build(excess=EXCESS, version="v0.1"):
         z_o = 2 * Z_PER_CHARGE
         ap(f"   {i}   {i}   {an_idx}   {an_idx}   "
            f"{z_cat:.7f}   {z_cat:.7f}   {z_o:.7f}   {z_o:.7f}")
+    if z_mgsi is not None:
+        mg, si = ORDER.index("MgO") + 1, ORDER.index("SiO2") + 1
+        ap(f"   {mg}   {si}   {an_idx}   {an_idx}   " + "   ".join(f"{z:.7f}" for z in z_mgsi))
     L.extend(_mqmx_block(excess))
     return "\n".join(L) + "\n"
 

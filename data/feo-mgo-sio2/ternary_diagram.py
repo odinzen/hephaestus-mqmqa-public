@@ -1,8 +1,7 @@
 """FeO-MgO-SiO2 phase diagram via the 2-D global minimizer (mqmqa.ternary).
 
-Assembles the candidate phases - the ternary MQMQA liquid, the olivine and orthopyroxene
-CEF solid solutions, and the stoichiometric oxide solids (cristobalite SiO2, periclase MgO,
-wustite FeO) - and computes the equilibrium assemblage across the cation simplex by lower
+Assembles the candidate phases - the ternary MQMQA liquid, the olivine, orthopyroxene and
+magnesiowustite (Fe,Mg)O CEF solid solutions, and cristobalite SiO2 - and computes the equilibrium assemblage across the cation simplex by lower
 convex hull. All Gibbs energies are per mole of cations; composition is the cation fractions
 (x_Fe, x_Si), x_Mg = 1 - x_Fe - x_Si.
 """
@@ -26,18 +25,17 @@ def _load(name, rel):
 
 
 _feo = _load("bd_feo_td", "feo-sio2/build_dat.py")
-_mgo = _load("bd_mgo_td", "mgo-sio2/build_dat.py")
 
 LIQ = HERE / "FeO-MgO-SiO2-liquid.dat"
 OLV = HERE.parents[0] / "olivine" / "Olivine-CEF.dat"
 OPX = HERE.parents[0] / "olivine-opx" / "Olivine-Opx-CEF.dat"
+COMBINED = HERE / "FeO-MgO-SiO2-combined.dat"     # holds MAGNESIOWUSTITE
 
 T0 = 298.15
 
-# The enstatite high-T entropy correction (dG = 18.014*(T-1000) J per Mg2Si2O6 above
-# 1000 K, fitted to the measured 1830 K peritectic) now lives IN the orthopyroxene
-# database as a second Gibbs interval on the Mg endmember (data/olivine-opx/build_dat.py,
-# ENSTATITE_HT_B) - the sampling here and pycalphad both read it from the file.
+# The enstatite high-T correction and the two-site orthopyroxene live in the orthopyroxene
+# database (data/olivine-opx/orthopyroxene.py); the sampling here and pycalphad both read them
+# from the file.
 
 
 def _solid_oxide_g(ox, T):
@@ -62,9 +60,9 @@ def build(T, nsamp=12000, n_cef=81, refine=True):
     solids = tern.cef_line_points(cdb, "OLIVINE", T, x_si_line=1.0 / 3.0, n_cations=3, n=n_cef)
     solids += tern.cef_line_points(odb, "ORTHOPYROXENE", T, x_si_line=1.0 / 2.0, n_cations=4,
                                    n=n_cef)
+    solids += tern.cef_line_points(mqmqa.Database.read(str(COMBINED)), "MAGNESIOWUSTITE", T,
+                                   x_si_line=0.0, n_cations=1, n=n_cef)
     solids.append(tern.stoich_point("CRISTOBALITE", 0.0, 1.0, _solid_oxide_g(_feo.OXIDES["SiO2"], T)))
-    solids.append(tern.stoich_point("PERICLASE", 0.0, 0.0, _solid_oxide_g(_mgo.OXIDES["MgO"], T)))
-    solids.append(tern.stoich_point("WUSTITE", 1.0, 0.0, _solid_oxide_g(_feo.OXIDES["FeO"], T)))
 
     pts = liq + solids
     facets = tern.lower_hull(pts)
@@ -74,9 +72,7 @@ def build(T, nsamp=12000, n_cef=81, refine=True):
     return pts, facets
 
 
-# fit_enstatite_b (the one-off calibration that produced 18.014) was removed once the
-# parameter moved into the opx database; the derivation is recorded in
-# data/olivine-opx/PROVENANCE.md.
+
 
 
 def equilibrium(T, x_fe, x_si, **kw):

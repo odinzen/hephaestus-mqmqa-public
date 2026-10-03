@@ -179,7 +179,7 @@ PALETTE = {1200: "#5b2c9e", 1300: "#1f6fb2", 1400: "#0f9bd7",
            1500: "#2ca030", 1600: "#e2661f", 1700: "#c81e2c"}
 # greyscale of each primary-phase field (light silica -> dark iron oxide)
 PRIMARY_GREY = [("CRISTOBALITE", 0.93), ("OLIVINE", 0.80), ("ORTHOPYROXENE", 0.60),
-                ("PERICLASE", 0.40), ("WUSTITE", 0.18)]
+                ("MAGNESIOWUSTITE", 0.25)]
 
 
 def _primary_field_raster(ax, comps, prim, res=520):

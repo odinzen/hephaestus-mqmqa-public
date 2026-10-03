@@ -40,7 +40,7 @@ def _pycalphad_olivine_tieline(T, x_fe, x_si):
     tot = 1.0 + x_fe + x_mg + 2.0 * x_si          # cations plus oxygen
     eq = equilibrium(dbf, ["FE", "MG", "SI", "O"],
                      ["FEO-MGO-SIO2-LIQUID", "OLIVINE", "ORTHOPYROXENE", "CRISTOBALITE",
-                      "PERICLASE", "WUSTITE"],
+                      "MAGNESIOWUSTITE"],
                      {v.T: T, v.P: 1e5, v.N: 1,
                       v.X("FE"): x_fe / tot, v.X("MG"): x_mg / tot, v.X("SI"): x_si / tot})
     names = np.ravel(eq.Phase.values.squeeze())
@@ -92,10 +92,11 @@ def test_three_phase_triangle_and_opx_appear():
     T = 1800.0
     pts, facets = td.build(T, nsamp=4000)
 
-    # a MgO-rich low-silica bulk should give liquid + olivine + periclase (3 phases)
-    asm = tern.assemblage(pts, facets, 0.10, 0.10)
+    # a low-silica bulk between olivine and magnesiowustite gives liquid + olivine +
+    # magnesiowustite (3 phases)
+    asm = tern.assemblage(pts, facets, 0.40, 0.20)
     phases = {ph for ph, amt, xf, xs in asm if amt > 1e-3}
-    assert phases == {"LIQUID", "OLIVINE", "PERICLASE"}, phases
+    assert phases == {"LIQUID", "OLIVINE", "MAGNESIOWUSTITE"}, phases
     assert abs(sum(amt for _, amt, _, _ in asm) - 1.0) < 1e-6  # lever rule
 
     # a Mg-rich composition near the enstatite point (below its ~1830 K peritectic) brings

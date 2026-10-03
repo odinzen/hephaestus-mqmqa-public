@@ -18,8 +18,8 @@ X_FE = 0.05          # fixed FeO level (cation fraction), a lean slag: shows bot
 NGRID = 60           # triangular grid over the remaining CaO-MgO-SiO2 (step 1/NGRID)
 
 # solid phases, ordered; index becomes the field digit
-PHASES = ["OLIVINE", "ORTHOPYROXENE", "CLINOPYROXENE", "WOLLASTONITE", "LARNITE",
-          "CRISTOBALITE", "LIME", "PERICLASE", "WUSTITE"]
+PHASES = ["OLIVINE", "ORTHOPYROXENE", "CLINOPYROXENE", "WOLLASTONITE", "RANKINITE", "LARNITE",
+          "HATRURITE", "CRISTOBALITE", "LIME", "MAGNESIOWUSTITE"]
 
 
 def build():

@@ -81,7 +81,7 @@ def test_tq_interface_matches_pycalphad():
             tot = 1 + O
             eq = equilibrium(dbf, ["FE", "MG", "SI", "O"],
                              ["FEO-MGO-SIO2-LIQUID", "OLIVINE", "ORTHOPYROXENE",
-                              "CRISTOBALITE", "PERICLASE", "WUSTITE"],
+                              "MAGNESIOWUSTITE", "CRISTOBALITE"],
                              {v.T: 1600.0, v.P: 1e5, v.N: 1,
                               v.X("FE"): x_fe / tot, v.X("MG"): x_mg / tot, v.X("SI"): x_si / tot})
             pset = {_key(str(p)) for p in np.ravel(eq.Phase.values.squeeze())

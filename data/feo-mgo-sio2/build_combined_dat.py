@@ -1,6 +1,6 @@
 """Assemble ONE ChemSage .dat holding every candidate phase of the FeO-MgO-SiO2 diagram -
-the MQMQA liquid (SUBQ), the olivine and orthopyroxene CEF solid solutions (SUBL), and the
-three stoichiometric oxide solids (cristobalite SiO2, periclase MgO, wustite FeO) - so that
+the MQMQA liquid (SUBQ), the olivine, orthopyroxene and magnesiowustite (Fe,Mg)O CEF solid
+solutions (SUBL), and stoichiometric cristobalite SiO2 - so that
 pycalphad can run a full multi-phase `equilibrium` on the same model our 2-D minimizer uses.
 This closes the one remaining validation gap: an end-to-end check of the minimizer's stable
 assemblages against an independent global solver.
@@ -28,15 +28,13 @@ def _load(name, rel):
 
 
 _feo = _load("bd_feo_comb", "feo-sio2/build_dat.py")
-_mgo = _load("bd_mgo_comb", "mgo-sio2/build_dat.py")
+_mw = _load("mw_comb", "magnesiowustite/magnesiowustite.py")
 
-# per-element stoichiometry (Fe, Mg, Si, O order) of each stoichiometric oxide solid
+# per-element stoichiometry (Fe, Mg, Si, O order) of each stoichiometric oxide solid; wustite
+# and periclase are the ends of the magnesiowustite solution
 STOICH = [
     ("CRISTOBALITE", _feo.OXIDES["SiO2"], [0.0, 0.0, 1.0, 2.0]),
-    ("PERICLASE", _mgo.OXIDES["MgO"], [0.0, 0.0, 0.0, 1.0]),  # placeholder, fixed below
-    ("WUSTITE", _feo.OXIDES["FeO"], [1.0, 0.0, 0.0, 1.0]),
 ]
-STOICH[1] = ("PERICLASE", _mgo.OXIDES["MgO"], [0.0, 1.0, 0.0, 1.0])
 
 
 def _stoich_block(name, ox, elems):
@@ -59,7 +57,7 @@ def build():
     out = [
         " System FeO-MgO-SiO2 combined liquid+olivine+opx+oxides"
         " (validation .dat for pycalphad end-to-end; provenance PROVENANCE.md)",
-        "    4    3    3    2    2    3",  # 4 el, 3 soln (counts 3,2,2), 3 stoich
+        f"    4    4    3    2    4    2    {len(STOICH)}",  # 4 el, 4 soln (liquid 3, ol 2, opx 4, mw 2), stoich
         liq[2],  # elements  Fe Mg Si O
         liq[3],  # masses
         liq[4],  # gibbs coeff idxs   6 1 2 3 4 5 6
@@ -67,6 +65,7 @@ def build():
     ]
     out += liq_block
     out += cef_blocks
+    out += _mw.subl_block(["FE", "MG", "SI", "O"])
     for name, ox, elems in STOICH:
         out += _stoich_block(name, ox, elems)
 

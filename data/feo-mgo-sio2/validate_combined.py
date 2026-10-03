@@ -30,7 +30,7 @@ _bc = importlib.util.spec_from_file_location("bc", HERE / "build_combined_dat.py
 bc = importlib.util.module_from_spec(_bc); _bc.loader.exec_module(bc)
 
 DAT = HERE / "FeO-MgO-SiO2-combined.dat"
-PHASES = ["FEO-MGO-SIO2-LIQUID", "OLIVINE", "ORTHOPYROXENE", "CRISTOBALITE", "PERICLASE", "WUSTITE"]
+PHASES = ["FEO-MGO-SIO2-LIQUID", "OLIVINE", "ORTHOPYROXENE", "MAGNESIOWUSTITE", "CRISTOBALITE"]
 
 # bulk cation compositions (x_fe, x_si), chosen off the olivine/opx x_Si lines to avoid hull
 # degeneracy and to sample distinct assemblages across the diagram

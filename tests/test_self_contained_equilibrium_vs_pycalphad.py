@@ -22,11 +22,11 @@ _ffi.cdef("int mqmqa_equilibrium_ternary(const void*,int,const int*,int,double,i
           "int,int,double,double,int*,double*,int,double*);", override=True)
 
 INTERIOR = [
-    (0.20, 0.30, {"OLIVINE", "WUSTITE"}),
+    (0.20, 0.30, {"OLIVINE", "MAGNESIOWUSTITE"}),
     (0.12, 0.46, {"OLIVINE", "ORTHOPYROXENE"}),
     (0.06, 0.52, {"CRISTOBALITE", "ORTHOPYROXENE"}),
-    (0.30, 0.10, {"OLIVINE", "PERICLASE", "WUSTITE"}),
-    (0.08, 0.12, {"OLIVINE", "PERICLASE", "WUSTITE"}),
+    (0.30, 0.10, {"OLIVINE", "MAGNESIOWUSTITE"}),
+    (0.08, 0.12, {"OLIVINE", "MAGNESIOWUSTITE"}),
 ]
 
 
@@ -74,7 +74,7 @@ def test_self_contained_c_equilibrium_matches_pycalphad():
             tot = 1 + O
             eq = equilibrium(dbf, ["FE", "MG", "SI", "O"],
                              ["FEO-MGO-SIO2-LIQUID", "OLIVINE", "ORTHOPYROXENE",
-                              "CRISTOBALITE", "PERICLASE", "WUSTITE"],
+                              "MAGNESIOWUSTITE", "CRISTOBALITE"],
                              {v.T: 1600.0, v.P: 1e5, v.N: 1,
                               v.X("FE"): x_fe / tot, v.X("MG"): x_mg / tot, v.X("SI"): x_si / tot})
             pset = {_key(str(p)) for p in np.ravel(eq.Phase.values.squeeze())

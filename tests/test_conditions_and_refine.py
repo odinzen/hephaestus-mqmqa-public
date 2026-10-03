@@ -28,8 +28,9 @@ from mqmqa._abi import _ffi, _lib                       # noqa: E402
 _ffi.cdef("int mqmqa_equilibrium_ternary_ex(const void*,int,const int*,int,double,int,int,"
           "int,int,double,double,const int*,int,int*,double*,int,double*);", override=True)
 
-ALL = ["FEO-MGO-SIO2-LIQUID", "OLIVINE", "ORTHOPYROXENE",
-       "CRISTOBALITE", "PERICLASE", "WUSTITE"]
+ALL = ["FEO-MGO-SIO2-LIQUID", "OLIVINE", "ORTHOPYROXENE", "MAGNESIOWUSTITE", "CRISTOBALITE"]
+CEFS = [b"OLIVINE", b"ORTHOPYROXENE", b"MAGNESIOWUSTITE"]
+X = (0.06, 0.52)          # cristobalite + orthopyroxene at 1600 K
 
 
 def _load(name, path):
@@ -54,8 +55,7 @@ def engine():
            for e in range(_lib.mqmqa_db_num_elements(cdb))]
     ctx = dict(dbf=dbf, cdb=cdb, iFE=els.index("FE"), iSI=els.index("SI"),
                liq=_lib.mqmqa_db_phase_index(cdb, b"FEO-MGO-SIO2-LIQUID"),
-               cefs=_ffi.new("int[]", [_lib.mqmqa_db_phase_index(cdb, b"OLIVINE"),
-                                       _lib.mqmqa_db_phase_index(cdb, b"ORTHOPYROXENE")]),
+               cefs=_ffi.new("int[]", [_lib.mqmqa_db_phase_index(cdb, n) for n in CEFS]),
                nst=_lib.mqmqa_db_num_stoich(cdb))
     ctx["stnames"] = [_ffi.string(_lib.mqmqa_db_stoich_name(cdb, j)).decode()
                       for j in range(ctx["nst"])]
@@ -74,7 +74,7 @@ def _c_eq(ctx, x_fe, x_si, suspend=None, refine=0, nliq=60):
     if suspend:
         sm = _ffi.new("int[]", [1 if ctx["stnames"][j] in suspend else 0 for j in range(ctx["nst"])])
     po = _ffi.new("int[]", 8); am = _ffi.new("double[]", 8); gm = _ffi.new("double[]", 1)
-    m = _lib.mqmqa_equilibrium_ternary_ex(ctx["cdb"], ctx["liq"], ctx["cefs"], 2, 1600.0,
+    m = _lib.mqmqa_equilibrium_ternary_ex(ctx["cdb"], ctx["liq"], ctx["cefs"], len(CEFS), 1600.0,
                                           nliq, 60, ctx["iFE"], ctx["iSI"], x_fe, x_si,
                                           sm, refine, po, am, 8, gm)
     s = {_tagname(ctx["cdb"], po[k]) for k in range(m) if am[k] > 1e-3}
@@ -93,13 +93,13 @@ def _pyc_gm_set(ctx, x_fe, x_si, phases):
 
 @pytest.mark.skipif(not (DDIR / "build_combined_dat.py").exists(), reason="combined driver missing")
 def test_stage4_phase_suspension_matches_pycalphad(engine):
-    """Suspending WUSTITE at (0.20,0.30) flips OLIVINE+WUSTITE to the metastable
-    LIQUID+OLIVINE, and the phase set matches pycalphad run without WUSTITE."""
-    base, _ = _c_eq(engine, 0.20, 0.30)
-    assert base == {"OLIVINE", "WUSTITE"}
-    susp, _ = _c_eq(engine, 0.20, 0.30, suspend={"WUSTITE"})
-    assert "WUSTITE" not in susp
-    pset, _ = _pyc_gm_set(engine, 0.20, 0.30, [p for p in ALL if p != "WUSTITE"])
+    """Suspending CRISTOBALITE at (0.06, 0.52) flips CRISTOBALITE+ORTHOPYROXENE to the
+    metastable LIQUID+ORTHOPYROXENE, and the phase set matches pycalphad run without it."""
+    base, _ = _c_eq(engine, *X)
+    assert base == {"CRISTOBALITE", "ORTHOPYROXENE"}
+    susp, _ = _c_eq(engine, *X, suspend={"CRISTOBALITE"})
+    assert susp == {"LIQUID", "ORTHOPYROXENE"}
+    pset, _ = _pyc_gm_set(engine, *X, [p for p in ALL if p != "CRISTOBALITE"])
     assert susp == pset
 
 
@@ -107,9 +107,9 @@ def test_stage4_phase_suspension_matches_pycalphad(engine):
 def test_stage5_refinement_reduces_liquid_error(engine):
     """On the liquid-bearing metastable state, more refinement passes do not increase
     the liquid-boundary Gibbs error against pycalphad (monotone improvement)."""
-    _, pg = _pyc_gm_set(engine, 0.20, 0.30, [p for p in ALL if p != "WUSTITE"])
+    _, pg = _pyc_gm_set(engine, *X, [p for p in ALL if p != "CRISTOBALITE"])
     errs = []
     for refine in (0, 2):
-        _, g = _c_eq(engine, 0.20, 0.30, suspend={"WUSTITE"}, refine=refine)
+        _, g = _c_eq(engine, *X, suspend={"CRISTOBALITE"}, refine=refine)
         errs.append(abs(g - pg))
     assert errs[1] <= errs[0] + 1e-6

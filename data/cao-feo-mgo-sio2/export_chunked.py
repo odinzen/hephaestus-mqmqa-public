@@ -7,8 +7,8 @@ HERE = Path(__file__).resolve().parent
 CHUNKS = HERE / "_chunks"; CHUNKS.mkdir(exist_ok=True)
 OUT = HERE.parents[1] / "web" / "crystallization_cao_mgo_sio2.json"
 X_FE, NGRID = 0.05, 60
-PHASES = ["OLIVINE","ORTHOPYROXENE","CLINOPYROXENE","WOLLASTONITE","LARNITE",
-          "CRISTOBALITE","LIME","PERICLASE","WUSTITE"]
+PHASES = ["OLIVINE","ORTHOPYROXENE","CLINOPYROXENE","WOLLASTONITE","RANKINITE","LARNITE",
+          "HATRURITE","CRISTOBALITE","LIME","MAGNESIOWUSTITE"]
 
 def compute(lo, hi):
     from pycalphad import Database, equilibrium, variables as v

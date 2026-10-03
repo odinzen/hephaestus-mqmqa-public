@@ -41,10 +41,11 @@ def test_ternary_reduces_to_shipped_binaries():
 
 @pytest.mark.skipif(not DAT.exists(), reason="ternary .dat not built")
 def test_olivine_join_endpoints_reproduce_congruent_melting():
-    """Both ends of the Mg2SiO4-Fe2SiO4 olivine join melt congruently at their measured
-    temperatures against the olivine CEF endmembers: forsterite 2163 K (after the MgO(l)
-    reconciliation), fayalite 1478 K. Uses the exact binary-subsystem solve, so it is fast
-    and minimizer-noise-free."""
+    """Both ends of the Mg2SiO4-Fe2SiO4 olivine join melt congruently against the olivine
+    CEF endmembers where the binary assessments put them: forsterite exactly as in the
+    MgO-SiO2 liquid (2134 K, within the assessment's 35 K of the measured 2163 K; no MgO(l)
+    recalibration since 2026-09-29) and fayalite at 1478 K. Uses the exact binary-subsystem
+    solve, so it is fast and minimizer-noise-free."""
     import importlib.util
     from scipy.optimize import brentq
     import mqmqa
@@ -61,13 +62,17 @@ def test_olivine_join_endpoints_reproduce_congruent_melting():
     db = mqmqa.Database.read(str(DAT))
     p = db.phase_index("FEO-MGO-SIO2-LIQUID")
 
-    def melt(components, endmember, lo, hi):
+    def melt(dbx, px, components, endmember, lo, hi):
         def f(T):
-            inp = eqm.build_inputs(db, p, T, components=components)
+            inp = eqm.build_inputs(dbx, px, T, components=components)
             return actM.gm(inp, 1.0 / 3.0) * 7.0 - olv.gibbs(endmember, T)
         return brentq(f, lo, hi, xtol=0.05)
 
-    T_fo = melt(["MG", "SI", "O"], "forsterite", 1900, 2400)
-    T_fa = melt(["FE", "SI", "O"], "fayalite", 1300, 1700)
-    assert abs(T_fo - 2163) < 5, f"forsterite congruent {T_fo:.0f} K != 2163"
+    T_fo = melt(db, p, ["MG", "SI", "O"], "forsterite", 1900, 2400)
+    T_fa = melt(db, p, ["FE", "SI", "O"], "fayalite", 1300, 1700)
+    bdb = mqmqa.Database.read(str(ROOT / "data" / "mgo-sio2" / "MgO-SiO2-liquid.dat"))
+    T_fo_bin = melt(bdb, bdb.phase_index("MGO-SIO2-LIQUID"), ["MG", "SI", "O"], "forsterite",
+                    1900, 2400)
+    assert abs(T_fo - T_fo_bin) < 0.1, f"forsterite {T_fo:.2f} K in the ternary, {T_fo_bin:.2f} K in the binary"
+    assert abs(T_fo - 2163) < 35, f"forsterite congruent {T_fo:.0f} K vs 2163"
     assert abs(T_fa - 1478) < 5, f"fayalite congruent {T_fa:.0f} K != 1478"

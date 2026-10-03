@@ -29,11 +29,8 @@ def dbs(tmp_path_factory):
     qdb = mqmqa.Database.read(str(d))
     fms = mqmqa.Database.read(str(ROOT / "data" / "feo-mgo-sio2" / "FeO-MgO-SiO2-liquid.dat"))
     cao = _load("cao-sio2/build_dat.py", "cao_build")
-    ex = [dict(code="Q", li=[1, 2, 3, 3], exp=[0, 0, 0, 0],
-               coeffs=[-189763.512, 15.7059847, 0, 0, 0, 0]),
-          dict(code="Q", li=[1, 2, 3, 3], exp=[1, 0, 0, 0], coeffs=[57170.779, 0, 0, 0, 0, 0])]
     cs = tmp_path_factory.mktemp("cs") / "cs.dat"
-    cs.write_text(cao.build(excess=ex, version="ref"), encoding="ascii")
+    cs.write_text(cao.build(excess=cao.assessed_excess(), version="ref"), encoding="ascii")
     cdb = mqmqa.Database.read(str(cs))
     return str(d), qdb, fms, cdb
 
@@ -52,15 +49,14 @@ def test_pycalphad_reads_quaternary(dbs):
 
 
 def test_binary_limit_reductions_are_exact(dbs):
-    """FeO-SiO2 and MgO-SiO2 reduce to the shipped ternary exactly at any T (shared
-    endmember calibrations). CaO-SiO2 reduces to the shipped binary EXCESS above the CaO(l)
-    melting-calibration interval (T > CaO Tm = 2845 K, where the v0.2 CaO shift is off);
-    below it the CaO endmember intentionally carries the diopside-melting calibration."""
+    """FeO-SiO2 and MgO-SiO2 reduce to the shipped ternary, CaO-SiO2 to the assessed binary,
+    exactly, below and above the CaO melting point (no endmember is recalibrated here)."""
     _, qdb, fms, cdb = dbs
     Q = "CAO-FEO-MGO-SIO2-LIQUID"
     csl = [n for n in cdb.phase_names if "LIQ" in n.upper()][0]
     for comps, rdb, rph, T in [(["FE", "SI", "O"], fms, "FEO-MGO-SIO2-LIQUID", 1800.0),
                                (["MG", "SI", "O"], fms, "FEO-MGO-SIO2-LIQUID", 1800.0),
+                               (["CA", "SI", "O"], cdb, csl, 1800.0),
                                (["CA", "SI", "O"], cdb, csl, 2900.0)]:
         for x in (0.3, 0.5, 0.7):
             gq = _gbin(qdb, Q, comps, x, T)
@@ -84,3 +80,12 @@ def test_single_quadruplet_energies_are_finite(dbs):
                                          inp["pcat"], inp["pan"], inp["pG"], inp["pstoich"],
                                          inp["Ztab"])
             assert g == ref, (inp["quads"][q], g, ref)
+
+
+def test_feo_mgo_sio2_face_is_the_shipped_ternary():
+    """Same grouping and the same terms: the Fe-Mg-Si face of the quaternary is the shipped
+    FeO-MgO-SiO2 liquid line for line, only the title differs."""
+    q = _load("cao-feo-mgo-sio2/build_dat.py", "q_face")
+    face = q.build(cations=["Fe", "Mg", "Si"]).splitlines()
+    shipped = (ROOT / "data" / "feo-mgo-sio2" / "FeO-MgO-SiO2-liquid.dat").read_text().splitlines()
+    assert face[1:] == shipped[1:]

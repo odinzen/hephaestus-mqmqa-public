@@ -2,12 +2,12 @@
 clinopyroxene in one ChemSage SUBL .dat (three CEF phases sharing Fe-Mg).
 
   OLIVINE        (Mg,Fe)2 (Si)1 (O)4          forsterite / fayalite
-  ORTHOPYROXENE  (Mg,Fe)2 (Si)2 (O)6          enstatite / ferrosilite (per M2Si2O6)
+  ORTHOPYROXENE  (Mg,Fe)[M1] (Mg,Fe)[M2] Si2 O6   two-site, data/olivine-opx/orthopyroxene.py
   CLINOPYROXENE  (Ca)1 (Mg,Fe)1 (Si)2 (O)6    diopside / hedenbergite
 
 Every endmember, and every excess, is imported verbatim from the shipped single-phase
-databases (data/olivine, data/olivine-opx, data/clinopyroxene): forsterite/fayalite and
-enstatite/ferrosilite from Robie-Hemingway with the assessed enstatite high-T interval;
+databases (data/olivine, data/olivine-opx, data/clinopyroxene): forsterite/fayalite from
+Robie-Hemingway; the two-site orthopyroxene as data/olivine-opx writes it;
 diopside/hedenbergite from Robie-Hemingway with the MLIP-triangulated (Fe,Mg) excess.
 Nothing is refit here; the assembly only lets the three phases coexist so their Fe-Mg
 exchange (K_D) can be computed. Constituents are name-sorted [Fe, Mg]. See PROVENANCE.md.
@@ -31,15 +31,13 @@ def _load(name, path):
 _ol_em = _load("oox_ol_em", D / "olivine" / "endmembers.py")
 _cpx_em = _load("oox_cpx_em", D / "clinopyroxene" / "endmembers.py")
 _cpx = _load("oox_cpx", D / "clinopyroxene" / "build_dat.py")
+_opx = _load("oox_opx", D / "olivine-opx" / "orthopyroxene.py")
 
 # Olivine and orthopyroxene excesses, verbatim from the shipped single-phase databases.
 # (data/olivine/olivine.py and data/olivine-opx/build_dat.py rely on bare imports, so their
 # constants are carried here explicitly; keep in sync with those files.)
 CAL = 4.184
 OL_L0, OL_L1 = 3000.0 * CAL, 1000.0 * CAL           # Wood & Kleppa 1981 subregular (J/mol)
-L_OPX = 2.0 * 950.0 * CAL                           # Chatillon-Colinet 1983, per M2Si2O6
-ENSTATITE_T_BREAK = 1360.0                          # ortho -> proto-enstatite transition
-ENSTATITE_HT_B = 18.014 * (1830.0 - 1000.0) / (1830.0 - ENSTATITE_T_BREAK)
 
 ELEMENTS = [("CA", 40.078), ("FE", 55.845), ("MG", 24.305), ("SI", 28.085), ("O", 15.9994)]
 
@@ -89,14 +87,12 @@ def _phase_block(name, endmembers, site_ratios, constituents, em_con_idx, excess
 def build(out=None):
     fo = _ol_em.gibbs_coeffs("forsterite")
     fa = _ol_em.gibbs_coeffs("fayalite")
-    en2 = [2.0 * c for c in _ol_em.gibbs_coeffs("enstatite")]     # Mg2Si2O6
-    fs2 = [2.0 * c for c in _ol_em.gibbs_coeffs("ferrosilite")]   # Fe2Si2O6
     di = _cpx_em.gibbs_coeffs("diopside")
     hd = _cpx_em.gibbs_coeffs("hedenbergite")
 
     out_lines = [" Ca-Fe-Mg-Si silicate solid solutions (olivine + opx + cpx) - open CEF "
                  "model, provenance data/olivine-opx-cpx/PROVENANCE.md",
-                 f"   {len(ELEMENTS)}   3   2   2   2   0",   # n_el, n_soln=3, counts, n_stoich=0
+                 f"   {len(ELEMENTS)}   3   2   4   2   0",   # n_el, n_soln=3, counts [ol, opx, cpx], n_stoich=0
                  "   " + "   ".join(e[0] for e in ELEMENTS),
                  "   " + "   ".join(f"{m:.6f}" for _, m in ELEMENTS),
                  "   6   1   2   3   4   5   6",
@@ -111,15 +107,7 @@ def build(out=None):
         [[1, 2], [1, 1], [1, 1]],
         [OL_L0, OL_L1])
 
-    out_lines += _phase_block(
-        "ORTHOPYROXENE",
-        [("FE2SI2O6", fs2, [0.0, 2.0, 0.0, 2.0, 6.0]),
-         ("MG2SI2O6", en2, [0.0, 0.0, 2.0, 2.0, 6.0],
-          dict(ht_break=ENSTATITE_T_BREAK,
-               ht_dA=-ENSTATITE_HT_B * ENSTATITE_T_BREAK, ht_dB=ENSTATITE_HT_B))],
-        [2.0, 2.0, 6.0], [["FE", "MG"], ["SI"], ["O"]],
-        [[1, 2], [1, 1], [1, 1]],
-        [L_OPX])
+    out_lines += _opx.subl_block([e for e, _ in ELEMENTS])
 
     out_lines += _phase_block(
         "CLINOPYROXENE",

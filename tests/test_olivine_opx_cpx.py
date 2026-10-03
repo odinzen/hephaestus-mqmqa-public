@@ -28,12 +28,13 @@ def sys_():
 
 
 def test_three_phases_engine_matches_pycalphad(sys_):
+    """Each phase along its Fe-Mg line (orthopyroxene at its M1/M2 order equilibrium): the
+    engine's G equals pycalphad's at the site fractions the engine chose."""
     ex, db, pdb = sys_
-    for ph, (_, Yf) in ex.PH.items():
+    for ph in ex.PH:
         for T in (1000.0, 1400.0):
             for x in (0.25, 0.6):
-                Y = Yf(x)
-                ge = db.cef_gibbs(db.phase_index(ph), Y, T, per_mole_atoms=True)
+                ge, Y = db.cef_line_gibbs(db.phase_index(ph), 1 - x, T, per_mole_atoms=True)
                 gp = float(calculate(pdb, ["CA", "FE", "MG", "SI", "O"], ph, T=T, P=101325,
                                      points=np.array([Y])).GM.values.ravel()[0])
                 assert ge == pytest.approx(gp, abs=1e-6), (ph, T, x)
@@ -41,11 +42,14 @@ def test_three_phases_engine_matches_pycalphad(sys_):
 
 def test_pairwise_fe_mg_exchange_matches_pycalphad(sys_):
     """For each phase pair the engine's equal-exchange-potential coexisting composition
-    equals pycalphad's own equilibrium tie-line, and K_D is in the expected direction."""
+    equals pycalphad's own equilibrium tie-line, and K_D is in the expected direction.
+    Olivine/orthopyroxene: the two-site orthopyroxene puts K_D above 1 (1.0-1.3 measured
+    at 1473 K by Nafziger & Muan 1967, higher at 1000 K where iron-rich orthopyroxene is
+    near its breakdown)."""
     ex, db, pdb = sys_
     T = 1000.0
     cases = [
-        ("OLIVINE", "ORTHOPYROXENE", ex._bulk(0.0, 0.35, 0.9, mtot=1.2), (0.8, 1.15)),
+        ("OLIVINE", "ORTHOPYROXENE", ex._bulk(0.0, 0.35, 0.9, mtot=1.2), (1.0, 1.7)),
         ("CLINOPYROXENE", "ORTHOPYROXENE", ex._bulk(0.5, 0.35, 2.0, mtot=1.5), (0.2, 0.6)),
         ("CLINOPYROXENE", "OLIVINE", ex._bulk(0.5, 0.35, 1.5, mtot=1.5), (0.2, 0.6)),
     ]

@@ -4,7 +4,7 @@ Two CEF solid solutions (olivine, orthopyroxene) in one ChemSage SUBL .dat, read
 C engine. The engine computes the exchange isotherm from the CEF kernel via the equal-
 Gibbs-slope (equal exchange-potential) condition; the coexisting compositions must match
 pycalphad's own two-phase equilibrium() on the same file. Also checks the reader handles
-two SUBL phases at once, and that K_D is near 1 (near-ideal, per the measured system).
+two SUBL phases at once, and that the tie-lines match the measured ones at 1473 K.
 """
 import sys
 from pathlib import Path
@@ -42,10 +42,12 @@ def test_exchange_isotherm_matches_pycalphad():
     assert worst < 1e-6, f"exchange isotherm vs pycalphad worst |d| = {worst}"
 
 
-def test_KD_near_ideal():
-    """K_D should sit near 1 across composition (the measured system is near-ideal)."""
+def test_tielines_match_nafziger_muan_1967():
+    """Olivine coexisting with orthopyroxene at 1473 K, 1 atm (Nafziger & Muan 1967,
+    Table 5) up to Fs 0.3, within 0.03. Above that the model's olivine runs 0.05-0.08 too
+    iron-rich (the iron-rich 1 atm pyroxene is not orthopyroxene; PROVENANCE.md)."""
     cdb, p_ol, p_opx = ex._load()
-    for x_opx in (0.1, 0.3, 0.5):
-        x_ol = ex.exchange_x_ol(cdb, p_ol, p_opx, x_opx, 1273.0)
-        kd = ex.K_D(x_ol, x_opx)
-        assert 0.7 < kd < 1.4, f"K_D={kd} at X_Fe,opx={x_opx} is not near-ideal"
+    for x_ol_meas, x_opx in ((0.05, 0.05), (0.11, 0.11), (0.15, 0.14), (0.26, 0.22),
+                             (0.30, 0.24), (0.36, 0.29)):
+        x_ol = ex.exchange_x_ol(cdb, p_ol, p_opx, x_opx, 1473.15)
+        assert abs(x_ol - x_ol_meas) < 0.03, (x_opx, x_ol, x_ol_meas)

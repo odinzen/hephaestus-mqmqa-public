@@ -53,11 +53,12 @@ def _load():
 
 def dG_dXfe(cdb, p, x_fe, T, h=1e-5):
     """Slope of the molar Gibbs curve wrt X_Fe (per two-cation formula), central diff.
-    Constituent order on the metal sublattice is [Fe, Mg]; Si and O sublattices are 1.0."""
+    The line parameter is the Mg fraction (constituents [Fe, Mg]); orthopyroxene is taken
+    at its internal M1/M2 order equilibrium."""
     a = max(x_fe - h, 1e-9)
     b = min(x_fe + h, 1 - 1e-9)
-    ga = cdb.cef_gibbs(p, [a, 1 - a, 1.0, 1.0], T, per_mole_atoms=False)
-    gb = cdb.cef_gibbs(p, [b, 1 - b, 1.0, 1.0], T, per_mole_atoms=False)
+    ga = cdb.cef_line_gibbs(p, 1 - a, T, per_mole_atoms=False)[0]
+    gb = cdb.cef_line_gibbs(p, 1 - b, T, per_mole_atoms=False)[0]
     return (gb - ga) / (b - a)
 
 

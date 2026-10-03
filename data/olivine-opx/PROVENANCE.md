@@ -14,92 +14,108 @@ is the regression. Run:
 
 ## The two phases
 
-    OLIVINE        (Mg,Fe)_2 (Si)_1 (O)_4     endmembers forsterite / fayalite
-    ORTHOPYROXENE  (Mg,Fe)_2 (Si)_2 (O)_6     endmembers enstatite / ferrosilite
+    OLIVINE        (Mg,Fe)_2 (Si)_1 (O)_4                endmembers forsterite / fayalite
+    ORTHOPYROXENE  (Mg,Fe)[M1] (Mg,Fe)[M2] (Si)_2 (O)_6   four endmembers (Fe:Fe, Fe:Mg, Mg:Fe, Mg:Mg)
 
-Both mix Fe and Mg on a two-site metal sublattice. Orthopyroxene is written per M2Si2O6 (two
-cations) so both phases carry two mixing sites and the exchange bookkeeping is symmetric.
-Orthopyroxene's real M1/M2 site distinction and Fe-Mg ordering are not resolved; this is the
-standard macroscopic (disordered) mixing model.
+Olivine mixes Fe and Mg on one metal sublattice (two sites per M2SiO4). Orthopyroxene, since
+2026-09-30, resolves its two metal sites: Fe strongly prefers the distorted M2 site, and the
+phase is taken at internal order equilibrium wherever it is sampled
+(`mqmqa_ph_cef_line_gibbs` in the engine; pycalphad does the same by itself). The model is
+defined once in `orthopyroxene.py`, which both this file and data/olivine-opx-cpx write from.
 
 ## Endmember Gibbs energies (Robie & Hemingway 1995, public domain)
 
-USGS Bulletin 2131. All four minerals are in the same ortho-silicate section, one consistent
-scale; heat capacity is the R&H five-term form integrated to G(T) (see
-`data/olivine/endmembers.py`, with the self-test reproducing each R&H Cp(298)).
+USGS Bulletin 2131, one consistent scale; the R&H five-term Cp integrated to G(T)
+(`data/olivine/endmembers.py`, whose self-test reproduces each R&H Cp(298) and whose G
+matches the R&H tables within 7 J).
 
 | | Forsterite | Fayalite | Enstatite | Ferrosilite |
 |---|---|---|---|---|
 | formula | Mg2SiO4 | Fe2SiO4 | MgSiO3 | FeSiO3 |
-| dHf(298) kJ/mol | -2173.0 | -1478.2 | -1545.6 | -1195.2 |
-| S(298) J/mol/K | 94.11 | 151.00 | 66.27 | 94.60 |
-| Cp(298) reproduced | 118.61 | 131.84 | 83.09 | 90.63 |
+| dHf(298) kJ/mol | -2173.0 | -1478.2 | -1545.6 | -1195.2 +- 3.0 |
+| S(298) J/mol/K | 94.11 | 151.00 | 66.27 | 94.60 +- 0.3 |
 | R&H Cp fit range | 298-1800 K | 298-1490 K | 298-1000 K | 298-800 K |
 
-The orthopyroxene endmember energies are doubled to the M2Si2O6 formula. **Extrapolation
-caveat:** enstatite's and ferrosilite's R&H Cp fits end at 1000 and 800 K; above those the
-polynomials are extrapolated smoothly (they stay physical, Cp ~ 143-145 J/mol/K by 1400 K,
-no divergence) rather than switched to a Neumann-Kopp tail. The engine-vs-pycalphad agreement
-is exact regardless (both read the same G(T)); only the absolute K_D vs real data carries this
-caveat. Ferrosilite is metastable at 1 atm (it breaks down to fayalite + quartz); it is used
-only as the Fe-endmember reference for the solid solution.
+Enstatite above 800 K takes the drop-calorimetry heat capacity of Thieblot, Tequi & Richet 1999
+(Am. Mineral. 84:848, Table 3, Eq. 3, orthoenstatite; DOI 10.2138/am-1999-5-619; trove
+oxide-slag/references), with G, H and S continuous at 800 K, where the two curves agree to 0.1 J/K.
+Their protoenstatite is within 3%. Extrapolated past its 1000 K limit, the R&H T^2 term gave
+176 J/K at 1830 K against 133 measured, made the crystal too stable at liquidus temperatures, and
+put orthopyroxene back above the liquid near 3100 K. Guarded by `tests/test_enstatite_heat_capacity.py`.
 
-## Excess mixing (measured enthalpies of mixing, T-independent)
+## Orthopyroxene: the two-site model (assessed 2026-09-30)
 
-- **Olivine** - Wood & Kleppa 1981 (GCA 45:529, DOI 10.1016/0016-7037(81)90185-X), the same
-  subregular excess as `data/olivine` (L0 = 12552, L1 = 4184 J/mol-M2SiO4).
-- **Orthopyroxene** - Chatillon-Colinet, Newton, Perkins & Kleppa 1983 (GCA 47:1597,
-  DOI 10.1016/0016-7037(83)90186-2, in the trove): solution calorimetry of five synthetic
-  disordered orthopyroxenes on the MgSiO3-FeSiO3 join gives a small positive, **symmetric**
-  enthalpy of mixing W_H = 950 cal/MSiO3 = 7949.6 J per M2Si2O6. The same authors note the
-  net Gibbs mixing is nearly ideal (M1-M2 ordering counterbalances the positive enthalpy);
-  a single-parameter CEF captures the calorimetric enthalpy, not that ordering, so this is
-  the disordered-mixing model.
+Per M2Si2O6, with y the Fe fraction on each site:
 
-Both excesses are the measured calorimetric enthalpies used directly (T-independent),
-matching how the olivine model was built. DOIs Crossref-verified.
+- G(Mg:Mg) = 2 enstatite, with the high-T correction assessed in data/mgo-sio2.
+- G(Fe:Fe) = 2 ferrosilite + 2 [2411.8 J + 6.461 J/K (T - 800 K) above 800 K]. The
+  constant is inside R&H's +-3 kJ; the slope replaces the extrapolation of a Cp measured
+  only to 800 K.
+- G(Fe:Mg) - G(Mg:Fe) = 10951.4 - 2.4556 T J (the exchange Fe(M2) + Mg(M1) = Fe(M1) + Mg(M2)).
+- G(Fe:Mg) + G(Mg:Fe) - G(Mg:Mg) - G(Fe:Fe) = -6053.2 J (reciprocal).
+- Site interactions W(M1) = 6582.9 J, W(M2) = 5216.4 J.
+
+Assessed (`assessment/assess.py`, `assessment/dataset.py`) by weighted least squares against:
+
+| Data | Source (open access unless noted) | Result |
+|---|---|---|
+| Fe on M1/M2, 29 samples, 773-1073 K | Saxena & Ghose 1971, Am. Mineral. 56:532, Table 2 | RMS 0.71 sigma, worst 1.6 (sigma 0.015) |
+| olivine-pyroxene tie-lines, 1473 K, 1 atm | Nafziger & Muan 1967, Am. Mineral. 52:1364, Table 5 | within 1.2 sigma to Fs 0.3, up to +4 sigma (olivine too Fe-rich) above |
+| ferrosilite = fayalite + quartz, 973-1323 K | Bohlen, Essene & Boettcher 1980, EPSL 47:1 | within 2.6 sigma (sigma 0.3 kJ) |
+| enthalpy of mixing, disordering | Chatillon-Colinet et al. 1983, GCA 47:1597 (trove) | disordering -0.9 sigma; mixing -2.8 sigma |
+
+Total cost 45.3, weighted RMS 1.32. The Saxena-Ghose table was read from the scan and every
+row checked against (X_M1 + X_M2)/2 = X_bulk; the R&H quartz table was extracted from the
+bulletin's text layer with its identity check.
+
+**Limits.** The iron-rich tie-lines at 1473 K and the high-temperature end of the Bohlen
+curve pull in opposite directions: Bohlen's orthoferrosilite (high pressure) needs pure
+FeSiO3 destabilized as T rises, while Nafziger & Muan's iron-rich pyroxene at 1 atm and
+1473 K needs it more stable. At 1 atm and liquidus temperatures the Mg-Fe pyroxene is not
+orthopyroxene but protopyroxene / pigeonite (Bowen & Schairer 1935 logged it as
+clinopyroxene), and the model has one pyroxene phase for both, as its enstatite correction
+already stands for protoenstatite. The fitted mixing enthalpy comes out slightly negative
+against Chatillon-Colinet's small positive W_H; the reciprocal energy is negative where
+Chatillon-Colinet inferred a positive one without site interactions. Letting the olivine
+excess float (to 7.0 kJ, against its own activities at 11-12 kJ) did not resolve either.
 
 ## The exchange equilibrium
 
 Reaction (SiO2-conserving): Mg2SiO4(ol) + 2 FeSiO3(opx) = Fe2SiO4(ol) + 2 MgSiO3(opx). At
-equilibrium the Fe-Mg exchange chemical potential is equal in both phases, which per
-two-cation formula is simply equal Gibbs slopes:
+equilibrium the Fe-Mg exchange potential is equal in both phases, per two-cation formula
 
-    dG_ol/dX_Fe |_{X_Fe,ol}  =  dG_opx/dX_Fe |_{X_Fe,opx}.
+    dG_ol/dX_Fe |_{X_Fe,ol}  =  dG_opx/dX_Fe |_{X_Fe,opx},
 
-For each orthopyroxene composition this fixes the coexisting olivine composition (the
-exchange isotherm) and the distribution coefficient K_D = (X_Fe/X_Mg)_ol / (X_Fe/X_Mg)_opx.
-Both slopes come from the C CEF kernel (`cef_gibbs`, per formula unit) by finite difference.
+with the orthopyroxene G taken at its order equilibrium at each X_Fe. `exchange.py` computes
+the isotherm and K_D = (X_Fe/X_Mg)_ol / (X_Fe/X_Mg)_opx through the engine.
 
 ## Validation
 
-1. **Engine vs pycalphad** - the exchange isotherm reproduces pycalphad's own two-phase
-   equilibrium() on the same `.dat` to ~1e-9 in olivine X_Fe, across bulk composition at
-   1000 K. This validates the C SUBL reader (two CEF phases at once), the C CEF kernel, and
-   the exchange-potential formulation together against an independent solver.
-2. **vs measured data (von Seckendorff & O'Neill 1993, DOI 10.1007/BF00283228, hardcopy)** -
-   they report K_D ~ 1, near-ideal, with ol/opx deviations cancelling near Fe/(Mg+Fe) ~ 0.1
-   (mantle compositions). The model gives K_D = 0.92 at X_Fe,opx = 0.1 / 1273 K, and K_D
-   staying within ~0.85-1.3 over the geologically relevant range - reproducing the measured
-   near-ideal magnitude. Their phase-equilibrium Gibbs interaction (W_G(opx) = 2145 J,
-   W_G(ol) = 5450 J at 1 bar) is smaller than the calorimetric enthalpies used here (the
-   ordering effect); it is held as a cross-check, not fitted.
+1. **Engine vs pycalphad vs the assessment's model**: the orthopyroxene Gibbs energy at
+   order equilibrium agrees to 6e-6 J/mol-atom at 900-1700 K across composition, with the
+   same site fractions (`tests/test_opx_two_site.py`); the exchange isotherm matches
+   pycalphad's two-phase equilibrium to ~1e-9 in olivine X_Fe.
+2. **K_D**: 1.17-1.31 at X_Fe,opx 0.1 over 900-1300 K; Nafziger & Muan measured 1.0-1.28 at
+   1473 K and 1 atm. von Seckendorff & O'Neill 1993 (DOI 10.1007/BF00283228, hardcopy,
+   1.6 GPa) report K_D near 1; held as a cross-check. Iron-rich orthopyroxene at low
+   temperature gives large K_D because it is unstable there, as Bohlen's data require.
+3. **FeO-MgO-SiO2 liquidus** (Bowen & Schairer 1935, data/feo-mgo-sio2/bs1935_liquidus.py):
+   mean absolute error 52 -> 33 K in the olivine field and 65 -> 41 K in the pyroxene field
+   against the one-site model on the same liquid; 26 of 37 primary phases right (was 20).
 
 ## What is deliberately excluded
 
-No FactSage/FToxid or optimized-TDB parameters. The endmembers are R&H compilation values
-(single-substance, allowed as inputs); the excesses are primary calorimetric enthalpies
-(Wood-Kleppa, Chatillon-Colinet); von Seckendorff-O'Neill enters only as an agreement check.
+No FactSage/FToxid or optimized-TDB parameters. The endmembers are R&H compilation values;
+the orthopyroxene parameters are fitted here to primary measurements; olivine uses the
+Wood & Kleppa 1981 calorimetric excess (GCA 45:529, DOI 10.1016/0016-7037(81)90185-X).
 
+## Enstatite high-T correction
 
-## Enstatite high-T entropy correction (assessed, 2026-08-26 moved into the database)
-
-The Mg2Si2O6 endmember carries a second Gibbs interval above 1000 K adding
-dG = 18.014*(T - 1000) J per formula (continuous at the break). It was fitted (common-tangent
-solve) so the forsterite + liquid -> enstatite peritectic lands at its measured 1830 K; the
-Robie-Hemingway opx Cp fit reaches only ~1000 K and its flat extrapolation leaves enstatite
-~236 K too stable. Tested and rejected as the explanation: capping the Cp fit at its 1000 K
-value supplies only ~40% of the required correction with the wrong temperature shape, so this
-is an own-derived assessment parameter (class own_derived_parameter), not an extrapolation
-repair. Formerly applied as a code-side shift in the ternary sampling and the browser; since
-2026-08-26 the database is the single source of truth and pycalphad reads the same physics.
+The Mg2Si2O6 endmember carries a further Gibbs step above 1360 K (the ortho to
+proto-enstatite break), linear in T from the break, assessed with the MgO-SiO2 liquid against
+the enstatite peritectic and eutectic (data/mgo-sio2/assessment) and defined once in
+`data/olivine/endmembers.py` (`ENSTATITE_DG_1830`, J per Mg2Si2O6 at 1830 K). On the measured
+heat capacity it fell from 9.3 to 4.0 kJ (2026-10-02), most of the old value having stood in for
+the extrapolated Cp. The heat-capacity change reaches the exchange and site-order data only
+slightly (158 J per MgSiO3 at 1273 K); re-running the assessment above without refitting took
+its cost from 46.9 to 36.5, every olivine-pyroxene tie-line moving toward the measurement.

@@ -27,11 +27,9 @@ sys.path.insert(0, str(HERE.parents[1] / "python"))
 import mqmqa
 
 # phase -> (n mixing sites per formula, Y builder with mixing X_Fe = x)
-PH = {
-    "OLIVINE": (2, lambda x: [x, 1 - x, 1.0, 1.0]),
-    "ORTHOPYROXENE": (2, lambda x: [x, 1 - x, 1.0, 1.0]),
-    "CLINOPYROXENE": (1, lambda x: [1.0, x, 1 - x, 1.0, 1.0]),   # CA, FE, MG, SI, O
-}
+# Fe-Mg cations per formula; every phase is sampled along its Fe-Mg line (line parameter
+# = Mg fraction), orthopyroxene at its internal M1/M2 order equilibrium
+PH = {"OLIVINE": 2, "ORTHOPYROXENE": 2, "CLINOPYROXENE": 1}
 
 
 def _load():
@@ -43,10 +41,10 @@ def _load():
 
 
 def mu_ex(db, ph, x, T, h=1e-5):
-    n, Y = PH[ph]
+    n = PH[ph]
     a, b = max(x - h, 1e-9), min(x + h, 1 - 1e-9)
-    ga = db.cef_gibbs(db.phase_index(ph), Y(a), T, per_mole_atoms=False)
-    gb = db.cef_gibbs(db.phase_index(ph), Y(b), T, per_mole_atoms=False)
+    ga = db.cef_line_gibbs(db.phase_index(ph), 1 - a, T, per_mole_atoms=False)[0]
+    gb = db.cef_line_gibbs(db.phase_index(ph), 1 - b, T, per_mole_atoms=False)[0]
     return (gb - ga) / (b - a) / n
 
 

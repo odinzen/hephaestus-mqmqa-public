@@ -1,0 +1,30 @@
+# Reference: Wells LS, Clarke WF, McMurdie HF (1943). Study of the system CaO-Al2O3-H2O at temperatures of 21 and 90 C. Journal of Research of the National Bureau of Standards 30(5), 367-409 (Research Paper RP1539).
+# DOI: 10.6028/jres.030.027 (open scan: https://nvlpubs.nist.gov/nistpubs/jres/30/jresv30n5p367_A1b.pdf, read in memory, not saved)
+# Locator: Table 2, p. 375, 'Solubility relations pertaining to the hexagonal hydrated calcium aluminates obtained from mixtures of hydrated di- and tetracalcium aluminates, respectively, with calcium hydroxide solutions of increasing concentrations.' Column numbers 1-12 as printed; series A, B, C as printed.
+# Method (p. 373-374): 2 g of the hexagonal hydrate per liter of Ca(OH)2 solution, 21 C, shaken, filtered at first appearance of solids other than hexagonal aluminates (col 6, footnote a). Approach from UNDERSATURATION; metastable.
+# Units as printed: col 2 g CaO/liter of the Ca(OH)2 solution; cols 3,4 g/liter Al2O3 and CaO of the total initial mixture (solid + solution), not dissolved; col 5 molar ratio; col 6 days; cols 7,8 g/liter dissolved Al2O3, CaO; cols 9-12 molar ratios.
+# Footnote b (series B col 12): solids not dried over CaCl2 before H2O/Al2O3 determination, unlike series A and C. Blank cells = printed as dashes.
+# Use for validation: metastable C2AH8/C4AH13 solubility from undersaturation at 21 C.
+# Conversion applied: Ca_mmol_per_L = CaO g/L / 56.077 g/mol * 1000; Al_mmol_per_L = 2 * Al2O3 g/L / 101.961 g/mol * 1000 (4 significant figures). Printed g/L values are kept unchanged. Concentrations are per liter of solution; solutions are dilute, so mmol/L ~ mmol/kg H2O to within ~0.3 %.
+# Transcription: values read from the scanned page images (OCR text layer used only as a draft, every cell checked against the image). Leading zeros omitted in print (e.g. '.512') are restored.
+# Analysis (Section II, p. 369): filtered solutions; Al2O3 by double hydroxide precipitation and ignition (Blum), CaO by oxalate precipitation and ignition to oxide. CO2 excluded (tightly stoppered flasks). No pH is reported anywhere in the paper.
+series,experiment,CaOH2_solution_CaO_g_per_L,initial_mixture_Al2O3_g_per_L,initial_mixture_CaO_g_per_L,initial_mixture_CaO_Al2O3_molar,time_days,final_Al2O3_g_per_L,final_CaO_g_per_L,final_CaO_Al2O3_molar,solid_CaO_Al2O3_calculated,solid_CaO_Al2O3_analysis,solid_H2O_Al2O3_analysis,final_Al_mmol_per_L,final_Ca_mmol_per_L,temperature_C,starting_solid,solid_phases
+A,1,0,0.607,0.708,2.12,1.3,0.369,0.402,1.98,2.34,2.47,7.40,7.238,7.169,21,2 g/L of 2.12CaO.Al2O3.6.39H2O (hydrated dicalcium aluminate),hexagonal calcium aluminate hydrates (metastable)
+A,2,0.200,0.607,0.908,2.72,134,0.238,0.438,3.34,2.31,,,4.668,7.811,21,2 g/L of 2.12CaO.Al2O3.6.39H2O (hydrated dicalcium aluminate),hexagonal calcium aluminate hydrates (metastable)
+A,3,0.400,0.607,1.108,3.32,87,0.183,0.469,4.66,2.74,2.64,8.72,3.59,8.364,21,2 g/L of 2.12CaO.Al2O3.6.39H2O (hydrated dicalcium aluminate),hexagonal calcium aluminate hydrates (metastable)
+A,4,0.600,0.607,1.308,3.92,55,0.131,0.549,7.62,2.90,3.03,9.19,2.57,9.79,21,2 g/L of 2.12CaO.Al2O3.6.39H2O (hydrated dicalcium aluminate),hexagonal calcium aluminate hydrates (metastable)
+A,5,0.800,0.607,1.508,4.52,23,0.099,0.549,10.1,3.43,3.51,10.40,1.942,9.79,21,2 g/L of 2.12CaO.Al2O3.6.39H2O (hydrated dicalcium aluminate),hexagonal calcium aluminate hydrates (metastable)
+A,6,1.000,0.607,1.708,5.12,23,0.046,0.654,25.9,3.42,3.63,10.92,0.9023,11.66,21,2 g/L of 2.12CaO.Al2O3.6.39H2O (hydrated dicalcium aluminate),hexagonal calcium aluminate hydrates (metastable)
+A,7,1.310,0.607,2.018,6.04,23,0.025,0.826,60.0,3.77,3.74,11.67,0.4904,14.73,21,2 g/L of 2.12CaO.Al2O3.6.39H2O (hydrated dicalcium aluminate),hexagonal calcium aluminate hydrates (metastable)
+B,8,0.100,0.557,0.734,2.40,8,0.248,0.397,2.91,1.98,1.87,8.15,4.865,7.08,21,2 g/L of 2.07CaO.Al2O3.8.23H2O (hydrated dicalcium aluminate),hexagonal calcium aluminate hydrates (metastable)
+B,9,0.300,0.557,0.934,3.05,4,0.219,0.429,2.99,2.72,2.65,9.81,4.296,7.65,21,2 g/L of 2.07CaO.Al2O3.8.23H2O (hydrated dicalcium aluminate),hexagonal calcium aluminate hydrates (metastable)
+B,10,0.500,0.557,1.134,3.70,3,0.166,0.474,5.19,3.07,2.96,10.49,3.256,8.453,21,2 g/L of 2.07CaO.Al2O3.8.23H2O (hydrated dicalcium aluminate),hexagonal calcium aluminate hydrates (metastable)
+B,11,0.700,0.557,1.334,4.35,8,0.134,0.547,7.42,3.38,3.22,11.00,2.628,9.754,21,2 g/L of 2.07CaO.Al2O3.8.23H2O (hydrated dicalcium aluminate),hexagonal calcium aluminate hydrates (metastable)
+B,12,1.123,0.557,1.757,5.71,3,0.041,0.778,23.9,3.57,3.66,12.03,0.8042,13.87,21,2 g/L of 2.07CaO.Al2O3.8.23H2O (hydrated dicalcium aluminate),hexagonal calcium aluminate hydrates (metastable)
+C,13,0,0.382,0.826,3.93,16,0.182,0.460,4.59,3.33,3.32,10.03,3.57,8.203,21,2 g/L of 3.93CaO.Al2O3.11.72H2O (hydrated tetracalcium aluminate),hexagonal calcium aluminate hydrates (metastable)
+C,14,0.200,0.382,1.026,4.88,16,0.137,0.555,7.36,3.49,3.37,10.41,2.687,9.897,21,2 g/L of 3.93CaO.Al2O3.11.72H2O (hydrated tetracalcium aluminate),hexagonal calcium aluminate hydrates (metastable)
+C,15,0.400,0.382,1.226,5.83,16,0.097,0.623,11.7,3.85,3.78,11.62,1.903,11.11,21,2 g/L of 3.93CaO.Al2O3.11.72H2O (hydrated tetracalcium aluminate),hexagonal calcium aluminate hydrates (metastable)
+C,16,0.600,0.382,1.426,6.79,16,0.042,0.704,30.5,3.86,3.84,12.06,0.8238,12.55,21,2 g/L of 3.93CaO.Al2O3.11.72H2O (hydrated tetracalcium aluminate),hexagonal calcium aluminate hydrates (metastable)
+C,17,0.800,0.382,1.626,7.74,16,0.023,0.852,67.2,3.92,3.91,11.95,0.4512,15.19,21,2 g/L of 3.93CaO.Al2O3.11.72H2O (hydrated tetracalcium aluminate),hexagonal calcium aluminate hydrates (metastable)
+C,18,1.000,0.382,1.826,8.69,16,0.015,1.018,123,4.00,3.87,11.84,0.2942,18.15,21,2 g/L of 3.93CaO.Al2O3.11.72H2O (hydrated tetracalcium aluminate),hexagonal calcium aluminate hydrates (metastable)
+C,19,1.290,0.382,2.116,10.1,16,0.009,1.279,259,4.08,3.89,11.97,0.1765,22.81,21,2 g/L of 3.93CaO.Al2O3.11.72H2O (hydrated tetracalcium aluminate),hexagonal calcium aluminate hydrates (metastable)

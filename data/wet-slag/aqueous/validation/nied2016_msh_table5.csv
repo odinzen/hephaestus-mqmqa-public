@@ -1,0 +1,18 @@
+# Reference: Nied D, Enemark-Rasmussen K, L'Hopital E, Skibsted J, Lothenbach B (2016). Properties of magnesium silicate hydrates (M-S-H). Cement and Concrete Research 79, 323-332.
+# DOI: 10.1016/j.cemconres.2015.10.003
+# Source read: accepted manuscript (Empa), odinzen_assessment_workspace/assets/local-archive/oxide-slag/references/Nied_2016_CemConcrRes79_323_M-S-H_accepted-ms.pdf
+# Locator: Table 5, accepted-ms p. 33 (line 495-498) "Measured dissolved concentrations in the solutions in equilibrium with the synthesized M-S-H samples and calculated saturation indices at 20 C". Mg_Si_solid also equals Table 4 (p. 31-32).
+# Conditions (Section 2.1, p. 3): MgO + silica fume (Aerosil 200), water/solid = 45 by mass, PE containers, N2 glove box, shaken 1 year at 20 C, filtered 0.45 um.
+# Analysis (Section 2.3, p. 6): Si and Mg by ion chromatography (error <= 10%). pH measured on filtrate then corrected +0.3 to refer to H+ activity of the unfiltered suspension (as stated by the authors). OH- in mM as printed (authors' value, not re-derived here).
+# Units as printed: Si, Mg, OH- in mM (= mmol/L). No conversion applied; columns below are the printed values.
+# Saturation indices were computed by the authors with GEMS using their Table 1 solubility products (SiO2 amorphous, brucite, talc); they are model output, not measurements.
+# Text-extraction note: the brucite SI for Mg/Si=1.0 extracts as "- 3.4" and for Mg/Si=1.3 as "-0. 8"; read as -3.4 and -0.8 (stray space from PDF layout).
+# Solids identified: XRD/NMR/TGA (Sections 3.1.1-3.1.2, Table 2): unreacted amorphous SiO2 present at initial Mg/Si <= 0.8 (Q4 fraction 30.1, 14.7, 3.6 % of Si for 0.4/0.6/0.8); brucite present at Mg/Si >= 1.3 (4 % and 20 % of Mg in brucite for 1.3 and 1.7, TGA p. 12).
+# Temperature is 20 C, not 25 C; apply a temperature correction before comparing to a 25 C model.
+Mg_Si_total_initial,Mg_Si_solid_MSH,Si_mM,Mg_mM,OH_mM,pH,SI_SiO2am,SI_brucite,SI_talc,temperature_C,equilibration_time,solid_phases
+0.4,0.64,0.81,0.14,0.003,8.6,-0.3,-4.1,5.6,20,1 year,M-S-H + amorphous SiO2
+0.6,0.74,0.67,0.13,0.002,8.5,-0.4,-4.3,4.9,20,1 year,M-S-H + amorphous SiO2
+0.8,0.84,1.51,0.18,0.002,8.6,-0.1,-4.1,6.8,20,1 year,M-S-H + amorphous SiO2 (minor)
+1.0,1.00,0.25,0.17,0.005,8.9,-0.9,-3.4,5.5,20,1 year,M-S-H
+1.3,1.25,0.009,0.087,0.110,10.2,-2.8,-0.8,5.0,20,1 year,M-S-H + brucite
+1.7,1.42,0.011,0.055,0.190,10.5,-2.9,-0.3,5.5,20,1 year,M-S-H + brucite

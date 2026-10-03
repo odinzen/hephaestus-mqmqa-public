@@ -1,0 +1,141 @@
+# Hephaestus slag solids for wateq4f, log K at 25 C from data/wet-slag/aqueous/derive_logk.py
+PHASES
+Lime
+    CaO + 2H+ = 1Ca+2 + 1H2O
+    log_k     32.930
+    -delta_h  -194.874 kJ
+Corundum
+    Al2O3 + 6H+ = 2Al+3 + 3H2O
+    log_k     16.550
+    -delta_h  -243.808 kJ
+CaAl2O4
+    CaAl2O4 + 8H+ = 1Ca+2 + 2Al+3 + 4H2O
+    log_k     45.457
+    -delta_h  -423.102 kJ
+CaAl4O7
+    CaAl4O7 + 14H+ = 1Ca+2 + 4Al+3 + 7H2O
+    log_k     60.224
+    -delta_h  -661.849 kJ
+Ca3Al2O6
+    Ca3Al2O6 + 12H+ = 3Ca+2 + 2Al+3 + 6H2O
+    log_k     112.051
+    -delta_h  -822.293 kJ
+Hibonite
+    CaAl12O19 + 38H+ = 1Ca+2 + 12Al+3 + 19H2O
+    log_k     125.177
+    -delta_h  -1624.724 kJ
+Wollastonite
+    CaSiO3 + 2H+ + 1H2O = 1Ca+2 + 1H4SiO4
+    log_k     14.221
+    -delta_h  -88.356 kJ
+Larnite
+    Ca2SiO4 + 4H+ = 2Ca+2 + 1H4SiO4
+    log_k     39.322
+    -delta_h  -239.415 kJ
+Hatrurite
+    Ca3SiO5 + 6H+ = 3Ca+2 + 1H4SiO4 + 1H2O
+    log_k     73.626
+    -delta_h  -443.308 kJ
+Rankinite
+    Ca3Si2O7 + 6H+ + 1H2O = 3Ca+2 + 2H4SiO4
+    log_k     50.876
+    -delta_h  -311.028 kJ
+Forsterite_H
+    Mg2SiO4 + 4H+ = 2Mg+2 + 1H4SiO4
+    log_k     28.306
+    -delta_h  -203.250 kJ
+Enstatite_H
+    MgSiO3 + 2H+ + 1H2O = 1Mg+2 + 1H4SiO4
+    log_k     11.585
+    -delta_h  -85.344 kJ
+Diopside_H
+    CaMgSi2O6 + 4H+ + 2H2O = 1Ca+2 + 1Mg+2 + 2H4SiO4
+    log_k     21.410
+    -delta_h  -145.056 kJ
+Spinel
+    MgAl2O4 + 8H+ = 1Mg+2 + 2Al+3 + 4H2O
+    log_k     31.318
+    -delta_h  -351.130 kJ
+Gehlenite
+    Ca2Al2SiO7 + 10H+ = 2Ca+2 + 2Al+3 + 1H4SiO4 + 3H2O
+    log_k     53.764
+    -delta_h  -480.086 kJ
+Anorthite_H
+    CaAl2Si2O8 + 8H+ = 1Ca+2 + 2Al+3 + 2H4SiO4
+    log_k     22.253
+    -delta_h  -286.543 kJ
+C3AH6
+    Ca3Al2O12H12 + 12H+ = 3Ca+2 + 2Al+3 + 12H2O
+    log_k     80.843
+    -delta_h  -583.802 kJ
+C3AS0_41H5_18
+    Ca3Al2Si0.41O12H10.36 + 12H+ = 3Ca+2 + 2Al+3 + 0.41H4SiO4 + 10.36H2O
+    log_k     74.276
+    -delta_h  -552.181 kJ
+C3AS0_84H4_32
+    Ca3Al2Si0.84O12H8.64 + 12H+ = 3Ca+2 + 2Al+3 + 0.84H4SiO4 + 8.64H2O
+    log_k     71.139
+    -delta_h  -540.605 kJ
+C4AH19
+    Ca4Al2O26H38 + 14H+ = 4Ca+2 + 2Al+3 + 26H2O
+    log_k     103.901
+    -delta_h  -648.466 kJ
+C4AH13
+    Ca4Al2O20H26 + 14H+ = 4Ca+2 + 2Al+3 + 20H2O
+    log_k     104.097
+    -delta_h  -688.686 kJ
+C2AH7_5
+    Ca2Al2O12.5H15 + 10H+ = 2Ca+2 + 2Al+3 + 12.5H2O
+    log_k     59.557
+    -delta_h  -443.598 kJ
+CAH10
+    CaAl2O14H20 + 8H+ = 1Ca+2 + 2Al+3 + 14H2O
+    log_k     37.741
+    -delta_h  -318.774 kJ
+Straetlingite
+    Ca2Al2SiO15H16 + 10H+ = 2Ca+2 + 2Al+3 + 1H4SiO4 + 11H2O
+    log_k     49.459
+    -delta_h  -393.064 kJ
+Al(OH)3(mic)
+    AlO3H3 + 3H+ = 1Al+3 + 3H2O
+    log_k     8.006
+    -delta_h  -123.195 kJ
+SiO2(am)
+    SiO2 + 0H+ + 2H2O = 1H4SiO4
+    log_k     -2.712
+    -delta_h  13.975 kJ
+CSH_Tob
+    Ca0.83SiO4.13H2.6 + 1.66H+ = 0.83Ca+2 + 1H4SiO4 + 0.13H2O
+    log_k     9.298
+    -delta_h  -32.593 kJ
+CSH_Jen
+    Ca1.67SiO5.77H4.2 + 3.34H+ = 1.67Ca+2 + 1H4SiO4 + 1.77H2O
+    log_k     29.773
+    -delta_h  -150.510 kJ
+MSH_0_75
+    Mg1.5Si2O8H5 + 3H+ = 1.5Mg+2 + 2H4SiO4
+    log_k     13.184
+MSH_1_5
+    Mg1.5SiO6H5 + 3H+ = 1.5Mg+2 + 1H4SiO4 + 2H2O
+    log_k     18.414
+CSHQ_TobH
+    Ca0.6667SiO4.1667H3 + 1.3334H+ = 0.6667Ca+2 + 1H4SiO4 + 0.1667H2O
+    log_k     8.288
+    -delta_h  -28.922 kJ
+CSHQ_TobD
+    Ca0.8333Si0.6667O4H3.6666 + 1.6666H+ = 0.8333Ca+2 + 0.6667H4SiO4 + 1.3332H2O
+    log_k     13.640
+    -delta_h  -65.076 kJ
+CSHQ_JenH
+    Ca1.3333SiO5.5H4.3334 + 2.6666H+ = 1.3333Ca+2 + 1H4SiO4 + 1.5H2O
+    log_k     22.179
+    -delta_h  -107.213 kJ
+CSHQ_JenD
+    Ca1.5Si0.6667O5.3334H5 + 3H+ = 1.5Ca+2 + 0.6667H4SiO4 + 2.6666H2O
+    log_k     28.730
+    -delta_h  -149.949 kJ
+Gibbsite_C18
+    AlO3H3 + 3H+ = 1Al+3 + 3H2O
+    log_k     7.550
+    -delta_h  -99.795 kJ
+END

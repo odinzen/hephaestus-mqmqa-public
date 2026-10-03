@@ -1,0 +1,19 @@
+# Reference: Stewart DI, Bray AW, Udoma G, Hobson AJ, Mayes WM, Rogerson M, Burke IT (2018). Environmental Science and Pollution Research 25, 9861-9872.
+# DOI: 10.1007/s11356-018-1260-7 (open access, PMC5891564)
+# Locator: main text Table 2, "SEM-EDS element ratios determined in the unreacted Ca2SiO4 phases and the Ca-Si-H phase found in slag particle surface layers after 73 days water leaching, and corresponding aqueous solution ratios calculated for solutions in contact with the slag particles" (PMC HTML table).
+# Units as printed: molar element ratios Ca/Si and V/Si, +/- 1 SD; n = number of EDS measurements (for the aqueous rows n is the number of solution analyses averaged).
+# Footnotes as printed: surface layer = 0-3 um from particle surface; aqueous solution = average of data after 14 days reaction.
+# Use: Ca/Si of the neo-formed C-S-H coexisting with the leachate (~20 C, open to air) at 73 d; pairs with the leachate rows in stewart2018_bof_leachate_tableS2.csv. No conversion applied.
+size_fraction,phase,Ca_Si,Ca_Si_1SD,V_Si,V_Si_1SD,n,day,temperature_C
+sand 0.5-1 mm,Ca2SiO4,2.31,0.02,0.011,0.004,7,73,20
+sand 0.5-1 mm,bulk Ca-Si-H,0.72,0.29,0.008,0.005,37,73,20
+sand 0.5-1 mm,Ca-Si-H surface layer,0.71,0.15,0.006,0.002,7,73,20
+sand 0.5-1 mm,aqueous solution,0.70,0.23,0.033,0.003,12,>=14,20
+gravel 2-5 mm,Ca2SiO4,2.24,0.02,0.010,0.002,6,73,20
+gravel 2-5 mm,bulk Ca-Si-H,1.12,0.54,0.009,0.005,31,73,20
+gravel 2-5 mm,Ca-Si-H surface layer,0.73,0.30,0.006,0.003,4,73,20
+gravel 2-5 mm,aqueous solution,0.67,0.11,0.029,0.002,12,>=14,20
+block 20x10x10 mm,Ca2SiO4,2.30,0.16,0.029,0.021,17,73,20
+block 20x10x10 mm,bulk Ca-Si-H,1.40,0.32,0.051,0.033,21,73,20
+block 20x10x10 mm,Ca-Si-H surface layer,1.15,0.22,0.021,0.012,4,73,20
+block 20x10x10 mm,aqueous solution,0.89,0.10,0.045,0.006,8,>=14,20

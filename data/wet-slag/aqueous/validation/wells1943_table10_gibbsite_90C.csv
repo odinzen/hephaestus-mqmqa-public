@@ -1,0 +1,18 @@
+# Reference: Wells LS, Clarke WF, McMurdie HF (1943). Study of the system CaO-Al2O3-H2O at temperatures of 21 and 90 C. Journal of Research of the National Bureau of Standards 30(5), 367-409 (Research Paper RP1539).
+# DOI: 10.6028/jres.030.027 (open scan: https://nvlpubs.nist.gov/nistpubs/jres/30/jresv30n5p367_A1b.pdf, read in memory, not saved)
+# Locator: Table 10, p. 403, 'Solubility of gibbsite, Al2O3.3H2O, at 90 C' [initial mixtures: 2 g of gibbsite per liter of calcium hydroxide solution].
+# Method (p. 401-402): 'similar' to Table 9 (steam bath, 90 C); duration not stated for this table. Authors (p. 402, 404): exps 4-8 removed lime and formed increasing C3AH6; exps 4-8 solutions approximately equal to C3AH6 in water at 90 C. Invariant point L (C3AH6 + gibbsite) ~0.11 g Al2O3/L, 0.33 g CaO/L, from extrapolating exps 1-3.
+# Units as printed: g CaO/liter; g/liter Al2O3 and CaO. 'Do.' = ditto. solid_phases paraphrases the printed Remarks.
+# Temperature 90 C (outside the 25 C model; included for the temperature dependence).
+# Conversion applied: Ca_mmol_per_L = CaO g/L / 56.077 g/mol * 1000; Al_mmol_per_L = 2 * Al2O3 g/L / 101.961 g/mol * 1000 (4 significant figures). Printed g/L values are kept unchanged. Concentrations are per liter of solution; solutions are dilute, so mmol/L ~ mmol/kg H2O to within ~0.3 %.
+# Transcription: values read from the scanned page images (OCR text layer used only as a draft, every cell checked against the image). Leading zeros omitted in print (e.g. '.512') are restored.
+# Analysis (Section II, p. 369): filtered solutions; Al2O3 by double hydroxide precipitation and ignition (Blum), CaO by oxalate precipitation and ignition to oxide. CO2 excluded (tightly stoppered flasks). No pH is reported anywhere in the paper.
+experiment,CaOH2_solution_CaO_g_per_L,final_Al2O3_g_per_L,final_CaO_g_per_L,remarks_as_printed,final_Al_mmol_per_L,final_Ca_mmol_per_L,temperature_C,solid_phases
+1,0.100,0.031,0.092,Indices of refraction unchanged.,0.6081,1.641,90,gibbsite
+2,0.200,0.063,0.189,Do.,1.236,3.37,90,gibbsite
+3,0.300,0.099,0.294,Do.,1.942,5.243,90,gibbsite
+4,0.400,0.175,0.283,Indices of refraction raised,3.433,5.047,90,gibbsite (surface altered)
+5,0.500,0.178,0.298,Small amount of 3CaO.Al2O3.6H2O.,3.492,5.314,90,gibbsite + C3AH6 (small)
+6,0.900,0.178,0.319,Considerable 3CaO.Al2O3.6H2O.,3.492,5.689,90,gibbsite + C3AH6
+7,1.101,0.189,0.327,Do.,3.707,5.831,90,gibbsite + C3AH6
+8,1.284,0.178,0.353,Do.,3.492,6.295,90,gibbsite + C3AH6

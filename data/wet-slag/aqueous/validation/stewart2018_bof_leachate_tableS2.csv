@@ -1,0 +1,92 @@
+# Reference: Stewart DI, Bray AW, Udoma G, Hobson AJ, Mayes WM, Rogerson M, Burke IT (2018). Hydration of dicalcium silicate and diffusion through neo-formed calcium-silicate-hydrates at weathered surfaces control the long-term leaching behaviour of basic oxygen furnace (BOF) steelmaking slag. Environmental Science and Pollution Research 25, 9861-9872.
+# DOI: 10.1007/s11356-018-1260-7 (open access, PMC5891564)
+# Locator: Electronic Supplementary Material ESM 1 (11356_2018_1260_MOESM1_ESM.docx), "SI Table S2. Experimental conditions and solution concentrations, as determined by ICP-OES" (4 continuation blocks: sand, gravel, blocks, pre-weathered block). Read in memory from https://static-content.springer.com/esm/art%3A10.1007%2Fs11356-018-1260-7/MediaObjects/11356_2018_1260_MOESM1_ESM.docx (PMC copy is behind a JS download page).
+# Conditions (main text, Methods "Leaching tests"): Yarborough (UK) BOF slag, ~2 g crushed slag in ~200 mL deionised water (blocks ~8 g in ~800 mL), stated as "liquid to solid ratio of 10 g L-1" (i.e. 10 g solid per L, L/S = 100 mL/g). Bottles closed with air-permeable foam bungs (open to atmospheric CO2), lab bench at roughly 20 C, unstirred except gentle swirl before sampling. Sampled at 0, 1, 2, 5, 8, 14, 28, 57, 73 d: 1 mL clear supernatant (settled, not filtered) acidified with 9 mL 5% HNO3 for ICP-OES; volume made up with DIW after each sampling.
+# Units as printed: pH (unitless); conductivity "(uS)" as printed (presumably uS/cm, not stated); all element concentrations in mmol L-1. No conversion applied.
+# DL = below ICP-OES detection limit, kept as printed. LODs from SI Table S1 (mmol L-1): Na 0.2857, Mg 0.0178, K 0.0793, Fe 0.0075, Si 0.0416, Al 0.0312, P 0.0031, V 0.0008, Cr 0.0009, Mn 0.0011, Ti 0.0010, Ca 0.0204, Zn 0.0002, As 0.0004. Note some printed values are below these LODs (e.g. V 0.001, Zn 0.000); reproduced as printed.
+# Replicates: sand and gravel triplicate bottles; blocks are two fresh blocks (replicate 1-2) plus one pre-weathered block (6 months prior immersion) reported separately. Replicate index is row order within each day as printed; the paper does not identify bottles across days.
+# Sand day 0, replicate 2: printed as "-" in every column (no measurement); left blank.
+# Primary slag phases (main text, XRD SI Fig S2 and EDS): larnite (beta-Ca2SiO4), brownmillerite (Ca2(Al,Fe)2O5), free lime (CaO), wustite-like (Fe,Mn,Mg,Ca)O. Secondary phases after 73 d (SEM-EDS): Ca-Si-H replacing Ca2SiO4 in surface alteration zone, CaCO3 on surfaces. Solids were characterised only at 73 d, so solid_phases is filled only for day 73.
+# temperature_C = 20 is the authors' "roughly 20 C" (lab bench, not controlled), not 25 C; system open to air (CO2 uptake) and not at equilibrium (kinetic leach test).
+size_fraction,day,replicate,pH,conductivity_uS_as_printed,Na_mmol_per_L,Mg_mmol_per_L,K_mmol_per_L,Fe_mmol_per_L,Si_mmol_per_L,Al_mmol_per_L,P_mmol_per_L,V_mmol_per_L,Cr_mmol_per_L,Mn_mmol_per_L,Ti_mmol_per_L,Ca_mmol_per_L,Zn_mmol_per_L,As_mmol_per_L,temperature_C,solid_phases
+sand 0.5-1.0 mm,0,1,10.9,53,DL,DL,DL,0.020,DL,DL,DL,DL,DL,0.004,DL,0.155,DL,DL,20,
+sand 0.5-1.0 mm,0,2,,,,,,,,,,,,,,,,,20,
+sand 0.5-1.0 mm,0,3,10.7,32,DL,DL,DL,0.008,DL,DL,DL,DL,DL,0.002,DL,0.064,DL,DL,20,
+sand 0.5-1.0 mm,1,1,11.8,790,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,1.087,DL,DL,20,
+sand 0.5-1.0 mm,1,2,11.6,664,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,0.944,DL,DL,20,
+sand 0.5-1.0 mm,1,3,11.7,725,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,1.182,DL,DL,20,
+sand 0.5-1.0 mm,2,1,11.6,731,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,1.064,DL,DL,20,
+sand 0.5-1.0 mm,2,2,11.5,575,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,0.816,DL,DL,20,
+sand 0.5-1.0 mm,2,3,11.5,679,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,0.987,DL,DL,20,
+sand 0.5-1.0 mm,5,1,11.0,186.1,DL,DL,DL,DL,0.091,DL,DL,0.002,DL,0.001,DL,0.443,0.001,DL,20,
+sand 0.5-1.0 mm,5,2,10.6,105.7,DL,DL,DL,DL,0.081,DL,DL,0.002,DL,DL,DL,0.231,0.004,DL,20,
+sand 0.5-1.0 mm,5,3,10.9,166.5,DL,DL,DL,DL,0.092,DL,DL,0.002,DL,DL,DL,0.340,0.001,DL,20,
+sand 0.5-1.0 mm,8,1,10.5,137.5,DL,DL,DL,DL,0.333,DL,DL,0.011,DL,0.001,DL,0.420,DL,DL,20,
+sand 0.5-1.0 mm,8,2,10.4,118.2,DL,DL,DL,DL,0.296,DL,DL,0.007,DL,DL,DL,0.306,DL,DL,20,
+sand 0.5-1.0 mm,8,3,10.4,119.7,DL,DL,DL,DL,0.292,DL,DL,0.008,DL,DL,DL,0.415,DL,DL,20,
+sand 0.5-1.0 mm,14,1,10.3,168.1,DL,DL,DL,DL,0.875,DL,DL,0.024,DL,0.003,DL,0.683,DL,DL,20,
+sand 0.5-1.0 mm,14,2,10.2,146.9,DL,DL,DL,DL,0.793,DL,DL,0.020,DL,0.001,DL,0.511,DL,DL,20,
+sand 0.5-1.0 mm,14,3,10.1,120.1,DL,DL,DL,DL,0.676,DL,DL,0.018,DL,0.002,DL,0.431,DL,DL,20,
+sand 0.5-1.0 mm,28,1,9.5,133.2,DL,DL,DL,0.028,1.161,DL,DL,0.031,DL,0.008,DL,0.810,DL,DL,20,
+sand 0.5-1.0 mm,28,2,9.8,127.5,DL,DL,DL,DL,1.100,DL,DL,0.029,DL,DL,DL,0.536,DL,DL,20,
+sand 0.5-1.0 mm,28,3,9.9,133,DL,DL,DL,DL,1.092,DL,DL,0.029,DL,0.001,DL,1.163,DL,DL,20,
+sand 0.5-1.0 mm,57,1,8.5,116.9,DL,0.019,DL,0.026,1.212,DL,DL,0.036,DL,0.006,DL,0.932,DL,DL,20,
+sand 0.5-1.0 mm,57,2,8.6,118.6,DL,DL,DL,DL,1.119,DL,DL,0.034,DL,DL,DL,0.518,DL,DL,20,
+sand 0.5-1.0 mm,57,3,8.7,122.9,DL,DL,DL,0.008,1.716,DL,0.004,0.051,DL,0.003,DL,0.867,DL,DL,20,
+sand 0.5-1.0 mm,73,1,8.8,119.9,DL,DL,DL,DL,1.155,DL,DL,0.037,DL,DL,DL,0.551,DL,DL,20,larnite/Ca2SiO4 + brownmillerite + free lime + wustite-like; Ca-Si-H alteration rim; CaCO3
+sand 0.5-1.0 mm,73,2,8.7,116.5,DL,DL,DL,DL,1.112,DL,DL,0.036,DL,0.001,DL,0.547,DL,DL,20,larnite/Ca2SiO4 + brownmillerite + free lime + wustite-like; Ca-Si-H alteration rim; CaCO3
+sand 0.5-1.0 mm,73,3,8.7,114.2,DL,DL,DL,0.012,1.165,DL,DL,0.037,DL,0.004,DL,0.655,DL,DL,20,larnite/Ca2SiO4 + brownmillerite + free lime + wustite-like; Ca-Si-H alteration rim; CaCO3
+gravel 2.0-5.0 mm,0,1,10.3,24.9,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,0.038,DL,DL,20,
+gravel 2.0-5.0 mm,0,2,10.2,20.59,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,0.026,DL,DL,20,
+gravel 2.0-5.0 mm,0,3,10.0,19.22,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,0.034,DL,DL,20,
+gravel 2.0-5.0 mm,1,1,10.8,156.9,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,0.386,DL,DL,20,
+gravel 2.0-5.0 mm,1,2,10.7,132,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,0.322,DL,DL,20,
+gravel 2.0-5.0 mm,1,3,10.7,134.4,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,0.313,DL,DL,20,
+gravel 2.0-5.0 mm,2,1,10.3,89.7,DL,DL,DL,DL,0.070,DL,DL,0.001,DL,DL,DL,0.221,DL,DL,20,
+gravel 2.0-5.0 mm,2,2,10.2,94.1,DL,DL,DL,DL,0.083,DL,DL,0.002,DL,DL,DL,0.239,DL,DL,20,
+gravel 2.0-5.0 mm,2,3,10.1,86.2,DL,DL,DL,DL,0.091,DL,DL,0.002,DL,DL,DL,0.210,DL,DL,20,
+gravel 2.0-5.0 mm,5,1,10.0,85.9,DL,DL,DL,DL,0.255,DL,DL,0.006,DL,DL,DL,0.233,DL,DL,20,
+gravel 2.0-5.0 mm,5,2,9.8,80.2,DL,DL,DL,DL,0.229,DL,DL,0.006,DL,DL,DL,0.219,DL,DL,20,
+gravel 2.0-5.0 mm,5,3,10.1,96.4,DL,DL,DL,DL,0.315,DL,DL,0.007,DL,DL,DL,0.281,0.000,DL,20,
+gravel 2.0-5.0 mm,8,1,9.8,91.1,DL,DL,DL,DL,0.398,DL,DL,0.009,DL,DL,DL,0.263,DL,DL,20,
+gravel 2.0-5.0 mm,8,2,9.7,87,DL,DL,DL,DL,0.370,DL,DL,0.009,DL,DL,DL,0.251,DL,DL,20,
+gravel 2.0-5.0 mm,8,3,9.8,92.7,DL,DL,DL,DL,0.456,DL,DL,0.010,DL,DL,DL,0.283,DL,DL,20,
+gravel 2.0-5.0 mm,14,1,9.6,94.2,DL,DL,DL,DL,0.714,DL,DL,0.017,DL,DL,DL,0.332,DL,DL,20,
+gravel 2.0-5.0 mm,14,2,9.4,88.5,DL,DL,DL,DL,0.594,DL,DL,0.014,DL,DL,DL,0.301,DL,DL,20,
+gravel 2.0-5.0 mm,14,3,9.4,91.6,DL,DL,DL,DL,0.646,DL,DL,0.015,DL,DL,DL,0.314,DL,DL,20,
+gravel 2.0-5.0 mm,28,1,9.2,144.7,DL,DL,DL,DL,0.859,DL,DL,0.021,DL,DL,DL,0.405,DL,DL,20,
+gravel 2.0-5.0 mm,28,2,9.1,110.3,DL,DL,DL,DL,0.716,DL,DL,0.018,DL,DL,DL,0.384,DL,DL,20,
+gravel 2.0-5.0 mm,28,3,9.3,110.9,DL,DL,DL,DL,0.801,DL,DL,0.019,DL,DL,DL,0.407,DL,DL,20,
+gravel 2.0-5.0 mm,57,1,8.5,138,DL,DL,DL,DL,0.918,DL,DL,0.024,DL,DL,DL,0.620,DL,DL,20,
+gravel 2.0-5.0 mm,57,2,8.4,131.5,DL,DL,DL,DL,0.824,DL,DL,0.022,DL,DL,DL,0.562,DL,DL,20,
+gravel 2.0-5.0 mm,57,3,8.5,135.6,DL,DL,DL,DL,0.810,DL,0.003,0.022,DL,DL,DL,0.608,DL,DL,20,
+gravel 2.0-5.0 mm,73,1,8.5,133.3,DL,0.019,DL,DL,0.967,DL,DL,0.028,DL,DL,DL,0.636,DL,DL,20,larnite/Ca2SiO4 + brownmillerite + free lime + wustite-like; Ca-Si-H alteration rim; CaCO3
+gravel 2.0-5.0 mm,73,2,8.4,124.2,DL,DL,DL,DL,0.892,DL,DL,0.026,DL,DL,DL,0.572,DL,DL,20,larnite/Ca2SiO4 + brownmillerite + free lime + wustite-like; Ca-Si-H alteration rim; CaCO3
+gravel 2.0-5.0 mm,73,3,8.3,128.2,DL,DL,DL,DL,0.876,DL,DL,0.025,DL,DL,DL,0.581,DL,DL,20,larnite/Ca2SiO4 + brownmillerite + free lime + wustite-like; Ca-Si-H alteration rim; CaCO3
+block 20x10x10 mm,0,1,9.6,11.89,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,20,
+block 20x10x10 mm,0,2,9.4,11.57,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,20,
+block 20x10x10 mm,1,1,10.5,84.3,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,0.152,DL,DL,20,
+block 20x10x10 mm,1,2,10.3,66.7,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,0.114,DL,DL,20,
+block 20x10x10 mm,2,1,10.3,100.3,DL,DL,DL,DL,0.059,DL,DL,0.001,DL,DL,DL,0.248,DL,DL,20,
+block 20x10x10 mm,2,2,10.1,80.5,DL,DL,DL,DL,0.049,DL,DL,0.001,DL,DL,DL,0.183,DL,DL,20,
+block 20x10x10 mm,5,1,10.1,106.5,DL,DL,DL,DL,0.124,DL,DL,0.003,DL,DL,DL,0.316,DL,DL,20,
+block 20x10x10 mm,5,2,9.9,95.9,DL,DL,DL,DL,0.106,DL,DL,0.003,DL,DL,DL,0.279,0.001,DL,20,
+block 20x10x10 mm,8,1,9.7,85.2,DL,DL,DL,DL,0.178,DL,DL,0.005,DL,DL,DL,0.249,DL,DL,20,
+block 20x10x10 mm,8,2,9.6,81.5,DL,DL,DL,DL,0.153,DL,DL,0.004,DL,DL,DL,0.231,DL,DL,20,
+block 20x10x10 mm,14,1,9.5,73.3,DL,DL,DL,DL,0.271,DL,DL,0.009,DL,DL,DL,0.231,DL,DL,20,
+block 20x10x10 mm,14,2,9.4,72.8,DL,DL,DL,DL,0.240,DL,DL,0.008,DL,DL,DL,0.230,DL,DL,20,
+block 20x10x10 mm,28,1,9.3,77.9,DL,DL,DL,DL,0.366,DL,DL,0.014,DL,DL,DL,0.263,DL,DL,20,
+block 20x10x10 mm,28,2,9.2,79.2,DL,DL,DL,DL,0.321,DL,DL,0.011,DL,DL,DL,0.258,DL,DL,20,
+block 20x10x10 mm,57,1,8.3,101,DL,DL,DL,DL,0.479,DL,DL,0.021,DL,DL,DL,0.351,DL,DL,20,
+block 20x10x10 mm,57,2,8.2,94.2,DL,DL,DL,DL,0.415,DL,DL,0.017,DL,DL,DL,0.293,DL,DL,20,
+block 20x10x10 mm,73,1,8.0,95.6,DL,DL,DL,DL,0.508,DL,DL,0.024,DL,DL,DL,0.379,DL,DL,20,larnite/Ca2SiO4 + brownmillerite + free lime + wustite-like; Ca-Si-H alteration rim; CaCO3
+block 20x10x10 mm,73,2,7.6,87.3,DL,DL,DL,DL,0.434,DL,DL,0.019,DL,DL,DL,0.309,DL,DL,20,larnite/Ca2SiO4 + brownmillerite + free lime + wustite-like; Ca-Si-H alteration rim; CaCO3
+pre-weathered block 20x10x10 mm,0,1,9.0,10.28,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,20,
+pre-weathered block 20x10x10 mm,1,1,9.1,18.45,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,20,
+pre-weathered block 20x10x10 mm,2,1,9.0,20.53,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,20,
+pre-weathered block 20x10x10 mm,5,1,8.9,28.5,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,0.042,DL,DL,20,
+pre-weathered block 20x10x10 mm,8,1,8.7,33.6,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,DL,0.062,DL,DL,20,
+pre-weathered block 20x10x10 mm,14,1,8.6,43,DL,DL,DL,DL,DL,DL,DL,0.001,DL,DL,DL,0.115,DL,DL,20,
+pre-weathered block 20x10x10 mm,28,1,8.6,63.6,DL,DL,DL,DL,0.064,DL,DL,0.002,DL,DL,DL,0.198,DL,DL,20,
+pre-weathered block 20x10x10 mm,57,1,7.8,91,DL,DL,DL,DL,0.084,DL,DL,0.003,DL,DL,DL,0.282,DL,DL,20,
+pre-weathered block 20x10x10 mm,73,1,6.7,85.7,DL,DL,DL,DL,0.076,DL,DL,0.003,DL,DL,DL,0.248,DL,DL,20,larnite/Ca2SiO4 + brownmillerite + free lime + wustite-like; Ca-Si-H alteration rim; CaCO3

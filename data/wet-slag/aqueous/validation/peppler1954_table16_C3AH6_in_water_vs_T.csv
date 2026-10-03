@@ -1,0 +1,16 @@
+# Reference: Peppler RB, Wells LS (1954). The system of lime, alumina, and water from 50 to 250 C. Journal of Research of the National Bureau of Standards 52(2), 75-92 (Research Paper 2476).
+# DOI: 10.6028/jres.052.013 (open scan: https://nvlpubs.nist.gov/nistpubs/jres/52/jresv52n2p75_A1b.pdf, read in memory, not saved)
+# Locator: Table 16, p. 90, 'Solubility of isometric 3CaO.Al2O3.6H2O in water as a function of temperature'. Footnote 1 (60 C) = 'For 17 days.'
+# Provenance of rows: 21 C row equals Wells, Clarke & McMurdie 1943 Table 7 exp 2 (0.208 CaO, 0.131 Al2O3); 50 C equals Table 5 exp 1; 120 C equals Table 10 exp 1; 150 C equals Table 13 exp 2; 90 C equals Wells et al. 1943 Table 9 exp 1. The 60 C and 200 C rows have no other table in this paper.
+# Units as printed: temperature C; CaO, Al2O3 and CaO+Al2O3 g/liter; weight ratio CaO/Al2O3. Added column CaO_Al2O3_molar_calc is computed from the printed g/L (not printed). Solid: C3AH6 in water (congruent dissolution reported by the authors at 50 C, p. 81).
+# Analysis (Section 2, p. 75-76): filtrates analysed gravimetrically, Al2O3 by Blum's method, CaO as oxalate ignited to oxide; solids identified by petrographic microscope and, when in doubt, X-ray diffraction. No pH reported.
+# Conversion applied: Ca_mmol_per_L = CaO g/L / 56.077 * 1000; Al_mmol_per_L = 2 * Al2O3 g/L / 101.961 * 1000 (4 significant figures). Printed g/L kept unchanged.
+# Transcription: every cell read from the scanned page image (OCR used only as a draft). Leading zeros omitted in print are restored. 'Do.' = ditto (same as row above).
+temperature_C,final_CaO_g_per_L,final_Al2O3_g_per_L,CaO_plus_Al2O3_g_per_L,CaO_Al2O3_weight_ratio,note,final_Al_mmol_per_L,final_Ca_mmol_per_L,CaO_Al2O3_molar_calc
+21,0.208,0.131,0.339,1.59,,2.57,3.709,2.89
+50,0.223,0.133,0.356,1.68,,2.609,3.977,3.05
+60,0.246,0.123,0.369,2.00,footnote 1: for 17 days,2.413,4.387,3.64
+90,0.306,0.190,0.496,1.61,,3.727,5.457,2.93
+120,0.300,0.170,0.470,1.76,,3.335,5.35,3.21
+150,0.235,0.204,0.439,1.51,,4.002,4.191,2.09
+200,0.175,0.148,0.323,1.19,,2.903,3.121,2.15

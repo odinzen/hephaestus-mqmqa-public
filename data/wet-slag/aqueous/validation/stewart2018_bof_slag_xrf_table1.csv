@@ -1,0 +1,19 @@
+# Reference: Stewart DI, Bray AW, Udoma G, Hobson AJ, Mayes WM, Rogerson M, Burke IT (2018). Hydration of dicalcium silicate and diffusion through neo-formed calcium-silicate-hydrates at weathered surfaces control the long-term leaching behaviour of basic oxygen furnace (BOF) steelmaking slag. Environmental Science and Pollution Research 25, 9861-9872.
+# DOI: 10.1007/s11356-018-1260-7 (open access, PMC5891564)
+# Locator: main text Table 1, "Major element composition of freshly deposited Yarborough BOF steel slag (21 samples) determined by XRF" (read from the PMC HTML table).
+# Units as printed: % w/w, mean +/- uncertainty as printed (statistic not stated in the table; 21 samples). Fe reported as nominal FeO. No conversion applied. Printed total 98.7.
+# Mineralogy: the paper has no quantitative phase table. Main text (Results, slag characterisation; XRD in SI Fig. S2, EDS SI Fig. S4) states the slag "contains phases structurally matched to" larnite (beta-Ca2SiO4), brownmillerite (Ca2(Al,Fe)2O5), free lime (CaO) and a wustite-like (FeO) phase. EDS: free lime substituted with Fe, Mn, Mg and Sc; wustite-like phase contains Fe, Mn, Mg, Ca; Ca2SiO4 contains P, Fe, V; brownmillerite contains Ti, Mn, Cr, V. No phase fractions given.
+# This slag sample is the one leached in stewart2018_bof_leachate_tableS2.csv.
+oxide,wt_percent,wt_percent_uncertainty
+CaO,40,5.4
+FeO,32,9.4
+SiO2,14,3.4
+MgO,5.2,1.1
+MnO,4.5,0.8
+Al2O3,1.2,0.4
+P2O5,1.3,0.4
+V2O5,0.81,0.24
+TiO2,0.30,0.13
+Cr2O3,0.24,0.13
+SO3,0.23,0.09
+Total,98.7,

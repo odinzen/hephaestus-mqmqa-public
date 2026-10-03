@@ -1,0 +1,17 @@
+# Jerebtsov & Mikhailov 2001, Ceram. Int. 27(1), 25-28, doi:10.1016/S0272-8842(00)00037-7.
+# DTA in Mo crucibles under argon (dry), 0-60 mass% CaO, temperatures better than 10 C, heats
+# better than 10% (their Section 2). Read from the page images. Ca12Al14O33 is absent in the dry
+# system (it forms only with absorbed water, <1 mass%); every aluminate melts peritectically.
+# Table 1 swaps the compositions of its last two rows; the values here follow their Fig. 1, which
+# labels the C3A + CA eutectic "1371 C, 49" and the C3A breakdown "1540 C, 58" (the eutectic must
+# lie between CA at 35.4 and C3A at 62.3 mass% CaO).
+kind,reaction,CaO_wt,CaO_wt_sigma,T_C,T_sigma_K,dH_kJ_per_mol,dH_sigma,locator
+peritectic,CaAl12O19 = Al2O3 + L,16.5,1,1852,7,,,Table 1 + Fig. 1
+peritectic,CaAl4O7 = CaAl12O19 + L,26.5,1,1762,5,,,Table 1 + Fig. 1
+peritectic,CaAl2O4 = CaAl4O7 + L,37,1,1604,5,,,Table 1 + Fig. 1
+eutectic,Ca3Al2O6 + CaAl2O4 = L,49,1,1371,5,,,Fig. 1 (Table 1 row swapped)
+peritectic,Ca3Al2O6 = CaO + L,58,1,1540,5,,,Fig. 1 (Table 1 row swapped)
+fusion,CaAl12O19 = L,,,,,710,30,Table 3
+fusion,CaAl4O7 = L,,,,,210,10,Table 3
+fusion,CaAl2O4 = L,,,,,84,10,Table 3
+fusion,Ca3Al2O6 = L,,,,,145,30,Table 3

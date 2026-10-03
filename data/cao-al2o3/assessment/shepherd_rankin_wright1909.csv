@@ -1,0 +1,27 @@
+# Shepherd, Rankin & Wright 1909, Am. J. Sci. (4) 28, 293-333, doi:10.2475/ajs.s4-28.166.293
+# (public domain), Table VI "Curve of melting points" (mean of the listed melts) and Table VII
+# (CaO.Al2O3 + 3CaO.5Al2O3 eutectic), p. 313, read from the page images. Weight percent Al2O3,
+# degC as printed on the 1909 Geophysical Laboratory scale; the assessment adds +13 K, the gap
+# between their CaAl2O4 congruent point (1587 C here) and Rankin & Wright 1915 (1600 C, 1911 scale)
+# for the same melting. Their 5CaO.3Al2O3 is Ca12Al14O33 and 3CaO.5Al2O3 is CaAl4O7. Primary
+# phases are assigned by composition between the compounds, as their curves A-H run. 75.22 wt% was
+# read with the optical pyrometer in the iridium furnace (starred), hence the wider sigma.
+kind,Al2O3_wt,T_C_1909,sigma_K,primary,locator
+liquidus,44,1525,15,Ca3Al2O6,Table VI (1525 1524 1525)
+liquidus,45,1494,15,Ca3Al2O6,Table VI (5 melts)
+liquidus,46,1481,15,Ca3Al2O6,Table VI (4 melts)
+liquidus,47,1438,15,Ca3Al2O6,Table VI (3 melts)
+liquidus,48,1432,15,Ca3Al2O6,Table VI (9 melts)
+liquidus,49,1424,15,Ca3Al2O6,Table VI (5 melts)
+liquidus,51,1384,15,Ca12Al14O33,Table VI (5 melts)
+liquidus,52.22,1386,15,Ca12Al14O33,Table VI (6 melts)
+liquidus,53,1386,15,Ca12Al14O33,Table VI (5 melts)
+liquidus,54,1437,15,CaAl2O4,Table VI (7 melts)
+liquidus,55,1461,15,CaAl2O4,Table VI (2 melts)
+liquidus,56,1449,15,CaAl2O4,Table VI (7 melts)
+liquidus,57,1498,15,CaAl2O4,Table VI (4 melts)
+liquidus,59,1547,15,CaAl2O4,Table VI (7 melts)
+liquidus,60,1566,15,CaAl2O4,Table VI (7 melts)
+congruent,64.58,1587,10,CaAl2O4,Table VI (CaAl2O4 composition)
+eutectic,67.5,1581,10,CaAl2O4+CaAl4O7,Table VI + Table VII (67.5-76.5 wt% melts 1573-1582)
+liquidus,75.22,1710,25,CaAl4O7,Table VI (iridium furnace optical pyrometer)

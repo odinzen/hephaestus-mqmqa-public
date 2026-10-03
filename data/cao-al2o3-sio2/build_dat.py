@@ -7,9 +7,11 @@ assessment workspace are a pure VALIDATION set (validate_kt.py), never inputs.
 
 Solids: the three binary edges' compounds plus the two key ternary compounds,
 gehlenite Ca2Al2SiO7 and anorthite CaAl2Si2O8 (Robie & Hemingway 1995; gehlenite's
-T^-0.5 Cp term carried exactly via the additional-terms block). Provenance and limits:
+T^-0.5 Cp term carried exactly via the additional-terms block, anorthite fitted to the R&H
+high-temperature table). Provenance and limits:
 PROVENANCE.md.
 """
+import dataclasses
 import importlib.util
 import math
 import sys
@@ -34,45 +36,52 @@ ALO15, AL2O3_SOLID = _caal.ALO15, _caal.AL2O3_SOLID
 CAO = dbbuild.starter_component("CaO")
 SIO2 = dbbuild.starter_component("SiO2")
 
-# The three shipped binary excesses, verbatim (p acts on the first-named component).
-BINARIES = [
-    BinaryExcess("CaO", "SiO2",
-                 [ExcessTerm(a=-189763.512, b=15.7059847, p=0, q=0),
-                  ExcessTerm(a=57170.779, b=0.0, p=1, q=0),
-                  # v0.2 ternary term (Poschmann Eq 25-26, r=1): fitted to the 21
-                  # Zaitsev CaO-rich KEMS activities, which showed a uniform +3.28
-                  # bias in ln a(SiO2) under the pure binary assembly. Kay-Taylor
-                  # stays within scatter. See PROVENANCE.md.
-                  ExcessTerm(a=-110000.0, b=0.0, p=0, q=0, add_cat="AlO1.5", r=1)],
-                 source="CaO-SiO2 v0.3 (shipped .dat) + CAS v0.2 ternary term"),
-    BinaryExcess("CaO", "AlO1.5",
-                 [ExcessTerm(a=-156581.1, b=2.159, p=0, q=0),
-                  ExcessTerm(a=133468.2, b=0.0, p=1, q=0)],
-                 source="CaO-Al2O3 v0.1"),
-    BinaryExcess("SiO2", "AlO1.5",
-                 [ExcessTerm(a=9317.3, b=0.0, p=0, q=0),
-                  ExcessTerm(a=33855.3, b=0.0, p=5, q=0)],
-                 source="Al2O3-SiO2 v0.1"),
-]
+_cas_bin = _load("cao_sio2_build", HERE.parent / "cao-sio2" / "build_dat.py")
+_alsi = _load("al2o3_sio2_build", HERE.parent / "al2o3-sio2" / "build_dat.py")
+
+# Ternary-level terms (Poschmann Eq. 25-26, r = 1), J: the Ca-Si interaction with Al as the
+# additional cation, fitted in v0.2 to the 21 Zaitsev CaO-rich KEMS activities, which showed a
+# uniform +3.28 bias in ln a(SiO2) under the pure binary assembly (-110 kJ on the v0.3 binary,
+# rescanned to -105 kJ on v0.4; Kay-Taylor held out as validation, see PROVENANCE.md); the Al-Si
+# interaction with Ca; the Ca-Al interaction with Si. Zero terms are not written.
+TERNARY = {"casi_al": -105000.0, "alsi_ca": 0.0, "caal_si": 0.0}
+SI_GROUP = 1          # chemical group of SiO2; CaO and AlO1.5 are group 1
+
+
+def _t(a, cat):
+    return [ExcessTerm(a=a, b=0.0, p=0, q=0, add_cat=cat, r=1)] if a else []
+
+
+def binaries(t=None):
+    """The three shipped binary excesses, verbatim (p acts on the first-named component),
+    plus the ternary terms `t` (TERNARY when None)."""
+    t = TERNARY if t is None else t
+    return [
+        BinaryExcess("CaO", "SiO2",
+                     [ExcessTerm(a=a, b=b, p=0, q=q) for q, a, b in _cas_bin.ASSESSED_EXCESS]
+                     + _t(t["casi_al"], "AlO1.5"),
+                     source="CaO-SiO2 v0.4 (data/cao-sio2 build_dat) + CAS ternary term"),
+        BinaryExcess("CaO", "AlO1.5",
+                     [ExcessTerm(a=-156581.1, b=2.159, p=0, q=0),
+                      ExcessTerm(a=133468.2, b=0.0, p=1, q=0)] + _t(t["caal_si"], "SiO2"),
+                     source="CaO-Al2O3 v0.1"),
+        BinaryExcess("SiO2", "AlO1.5",
+                     _alsi.assessed_terms() + _t(t["alsi_ca"], "CaO"),
+                     source="Al2O3-SiO2 v0.2 (data/al2o3-sio2 build_dat, Bowen & Greig 1924)"),
+    ]
+
+
+BINARIES = binaries()
 
 # ---- solids, all per formula, elements (Ca, Al, Si, O) -------------------------------
-# CaO-SiO2 compounds: Neumann-Kopp on the starter oxides + measured dHf_ox (quartz
-# basis, corrected to cristobalite by -2300 J per SiO2) + absolute S298 - identical to
-# the shipped data/cao-sio2 phase model.
-DHF_QZ_TO_CRIST = -2300.0
-
-
-def _nk_cs(n_cao, n_sio2, dHf_ox_qz, S298):
-    return dict(
-        dHf=n_cao * CAO.dHf + n_sio2 * SIO2.dHf + dHf_ox_qz + DHF_QZ_TO_CRIST * n_sio2,
-        S298=S298,
-        a=n_cao * CAO.a + n_sio2 * SIO2.a,
-        b=n_cao * CAO.b + n_sio2 * SIO2.b,
-        c=n_cao * CAO.c + n_sio2 * SIO2.c, d=0.0)
+# CaO-SiO2 compounds: the Robie-Hemingway calcium silicates of data/cao-sio2/silicates.py,
+# the same functions (Ca2SiO4 in two intervals) the CaO-SiO2 phase model uses.
+_sil = _load("ca_silicates", HERE.parent / "cao-sio2" / "silicates.py")
 
 
 _caal_solids = {k: dict(v[2], d=v[2].get("d", 0.0)) for k, v in _caal.SOLIDS.items()}
 
+# DRY SLAGS ONLY: no Ca12Al14O33, which needs absorbed water to be stable (data/cao-al2o3/build_dat.py).
 SOLIDS = {
     # name: (n_Ca, n_Al, n_Si, coeff dict)
     "CaO_solid": (1, 0, 0, dict(dHf=CAO.dHf, S298=CAO.S298, a=CAO.a, b=CAO.b, c=CAO.c, d=0.0)),
@@ -80,23 +89,24 @@ SOLIDS = {
                                         a=SIO2.a, b=SIO2.b, c=SIO2.c, d=0.0)),
     "Al2O3_corundum": (0, 2, 0, dict(AL2O3_SOLID, d=0.0)),
     # CaO-SiO2 edge (data/cao-sio2 phase model, v0.3)
-    "CaSiO3": (1, 0, 1, _nk_cs(1, 1, -81922.72, 85.2)),
-    "Ca3Si2O7": (3, 0, 2, _nk_cs(3, 2, -229136.76, 210.6)),
-    "Ca2SiO4": (2, 0, 1, _nk_cs(2, 1, -136816.80, 120.5)),
-    "Ca3SiO5": (3, 0, 1, _nk_cs(3, 1, -112884.32, 168.6)),
+    "CaSiO3": (1, 0, 1, _sil.intervals("CaSiO3")),
+    "Ca3Si2O7": (3, 0, 2, _sil.intervals("Ca3Si2O7")),
+    "Ca2SiO4": (2, 0, 1, _sil.intervals("Ca2SiO4")),
+    "Ca3SiO5": (3, 0, 1, _sil.intervals("Ca3SiO5")),
     # CaO-Al2O3 edge (data/cao-al2o3 v0.1)
     "Ca3Al2O6": (3, 2, 0, _caal_solids["Ca3Al2O6"]),
-    "Ca12Al14O33": (12, 14, 0, _caal_solids["Ca12Al14O33"]),
     "CaAl2O4": (1, 2, 0, _caal_solids["CaAl2O4"]),
     "CaAl4O7": (1, 4, 0, _caal_solids["CaAl4O7"]),
+    "CaAl12O19": (1, 12, 0, _caal_solids["CaAl12O19"]),
     # Al2O3-SiO2 edge (data/al2o3-sio2 v0.1)
     "Al6Si2O13": (0, 6, 2, dict(dHf=-6819.2e3, S298=275.0,
                                 a=754.6, b=-0.02943, c=-3.454e6, d=-6576.0)),
     # ternary compounds (Robie & Hemingway 1995)
     "Ca2Al2SiO7": (2, 2, 1, dict(dHf=-3985.0e3, S298=210.1,
                                  a=405.7, b=-0.007099, c=-1.188e6, d=-3174.0)),
-    "CaAl2Si2O8": (1, 2, 2, dict(dHf=-4234.0e3, S298=199.3,
-                                 a=266.4025, b=6.058556e-2, c=-6.55428e6, d=0.0)),
+    # anorthite on the R&H high-T table to 1800 K (rh1995_anorthite.csv), the fit the calcium
+    # silicates use; its Cp was a Maier-Kelley fit to 1000 K until 2026-09-30
+    "CaAl2Si2O8": (1, 2, 2, _sil.fit(_sil.read_table(HERE / "rh1995_anorthite.csv")["CaAl2Si2O8"])),
 }
 
 T0 = 298.15
@@ -112,21 +122,25 @@ def solid_gibbs_coeffs_sqrt(cf):
 
 
 def _stoich_block(name, cf, n_ca, n_al, n_si):
-    A, B, C, D, E, F, G05 = solid_gibbs_coeffs_sqrt(cf)
-    eq_type = 4 if G05 else 1
+    """cf is one coefficient dict (valid to 6000 K) or a list of (T_upper, dict)."""
+    ivs = cf if isinstance(cf, list) else [(6000.0, cf)]
+    coeffs = [(t, solid_gibbs_coeffs_sqrt(c)) for t, c in ivs]
+    eq_type = 4 if any(c[6] for _, c in coeffs) else 1
     n_o = n_ca + 1.5 * n_al + 2.0 * n_si
     elems = (float(n_ca), float(n_al), float(n_si), float(n_o))
     lines = [f" {name}",
-             f"   {eq_type}   1   " + "   ".join(f"{e:.6f}" for e in elems),
-             "  6000.0000   " + "   ".join(f"{v:.12E}" for v in (A, B, C, D, E, F))]
-    if eq_type == 4:
-        lines.append(f"   1   {G05:.12E}   5.000000000000E-01")
+             f"   {eq_type}   {len(ivs)}   " + "   ".join(f"{e:.6f}" for e in elems)]
+    for t, c in coeffs:
+        lines.append(f"  {t:.4f}   " + "   ".join(f"{v:.12E}" for v in c[:6]))
+        if eq_type == 4:
+            lines.append(f"   1   {c[6]:.12E}   5.000000000000E-01")
     return lines
 
 
-def build(out=None):
+def build(out=None, ternary=None, si_group=None):
+    si = dataclasses.replace(SIO2, group=SI_GROUP if si_group is None else si_group)
     spec = SystemSpec(
-        "CaO-AlO1.5-SiO2", [CAO, ALO15, SIO2], BINARIES,
+        "CaO-AlO1.5-SiO2", [CAO, ALO15, si], binaries(ternary),
         version="v0.2",
         provenance="three shipped binaries (Muggianu) + one ternary term fitted to "
                    "the Zaitsev KEMS activities; see PROVENANCE.md")

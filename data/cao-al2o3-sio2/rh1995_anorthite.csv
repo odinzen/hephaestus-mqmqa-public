@@ -1,0 +1,21 @@
+# Robie & Hemingway 1995, USGS Bull. 2131 (public domain), high-T table of anorthite
+# (p. 362). Extracted from the bulletin's text layer by script, not retyped; every row
+# passes -(G-H298)/T = S - (H-H298)/T to 0.010 J/K. dfH298 in kJ/mol, the rest J/mol/K.
+formula,phase,page,T_K,Cp,S,HT_minus_H298_over_T,dfH298_kJ
+CaAl2Si2O8,anorthite,362,298.15,211.34,199.30,0.00,-4234.0
+CaAl2Si2O8,anorthite,362,300,212.23,200.61,1.31,-4234.0
+CaAl2Si2O8,anorthite,362,400,248.25,267.09,58.96,-4234.0
+CaAl2Si2O8,anorthite,362,500,270.17,325.01,99.17,-4234.0
+CaAl2Si2O8,anorthite,362,600,285.13,375.67,128.98,-4234.0
+CaAl2Si2O8,anorthite,362,700,296.26,420.49,152.12,-4234.0
+CaAl2Si2O8,anorthite,362,800,305.17,460.65,170.71,-4234.0
+CaAl2Si2O8,anorthite,362,900,312.78,497.04,186.08,-4234.0
+CaAl2Si2O8,anorthite,362,1000,319.67,530.36,199.10,-4234.0
+CaAl2Si2O8,anorthite,362,1100,326.21,561.13,210.36,-4234.0
+CaAl2Si2O8,anorthite,362,1200,332.67,589.80,220.28,-4234.0
+CaAl2Si2O8,anorthite,362,1300,339.23,616.68,229.18,-4234.0
+CaAl2Si2O8,anorthite,362,1400,346.03,642.07,237.28,-4234.0
+CaAl2Si2O8,anorthite,362,1500,353.18,666.18,244.77,-4234.0
+CaAl2Si2O8,anorthite,362,1600,360.75,689.22,251.78,-4234.0
+CaAl2Si2O8,anorthite,362,1700,368.81,711.33,258.42,-4234.0
+CaAl2Si2O8,anorthite,362,1800,377.41,732.65,264.79,-4234.0

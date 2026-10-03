@@ -1,5 +1,16 @@
 # CaO-Al2O3 v0.1 — provenance and limits
 
+## Scope: dry slags only (2026-10-01)
+
+These files describe the **dry** CaO-Al2O3 system: no water in the melt or the solids.
+Ca12Al14O33 (C12A7, mayenite) is therefore not a phase. It is stable only when the solid holds a
+little absorbed water (under 1 mass%) and does not form in a dry atmosphere (Nurse, Welch & Majumdar
+1965, Trans. Br. Ceram. Soc. 64, 409-418; confirmed by DTA in argon by Jerebtsov & Mikhailov 2001,
+Ceram. Int. 27, 25-28, doi:10.1016/S0272-8842(00)00037-7). In the dry system every calcium
+aluminate melts peritectically. Water is unlikely in a molten slag, so the dry diagram is the one
+that applies to slag practice; the older air measurements (Shepherd, Rankin & Wright 1909; Rankin &
+Wright 1915) are used only where they do not involve Ca12Al14O33.
+
 Literature-only open database: MQMQA liquid (components CaO, AlO1.5) + six stoichiometric
 solids. Built 2026-08-25 from the paper set gathered for this system (Rankin & Wright 1915;
 Coughlin 1956; Bonnickson 1955; Geiger 1988) plus open compilations (CODATA, NIST-JANAF,

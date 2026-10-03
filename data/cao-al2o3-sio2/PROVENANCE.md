@@ -1,5 +1,16 @@
 # CaO-Al2O3-SiO2 — provenance and limits
 
+## Scope: dry slags only (2026-10-01)
+
+These files describe the **dry** CaO-Al2O3 system: no water in the melt or the solids.
+Ca12Al14O33 (C12A7, mayenite) is therefore not a phase. It is stable only when the solid holds a
+little absorbed water (under 1 mass%) and does not form in a dry atmosphere (Nurse, Welch & Majumdar
+1965, Trans. Br. Ceram. Soc. 64, 409-418; confirmed by DTA in argon by Jerebtsov & Mikhailov 2001,
+Ceram. Int. 27, 25-28, doi:10.1016/S0272-8842(00)00037-7). In the dry system every calcium
+aluminate melts peritectically. Water is unlikely in a molten slag, so the dry diagram is the one
+that applies to slag practice; the older air measurements (Shepherd, Rankin & Wright 1909; Rankin &
+Wright 1915) are used only where they do not involve Ca12Al14O33.
+
 ## v0.2 (2026-08-26): the ternary term
 
 v0.1's validation isolated a uniform +3.28 bias in ln a(SiO2) over the 21 Zaitsev
@@ -13,8 +24,9 @@ pycalphad-computed activities. Result over all 45 KEMS points:
 - Kay & Taylor (24, silica-rich): RMS 0.38 -> 0.46, bias -0.11 -> +0.08
 
 The engine gained evaluation of this term (single chemical group, r = 1: the binary
-mixing term times the third cation's pair fraction Y_m; r >= 2 and multi-group return
-NaN loudly). Verified: engine equilibrium GM matches pycalphad to < 0.005 J/mol-atom
+mixing term times the third cation's pair fraction Y_m; r >= 2 and multi-group then
+returned NaN loudly; the engine has since added both for single-anion liquids, see
+mqmqa_excess_term_status). Verified: engine equilibrium GM matches pycalphad to < 0.005 J/mol-atom
 on this file at Zaitsev-corner compositions, and to < 0.5 J on the dedicated
 regression test system; the WASM build reproduces the native value; the prior
 FeO-MgO-SiO2 oracle value (-321252.12 at 1700 K) is unchanged.
@@ -48,9 +60,12 @@ compounds from Robie & Hemingway (1995):
 - **gehlenite Ca2Al2SiO7**: dHf -3985.0 kJ, S298 210.1, Haas-Fisher Cp with the
   T^-0.5 term (a 405.7, b -0.007099, c -1.188e6, d -3174) — carried exactly via the
   additional-terms block.
-- **anorthite CaAl2Si2O8**: dHf -4234.0 kJ, S298 199.3, Cp own Maier-Kelley fit to the
-  R&H points 298-1000 K (a 266.4025, b 6.058556e-2, c -6.55428e6; max resid
-  1.4 J/mol/K).
+- **anorthite CaAl2Si2O8**: fitted to the Robie & Hemingway high-temperature table (Bull.
+  2131 p. 362, 298-1800 K; `rh1995_anorthite.csv`, extracted from the bulletin's text layer
+  and checked row by row against -(G-H298)/T = S - (H-H298)/T) with the calcium silicates'
+  fit (`data/cao-sio2/silicates.py`): within 33 J of the table, 20 J from 1000 K up. Until
+  2026-09-30 the Cp was a Maier-Kelley fit to the table's points to 1000 K only; that
+  function sat up to 785 J off the table and 0.8 kJ too stable at the 1830 K melting point.
 
 ## Validation: 45 KEMS silica activities (prediction, nothing fitted)
 

@@ -9,23 +9,24 @@ Built by `build_dat.py`; validated by `validate.py`. Run:
 
     C:/Users/busta/miniforge3/envs/calphad/python.exe data/feo-mgo-sio2/validate.py
 
-## Assembly - no new ternary fit
+## Assembly
 
-The ternary liquid is assembled entirely from the two shipped binary liquids plus a
-near-ideal FeO-MgO edge; every parameter is reused verbatim (single source of truth, checked
-by the binary-reduction guard below):
+The ternary liquid combines the two shipped silica binaries, an assessed FeO-MgO edge and two
+ternary-level terms. Every binary parameter is read from its binary builder (single source of
+truth, checked by the binary-reduction guard below):
 
-| Edge | Excess on | Source | Terms |
+| Edge or term | Excess on | Source | Terms |
 |---|---|---|---|
-| MgO-SiO2 | (Mg,Si,O,O) | `data/mgo-sio2` (assessed) | 5 silica-weighted (0,q)=chi_Si^q, q=0,1,3,5,7, each a+bT |
-| FeO-SiO2 | (Fe,Si,O,O) | `data/feo-sio2` v0.3 (activity-pinned) | symmetric Delta_g(Fe,Si)/O = -42839.4 + 17.83*T |
-| FeO-MgO | (Fe,Mg,O,O) | - | **ideal** (no term) |
+| MgO-SiO2 | (Mg,Si,O,O) | `data/mgo-sio2`, three-way fit N1 | chi_Si^q for q = 0, 1, 2, 3, 5, 7 and chi_Mg^4, each a + bT |
+| FeO-SiO2 | (Fe,Si,O,O) | `data/feo-sio2` v0.4 | four terms (see that file) |
+| FeO-MgO | (Fe,Mg,O,O) | `assessment/assess.py` | 9064.5 J |
+| Fe-Si with Mg | (Fe,Si,O,O) + Mg | `assessment/assess.py` | -6604.3 J |
+| Mg-Si with Fe | (Mg,Si,O,O) + Fe | `assessment/assess.py` | +16774.8 J |
 
-- **FeO-MgO is treated as ideal** for v0.1. Molten (Fe,Mg)O is a near-ideal solution of two
-  similar divalent oxides (complete miscibility; magnesiowustite, the solid, is itself nearly
-  ideal). A small interaction from a dedicated assessment is a documented v0.2 target.
-- **Ternary (3-cation) excess = 0**: the ternary is the binaries extrapolated, with no term
-  of its own, the standard MQMQA default when no ternary data force a correction.
+The three assessed terms (`build_dat.TERNARY_EXCESS`) were fitted on 2026-10-05 together with the
+MgO-SiO2 liquid and the CaO-MgO-SiO2 face (`data/mgo-sio2/assessment/joint3.py`), against Bowen &
+Schairer (1935) Table I and the Nafziger & Muan (1967) solidus.
+
 - **Chemical groups: Fe and Mg in group 1, Si in group 2** (2026-09-29). The group decides how
   a binary excess is extrapolated into the ternary. Si alone makes the extrapolation of the
   two silicate binaries asymmetric (Toop-like, the basic oxides as one family), the usual
@@ -33,25 +34,20 @@ by the binary-reduction guard below):
   interpolation that grew a two-liquid region near the orthosilicate join (between about
   Fe 0.49 / Mg 0.18 / Si 0.33 and Fe 0.61 / Mg 0.01 / Si 0.38 cation fraction, from 1573 K
   up) that neither binary has, and a silica-rich two-liquid region reaching the middle of the
-  triangle (down to 50% SiO2), wider than on either binary edge. With Si alone both are gone:
-  the silica-rich gap is a tongue from the MgO-SiO2 edge that fades toward FeO, as the
-  binaries imply (the FeO-SiO2 binary has no liquid gap, see Honest limits). The binary edges
-  are unchanged exactly (the reduction guard below).
-- The **FeO(l) below-1650 K phase-diagram recalibration** from FeO-SiO2 v0.3 (a second
-  temperature interval on the FeO endmember, `beta = -69.84 J/mol/K`) carries over unchanged -
-  it is a property of the FeO liquid endmember, so it applies ternary-wide.
-- An **MgO(l) below-3098 K liquidus calibration** (`MGO_LIQ_BETA = +2.975 J/mol/K`, a second
-  temperature interval on the MgO endmember) is applied here so the liquid melts the measured
-  (Robie-Hemingway) forsterite - the olivine CEF endmember, `data/olivine` - congruently at
-  2163 K. It is orthogonal to the MgO-SiO2 activities (a pure MgO endmember shift), and is the
-  Mg analogue of the FeO(l) treatment: both put the liquid on the same measured olivine
-  endmembers the solid solution uses. The shipped MgO-SiO2 *binary* keeps its own assessment
-  (its forsterite melts ~2130 K against its co-optimized solid); unifying MgO(l) across the
-  binary and the ternary is a documented cleanup. `fit_mgo_beta` in `olivine_join.py`
-  reproduces the value.
-- Endmembers: FeO (JANAF, with the v0.3 correction), MgO (CODATA/JANAF, `data/mgo-sio2`),
-  SiO2 (Robie-Hemingway solid + JANAF fusion, identical in both binaries). Cation indexing in
-  the .dat is Fe=1, Mg=2, Si=3; the single anion O=4.
+  triangle (down to 50% SiO2), wider than on either binary edge. With Si alone both are gone.
+  The binary edges are unchanged exactly (the reduction guard below).
+- **Mg-Si ordering.** The MgO-SiO2 liquid orders most at x_SiO2 = 0.3375, not 1/3; the file
+  carries the same explicit (Mg,Si/O,O) coordination row as the binary
+  (`tests/test_mgsi_ordering_consistency.py`).
+- **Endmember liquids.** FeO(l) keeps the below-1650 K interval assessed with FeO-SiO2 v0.4
+  (`FEO_LIQ_BETA = -28.34 J/mol/K`) and MgO(l) the heat-capacity excess assessed with MgO-SiO2
+  (`MGO_LIQ_DCP = 26.0 J/mol/K`); both are properties of the endmember liquids, so they apply
+  ternary-wide.
+- **Endmembers.** FeO is iron-saturated wustite (Robie-Hemingway + SGTE Fe, `data/feo-sio2`),
+  MgO is CODATA/JANAF periclase (`data/mgo-sio2`), SiO2 is the corrected beta-cristobalite
+  shared by every silicate. The combined file adds olivine, the two-site orthopyroxene
+  (`data/olivine-opx`), magnesiowustite (`data/magnesiowustite`) and cristobalite. Cation
+  indexing in the .dat is Fe=1, Mg=2, Si=3; the single anion O=4.
 
 ## Validation
 
@@ -168,7 +164,14 @@ oxide (oxide moles equal cation moles).
 Their Table I (pp. 155-157) gives 38 liquid compositions with the temperature of completion of
 melting and the primary phase; `bs1935_table1.csv` holds it as printed. The model liquidus at
 each (refined hull, `vis3d.liquidus_point`), with their clinopyroxene scored against our
-orthopyroxene and tridymite against cristobalite:
+orthopyroxene and tridymite against cristobalite.
+
+Shipped file (fit N1, 2026-10-05; the fit's own scorer, `assessment/assess.py`): olivine field 23
+points, mean absolute miss 21 K; pyroxene 8 points, 19 K; silica 7 points, 11 K; 29 of 37 primary
+phases as measured. Solidus against Nafziger & Muan (1967): 36 K low (olivine + pyroxene) and
+42 K low (olivine + magnesiowustite).
+
+The table below records the 2026-09-29 grouping comparison, on the files of that date:
 
 | Primary field | Points | Mean miss, Si in own group | Mean miss, all one group (v0.1) |
 |---|---|---|---|
@@ -183,40 +186,23 @@ tridymite or cristobalite. The fix belongs to the FeO-SiO2 binary (below), not t
 
 ## Honest limits (next targets)
 
-- **FeO-MgO ideal** is a first approximation (see above).
-- **FeO-SiO2 has no liquid miscibility gap.** Bowen & Schairer (1932) measured two liquids
-  near silica at 1698 degC; the v0.3 binary, one symmetric term, has none. It is the likely
-  cause of the silica-field liquidus running 90-250 K low in the ternary.
-- **Fayalite is not stable in the full equilibrium.** With every phase of the combined .dat,
-  at the Fe2SiO4 composition ferrosilite (opx) + wustite is below fayalite olivine at 1480 K,
-  and melting begins with wustite first at about 1553 K (pycalphad on the same file agrees:
-  opx + wustite at 1480 K, liquid + wustite at 1530 K, liquid at 1560 K). The fayalite
-  endpoint quoted below compares liquid with olivine only. Measured: fayalite melts at 1478 K.
-  On the FeO-SiO2 edge the combined .dat puts orthopyroxene everywhere from ~1150 K up (opx +
-  wustite at the fayalite composition, opx alone at FeSiO3), where Bowen & Schairer (1932,
-  1935) found fayalite + silica and no pyroxene; the 1935 text says FeSiO3 does not form,
-  though pyroxenes up to nearly 90% FeSiO3 do. The reaction Fe2Si2O6 + 2 FeO -> 2 Fe2SiO4 is
-  -19 kJ at 298 K on Robie-Hemingway + JANAF data and +11 kJ at 1480 K in the model: the
-  ferrosilite Cp fit (R&H, data to 800 K) runs 5-10 J/K per FeSiO3 above the olivine + oxide
-  sum. It cannot be fixed on the ferrosilite endmember alone, because the measured
-  olivine/opx Fe-Mg exchange pins ferrosilite against fayalite at <= 1273 K; the opx mixing
-  at the Fe-rich end is the likely lever.
+- **Solidus 36-42 K low.** Mostly a knock-on of the MgO(l) heat-capacity excess, which the
+  MgO-SiO2 fit needs high because forsterite comes out too unstable (data/mgo-sio2, "Known
+  shortfalls"); possibly also a quench-detection bias in the measured solidus.
+- **Forsterite melts at 2080 K** in this file (measured 2163 K), the same shortfall.
+- **Fayalite** is stable and melts congruently at 1475-1476 K in the full equilibrium (pycalphad
+  on the shipped combined file; measured 1478 K). Until the two-site orthopyroxene and
+  magnesiowustite (2026-09-30) it was not: ferrosilite + wustite lay below it.
+- **FeO-SiO2 liquid gap.** The v0.4 binary has one (monotectic 1937 K, liquid 0.54 against the
+  measured 1963 K and about 0.615); its silica-rich conjugate is the structural misfit recorded
+  in data/feo-sio2.
 - **SiO2 solid Cp below ~500 K.** The Haas-Fisher fit shared by every silicate here gives
   26.7 J/mol/K at 298 K (JANAF: 44.6); integrated from 298 K it leaves solid (and liquid)
   SiO2 3.1, 4.7, 5.5 and 6.0 kJ too high at 1000, 1273, 1400 and 1480 K. SiO2 cancels in
-  melting and in the reaction above, but not in compound formation from the oxides.
-- **Olivine melting loop (`olivine_join.py`).** The Mg2SiO4-Fe2SiO4 join (liquid <-> olivine
-  CEF, common tangent along x_SiO2 = 1/3) computed with our own stack now reproduces BOTH
-  congruent endpoints - forsterite 2163 K and fayalite 1476 K (measured 2163 / 1478) - after
-  the MgO(l) reconciliation above, and its lens shape/width matches Bowen & Schairer. The
-  interior liquidus still carries small facets from the few-J ternary liquid-minimizer noise
-  (warm-started, polynomial-smoothed multi-start); an exact ternary minimizer / the C
-  multiphase hull is the fix. The olivine solid side is exact. The full olivine +
-  orthopyroxene + liquid diagram (adding `data/olivine-opx`) follows from the same machinery.
-- The engine's general multi-cation **equilibrium solver** (SLSQP) is not accurate enough for
-  a phase diagram (the binary work uses an exact 1-D solve for the same reason); an accurate
-  ternary minimizer / the C-port of the multiphase hull is an engine-roadmap item. Diagram
-  work leans on pycalphad reading this same open .dat until then.
+  melting, but not in compound formation from the oxides.
+- **No ferric iron.** The file is iron saturated (Fe2+ only), as are the slags it describes.
+- **One pyroxene phase.** At 1 atm and liquidus temperatures the Mg-Fe pyroxene is
+  protopyroxene or pigeonite, not orthopyroxene; the model has one pyroxene for both.
 
 ## What is deliberately excluded
 

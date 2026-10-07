@@ -3,71 +3,59 @@
 The four-oxide silicate melt of the steel-slag / basalt family: a single MQMQA (SUBQ)
 liquid over Ca, Fe, Mg, Si and O. It is the melt that crystallizes the ferromagnesian
 silicates (olivine, orthopyroxene, clinopyroxene, data/olivine-opx-cpx). Built 2026-08-26.
-Nothing quaternary is fitted: the melt is the Muggianu combination of the shipped binary
-liquids, and in every binary limit it reduces to the corresponding shipped binary exactly.
+Each ternary face is its shipped ternary or binary-derived face, and in every binary limit the melt
+reduces to the shipped binary exactly. Nothing quaternary is fitted.
 
-## Liquid (SUBQ; Ca+2 / Fe+2 / Mg+2 / Si+4 / O; charge-proportional Z)
+## Liquid (SUBQ; Ca+2 / Fe+2 / Mg+2 / Si+4 / O)
 
-Endmembers and excesses are reused verbatim from the shipped binary databases (single
-source of truth):
+Endmembers and excesses are read from the shipped builders (single source of truth):
 
-| edge | excess | source |
-|---|---|---|
-| CaO-SiO2 | Delta_g(Ca,Si)/O = (-189763.5 + 15.706 T) + 57170.8 chi_Ca | CaO-SiO2 v0.3 |
-| FeO-SiO2 | Delta_g(Fe,Si)/O = -42839.4 + 17.83 T (symmetric) | FeO-SiO2 v0.3 |
-| MgO-SiO2 | assessed 5-term silica-weighted set, (0,q) = chi_Si^q, q = 0,1,3,5,7 | MgO-SiO2 v0.5 |
-| CaO-FeO, CaO-MgO, FeO-MgO | **ideal** (no term) | see limits |
+| Edge or term | Source |
+|---|---|
+| CaO-SiO2 | CaO-SiO2 v0.4, five silica-weighted terms (data/cao-sio2) |
+| FeO-SiO2 | FeO-SiO2 v0.4, four terms plus the FeO(l) interval below 1650 K (data/feo-sio2) |
+| MgO-SiO2 | the three-way fit N1, with the MgO(l) heat-capacity excess and the explicit Mg-Si ordering row (data/mgo-sio2) |
+| FeO-MgO, Fe-Si with Mg, Mg-Si with Fe | data/feo-mgo-sio2 (`TERNARY_EXCESS`) |
+| CaO-MgO 11522.6 J, Ca-Si with Mg 3249.8 J, Mg-Si with Ca -3864.9 J | `build_dat.CMS_TERNARY` |
+| CaO-FeO | **ideal** (no term) |
 
-Endmember Gibbs energies from the binary builders. FeO, MgO and (v0.2) CaO carry
-below-melting liquid recalibrations that put the liquid on the same absolute reference as
-the Robie-Hemingway silicate solids: the v0.3 FeO(l) interval below 1650 K; the MgO(l)
-interval fit so forsterite melts congruently at 2163 K; and the **new CaO(l) interval below
-2845 K, fit so diopside CaMgSi2O6 melts congruently at 1670 K** (CAO_LIQ_BETA = 18.108
-J/mol/K, an analytic single-point solve, a pure CaO endmember shift orthogonal to the
-CaO-SiO2 mixing excess). SiO2 (cristobalite, identical across all three binaries) is the
-plain fusion liquid. These endmember calibrations are what make the combined liquid+solids
-file (build_combined_dat.py) crystallize the right silicate; see PROVENANCE_combined.md.
+The CaO-MgO-SiO2 terms were fitted on 2026-10-05 together with the MgO-SiO2 liquid and the
+FeO-MgO-SiO2 terms (`data/mgo-sio2/assessment/joint3.py`), against 40 liquidus points of Bowen
+(1914): cost 22.35, 36 of 40 primary phases as measured; forsterite field 8 K, pyroxene 16 K and
+silica 17 K mean absolute miss; diopside liquidus 1665 K at Bowen's forsterite-pyroxene point
+against 1664 K measured (`assessment/assess.py` reports the face). Pure diopside melts
+congruently at 1673 K in the combined file (liquid against the clinopyroxene endmember; measured
+1664-1670 K), inside the window `tests/test_cao_feo_mgo_sio2_combined.py` checks.
+
+**Chemical groups: Ca, Fe and Mg in group 1, Si in group 2**, the layout of the FeO-MgO-SiO2
+liquid, so its Ca-free face is that shipped liquid exactly. There is no CaO(l) correction since
+2026-09-29: v0.2 shifted CaO(l) so diopside melted at 1670 K, and the CaO-MgO-SiO2 terms now
+carry that interaction instead.
 
 ## Validation
 
-- **Binary-limit reduction.** FeO-SiO2 and MgO-SiO2 equal the shipped ternary exactly at
-  any T (to 0.0000 J/formula, engine's exact 1-D binary solver), since those endmember
-  calibrations are shared. CaO-SiO2 equals the shipped binary EXCESS above the CaO(l)
-  calibration interval (T > 2845 K, where the v0.2 CaO shift is off, within 0.001
-  J/formula); below 2845 K the CaO endmember intentionally carries the diopside-melting
-  calibration, so the CaO-SiO2 liquidus is shifted there (a deliberate endmember shift, the
-  same relationship the MgO(l) forsterite calibration has to the shipped MgO-SiO2 binary).
-  The excess terms are the binaries' own, only re-indexed; the basic edges mix ideally.
-- **pycalphad reads the quaternary** (one liquid phase over Ca-Fe-Mg-Si-O).
-- The C engine's own 4-cation equilibrium minimizer is slightly looser than pycalphad's
-  global solver at interior compositions (< ~10 J/mol-atom at 2000 K), so **pycalphad is
-  the reference for multicomponent equilibria**, as elsewhere in the project.
+- **Reduction to the shipped files.** Each binary edge equals its shipped binary, and the Ca-free
+  face equals the shipped FeO-MgO-SiO2 liquid (`tests/test_cao_feo_mgo_sio2_liquid.py`,
+  `tests/test_mgsi_ordering_consistency.py`).
+- **pycalphad reads the quaternary** and is the reference for its multicomponent equilibria. The
+  primary phase used in the tests is the highest single-solid saturation temperature; a solid
+  counts only if it lowers the Gibbs energy below the liquid alone, because pycalphad's full-phase
+  equilibrium can miss the liquid at these compositions.
 
 ## Known limits
 
-- **No ternary or quaternary term** (Muggianu extrapolation). The three silica binaries are
-  assessed; the interior of the quaternary is a prediction. Ternary MQMX terms (the CaO-SiO2
-  + Mg / + Fe kind, as in CaO-Al2O3-SiO2) are the v0.2 refinement if open ternary slag data
-  are digitized.
-- **Chemical groups: all four cations in group 1** (a symmetric interpolation, not
-  Muggianu as said above). Since 2026-09-29 the FeO-MgO-SiO2 liquid puts Si in its own group,
-  so this melt's Ca-free face is that liquid's earlier model, not the shipped one (energies
-  equal to 0 J with the matching groups). Neither layout is clean on every face (liquid-only
-  two-liquid nodes on a 1/40 grid, 1700 K): with all in group 1, FeO-MgO-SiO2 and
-  CaO-MgO-SiO2 carry spurious two-liquid regions away from silica (89 and 59 nodes) and
-  CaO-FeO-SiO2 none; with Si alone the first two lose them and CaO-FeO-SiO2 gains one
-  (100 nodes, FeO-rich basic liquid against lime silicate liquid). The engine does not take
-  per-ternary group overrides, so the choice, or a ternary term, is open.
-- **The basic edges (CaO-FeO, CaO-MgO, FeO-MgO) are ideal.** All three are near-ideal
-  mixtures of divalent oxides (complete miscibility); small assessed interactions (CaO-FeO
-  and CaO-MgO have modest positive excesses in full assessments) are a documented v0.2
-  target, orthogonal to the silica-side excesses.
-- **Liquid only.** This file has no solid phases; it computes the melt itself. Coexisting it
-  with the ferromagnesian silicates (data/olivine-opx-cpx) into one file is the multiphase
-  melting/crystallization step beyond this assembly.
-- **Engine multicomponent solver.** The absolute quaternary equilibrium is taken from
-  pycalphad; the engine's own 4-cation minimizer is documented as looser (a solver, not a
-  model, gap: the .dat reduces to the binaries exactly).
+- **CaO-FeO is ideal**, and the CaO-FeO-SiO2 face has no ternary term. With Si in its own
+  group that face carries a two-liquid region between an FeO-rich basic liquid and a lime
+  silicate liquid (about 100 nodes on a 1/40 grid at 1700 K, liquid only) that no measurement
+  supports. With all four cations in group 1 that face is clean, but the FeO-MgO-SiO2 and
+  CaO-MgO-SiO2 faces grow spurious gaps instead. The engine takes no per-ternary group
+  overrides, so a CaO-FeO-SiO2 term is the fix.
+- **The interior is a prediction.** No quaternary term; the ternary terms come from the
+  CaO-MgO-SiO2 and FeO-MgO-SiO2 faces only.
+- **Inherited from the binaries:** forsterite melts 83 K low and the MgO-SiO2 dome sits high
+  (data/mgo-sio2).
+- **Liquid only.** This file has no solid phases; `build_combined_dat.py` adds them
+  (PROVENANCE_combined.md).
 
 ## Sources
 

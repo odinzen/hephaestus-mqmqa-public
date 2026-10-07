@@ -80,10 +80,10 @@ EX_CAO_SIO2 = _cao.assessed_excess(li=(1, 4, 5, 5))
 # CaO-MgO-SiO2 ternary-level terms, assessed in assessment/assess.py against Bowen (1914): the
 # Ca-Si interaction with Mg as the additional cation, the Mg-Si interaction with Ca (Poschmann
 # Eq. 25-26, r = 1), and the CaO-MgO interaction, each a + bT in J. Zero terms are not written.
-# assessed 2026-09-30 on the MgO-SiO2 v0.3 liquid (40 Bowen 1914 points, cost 72.1, 37 of 40
-# primary phases; forsterite and pyroxene fields within 11-12 K on average, the silica field
-# 43 K high, diopside congruent at 1630 K against 1664-1670 K measured)
-CMS_TERNARY = ((-20354.6, 0.0), (491.0, 0.0), (-572.9, 0.0))
+# assessed 2026-10-05 together with the MgO-SiO2 liquid (three-way fit N1, data/mgo-sio2/assessment/
+# joint3.py; 40 Bowen 1914 points, cost 22.35, 36 of 40 primary phases; forsterite field 8 K, pyroxene
+# 16 K and silica 17 K mean absolute; diopside liquidus 1665 K at the fo-px point against 1664 K measured)
+CMS_TERNARY = ((3249.8472471254113, 0.0), (-3864.883793416318, 0.0), (11522.639412785236, 0.0))
 
 
 def cms_excess(vals=None):

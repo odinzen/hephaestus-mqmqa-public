@@ -114,9 +114,6 @@ def test_calcium_silicates_crystallize(combined):
     assert larn == "LARNITE", larn
 
 
-@pytest.mark.xfail(strict=True, reason="with the CaO-MgO-SiO2 ternary terms assessed against "
-                   "Bowen 1914 (data/cao-feo-mgo-sio2/assessment), diopside melts at 1630 K, "
-                   "20 K below this window; whether to widen it is open")
 def test_diopside_melts_near_1670(combined):
     """Pure diopside CaMgSi2O6 melts congruently at ~1670 K."""
     _, _, pdb = combined

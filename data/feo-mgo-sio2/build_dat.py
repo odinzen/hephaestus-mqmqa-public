@@ -69,10 +69,10 @@ EX_MGO_SIO2 = _mgo.assessed_excess(li=(2, 3, 4, 4))
 # Ternary-level terms, assessed in assessment/assess.py: the Fe-Si interaction with Mg as the
 # additional cation, the Mg-Si interaction with Fe (Poschmann Eq. 25-26, r = 1), and the FeO-MgO
 # interaction, J. Zero terms are not written.
-# assessed 2026-10-01 on the MgO-SiO2 v0.3 liquid (assessment/assess.py; cost 139.6 -> 126.6; B&S 1935
-# liquidus 18/26/22 K mean absolute in the olivine/pyroxene/silica fields, 29 of 37 primary; N&M solidus
-# still 41 K (ol+px) and 28 K (ol+mw) low)
-TERNARY_EXCESS = (-2173.8, 5739.0, -11765.6)
+# assessed 2026-10-05 together with the MgO-SiO2 liquid (three-way fit N1, data/mgo-sio2/assessment/
+# joint3.py; FMS cost 150.6; B&S 1935 liquidus 21/19/11 K mean absolute in the olivine/pyroxene/silica
+# fields, 29 of 37 primary; N&M solidus 36 K (ol+px) and 42 K (ol+mw) low)
+TERNARY_EXCESS = (-6604.273460398276, 16774.796051303405, 9064.532993952309)
 
 
 def ternary_excess(vals=None):

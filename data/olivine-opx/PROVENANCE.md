@@ -37,7 +37,7 @@ matches the R&H tables within 7 J).
 | R&H Cp fit range | 298-1800 K | 298-1490 K | 298-1000 K | 298-800 K |
 
 Enstatite above 800 K takes the drop-calorimetry heat capacity of Thieblot, Tequi & Richet 1999
-(Am. Mineral. 84:848, Table 3, Eq. 3, orthoenstatite; DOI 10.2138/am-1999-5-619; trove
+(Am. Mineral. 84:848, Table 3, Eq. 3, orthoenstatite; DOI 10.2138/am-1999-5-618; trove
 oxide-slag/references), with G, H and S continuous at 800 K, where the two curves agree to 0.1 J/K.
 Their protoenstatite is within 3%. Extrapolated past its 1000 K limit, the R&H T^2 term gave
 176 J/K at 1830 K against 133 measured, made the crystal too stable at liquidus temperatures, and

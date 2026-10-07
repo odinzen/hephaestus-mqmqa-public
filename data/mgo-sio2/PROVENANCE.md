@@ -1,7 +1,7 @@
 # MgO-SiO2-liquid.dat provenance
 
 Open MgO-SiO2 liquid-slag MQMQA database. The shipped liquid is the CALPHAD assessment
-described under "Assessed liquid (shipped)" below; the v0.2-v0.5 sections record how it got
+described under "Three-way assessment" below; the v0.2-v0.5 sections record how it got
 there. Built by `build_dat.py`; endmembers validated by `validate.py`, the v0.2
 central excess by `validate_v02.py`, invariants classified by `phase_hull.py`; fits
 reproduced by `v02_fit.py` (central) and `v04_fit.py` (+ silica gap), the gap-lever mapped
@@ -284,8 +284,8 @@ Reproduce with `v05_reconcile.py` (fit + write); `--fit` re-runs the optimizatio
 
 The key modelling point (the arbitration behind v0.5): fitting ONLY the invariants lets the
 optimizer deepen the symmetric g00 without limit, producing a liquid ~2x deeper than the
-independently-measured mixing enthalpy (dH_mix(x=1/3) ~ -47 to -54 vs the MLIP+calorimetry
--24.5 kJ/mol-oxide) - it matches the diagram by distorting the liquid, which is not physical.
+mixing enthalpy the MLIP gives (dH_mix(x=1/3) ~ -47 to -54 vs -24.5 kJ/mol-oxide, a MatterSim melt
+value shifted by its compound formation bias against Charlu-Newton-Kleppa; not a melt measurement) - it matches the diagram by distorting the liquid, which is not physical.
 v0.5 therefore adds dH_mix(x=1/3) = -24.5 and dH_mix(x=1/2) = -22.4 (the v0.2 MLIP anchors) as
 FIT TARGETS alongside the invariants. The model reproduces BOTH: this works because the
 quasichemical CONFIGURATIONAL (short-range-order) entropy carries the stabilization, so a
@@ -369,7 +369,8 @@ that reproduces the measured mixing enthalpy. Worst-case invariant error drops f
   computed above forsterite congruent 2130), the refractory-MgO-endmember limit carried from
   v0.2 (MgO Tm 3098 K is too high for the shallow ~40 K eutectic valley to resolve cleanly).
 - Built only from open data and our own fit to it (invariants from Bowen-Andersen 1914 and Greig
-  1927; dH_mix from the open MatterSim MLIP + Charlu-Newton-Kleppa calorimetry; compound Cp from
+  1927; dH_mix from the open MatterSim MLIP, shifted by its compound formation bias against the
+  Charlu-Newton-Kleppa calorimetry; compound Cp from
   Robie-Hemingway 1995). The MQM method is from the published Pelton papers; NO FactSage/FToxid
   or other optimized-TDB parameters are used.
 
@@ -437,6 +438,60 @@ it), i.e. marginally incongruent, and 44 K low. Neither an MgO(l) below-melting 
 (`MGO_LIQ_BETA`, tested and held at zero: it moves forsterite and the eutectic together) nor the
 MgO-side term reorders them without dropping forsterite's melting by hundreds of kelvin. The
 enstatite correction is now 9500.2 J per Mg2Si2O6.
+
+### Three-way assessment (shipped since 2026-10-07, fit "N1")
+
+The liquid now shipped was fitted together with the two ternaries that carry it
+(`assessment/joint3.py`): this binary's dataset, the CaO-MgO-SiO2 face against Bowen (1914, 40
+liquidus points) and the FeO-MgO-SiO2 liquidus (Bowen & Schairer 1935, 37 points) and solidus
+(Nafziger & Muan 1967). Changes from the 2026-09-30 refit:
+
+- Enstatite above 800 K takes the measured drop-calorimetry heat capacity of Thieblot, Tequi &
+  Richet (1999); the extrapolated R&H fit had put orthopyroxene back above the liquid near 3100 K.
+  The enstatite correction is now 4044 J per Mg2Si2O6 (`ENSTATITE_DG_1830`).
+- Liquid MgO carries a constant heat capacity above the crystal's (`MGO_LIQ_DCP`, prior 17.7 +-
+  15 J/K from de Koker & Stixrude 2009), in place of the free below-melting slope.
+- The composition of strongest Mg-Si ordering is assessed (`MGSI_SRO_X`, 0.3375), written as an
+  explicit (Mg,Si/O,O) coordination row in every file that carries the liquid.
+- The MgO-side term is Y_MgO^4 (a + b T); Y_MgO^2 was dropped because, through the Fe+Mg group,
+  it leaked into the Fe-Si pairs of the ternary.
+- The dataset adds the measured forsterite fusion enthalpy, 142 +- 14 kJ/mol at 2174 K (Richet,
+  Leclerc & Benoist 1993, doi:10.1029/93GL01836), and scores the periclase liquidus at x 0.265
+  where the liquid is stable, so the periclase field cannot creep past the measured eutectic.
+
+Values: `build_dat.ASSESSED_EXCESS`, `MGO_LIQ_DCP`, `MGSI_SRO_X`; the ternary terms in
+data/feo-mgo-sio2 (`TERNARY_EXCESS`) and data/cao-feo-mgo-sio2 (`CMS_TERNARY`). Costs: binary 66.2,
+CaO-MgO-SiO2 face 22.4, FeO-MgO-SiO2 150.6. Re-derived from the shipped FeO-MgO-SiO2 combined file
+along its MgO-SiO2 edge, stable phases only:
+
+| Target | Model | Measured |
+|---|---|---|
+| liquidus at x 0.265 (periclase) | 2147 K | 2123 K |
+| periclase-forsterite eutectic | 2048 K, x 0.285 | 2123 K, 0.265 |
+| forsterite congruent | 2080 K | 2163 K |
+| forsterite fusion enthalpy at 2174 K | 106 kJ/mol | 142 +- 14 kJ/mol |
+| enstatite peritectic | 1811 K | 1830 K |
+| enstatite-cristobalite eutectic | 1801 K, x 0.555 | 1816 K, 0.553 |
+| monotectic | 1960 K, liquids 0.605 / 0.98 | 1968 K, 0.60 / 0.99 |
+| consolute | 2571 K | 2240 K |
+
+MgO(l) heat capacity excess 26.0 J/K.
+
+**Known shortfalls and their cause.** Forsterite melts 83 K low with too small a fusion enthalpy,
+the periclase-forsterite eutectic is 75 K low, and the top of the two-liquid dome is 330 K high.
+The first two have one cause. With this liquid model, the forsterite melting point and fusion
+enthalpy cannot be met together with the periclase-side liquidus of Bowen & Andersen (1914) and
+an estimated pure liquid MgO (JANAF fusion, no calorimetry exists).
+
+- Lowering the MgO(l) heat capacity to about 8 J/K would meet both forsterite numbers but
+  floods the periclase field. Refits holding it at 10 J/K, or starting there and left free, made
+  forsterite melt over 110 K low.
+- Holding the periclase liquidus at a low heat capacity would need an MgO fusion enthalpy near
+  69 kJ, below every first-principles value (74-112 kJ).
+- The dome top cannot be flattened with a + bT mixing terms; an excess heat capacity on a
+  silica-rich term was tested and went to zero.
+
+Down-weighting the 1914 periclase-side point is the remaining lever and was not used.
 
 ## Scope: condensed phases only (no gas phase)
 

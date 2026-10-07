@@ -122,24 +122,29 @@ def _mqmx_block(excess):
 # doi:10.1111/j.1365-246X.2009.04142.x). Replaces, 2026-10-02, a free below-Tm slope (MGO_LIQ_BETA)
 # whose fitted 8.7 J/K meant a fusion enthalpy near 50 kJ that no independent source supports.
 # Every file with an MgO liquid reads it through OXIDES["MgO"]["dCp_fus"].
-MGO_LIQ_DCP = 33.1727
+MGO_LIQ_DCP = 25.957685524103354
 OXIDES["MgO"]["dCp_fus"] = MGO_LIQ_DCP
 
-# The assessed liquid (assessment/assess.py, 2026-10-02 fit "D", cost 25.9): silica powers 0-3, 5, 7
-# and 2, each a + b*T, with MGO_LIQ_DCP and the enstatite correction co-assessed, on the measured
-# enstatite Cp (Thieblot et al. 1999). Liquidus read at the exact saturation temperature and the
-# periclase-forsterite eutectic scored as the invariant. Known shortfall: that eutectic is 2074 K at
-# x 0.274 (measured 2123 K, 0.265); the dome sits high (consolute 2374 vs 2240 K) and the monotectic
-# low (1936 vs 1968 K). (q, a, b) for L*Y_SiO2^q, or (p, q, a, b) with a Y_MgO^p factor as well.
+# The assessed liquid (2026-10-05 three-way fit "N1", assessment/joint3.py): this binary, the
+# CaO-MgO-SiO2 face (Bowen 1914) and the FeO-MgO-SiO2 liquidus and solidus fitted together, with
+# the measured forsterite fusion enthalpy in the binary data. Silica powers 0, 1, 3, 5, 7 and 2 plus
+# one MgO-power term (Y_MgO^4), each a + b*T, with MGO_LIQ_DCP, MGSI_SRO_X and the two ternary term
+# sets co-assessed; enstatite held at its stored correction. Shortfalls stated in PROVENANCE.md.
+# (q, a, b) for L*Y_SiO2^q, or (p, q, a, b) with a Y_MgO^p factor as well.
 # The ternary builders read it from here. Order follows assess.TERMS.
-ASSESSED_EXCESS = [(0, -60626.1, -12.1469), (1, -4914.14, 36.2029), (3, 26179.3, -14.9814),
-                   (5, 97557.2, -29.8921), (7, 59810.5, -11.0686), (2, -62870.8, 17.0638)]
+ASSESSED_EXCESS = [(0, -50536.046375251244, -5.5393249882077304),
+                   (1, 1173.2857124046132, 13.142679832474492),
+                   (3, 24479.546571656694, -8.843915154319394),
+                   (5, 117449.05911765934, -26.197403061410647),
+                   (7, 35345.96040085945, 0.8427975671457254),
+                   (2, -48935.899736512205, 0.8464954407271559),
+                   (4, 0, -36463.30689937065, -17.09968387771942)]
 
 
 # Composition (x_SiO2) of maximum Mg-Si short-range order in the liquid, set through the
 # coordination numbers of the (Mg,Si/O,O) quadruplet. 1/3 (forsterite) is the
 # charge-proportional default and is written without an explicit mixed row.
-MGSI_SRO_X = 1.0 / 3.0
+MGSI_SRO_X = 0.3375317604753538
 
 
 def mgsi_mixed_z(x_sro=None):
@@ -154,14 +159,32 @@ def mgsi_mixed_z(x_sro=None):
     return (z_mg, z_mg / r, z_o, z_o)
 
 
-def assessed_excess(li=(1, 2, 3, 3)):
-    """ASSESSED_EXCESS as Q terms on the quadruplet li (MgO first, SiO2 second). An entry is
-    (q, a, b) for a silica-power term or (p, q, a, b) with an MgO power p as well."""
+# An excess term may carry a heat capacity dcp (J/mol/K) as well, centred here so that a and b keep
+# their meaning as the term's enthalpy and entropy at this temperature (the same form as dCp_fus).
+XS_CP_T0 = 2000.0
+
+
+def excess_coeffs(a, b, dcp=0.0):
+    """Six excess coefficients of a + b*T + dcp*[(T - T0) - T*ln(T/T0)], T0 = XS_CP_T0."""
+    if not dcp:
+        return [a, b, 0, 0, 0, 0]
+    return [a - dcp * XS_CP_T0, b + dcp * (1.0 + math.log(XS_CP_T0)), -dcp, 0, 0, 0]
+
+
+def assessed_terms():
+    """ASSESSED_EXCESS as (p, q, a, b, dcp). An entry is (q, a, b) for a silica-power term,
+    (p, q, a, b) with an MgO power p as well, or (p, q, a, b, dcp) with an excess heat capacity."""
     out = []
     for t in ASSESSED_EXCESS:
-        p, q, a, b = t if len(t) == 4 else (0, *t)
-        out.append(dict(code="Q", li=list(li), exp=[p, q, 0, 0], coeffs=[a, b, 0, 0, 0, 0]))
+        t = (0, *t) if len(t) == 3 else tuple(t)
+        out.append(t + (0.0,) * (5 - len(t)))
     return out
+
+
+def assessed_excess(li=(1, 2, 3, 3)):
+    """ASSESSED_EXCESS as Q terms on the quadruplet li (MgO first, SiO2 second)."""
+    return [dict(code="Q", li=list(li), exp=[p, q, 0, 0], coeffs=excess_coeffs(a, b, dcp))
+            for p, q, a, b, dcp in assessed_terms()]
 
 
 def build(excess=None, version=None, z_si=None, z_o_si=None, zeta_si=None,

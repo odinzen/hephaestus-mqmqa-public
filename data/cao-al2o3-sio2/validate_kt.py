@@ -10,7 +10,7 @@ cristobalite reference, which is what the model computes:
 with the element chemical potentials from a liquid-only pycalphad equilibrium on the
 WRITTEN database file (judge the artifact on disk).
 """
-import json
+import csv
 import math
 import sys
 from pathlib import Path
@@ -25,8 +25,8 @@ import build_dat
 from mqmqa.dbbuild import solid_gibbs_coeffs
 
 R = 8.3145
-MANIFEST = Path(r"C:\Users\busta\Code\odinzen_assessment_workspace\assessments"
-                r"\CaO-Al2O3-SiO2\manifest.json")
+# The 45 measured points, with table, page and DOI for each row.
+MEASURED = HERE / "measured_asio2.csv"
 M = {"CaO": 56.077, "Al2O3": 101.961, "SiO2": 60.084}
 
 
@@ -55,13 +55,12 @@ def main():
         build_dat.build()
     pdb = PDB(str(dat))
 
-    arts = json.loads(MANIFEST.read_text(encoding="utf-8"))["artifacts"]
-    pts = [a for a in arts if "aSiO2" in a.get("id", "") or a.get("quantity") == "activity"]
+    with open(MEASURED, newline="", encoding="utf-8") as f:
+        pts = list(csv.DictReader(f))
     rows = []
     for a in pts:
-        cond = a.get("conditions", {})
-        T = cond.get("temperature_K")
-        x = parse_composition(cond.get("composition", ""))
+        T = float(a["T_K"])
+        x = parse_composition(a["composition"])
         n = {"CA": x.get("CaO", 0.0), "AL": 2 * x.get("Al2O3", 0.0), "SI": x.get("SiO2", 0.0)}
         n["O"] = x.get("CaO", 0.0) + 3 * x.get("Al2O3", 0.0) + 2 * x.get("SiO2", 0.0)
         tot = sum(n.values())
@@ -73,11 +72,11 @@ def main():
             comps = list(eqr.component.values)
             mu = {c: float(eqr.MU.sel(component=c).values.ravel()[0]) for c in comps}
         except Exception as e:
-            rows.append((a["id"], T, None, a.get("value"), f"eq failed: {e}"))
+            rows.append((a["id"], T, None, float(a["a_SiO2"]), f"eq failed: {e}"))
             continue
         mu_sio2 = mu["SI"] + 2 * mu["O"]
         a_model = math.exp((mu_sio2 - g_cristobalite(T)) / (R * T))
-        rows.append((a["id"], T, a_model, a.get("value"), ""))
+        rows.append((a["id"], T, a_model, float(a["a_SiO2"]), ""))
 
     print(f"{'point':46s} {'T/K':>6s} {'a_meas':>10s} {'a_model':>10s} {'dln a':>7s}")
     devs = {"zaitsev": [], "kay": []}

@@ -71,7 +71,8 @@ compounds from Robie & Hemingway (1995):
 
 a(SiO2) computed vs the cristobalite reference (matching the measurements' silica-
 saturation reference) from liquid-only pycalphad equilibria on the written file
-(validate_kt.py):
+(validate_kt.py). The 45 measured points are in `measured_asio2.csv`, each with its source
+table, page and DOI:
 
 - **Kay & Taylor 1960 (24 points, silica-rich, ~1820 K): RMS ln a = 0.38, bias -0.11.**
   Within the scatter typical of these measurements, and comparable to the CaO-SiO2
@@ -81,6 +82,21 @@ saturation reference) from liquid-only pycalphad equilibria on the written file
   systematically ~e^3.3 high in the basic corner: the real melt stabilizes SiO2 beyond
   what the binary combination gives. A systematic (not scattered) deviation of this
   kind is the classic signature of a missing ternary interaction term.
+
+### Reference state of the Zaitsev activities (checked 2026-10-06)
+
+The Table 4 caption in Zaitsev et al. (1997) says "reference state is liquid SiO2", but the
+measurement itself is referred to silica saturation. Eqn (V) takes the ratio of ion currents over
+the melt to those over "the liquid of a(SiO2) equal to unity", the silica-saturated melt, which at
+1798-1873 K coexists with beta-cristobalite. Every figure in the paper states "Reference state is
+b-crystobalite", and the paper describes no conversion to a liquid reference. validate_kt.py
+therefore compares against cristobalite. The caption cannot be ruled out entirely (Ozturk &
+Fruehan 1987, the comparison column of that table, is paywalled and unread), so the worst case was
+computed. If the tabulated values were on a liquid-SiO2 reference, converting them back raises each
+by exp[dH_fus (1 - T/T_m)/RT] with dH_fus = 9581 J and T_m = 1996 K, a factor of 1.066 at 1798 K and
+1.039 at 1873 K. On the current file that moves the 21-point comparison from RMS ln a 0.551, bias
++0.016, to RMS 0.559, bias -0.038, far inside the scatter, so the choice does not change any
+conclusion here.
 
 ## MLIP feasibility for the edge excess enthalpies (2026-09-10)
 

@@ -236,5 +236,8 @@ consulting work on either. Any modified version that is distributed, or offered 
 over a network, must carry the same license and keep the credits, so the engine and the
 thermodynamics it carries stay open. Model equations are public; this is an independent,
 clean-room implementation of them, apart from the one pycalphad-derived term credited
-under Provenance. Releases up to and including v0.6.0 were published under
+under Provenance. Releases up to and including v0.6.1 were published under
 MIT (engine) and CC BY 4.0 (data), and those releases keep those terms.
+
+One file is third-party data and keeps its own terms. `data/gas/nasa_gas.dat` (and its copy
+`web/nasa_gas.dat`) reproduces GRI-Mech 3.0 gas thermochemistry; see `data/gas/PROVENANCE.md`.

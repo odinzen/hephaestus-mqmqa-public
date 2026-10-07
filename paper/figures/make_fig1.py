@@ -48,9 +48,9 @@ b_dbb = box(53, 51, 38, 12, "dbbuild (Python)",
 
 # center core
 b_core = box(10, 25, 62, 17, "C core (C99, no dependencies)",
-             ["auto-detecting reader · MQMQA + CEF Gibbs energy",
-              "Inden magnetic model · liquid equilibrium minimizer",
-              "NASA-polynomial gas engine · gas-condensed coupling"], size=12.5)
+             ["reader and writers · MQMQA + CEF Gibbs energy",
+              "Inden magnetic · XTDB third generation · multiphase hull",
+              "NASA-polynomial gas engine · gas coupling · 3D meshes"], size=12.5)
 b_pyc = box(78, 29, 20, 11, "pycalphad", ["independent oracle,", "machine precision"], dashed=True,
             title_size=14, size=12.5)
 
@@ -58,12 +58,12 @@ b_pyc = box(78, 29, 20, 11, "pycalphad", ["independent oracle,", "machine precis
 b_nat = box(2, 5, 28, 12, "Native library",
             ["embed from C or any", "language with a C FFI"])
 b_py = box(36, 5, 28, 12, "Python package (cffi)",
-           ["scripting · fitting", "multiphase hull · sections"])
+           ["scripting · fitting", "sections · 3D mesh export"])
 b_wasm = box(70, 5, 28, 12, "WebAssembly",
              ["zero-install browser app,", "fully client-side"])
 
-# arrows: inputs to core
-arrow(24, 50.3, 34, 42.3)
+# arrows: database files are read and written; dbbuild feeds the core
+arrow(24, 50.3, 34, 42.3, both=True)
 arrow(72, 50.3, 58, 42.3)
 # core to outputs
 arrow(22, 24.3, 16, 18)

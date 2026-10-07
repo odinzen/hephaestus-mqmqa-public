@@ -11,7 +11,7 @@ from ase.io import read, write
 
 HERE = Path(__file__).resolve().parent
 name = sys.argv[1]
-PSDIR = "/mnt/c/Users/busta/Code/mqmqa/data/olivine/_dft/pseudo"
+PSDIR = "../../pseudo"   # relative to runs*/<name>/, where pw.x runs
 PSEUDO = {"Fe": "Fe.pbe-spn-kjpaw_psl.1.0.0.UPF", "Mg": "Mg.pbe-spnl-kjpaw_psl.1.0.0.UPF",
           "Si": "Si.pbe-n-kjpaw_psl.1.0.0.UPF", "O": "O.pbe-n-kjpaw_psl.1.0.0.UPF"}
 KPTS = (2, 1, 2)

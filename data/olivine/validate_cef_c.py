@@ -7,7 +7,7 @@ to machine precision closes the loop: the C reader parsed the sublattice model c
 the C energy kernel matches the reference formalism.
 
 Run from the repo root:
-  C:/Users/busta/miniforge3/envs/calphad/python.exe data/olivine/validate_cef_c.py
+  python data/olivine/validate_cef_c.py
 """
 import sys
 from pathlib import Path

@@ -6,7 +6,7 @@
 # libgcc is linked statically so the DLL has no external runtime dependency.
 set -euo pipefail
 
-ENV_DIR="${MQMQA_ENV:-C:/Users/busta/miniforge3/envs/calphad}"
+ENV_DIR="${MQMQA_ENV:-${USERPROFILE:-$HOME}/miniforge3/envs/calphad}"
 CLANG="${MQMQA_CLANG:-$ENV_DIR/Library/bin/clang.exe}"
 MW="$ENV_DIR/Library/mingw-w64"
 GCCLIB="$MW/lib/gcc/x86_64-w64-mingw32/5.3.0"

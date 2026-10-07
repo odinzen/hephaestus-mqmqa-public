@@ -10,7 +10,7 @@
    etot_conv_thr    = 1e-05
    forc_conv_thr    = 0.0001
    disk_io          = 'low'
-   pseudo_dir       = '/mnt/c/Users/busta/Code/mqmqa/data/olivine/_dft/pseudo'
+   pseudo_dir       = '../../pseudo'
 /
 &SYSTEM
    ecutwfc          = 60

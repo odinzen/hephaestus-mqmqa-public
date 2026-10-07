@@ -10,7 +10,7 @@ Build/validation: `build_dat.py` writes both phases into one ChemSage SUBL `.dat
 C CEF kernel and validates against pycalphad; `tests/test_olivine_opx_exchange_vs_pycalphad.py`
 is the regression. Run:
 
-    C:/Users/busta/miniforge3/envs/calphad/python.exe data/olivine-opx/exchange.py
+    python data/olivine-opx/exchange.py
 
 ## The two phases
 

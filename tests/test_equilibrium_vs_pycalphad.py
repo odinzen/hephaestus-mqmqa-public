@@ -16,12 +16,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "python"))
 
 pytest.importorskip("pycalphad")
 pytest.importorskip("scipy")
+import pycalphad
 from pycalphad import Database, equilibrium, variables as v
 
 import mqmqa
 from mqmqa import equilibrium as eqm
 
-DAT = Path("C:/Users/busta/Code/pycalphad/pycalphad/tests/databases/Shishin_Fe-Sb-O-S_slag.dat")
+DAT = Path(pycalphad.__file__).parent / "tests" / "databases" / "Shishin_Fe-Sb-O-S_slag.dat"
 T = 1873.0
 
 
@@ -54,7 +55,7 @@ def test_equilibrium_composition_is_honored():
     assert abs(sum(res["X"]) - 1.0) < 1e-9
 
 
-KFNIF2 = Path("C:/Users/busta/Code/pycalphad/pycalphad/tests/databases/KF-NIF2_switched.dat")
+KFNIF2 = Path(pycalphad.__file__).parent / "tests" / "databases" / "KF-NIF2_switched.dat"
 
 # KF-NiF2 salt solids on the join, as (xi, salt-formulas per formula unit)
 _SALTS = {"KF_S1(S)": (0.0, 1), "NIF2_S1(S)": (1.0, 1),

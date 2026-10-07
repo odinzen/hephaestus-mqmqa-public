@@ -22,11 +22,12 @@ sys.path.insert(0, str(ROOT / "cef"))
 sys.path.insert(0, str(ROOT / "data" / "olivine"))
 
 pytest.importorskip("pycalphad")
+import pycalphad
 from pycalphad import Database as PycDatabase, calculate
 
 import mqmqa
 
-VIITALA = Path("C:/Users/busta/Code/pycalphad/pycalphad/tests/databases/Viitala.dat")
+VIITALA = Path(pycalphad.__file__).parent / "tests" / "databases" / "Viitala.dat"
 
 
 def _gm_pycalphad(pdb, comps, phase, points, T):

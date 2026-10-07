@@ -20,7 +20,7 @@
 # sections apart). That is not a report on this library; rerun the file.
 set -euo pipefail
 
-ENV_DIR="${MQMQA_ENV:-C:/Users/busta/miniforge3/envs/calphad}"
+ENV_DIR="${MQMQA_ENV:-${USERPROFILE:-$HOME}/miniforge3/envs/calphad}"
 CLANG="${MQMQA_CLANG:-$ENV_DIR/Library/bin/clang.exe}"
 RT_DIR="$("$CLANG" --target=x86_64-pc-windows-msvc -print-resource-dir)/lib/windows"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

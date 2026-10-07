@@ -124,6 +124,7 @@ def build_inputs(db, phase, T, components=None):
         "ex": ex, "soln_type": db.is_subq(phase), "T": T,
         "cat_el": [_element(c["name"]) for c in cats],
         "an_el": [_element(a["name"]) for a in ans],
+        "q_cat": q_cat, "q_an": q_an,
         "cat_group": [c["group"] for c in cats],
         "an_group": [a["group"] for a in ans],
         "R_own": db.own_gas_constant,

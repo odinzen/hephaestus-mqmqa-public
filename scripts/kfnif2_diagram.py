@@ -21,6 +21,8 @@ from point to point) removes the few-hundred-joule scatter that otherwise swamps
 the shallow common tangent and makes the traced boundary jagged.
 """
 
+from pathlib import Path
+
 import numpy as np
 from scipy.optimize import minimize_scalar
 from scipy.interpolate import RectBivariateSpline
@@ -29,10 +31,13 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+import pycalphad
+
 import mqmqa
 from mqmqa.equilibrium import build_inputs, gibbs_per_quad, element_moles, _lower_hull
 
-DB_PATH = "C:/Users/busta/Code/pycalphad/pycalphad/tests/databases/KF-NIF2_switched.dat"
+# The database ships with pycalphad's test suite.
+DB_PATH = str(Path(pycalphad.__file__).parent / "tests" / "databases" / "KF-NIF2_switched.dat")
 PHASE = "LIQUID2"
 COMPONENTS = ["K", "NI", "F"]
 OUT_PNG = "web/kfnif2_diagram.png"

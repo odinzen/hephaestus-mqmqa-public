@@ -8,7 +8,7 @@ matching the iron-crucible conditions of Bowen & Schairer's phase-equilibrium wo
 Built by `build_dat.py`, which holds the assessed parameters (`ASSESSED_EXCESS`,
 `FEO_LIQ_BETA`), from `assessment/assess.py` against `assessment/dataset.py`. Run:
 
-    C:/Users/busta/miniforge3/envs/calphad/python.exe data/feo-sio2/assessment/assess.py [--fit] [--write]
+    python data/feo-sio2/assessment/assess.py [--fit] [--write]
 
 ## Pure-oxide endmembers (open)
 

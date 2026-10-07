@@ -34,6 +34,8 @@ ORACLE_TOL = 1e-10
 T_GRID = [float(t) for t in np.linspace(300.37, 3000.37, 28)] + [6500.37, 8000.0]
 
 DB_EXT = (".dat", ".tdb", ".utdb", ".xtdb")
+# PHREEQC aqueous databases share the .dat extension but are not ChemSage files.
+NOT_THERMO_DIRS = ("data/wet-slag/",)
 
 
 def shipped_databases():
@@ -47,6 +49,7 @@ def shipped_databases():
                                                            recursive=True)]
         out += [os.path.relpath(p, ROOT) for p in glob.glob(os.path.join(ROOT, "web", "*"))]
     files = sorted(p.replace("\\", "/") for p in out if p.lower().endswith(DB_EXT))
+    files = [p for p in files if not p.startswith(NOT_THERMO_DIRS)]
     return [os.path.join(ROOT, p) for p in files]
 
 

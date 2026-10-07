@@ -18,7 +18,7 @@ Validation: pycalphad's own equilibrium() on the same .dat (independent oracle),
 cross-check against the measured K_D of von Seckendorff & O'Neill 1993.
 
 Run from the repo root:
-  C:/Users/busta/miniforge3/envs/calphad/python.exe data/olivine-opx/exchange.py
+  python data/olivine-opx/exchange.py
 """
 import sys
 from pathlib import Path

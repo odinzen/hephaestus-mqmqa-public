@@ -28,7 +28,9 @@ def relax(a):
 
 base = read(CIF)
 mg = [i for i, s in enumerate(base.get_chemical_symbols()) if s == 'Mg']
-n = len(mg); Z = n // MGPF
+n = len(mg)
+assert n % MGPF == 0, f"{n} Mg sites is not a whole number of formulas at {MGPF} Mg per formula"
+Z = n // MGPF
 rng = np.random.default_rng(0); rows = []
 print(f'{LABEL}: {base.get_chemical_formula()}, {n} Mg-sites, Z={Z} formula units', flush=True)
 for x in (0.0, 0.25, 0.5, 0.75, 1.0):

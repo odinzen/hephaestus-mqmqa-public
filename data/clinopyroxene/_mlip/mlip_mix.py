@@ -69,10 +69,10 @@ def main():
         r["Hmix_Jmol"] = r["Hmix_eV"] * EV
     xs = np.array([r["x"] for r in rows])
     hm = np.array([r["Hmix_Jmol"] for r in rows])
-    # subregular RK: Hmix = x(1-x)[L0 + L1 (1-2x)]
+    # subregular RK: Hmix = x(1-x)[L0 + L1 (2x-1)], 2x-1 = y_Fe - y_Mg as in the CEF [Fe, Mg] order
     interior = (xs > 0) & (xs < 1)
     A = np.column_stack([xs[interior] * (1 - xs[interior]),
-                         xs[interior] * (1 - xs[interior]) * (1 - 2 * xs[interior])])
+                         xs[interior] * (1 - xs[interior]) * (2 * xs[interior] - 1)])
     (L0, L1), *_ = np.linalg.lstsq(A, hm[interior], rcond=None)
     print("\nH_mix (J/mol formula):")
     for r in rows:

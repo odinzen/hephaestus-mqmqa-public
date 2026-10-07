@@ -3,10 +3,9 @@
   SPINEL  (Mg,Fe)1 (Al)2 (O)4   endmembers spinel MgAl2O4 / hercynite FeAl2O4
 
 Normal-spinel model: Fe and Mg mix on the tetrahedral A-site, Al is fixed on the
-octahedral B-site. Endmember Gibbs from data/spinel/endmembers.py. The (Fe,Mg) excess is
-MLIP-triangulated (MatterSim, data/spinel/_mlip): a small negative, asymmetric excess
-(favourable mixing, no miscibility gap). The normal/inverse cation inversion is a v0.2
-study. Constituents are listed [Fe, Mg] to match pycalphad's alphabetical sort.
+octahedral B-site. Endmember Gibbs from data/spinel/endmembers.py. The (Fe,Mg) mixing is
+ideal (see EXCESS below for why no MLIP excess is shipped). The normal/inverse cation
+inversion is a v0.2 study. Constituents are listed [Fe, Mg] to match pycalphad's alphabetical sort.
 """
 import importlib.util
 import sys

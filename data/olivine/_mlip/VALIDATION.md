@@ -15,6 +15,9 @@ Wood & Kleppa 1981 (solution calorimetry), forsterite-fayalite:
 
 H_mix = +1961 / +3138 / +2746 J/mol at x_Fe = 0.25 / 0.50 / 0.75. Positive and of order a
 few kJ - the opposite sign from the spinel result, which makes it a strong, independent test.
+The calorimetry is Pb2B2O5 solution calorimetry at 970 K; the MLIP H_mix is 0 K static. The
+comparison assumes the excess is temperature-independent (no excess Cp or vibrational excess),
+as the olivine assessment itself does.
 
 ## Method (identical to spinel and clinopyroxene)
 
@@ -119,6 +122,15 @@ agree here - it did not even fix the sign. The magnitude is essentially unconstr
 Here the models **cluster near zero** (L0 spread -5.4 to +1.3 kJ) - di-hed is **near-ideal**,
 which is the robust conclusion regardless of model. The wild, inconsistent L1 values show the
 composition dependence is not resolved by any model.
+
+Sign convention (found 2026-10-07): the clinopyroxene scripts `mlip_mix*.py` fitted L1 on
+(1 - 2x) = (y_Mg - y_Fe), the opposite of the CEF (y_Fe - y_Mg) used everywhere else, so the
+SevenNet, TensorNet and ORB L1 above are sign-flipped relative to the database convention.
+In the CEF convention SevenNet reads +10121, consistent in sign with SevenNet in an 8-site cell
+(+9244, `solidsolutions/_mlip/cpx_firmup.py`) and SQS (+11014). The MatterSim row mixes sources
+(L0 -576 is from `fit_excess.py`, which uses the CEF basis and gives L1 = +3442, not ~0). The
+raw JSONs were not kept, so the table is left as originally reported. The scripts now use the
+CEF basis. The near-ideal conclusion and the ship-ideal decision are unaffected.
 
 ## Resolution (what actually goes in the database)
 

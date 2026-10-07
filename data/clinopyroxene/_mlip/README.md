@@ -34,7 +34,11 @@ G_xs = y_Fe*y_Mg*[L0 + L1*(y_Fe - y_Mg)]:
 
     L0 = -576 +/- 142 J/mol,  L1 = +3442 +/- 280 J/mol
 
-carried into data/clinopyroxene/build_dat.py; the .dat reproduces the fit to < 0.05 J/mol.
+This was the v0.2 excess; it is no longer shipped. The 7-model study
+(data/olivine/_mlip/VALIDATION.md) put every model's di-hed excess near zero, so
+data/clinopyroxene/build_dat.py now writes an ideal SUBL (EXCESS = []). The L1 reported by
+mlip_mix*.py before 2026-10-07 used the basis (1 - 2x) = (y_Mg - y_Fe), the opposite sign to
+this CEF convention; those scripts now use (2x - 1).
 `dihed_hmix.png` is the figure.
 
 Volumes: MatterSim over-expands both endmembers by ~3.5-4% (di 454.6 vs 438.6 A^3,

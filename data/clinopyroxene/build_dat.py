@@ -4,9 +4,9 @@
 
 The Ca, Si and O sublattices are fixed; only the M1 (Mg,Fe) sublattice mixes. Endmember
 Gibbs energies are Robie-Hemingway 1995 (data/clinopyroxene/endmembers.py). No open
-diopside-hedenbergite mixing calorimetry exists, so v0.2 takes the (Fe,Mg) M1 excess from
-MLIP triangulation (MatterSim, data/clinopyroxene/_mlip): a small, asymmetric, near-ideal
-Redlich-Kister excess (|H_mix| < 0.5 kJ/mol, no miscibility gap). Constituents are listed
+diopside-hedenbergite mixing calorimetry exists, and the MLIP triangulation
+(data/clinopyroxene/_mlip) puts the M1 excess near zero, so the mixing is ideal (see EXCESS
+below). Constituents are listed
 [Fe, Mg] to match pycalphad's alphabetical sort. See PROVENANCE.md.
 """
 import importlib.util

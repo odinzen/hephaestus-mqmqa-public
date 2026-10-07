@@ -69,7 +69,7 @@ def main():
     interior = (xs > 0) & (xs < 1)
     xi, hi = xs[interior], hm[interior]
     L0_sym = float(np.sum(hi * xi * (1 - xi)) / np.sum((xi * (1 - xi)) ** 2))   # symmetric LSQ
-    A = np.column_stack([xi * (1 - xi), xi * (1 - xi) * (1 - 2 * xi)])
+    A = np.column_stack([xi * (1 - xi), xi * (1 - xi) * (2 * xi - 1)])  # 2x-1 = y_Fe - y_Mg (CEF convention)
     (L0, L1), *_ = np.linalg.lstsq(A, hi, rcond=None)
 
     print("\nH_mix (J/mol formula), with per-mean sigma:")

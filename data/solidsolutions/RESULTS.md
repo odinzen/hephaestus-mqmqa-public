@@ -28,7 +28,9 @@ Endmember sources (COD): forsterite 1572966, spinel 1010129 (MgAl2O4, Fd-3m), di
 
 ## Control
 
-Olivine, run through the identical script, reproduces the measurement and the prior SevenNet run:
+Olivine, run through the identical script, reproduces the measurement and the prior SevenNet run
+(MLIP values are 0 K static; Wood & Kleppa is solution calorimetry at 970 K, so the comparison
+assumes a temperature-independent excess):
 
 | | L0 | L1 | H_mix @ x=0.5 |
 |---|---:|---:|---:|

@@ -18,7 +18,7 @@ print(f'MACE: {base.get_chemical_formula()}, {n} M-sites',flush=True)
 for k in (0,2,4,6,8):
     combos=list(itertools.combinations(mg,k))
     if len(combos)>6: combos=[combos[i] for i in rng.choice(len(combos),6,replace=False)]
-    es=[relax(_mk(base,combo)) for combo in combos] if False else []
+    es=[]
     for combo in combos:
         a=base.copy(); sym=a.get_chemical_symbols()
         for i in combo: sym[i]='Fe'

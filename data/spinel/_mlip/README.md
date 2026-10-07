@@ -18,8 +18,12 @@ between the alloy and its endmembers, so the MLIP's systematic per-atom error ca
 
 A small, **favourable (negative), asymmetric** excess, well resolved (per-ordering spread
 <= 0.7 meV/formula vs a signal of hundreds of J): H_mix -475 / -766 / -920 J/mol at
-x = .25 / .5 / .75. Redlich-Kister fit L0 = -3411, L1 = -2373 J/mol (per MAl2O4 formula),
-carried into data/spinel/build_dat.py. Negative mixing means no miscibility gap (complete
-spinel-hercynite solid solution), as observed.
+x = .25 / .5 / .75. Redlich-Kister fit L0 = -3411, L1 = -2373 J/mol (per MAl2O4 formula).
+Negative mixing means no miscibility gap (complete spinel-hercynite solid solution), as
+observed. This excess is NOT shipped: MatterSim fails the olivine control and the models
+disagree on sign (data/olivine/_mlip/VALIDATION.md), so data/spinel/build_dat.py writes an
+ideal SUBL (EXCESS = []). The endmembers here are fully normal spinel, whereas the measured
+endmember Gibbs energies are for partly inverse MgAl2O4; that matters only if an excess is
+ever fitted against them.
 
 `cif/`, `*.log` and `*.json` here are gitignored build artifacts; the script is the record.

@@ -17,8 +17,9 @@ single-phase databases:
 - **Orthopyroxene**: Robie-Hemingway enstatite/ferrosilite (per M2Si2O6), including the
   assessed enstatite high-T Gibbs interval (break at the 1360 K ortho->proto transition);
   Chatillon-Colinet 1983 symmetric excess (L = 7949.6 J/mol). From data/olivine-opx.
-- **Clinopyroxene**: Robie-Hemingway diopside/hedenbergite; the MLIP-triangulated (Fe,Mg)
-  excess (L0 = -576, L1 = +3442 J/mol). From data/clinopyroxene.
+- **Clinopyroxene**: Robie-Hemingway diopside/hedenbergite; ideal (Fe,Mg) M1 mixing (the
+  MLIP-triangulated excess was dropped 2026-08-27, see data/clinopyroxene). From
+  data/clinopyroxene.
 
 The three combined phases reproduce their standalone databases **exactly** (0 J/mol-atom,
 checked across the 1360 K enstatite break for opx). The assembly only lets the phases
@@ -35,9 +36,13 @@ coexist; it adds no new parameter.
 
   | pair | K_D = (Fe/Mg)_A / (Fe/Mg)_B | note |
   |---|---|---|
-  | olivine / orthopyroxene | 0.96 | near-ideal, consistent with the measured exchange (von Seckendorff & O'Neill 1993, K_D ~1) |
-  | clinopyroxene / orthopyroxene | 0.33 | unfitted prediction (endmember-driven) |
-  | clinopyroxene / olivine | 0.33 | unfitted prediction |
+  | olivine / orthopyroxene | 1.34 | from the two-site opx assessment (data/olivine-opx: K_D 1.17-1.31 at X_Fe,opx 0.1, measured 1.0-1.28) |
+  | clinopyroxene / orthopyroxene | 0.45 | unfitted prediction (endmember-driven) |
+  | clinopyroxene / olivine | 0.31 | unfitted prediction |
+
+  Values from exchange.py on the shipped file, rerun 2026-10-07 (coexisting X_Fe: ol 0.384 /
+  opx 0.316, cpx 0.236 / opx 0.407, cpx 0.191 / ol 0.429). The earlier 0.96 / 0.33 / 0.33
+  predate the 2026-10-03 two-site opx.
 
   The exchange potential per mixing site is (dG_formula/dX_Fe)/n_sites, n_sites = 2
   (olivine, opx) or 1 (cpx); at equilibrium it is equal in both phases.

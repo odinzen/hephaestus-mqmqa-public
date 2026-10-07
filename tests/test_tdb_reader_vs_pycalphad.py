@@ -86,6 +86,8 @@ def test_extrapolates_above_last_interval_like_pycalphad():
 
 @pytest.mark.parametrize("fname,needle", [
     ("al2o3_nd2o3_zro2.tdb", "ionic"),
+    ("FeNi_deep_branching.tdb", "order-disorder"),
+    ("issue43.tdb", "three-constituent interaction"),
 ])
 def test_out_of_subset_models_fail_loudly(fname, needle):
     path = os.path.join(ROOT, fname)

@@ -279,7 +279,9 @@ def build(excess=None, version=None, z_si=None, z_o_si=None, zeta_si=None,
     # and is the Pelton lever that sets the composition of maximum short-range ordering.
     if z_mixed is not None:
         zmg_x, zsi_x, zoa_x, zob_x = z_mixed
-        ap(f"   1   2   3   3   {zmg_x:.7f}   {zsi_x:.7f}   {zoa_x:.7f}   {zob_x:.7f}")
+        # full precision: the row's charge balance holds only to the digits written, and at
+        # seven decimals its 1.5e-8 error put pycalphad and the engine 1-2 mJ apart
+        ap(f"   1   2   3   3   {zmg_x:.15f}   {zsi_x:.15f}   {zoa_x:.15f}   {zob_x:.15f}")
 
     # --- excess (MQMX): none in v0.1 (ideal), fitted Q terms in v0.2. ---
     if excess:

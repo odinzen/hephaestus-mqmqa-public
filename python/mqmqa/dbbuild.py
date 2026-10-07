@@ -257,8 +257,11 @@ def write_dat(spec: SystemSpec, anion_sym="O", anion_charge=2.0, z_per_charge=No
            f"{z_cat:.7f}   {z_cat:.7f}   {z_an:.7f}   {z_an:.7f}")
     names = [c.name for c in comps]
     for (a, b), z in spec.quad_z.items():
+        # Full precision: an explicit row's charge balance holds only to the digits written;
+        # at seven decimals the (Mg,Si/O,O) row was off by 1.5e-8, which put pycalphad and this
+        # engine 1-2 mJ apart on the same file.
         ap(f"   {names.index(a) + 1}   {names.index(b) + 1}   {an_idx}   {an_idx}   "
-           + "   ".join(f"{v:.7f}" for v in z))
+           + "   ".join(f"{v:.15f}" for v in z))
 
     # excess (Muggianu from the binaries); a ternary/higher term is zero unless supplied.
     idx = {c.name: i for i, c in enumerate(comps, start=1)}

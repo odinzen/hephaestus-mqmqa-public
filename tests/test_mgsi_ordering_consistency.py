@@ -64,3 +64,26 @@ def test_default_writes_no_mixed_row():
     assert bd.mgsi_mixed_z() is None
     z = bd.mgsi_mixed_z(X_SRO)
     assert 2.0 / z[0] + 4.0 / z[1] == pytest.approx(4.0 / z[2], abs=1e-12)
+
+
+def test_shipped_files_carry_the_full_precision_row():
+    """The row's charge balance holds only to the digits written. At seven decimals it was off by
+    1.5e-8 and pycalphad and the engine disagreed by 1-2 mJ on the same file (2026-10-07)."""
+    import re
+    bd = _load("mgo_bd_row_test", ROOT / "data" / "mgo-sio2" / "build_dat.py")
+    z = bd.mgsi_mixed_z()
+    if z is None:
+        pytest.skip("no explicit ordering row at the default composition")
+    rows = re.compile(r"^\s*\d+\s+\d+\s+\d+\s+\d+((?:\s+[\d.]+){4})\s*$|"
+                      r"^\s*PARAMETER MQZ\(\S*MG\+2,SI\+4:O-2,O-2\)\s+\S+((?:\s+[\d.]+){4});", re.M)
+    files = [f for d in ("data", "web") for f in sorted((ROOT / d).rglob("*"))
+             if f.suffix in (".dat", ".utdb") and f.is_file()
+             and not f.name.startswith("_")]          # scratch written by validation scripts
+    seen = 0
+    for f in files:
+        for m in rows.finditer(f.read_text(encoding="utf-8", errors="replace")):
+            vals = [float(t) for t in (m.group(1) or m.group(2)).split()]
+            if all(abs(a - b) < 1e-5 for a, b in zip(vals, z)):     # this row, at any precision
+                seen += 1
+                assert vals == pytest.approx(list(z), abs=1e-12), f.relative_to(ROOT)
+    assert seen >= 6

@@ -191,7 +191,8 @@ def build(excess=EXCESS, version="v0.3", cations=CATIONS):
            f"{z_cat:.7f}   {z_cat:.7f}   {z_o:.7f}   {z_o:.7f}")
     if z_mgsi is not None:
         mg, si = cations.index("Mg") + 1, cations.index("Si") + 1
-        ap(f"   {mg}   {si}   {an_idx}   {an_idx}   " + "   ".join(f"{z:.7f}" for z in z_mgsi))
+        # full precision, as in mqmqa.dbbuild.write_dat (the charge balance needs every digit)
+        ap(f"   {mg}   {si}   {an_idx}   {an_idx}   " + "   ".join(f"{z:.15f}" for z in z_mgsi))
     L.extend(_mqmx_block(excess))
     return "\n".join(L) + "\n"
 

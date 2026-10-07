@@ -190,6 +190,15 @@ and `to_polydata` and `to_unstructured` build PyVista objects when PyVista is in
 mesh is for looking at; `liquidus_point`, `Hull.assemblage` and `Hull.gibbs` give the numbers.
 Method and validation: `docs/VISUALIZATION_3D.md`, section 8.
 
+## Slag in water
+
+`data/wet-slag/aqueous/` carries a PHREEQC database for slag minerals in water at 25 C
+(`phreeqc_slag.dat`), for questions about stockpiled or reused slag and its leachate. The 16
+anhydrous slag minerals get their dissolution constants from the same Gibbs energies the
+high-temperature databases ship; hydrates and C-S-H come from Cemdata18. Run it with PHREEQC or
+phreeqpython. `derive_logk.py` rebuilds it, and the folder README gives the comparisons with
+measured solutions and the limits (no sulfate, carbonate, iron or redox; equilibrium only).
+
 ## The browser app
 
 `web/index.html` is the zero-install face of the engine: the C core compiled to
@@ -239,5 +248,7 @@ clean-room implementation of them, apart from the one pycalphad-derived term cre
 under Provenance. Releases up to and including v0.6.1 were published under
 MIT (engine) and CC BY 4.0 (data), and those releases keep those terms.
 
-One file is third-party data and keeps its own terms. `data/gas/nasa_gas.dat` (and its copy
+Two pieces of third-party data keep their own terms. `data/gas/nasa_gas.dat` (and its copy
 `web/nasa_gas.dat`) reproduces GRI-Mech 3.0 gas thermochemistry; see `data/gas/PROVENANCE.md`.
+`data/wet-slag/aqueous/phreeqc_slag.dat` is built on the USGS PHREEQC databases `phreeqc.dat`
+and `wateq4f`; only the slag phases appended to it are ours (see that folder's README).

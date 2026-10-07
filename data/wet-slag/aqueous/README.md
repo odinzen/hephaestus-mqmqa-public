@@ -9,10 +9,17 @@ First version, 2026-10-02. Compared against Wells 1943, Nied 2016 and Stewart 20
   - **Hydrates** come from Cemdata18 (Lothenbach et al. 2019, doi:10.1016/j.cemconres.2018.04.018).
   - Each log K is built by an exchange cycle against portlandite, gibbsite, quartz and forsterite. The aqueous ions cancel, and so does any element-reference convention.
   - Portlandite and forsterite are copied into phreeqc.dat from wateq4f. Gibbsite is Cemdata18's (see Validation).
-  - Anchor data are read from the Robie & Hemingway 1995 extracts in the assessment workspace. The Cemdata18 hydrates are anchored on Cemdata18's own portlandite, gibbsite and quartz.
+  - Anchor data are read from `rh1995_anchors.csv`, the Robie & Hemingway 1995 rows with table, page and row for each. The Cemdata18 hydrates are anchored on Cemdata18's own portlandite, gibbsite and quartz.
   - The M-S-H phases are the exception: Cemdata18 has no Mg reference phase, so its published log KS0 values are converted directly.
-- `extract_cemdata18.py` reads the Cemdata18 Gibbs energies (Tables 1 and 4) and log KS0 values (Table 2) from the accepted manuscript in the trove into `cemdata18_dfG.csv`, with PDF page and manuscript line. Nothing is retyped.
+- `extract_cemdata18.py` reads the Cemdata18 Gibbs energies (Tables 1 and 4) and log KS0 values (Table 2) from the accepted manuscript into `cemdata18_dfG.csv`, with PDF page and manuscript line. Nothing is retyped. The manuscript is not redistributed here; pass its path as the argument. `cemdata18_dfG.csv` is committed, so the rest of the chain does not need it.
 - `leach_demo.py` places 0.1 mol of each anhydrous mineral in 1 kg of water at 25 C. Room-temperature hydrates may precipitate, following Cemdata18's guidance; `--long-term` also admits the slow formers. C-S-H is Cemdata18's CSHQ ideal solid solution.
+
+## Sources and terms
+
+`phreeqc_slag.dat` is PHREEQC's `phreeqc.dat` with our phases appended, plus portlandite, forsterite and brucite
+copied from `wateq4f`. Both parent databases are distributed with PHREEQC by the U.S. Geological Survey (here read
+from the phreeqpython package) and those parts keep their original terms. The appended slag phases are ours, under
+`data/LICENSE`. Hydrate and C-S-H values are Cemdata18's (Lothenbach et al. 2019); cite it with this database.
 
 ## Checks so far
 

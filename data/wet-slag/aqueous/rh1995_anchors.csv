@@ -1,0 +1,20 @@
+source_table,phase,composition,quantity,value,unit,temperature_K,uncertainty_value,uncertainty_unit,table,page,pdf_page,row,column
+oxides_hydroxides,portlandite Ca(OH)2,Ca(OH)2,formation_enthalpy,-986100.0,J/mol,298.15,,,Oxides and Hydroxides,183,189,portlandite Ca(OH)2,dHf
+oxides_hydroxides,portlandite Ca(OH)2,Ca(OH)2,gibbs_energy,-898000.0,J/mol,298.15,,,Oxides and Hydroxides,183,189,portlandite Ca(OH)2,dGf
+oxides_hydroxides,portlandite Ca(OH)2,Ca(OH)2,standard_entropy,83.4,J/mol/K,298.15,,,Oxides and Hydroxides,183,189,portlandite Ca(OH)2,S298
+oxides_hydroxides,portlandite Ca(OH)2,Ca(OH)2,heat_capacity,87.51,J/mol/K,298.15,,,Oxides and Hydroxides,183,189,portlandite Ca(OH)2,Cp
+oxides_hydroxides,lime CaO,CaO,formation_enthalpy,-635100.0,J/mol,298.15,900.0,J/mol,Oxides and Hydroxides,16,16,lime CaO,dHf
+oxides_hydroxides,lime CaO,CaO,standard_entropy,38.1,J/mol/K,298.15,0.4,J/mol/K,Oxides and Hydroxides,16,16,lime CaO,S298
+oxides_hydroxides,lime CaO,CaO,gibbs_energy,-603100.0,J/mol,298.15,,,Oxides and Hydroxides,182,188,lime CaO,dGf
+oxides_hydroxides,lime CaO,CaO,heat_capacity,42.07,J/mol/K,298.15,,,Oxides and Hydroxides,182,188,lime CaO,Cp
+silicates,forsterite Mg2SiO4,Mg2SiO4,formation_enthalpy,-2173000.0,J/mol,298.15,,,Silicates,335,341,forsterite Mg2SiO4,dHf
+silicates,forsterite Mg2SiO4,Mg2SiO4,gibbs_energy,-2053600.0,J/mol,298.15,,,Silicates,335,341,forsterite Mg2SiO4,dGf
+silicates,forsterite Mg2SiO4,Mg2SiO4,standard_entropy,94.11,J/mol/K,298.15,,,Silicates,335,341,forsterite Mg2SiO4,S298
+silicates,forsterite Mg2SiO4,Mg2SiO4,heat_capacity,118.61,J/mol/K,298.15,,,Silicates,335,341,forsterite Mg2SiO4,Cp
+silicates,quartz SiO2,SiO2,formation_enthalpy,-910700.0,J/mol,298.15,,,Silicates,214,220,quartz SiO2,dHf
+silicates,quartz SiO2,SiO2,gibbs_energy,-856300.0,J/mol,298.15,,,Silicates,214,220,quartz SiO2,dGf
+silicates,quartz SiO2,SiO2,standard_entropy,41.46,J/mol/K,298.15,,,Silicates,214,220,quartz SiO2,S298
+silicates,quartz SiO2,SiO2,heat_capacity,44.59,J/mol/K,298.15,,,Silicates,214,220,quartz SiO2,Cp
+hydroxide_summary,cr,Al(OH)3(gibbsite),formation_enthalpy,-1293.1,kJ/mol,298.15,,,298.15 K summary table (Oxide and Hydroxide Minerals),15,20,Al(OH)3(gibbsite),DfH
+hydroxide_summary,cr,Al(OH)3(gibbsite),gibbs_energy,-1154.9,kJ/mol,298.15,,,298.15 K summary table (Oxide and Hydroxide Minerals),15,20,Al(OH)3(gibbsite),DfG
+hydroxide_summary,cr,Al(OH)3(gibbsite),standard_entropy,68.4,J/mol/K,298.15,,,298.15 K summary table (Oxide and Hydroxide Minerals),15,20,Al(OH)3(gibbsite),S

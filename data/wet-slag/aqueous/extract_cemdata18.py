@@ -3,16 +3,17 @@ manuscript (Lothenbach et al. 2019, Cem. Concr. Res. 115, 472, doi:10.1016/j.cem
 and the Table 2 solubility products into cemdata18_dfG.csv, with the PDF page and the manuscript line number of each row, so nothing is
 retyped. Tables 1 and 4 of the manuscript; run once (the PDF lives in the local trove, not in git).
 
-    python extract_cemdata18.py
+    python extract_cemdata18.py <path to Lothenbach_2019_Cemdata18_accepted-ms.pdf>
 """
 import csv
 import re
+import sys
 from pathlib import Path
 
 import pypdf
 
-PDF = Path(r"C:/Users/busta/Code/odinzen_assessment_workspace/assets/local-archive/oxide-slag/references/"
-           r"Lothenbach_2019_CemConcrRes115_472_Cemdata18_accepted-ms.pdf")
+# The accepted manuscript is not redistributed here; pass its path as the first argument.
+PDF = Path(sys.argv[1]) if len(sys.argv) > 1 else None
 OUT = Path(__file__).resolve().parent / "cemdata18_dfG.csv"
 
 # our name: (row label as printed, CaO, Al2O3, SiO2, MgO, H2O) in oxide units per formula
@@ -46,6 +47,8 @@ NUM = r"(-?\d+(?:\.\d+)?)"
 
 
 def main():
+    if PDF is None:
+        raise SystemExit("usage: python extract_cemdata18.py <Cemdata18 accepted-manuscript PDF>")
     reader = pypdf.PdfReader(str(PDF))
     found, dfh_s = {}, {}
     for ipage, page in enumerate(reader.pages, start=1):

@@ -21,9 +21,11 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 DATA = HERE.parents[1]
-WS = Path(r"C:/Users/busta/Code/odinzen_assessment_workspace/assessments")
-PHREEQC_DAT = Path(r"C:/Users/busta/miniforge3/envs/calphad/Lib/site-packages/phreeqpython/database/phreeqc.dat")
-WATEQ = Path(r"C:/Users/busta/miniforge3/envs/calphad/Lib/site-packages/phreeqpython/database/wateq4f_PWN.dat")
+# R&H 1995 rows for the anchors, copied with table, page and row (rh1995_anchors.csv).
+RH_ANCHORS = HERE / "rh1995_anchors.csv"
+PHREEQC_DB = Path(importlib.util.find_spec("phreeqpython").origin).parent / "database"
+PHREEQC_DAT = PHREEQC_DB / "phreeqc.dat"
+WATEQ = PHREEQC_DB / "wateq4f_PWN.dat"
 T = 298.15
 RTLN10 = 8.314462618 * T * math.log(10)
 
@@ -38,19 +40,21 @@ def _load(name, rel):
     return m
 
 
-def rh(phase_key, csv_rel):
+def rh(phase_key, table):
     """(dHf J, S J/K) for one phase from a Robie & Hemingway extract (no retyping)."""
     out = {}
-    for r in csv.DictReader(open(WS / csv_rel, encoding="utf-8")):
+    for r in csv.DictReader(open(RH_ANCHORS, encoding="utf-8")):
+        if r["source_table"] != table:
+            continue
         if phase_key in (r.get("phase", "") + " " + r.get("composition", "")).lower():
             scale = 1000.0 if r["unit"].startswith("kJ") else 1.0
             out[r["quantity"]] = float(r["value"]) * scale
     return out["formation_enthalpy"], out["standard_entropy"], out.get("gibbs_energy")
 
 
-OXH = "CaO-CO2-H2O/data_tables/paper_robiehemingway1995__table_Oxides_and_Hydroxides.csv"
-SIL = "MgO-SiO2/data_tables/paper_robiehemingway1995__table_Silicates.csv"
-HYD = "Hydroxide-minerals/data_tables/paper_robie_hemingway_1995__table_298.15_K_summary_table__Oxide_and_Hydroxide_Minerals_.csv"
+OXH = "oxides_hydroxides"
+SIL = "silicates"
+HYD = "hydroxide_summary"
 ANCHOR = {"Portlandite": rh("portlandite", OXH), "Forsterite": rh("forsterite", SIL),
           "Gibbsite": rh("gibbsite", HYD), "Quartz": rh("quartz", SIL)}
 G_ANCHOR = {k: dh - T * s for k, (dh, s, _) in ANCHOR.items()}

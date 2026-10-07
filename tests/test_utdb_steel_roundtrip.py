@@ -4,7 +4,7 @@ web/FeC-FeOMgOSiO2.utdb carries the FeO-MgO-SiO2 slag assessment (shipped as
 web/FeO-MgO-SiO2-combined.dat) through the uTDB extension statements, alongside
 the Fe-C steel of web/FeC.tdb with its magnetic BCC and FCC. Beyond the earlier
 demos this exercises two-interval MQG pairs, zeta-valued coordination numbers,
-T^0.5 endmember terms, three-sublattice CEF solid solutions, and the magnetic
+T^0.5 endmember terms, three- and four-sublattice CEF solid solutions, and the magnetic
 model riding next to an MQMQA liquid in one file.
 """
 import os
@@ -84,12 +84,14 @@ def test_equilibrium_matches(dbs):
 def test_silicate_solid_solutions_match(dbs):
     dat, uni = dbs
     rng = np.random.default_rng(17)
-    for name in ("OLIVINE", "ORTHOPYROXENE"):
+    for name in ("OLIVINE", "ORTHOPYROXENE", "MAGNESIOWUSTITE"):
         pd_, pu = dat.phase_index(name), uni.phase_index(name)
         for _ in range(8):
-            y = float(rng.uniform(0.02, 0.98))
             T = float(rng.uniform(600.0, 2000.0))
-            Y = [y, 1 - y, 1.0, 1.0]
+            Y = []
+            for sl in dat.cef_sublattices(pd_):          # every site fraction, both M sites
+                y = rng.uniform(0.02, 1.0, len(sl["constituents"]))
+                Y += list(y / y.sum())
             assert abs(dat.cef_gibbs(pd_, Y, T, 1) - uni.cef_gibbs(pu, Y, T, 1)) < TOL, (name, T)
 
 
@@ -97,7 +99,7 @@ def test_oxide_solids_match(dbs):
     dat, uni = dbs
     names_d = [n.upper() for n in dat.stoich]
     names_u = [n.upper() for n in uni.stoich]
-    for nm in ("CRISTOBALITE", "PERICLASE", "WUSTITE"):
+    for nm in ("CRISTOBALITE",):
         i_d, i_u = names_d.index(nm), names_u.index(nm)
         for T in (900.0, 1650.0, 1873.0):
             assert abs(dat.stoich_gibbs(i_d, T) - uni.stoich_gibbs(i_u, T)) < TOL

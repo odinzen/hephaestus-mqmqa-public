@@ -86,11 +86,13 @@ def _interior_runs(xy, edge_eps=0.014):
     return [r for r in runs if len(r) >= 4]
 
 
-def _smooth_polyline(xy, smooth=0.0025):
+def _smooth_polyline(xy, smooth=0.003 ** 2):
     """Smoothing-spline resample of a contour polyline. The liquidus surface is smooth within
     each primary-phase field, so the grid-scale staircase of the raw frac=1 boundary is a
-    discretization artifact; a spline with a small smoothing budget removes it without moving
-    the curve. `smooth` is the total allowed squared deviation (cation-fraction units)."""
+    discretization artifact; a spline whose budget stays under one grid cell (1/150) removes it
+    without moving the curve. `smooth` is the allowed mean squared deviation per point
+    (cation-fraction units). The earlier 0.0025 let curves drift up to 0.06, straightening them
+    and pushing neighbouring isotherms across each other (2026-10-04)."""
     from scipy.interpolate import splprep, splev
     xy = np.asarray(xy, float)
     if len(xy) < 6:

@@ -388,6 +388,26 @@ def coordination(sp_is_cation, sp_idx, A, B, X, Y, n_cat, n_an, q_cat, q_an,
     )
 
 
+def _check_charge_balance(inp, amounts):
+    """Raise on a composition no quadruplet distribution can hold.
+
+    The solver returns NaN for such input, which is easy to miss. Checked only when
+    every element is a single ion, so the balance is unambiguous.
+    """
+    if "q_cat" not in inp:
+        return
+    charge = {}
+    for e, z in zip(inp["cat_el"] + inp["an_el"], list(inp["q_cat"]) + [-z for z in inp["q_an"]]):
+        charge.setdefault(e.upper(), set()).add(z)
+    if any(len(z) != 1 for z in charge.values()):
+        return
+    plus = sum(amounts[e] * z for e, (z,) in charge.items() if z > 0)
+    minus = -sum(amounts[e] * z for e, (z,) in charge.items() if z < 0)
+    if abs(plus - minus) > 1e-9 * max(plus, minus):
+        raise ValueError(f"composition is not charge balanced: cation charge {plus:.6g}, "
+                         f"anion charge {minus:.6g}")
+
+
 def c_equilibrate(inp, x_target):
     """Solve the single-phase equilibrium in C, given inputs from build_inputs.
 
@@ -407,6 +427,7 @@ def c_equilibrate(inp, x_target):
         tgt[e.upper()] += float(v)
     tot = sum(tgt.values())
     target = [tgt[e] / tot for e in elements]
+    _check_charge_balance(inp, tgt)
 
     n_quads = len(inp["quads"])
     X_out = _ffi.new("double[]", n_quads)

@@ -62,3 +62,14 @@ if __name__ == "__main__":
         gm_py = _pycalphad_GM(xO)
         print(f"xO={xO}: C GM={res['GM']:.3f}  pycalphad GM={gm_py:.3f}  "
               f"|d|={abs(res['GM'] - gm_py):.3e}  comp_err={res['comp_error']:.1e}")
+
+
+def test_unbalanced_composition_raises():
+    """0.2 each of FeO, MgO, SiO2 needs O = 0.8; 1.4 used to come back as GM = NaN."""
+    root = Path(__file__).resolve().parents[1]
+    db = mqmqa.Database.read(root / "data" / "feo-mgo-sio2" / "FeO-MgO-SiO2-combined.dat")
+    inp = eqm.build_inputs(db, db.phase_index("FEO-MGO-SIO2-LIQUID"), 1873.0)
+    with pytest.raises(ValueError, match="not charge balanced"):
+        mqmqa.c_equilibrate(inp, {"FE": 0.2, "MG": 0.2, "SI": 0.2, "O": 1.4})
+    gm = mqmqa.c_equilibrate(inp, {"FE": 0.2, "MG": 0.2, "SI": 0.2, "O": 0.8})["GM"]
+    assert gm == gm and abs(gm) < 1e7

@@ -265,13 +265,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
         font-size:var(--fs-sm); color:var(--ink); line-height:1.5; max-width:none; }
   .bld-caution b { color:var(--neg); }
   .bld-ctl-row { display:flex; gap:1.4rem; flex-wrap:wrap; align-items:flex-end; margin-bottom:.8rem; }
-  .seg-btn.prem { color:var(--muted); font-style:italic; }
-  .seg-btn.prem::before { content:"\1F512"; font-style:normal; margin-right:.28rem; opacity:.75; }
-  .seg-btn.prem.on { background:var(--brand); color:var(--brand-ink); }
   .bld-wblock { max-width:24rem; margin:0 0 1rem; }
-  .bld-feature { display:inline-block; font-size:var(--fs-xs); text-transform:uppercase;
-        letter-spacing:.04em; color:var(--brand-ink); background:var(--brand); border-radius:999px;
-        padding:.1rem .6rem; margin-left:.5rem; vertical-align:2px; }
   .bld-result { max-width:40rem; margin:.2rem auto 0; padding:1.2rem 1.3rem; border:1px solid var(--line);
         border-radius:10px; background:var(--field); }
   .bld-result h3 { margin:0 0 .2rem; font-size:1.05rem; color:var(--ink); }
@@ -285,7 +279,6 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
   .bld-bar .fill { height:100%; border-radius:999px; }
   .bld-bar .amt { font-family:var(--font-mono); color:var(--muted); text-align:right; }
   .bld-prem { text-align:center; }
-  .bld-prem .lock { font-size:2rem; line-height:1; }
   .bld-prem h3 { margin:.5rem 0 .3rem; }
   .bld-prem p { color:var(--muted); font-size:var(--fs-sm); max-width:30rem; margin:.3rem auto; line-height:1.5; }
   @media (max-width:640px){ .bld-grid { grid-template-columns:1fr; } }
@@ -656,8 +649,6 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
           <button type="button" class="seg-btn" data-n="2">2</button>
           <button type="button" class="seg-btn on" data-n="3">3</button>
           <button type="button" class="seg-btn" data-n="4">4</button>
-          <button type="button" class="seg-btn prem" data-n="5">5</button>
-          <button type="button" class="seg-btn prem" data-n="6">6</button>
         </span>
       </label>
       <label>Preset
@@ -928,7 +919,7 @@ window.tLabel = (K,dp=0)=> (isFinite(K) ? window.kToU(K).toFixed(dp).replace(/\.
 window.onTUnit = fn => window.addEventListener('hmqmqa-tunit', fn);
 window.onTUnit(()=>{ const el=document.getElementById('temp'); if(el) document.getElementById('tval').textContent=window.tLabel(+el.value); });
 window.onTUnit(()=>{
-  ['pdTmin','pdTmax','gas-T','c0-Tm','c1-Tm','c2-Tm','c3-Tm','c4-Tm','c5-Tm'].forEach(id=>{
+  ['pdTmin','pdTmax','gas-T','c0-Tm','c1-Tm','c2-Tm','c3-Tm'].forEach(id=>{
     const el=document.getElementById(id); if(!el||el.value==='') return;
     el.value = String(Math.round(window.tUnit==='C' ? (+el.value)-273.15 : (+el.value)+273.15));
   });
@@ -1090,11 +1081,9 @@ Hephaestus().then(M => {
   if (window._bldRedraw) window._bldRedraw();   // drawn before the engine loaded
 });
 
-// Session-only uploaded databases: up to 3 pinned as reload buttons (alternating colours) so you
-// can flip between the .dat files you have uploaded. Kept only in memory - gone on refresh, never
-// saved. A fourth at once is a paid feature.
+// Session-only uploaded databases, each pinned as a reload button so you can flip between the
+// files you have uploaded. Kept only in memory - gone on refresh, never saved.
 const TYPE_COLORS = { dat:'#bf83e0', tdb:'#3fb0a0', utdb:'#5b8fd0' };  // one color per dialect: .dat purple, .tdb teal, .utdb blue
-const MAX_TEMP = 3;
 let uploadedDBs = [];   // [{name, text}], this session only
 
 // Escape any string that came out of an uploaded file (its name, element/phase/compound names)
@@ -1127,12 +1116,6 @@ function renderUploadedButtons(){
 function addUploadedDB(name, text){
   const i = uploadedDBs.findIndex(u => u.name === name);
   if(i >= 0){ uploadedDBs[i] = {name, text}; renderUploadedButtons(); return; }   // re-upload updates in place
-  if(uploadedDBs.length >= MAX_TEMP){
-    document.getElementById('loadmsg').innerHTML = escHtml(name) + ' loaded. You already have ' + MAX_TEMP
-      + ' uploaded databases pinned (the free limit) - keeping more open at once is a paid feature '
-      + '(<a href="mailto:info@odinzen.io">info@odinzen.io</a>).';
-    return;   // still loaded and usable, just not pinned as a fourth button
-  }
   uploadedDBs.push({name, text}); renderUploadedButtons();
 }
 
@@ -3443,7 +3426,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
 </script>
 <script>
 /* Phase diagram builder: a multicomponent regular-solution eutectic computed live from the user's
-   own inputs. N = 2..4 free (5 and 6 are a premium lock). One symmetric interaction W = Wa + Wb·T
+   own inputs, for N = 2..4. One symmetric interaction W = Wa + Wb·T
    is shared by every pair (a first approximation). Model, per component k at composition x (Σx=1):
      solid-k liquidus solves for T:  dH_k(1 − T/Tm_k) + R T ln(x_k) + Σ_{j≠k} W x_j − Σ_{i<j} W x_i x_j = 0
      liquidus(x) = max_k T_liq,k (skip undefined) ; primary phase = argmax_k
@@ -3471,11 +3454,10 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     ideal:     {N:2, C:[['A',1700,30],['B',1400,25]], Wa:0,  Wb:0},
     oxide:     {N:2, C:[['SiO2',1996,9.6],['CaSiO3',1817,56]], Wa:26, Wb:0},
   };
-  const DEFAULTS=[['NaCl',1074,28.2],['KCl',1044,26.3],['MgCl2',987,43.1],
-                  ['CaCl2',1045,28.0],['LiCl',878,19.9],['BaCl2',1234,16.0]];
+  const DEFAULTS=[['NaCl',1074,28.2],['KCl',1044,26.3],['MgCl2',987,43.1],['CaCl2',1045,28.0]];
   let curN=3;
 
-  // build the six component input blocks (shown/hidden by component count)
+  // build the component input blocks (shown/hidden by component count)
   const grid=$('bld-comps');
   grid.innerHTML=DEFAULTS.map((d,k)=>
     '<div class="bld-comp" id="comp'+k+'">'
@@ -3636,24 +3618,13 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
       return '<div class="bld-bar"><span class="nm">'+esc(c.name)+'</span>'
         +'<span class="track"><span class="fill" style="width:'+pct.toFixed(1)+'%;background:'+COMPCOL[k]+'"></span></span>'
         +'<span class="amt">'+eut.x[k].toFixed(3)+'</span></div>'; }).join('');
-    res.innerHTML='<h3>Four-component eutectic<span class="bld-feature">free &amp; open</span></h3>'
+    res.innerHTML='<h3>Four-component eutectic</h3>'
       +'<p class="sub">The lowest melting point over the whole four-component composition simplex.</p>'
       +'<div class="bld-eutT">'+window.tLabel(eut.T)+'</div>'
       +'<div class="bld-bars">'+bars+'</div>';
     $('bldread').textContent='Eutectic composition (mole fraction): '
       +C.map((c,k)=>c.name+' '+eut.x[k].toFixed(3)).join(',  ');
     setLegend([]);
-  }
-
-  /* ---- N = 5, 6: premium lock ---- */
-  function drawPremium(n){
-    $('bld-result').innerHTML='<div class="bld-prem"><div class="lock">🔒</div>'
-      +'<h3>'+n+'-component eutectics are a premium feature</h3>'
-      +'<p>Free coverage runs to four components, solved live in your browser. '
-      +'Five- and six-component builds are part of Odinzen’s premium tier.</p>'
-      +'<p>Want it, or have a specific system in mind? Email '
-      +'<a href="mailto:info@odinzen.io">info@odinzen.io</a>.</p></div>';
-    $('bldread').textContent=''; setLegend([]);
   }
 
   function setLegend(C){ const el=$('bld-legend');
@@ -3665,7 +3636,6 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
 
   function render(){
     const {Wa,Wb}=Wvals(), n=curN;
-    if(n>=5){ drawPremium(n); return; }
     const C=readComps(n);
     if(n===2) drawBinary(C,Wa,Wb);
     else if(n===3) drawTernary(C,Wa,Wb);
@@ -3681,7 +3651,6 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     const n=curN, useCanvas=(n===2||n===3);
     cv.style.display=useCanvas?'block':'none';
     $('bld-result').hidden=useCanvas;
-    $('bld-save').closest('.bld-save-row').style.display=(n<=4)?'':'none';
     // the 4-component eutectic search is the one heavy case; show a spinner and give it
     // a moment to paint before the blocking find, so the builder never looks frozen
     if(n>=4) $('bldread').innerHTML='<span class="spinner"></span> Finding the eutectic…';
@@ -3689,7 +3658,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     pending=setTimeout(()=>{ pending=0; render(); }, n>=4?20:0);
   }
 
-  function showComps(n){ for(let k=0;k<6;k++) $('comp'+k).style.display=(k<n)?'':'none'; }
+  function showComps(n){ for(let k=0;k<DEFAULTS.length;k++) $('comp'+k).style.display=(k<n)?'':'none'; }
   function setN(n){ curN=n; showComps(n);
     [...$('bld-nseg').children].forEach(b=>b.classList.toggle('on',+b.dataset.n===n)); draw(); }
 
@@ -3711,7 +3680,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     ()=>{ eutHist.length=0; renderEutHist(); }); }
   $('bld-save').addEventListener('click',()=>{
     const t=$('bldread').textContent.trim();
-    if(!/eutectic/i.test(t)) return;            // nothing to save (premium tier or no eutectic found)
+    if(!/eutectic/i.test(t)) return;            // nothing to save (no eutectic found)
     const {Wa,Wb}=Wvals();
     eutHist.push(t+'   ·   W='+Wa+' kJ/mol'+(Wb?' + '+Wb+'·T':''));
     renderEutHist();
@@ -4176,7 +4145,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
       + 'cited to their authors; the contribution is credited to you. Larger or long-running work, '
       + 'or a private assessment where the file stays yours, is paid (simple single-system '
       + 'requests start around $3,500, quoted to scope). Prefer to build it yourself? The dbbuild '
-      + 'module in the repository is free for two to four components.';
+      + 'module in the repository is open and covers two to four components.';
     next.hidden = false;
   }
 

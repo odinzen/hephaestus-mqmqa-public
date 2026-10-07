@@ -85,21 +85,11 @@ Reported, not fitted: C3A correctly decomposes peritectically below its melting 
 ## Pending assessment: hibonite entropy (2026-10-07)
 
 The next fit (`assessment/assess.py`, on hold) adds hibonite. Its entropy of formation from the
-oxides has never been measured by calorimetry. Geiger (1988, Eqn 10) gives +24.3 J/K at 1100 K
-from two electrochemical studies. Harmonic phonons with the five-coordinate Al off the mirror plane
-give about twice that:
-
-| Potential | dS from CaO + 6 Al2O3, 298 K | 1000 K |
-|---|---|---|
-| Orb-v3 | 44.8 | 42.4 |
-| MACE-MP-0 | 49.9 | 49.8 |
-
-J/(mol K) per CaAl12O19. Up/down disorder of that Al could add up to R ln 2. The double well is
-shallower than RT, so the harmonic value is approximate. On the compounds with measured entropies the
-same potentials fall 2 J/K low on CaAl2O4, 5-6 low on CaAl4O7 and 12-13 low on Ca3Al2O6 at 298 K
-(against King 1955 via Barin), so they are a cross-check, not data. The fit keeps Geiger's value as the centre and widens the prior from
-+-15 to +-25 J/K, so the phonon value lies inside it and the liquidus decides. Station 2 results:
-branch `station2-caal-phonons` (`station2_caal_phonons/STATION2_NOTES.md`, rounds 2 and 3).
+oxides has one source, Geiger (1988, Eqn 10): +24.3 J/K at 1100 K from two electrochemical
+studies. There is no low-temperature calorimetry. Machine-learned phonon calculations gave 42-50
+J/K (Orb-v3, MACE-MP-0; branch `station2-caal-phonons`), but the same potentials miss the measured
+entropies of CaAl2O4, CaAl4O7 and Ca3Al2O6 (King 1955) by 2, 5-6 and 12-13 J/K, so they are not
+used. Settling this number needs a measurement: the low-temperature heat capacity of hibonite.
 
 Repro: `build_dat.py` (writes CaO-Al2O3.dat with the stored excess), `v01_fit.py`
 (evaluates the invariants; `--fit` re-optimizes).

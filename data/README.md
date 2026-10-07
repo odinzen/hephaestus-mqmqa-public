@@ -16,7 +16,7 @@ instrument for a citable dataset that must stay open. Attribution is met by citi
 repository and the primary sources listed in each system's `PROVENANCE.md`. Any adapted
 version that is shared, including one converted to another file format, must be shared
 under CC BY-SA 4.0 with the same credits and without technical measures that restrict it.
-Releases up to and including v0.6.0 were published under CC BY 4.0 and keep those terms.
+Releases up to and including v0.6.1 were published under CC BY 4.0 and keep those terms.
 
 ## Shipped databases
 

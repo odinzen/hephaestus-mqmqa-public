@@ -18,7 +18,7 @@ CaO-rich points — the measured signature of the missing ternary interaction. v
 exactly one term: the CaO-SiO2 quadruplet gains an additional-constituent (AlO1.5)
 term, L = -110000 J/mol with r = 1 (Poschmann Eq. 25-26; the FactSage
 additional-mixing-constituent mechanism), fitted to those 21 points by scanning L on
-pycalphad-computed activities. Result over all 45 KEMS points:
+pycalphad-computed activities. Result over all 45 measured points (21 KEMS, 24 gas-slag equilibrium):
 
 - Zaitsev (21, CaO-rich): RMS ln a 3.43 -> **0.48**, bias +3.28 -> **-0.10**
 - Kay & Taylor (24, silica-rich): RMS 0.38 -> 0.46, bias -0.11 -> +0.08
@@ -67,7 +67,7 @@ compounds from Robie & Hemingway (1995):
   2026-09-30 the Cp was a Maier-Kelley fit to the table's points to 1000 K only; that
   function sat up to 785 J off the table and 0.8 kJ too stable at the 1830 K melting point.
 
-## Validation: 45 KEMS silica activities (prediction, nothing fitted)
+## Validation: 45 measured silica activities (21 KEMS, 24 gas-slag equilibrium)
 
 a(SiO2) computed vs the cristobalite reference (matching the measurements' silica-
 saturation reference) from liquid-only pycalphad equilibria on the written file

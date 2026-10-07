@@ -93,7 +93,7 @@ solutions) and a chloride molten-salt family (LiCl-KCl through the NaCl-KCl-MgCl
 ternary with its halite solid solution), every parameter traced to published
 measurements in the per-system provenance notes.
 `python/mqmqa/dbbuild.py` turns a user's own measured data into a loadable `.dat`
-(free up to four components). See `docs/DESIGN.md`.
+(two to four components). See `docs/DESIGN.md`.
 
 An MQMQA excess term the engine does not evaluate is refused with a message naming the
 phase (`Database.excess_unsupported`, `UnsupportedModelError`, a note in the browser),
@@ -229,7 +229,7 @@ refresh the branch with:
 
 ## Publication
 
-Intended as a single-author **JORS** (Journal of Open Research Software) metapaper covering
+A two-author **JORS** (Journal of Open Research Software) metapaper covers
 both the engine and the open slag database as one open-science contribution. See
 `docs/DESIGN.md`.
 

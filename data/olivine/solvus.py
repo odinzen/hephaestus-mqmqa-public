@@ -12,7 +12,7 @@ C mqmqa_cef_gibbs, then handed to equilibrium.miscibility_conjugates. The result
 validated against pycalphad's own equilibrium() on the same .dat.
 
 Run from the repo root:
-  C:/Users/busta/miniforge3/envs/calphad/python.exe data/olivine/solvus.py
+  python data/olivine/solvus.py
 """
 import sys
 from pathlib import Path

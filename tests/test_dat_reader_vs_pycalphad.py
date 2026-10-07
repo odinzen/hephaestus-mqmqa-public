@@ -21,12 +21,13 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "python"))
 
 pytest.importorskip("pycalphad")
+import pycalphad
 from pycalphad import Database, variables as v
 from pycalphad.models.model_mqmqa import ModelMQMQA
 
 import mqmqa
 
-DBDIR = Path("C:/Users/busta/Code/pycalphad/pycalphad/tests/databases")
+DBDIR = Path(pycalphad.__file__).parent / "tests" / "databases"
 SHISHIN = DBDIR / "Shishin_Fe-Sb-O-S_slag.dat"
 T = 1873.0
 

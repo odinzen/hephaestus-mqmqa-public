@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 from ase.io import read, write
 HERE = Path(__file__).resolve().parent
-PSDIR = "/mnt/c/Users/busta/Code/mqmqa/data/olivine/_dft/pseudo"   # WSL-visible
+PSDIR = "../../pseudo"   # relative to runs*/<name>/, where pw.x runs
 PSEUDO = {"Fe":"Fe.pbe-spn-kjpaw_psl.1.0.0.UPF","Mg":"Mg.pbe-spnl-kjpaw_psl.1.0.0.UPF",
           "Si":"Si.pbe-n-kjpaw_psl.1.0.0.UPF","O":"O.pbe-n-kjpaw_psl.1.0.0.UPF"}
 KPTS = (2, 1, 2)                                   # same mesh for every structure

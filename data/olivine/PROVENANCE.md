@@ -10,7 +10,7 @@ Build/validation: `endmembers.py` (the two endmember Gibbs functions, with a sel
 `olivine.py` (the CEF model + mixing/activity/solvus helpers), `validate_olivine.py`
 (cross-check vs pycalphad + the physical checks). Run:
 
-    C:/Users/busta/miniforge3/envs/calphad/python.exe data/olivine/validate_olivine.py
+    python data/olivine/validate_olivine.py
 
 ## The model
 

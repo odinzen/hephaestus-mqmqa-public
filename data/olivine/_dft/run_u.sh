@@ -1,6 +1,6 @@
 #!/bin/bash
 set -u
-R=/mnt/c/Users/busta/Code/mqmqa/data/olivine/_dft/runs_u
+R="$(cd "$(dirname "$0")" && pwd)/runs_u"
 export OMP_NUM_THREADS=1
 for d in fa x50_a; do
   cd "$R/$d" || exit 1; rm -rf out pw.out pw.err

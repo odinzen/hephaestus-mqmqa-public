@@ -7,7 +7,7 @@ fixed-valence**: Fe is Fe2+ only (no Fe3+), Mg2+, Si4+; a single anion O2-.
 
 Built by `build_dat.py`; validated by `validate.py`. Run:
 
-    C:/Users/busta/miniforge3/envs/calphad/python.exe data/feo-mgo-sio2/validate.py
+    python data/feo-mgo-sio2/validate.py
 
 ## Assembly - no new ternary fit
 

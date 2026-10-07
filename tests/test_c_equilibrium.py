@@ -15,12 +15,13 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "python"))
 
 pytest.importorskip("pycalphad")
+import pycalphad
 from pycalphad import Database, equilibrium, variables as v
 
 import mqmqa
 from mqmqa import equilibrium as eqm
 
-DAT = Path("C:/Users/busta/Code/pycalphad/pycalphad/tests/databases/Shishin_Fe-Sb-O-S_slag.dat")
+DAT = Path(pycalphad.__file__).parent / "tests" / "databases" / "Shishin_Fe-Sb-O-S_slag.dat"
 T = 1873.0
 
 

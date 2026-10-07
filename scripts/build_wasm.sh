@@ -9,10 +9,10 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/web"
-CONDA="${MQMQA_CONDA:-C:/Users/busta/miniforge3/Scripts/conda.exe}"
+CONDA="${MQMQA_CONDA:-${USERPROFILE:-$HOME}/miniforge3/Scripts/conda.exe}"
 # The conda-forge emscripten config looks for node under Library/bin, but the
 # nodejs package installs it in the env root; point NODE_JS at the real binary.
-export NODE_JS="${NODE_JS:-C:/Users/busta/miniforge3/envs/wasm/node.exe}"
+export NODE_JS="${NODE_JS:-${USERPROFILE:-$HOME}/miniforge3/envs/wasm/node.exe}"
 mkdir -p "$OUT"
 
 # Export exactly the public API (every MQMQA_API declaration), plus malloc/free for

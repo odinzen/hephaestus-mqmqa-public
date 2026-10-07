@@ -1791,7 +1791,7 @@ function pdEnd(varyIon, commonIon){
 }
 
 // Composition of stoichiometric compound i as {elementSymbol: amount}, read straight from
-// the database. These files name compounds by mineral (WUSTITE, PERICLASE, CRISTOBALITE),
+// the database. These files name compounds by mineral (CRISTOBALITE, LIME, LARNITE),
 // not by formula, so the composition must come from the data, not from parsing the name.
 function pdStoichComp(i){
   const M=api.M, nEl=api.nEl(db), buf=M._malloc(nEl*8);
@@ -1816,7 +1816,43 @@ function pdDiscretes(endA, endB){
     if(Math.abs((c[common]||0)-reqCommon)>1e-6) continue;
     // A stoichiometric compound is a solid unless its name marks it liquid: some files write
     // "(s)"/"(l)" suffixes, but plain names (CRISTOBALITE, Ca3Al2O6) are solids.
-    out.push({xi:n1/units, units, name, idx:i, solid:!/\(l\)|\(liq\)|liquid/i.test(name)});
+    out.push({xi:n1/units, units, name, idx:i, solid:!/\(l\)|\(liq\)|liquid/i.test(name),
+              g:T=>api.stG(db,i,T)});
+  }
+  return out.concat(pdCefEnds(endA,endB));
+}
+
+// End members of CEF solutions that sit on the join as points: wustite in (Fe,Mg)O on FeO-SiO2,
+// fayalite in olivine, ferrosilite in orthopyroxene. pdCefOnJoin only takes solutions that mix
+// the two varying elements, so without these a join whose end solid lives inside a solution
+// (magnesiowustite since 2026-09-30) showed liquid down to any temperature at that end.
+function pdCefEnds(endA,endB){
+  const out=[], varyA=endA.vary, varyB=endB.vary, common=endA.common;
+  const joinEls=new Set([varyA,varyB,common]), near=x=>Math.abs(x-Math.round(x))<1e-6;
+  for(let p=0;p<api.nPh(db);p++){
+    if(api.phaseKind(db,p)!==1) continue;
+    const ns=api.cefNumSubl(db,p);
+    const nb=api.M._malloc(ns*4); api.cefSublNcon(db,p,nb); const ncon=readI(nb,ns); api.M._free(nb);
+    const sb=api.M._malloc(ns*8); api.cefSiteRatio(db,p,sb); const ratio=readD(sb,ns); api.M._free(sb);
+    const cons=[]; for(let q=0;q<ns;q++){ const row=[]; for(let i=0;i<ncon[q];i++) row.push(api.cefCon(db,p,q,i)); cons.push(row); }
+    const ntot=ncon.reduce((a,b)=>a+b,0), name=api.phName(db,p);
+    const pick=new Array(ns).fill(0);
+    for(;;){
+      const c={}; for(let q=0;q<ns;q++){ const e=cons[q][pick[q]]; if(e!=='VA') c[e]=(c[e]||0)+ratio[q]; }
+      const els=Object.keys(c);
+      if(els.length && els.every(e=>joinEls.has(e))){
+        const aA=c[varyA]||0, aB=c[varyB]||0, dA=endA.els[varyA], dB=endB.els[varyB];
+        const n0=Math.round(aA/dA), n1=Math.round(aB/dB), units=n0+n1;
+        if(near(aA/dA) && near(aB/dB) && units>0 &&
+           Math.abs((c[common]||0)-(n0*endA.els[common]+n1*endB.els[common]))<1e-6){
+          const Yp=api.M._malloc(ntot*8); let off=0;
+          for(let q=0;q<ns;q++) for(let i=0;i<ncon[q];i++) api.M.setValue(Yp+8*(off++), i===pick[q]?1:0, 'double');
+          out.push({xi:n1/units, units, name, solid:!/liq/i.test(name), g:T=>api.cefG(db,p,Yp,T,0)});
+        }
+      }
+      let q=0; while(q<ns && ++pick[q]===ncon[q]){ pick[q]=0; q++; }
+      if(q===ns) break;
+    }
   }
   return out;
 }
@@ -1898,7 +1934,7 @@ function pdMelts(disc){
   const out=[];
   for(const s of disc.filter(d=>d.solid)){
     const l=disc.find(d=>!d.solid && Math.abs(d.xi-s.xi)<1e-6); if(!l) continue;
-    const f=T=>api.stG(db,s.idx,T)/s.units - api.stG(db,l.idx,T)/l.units;
+    const f=T=>s.g(T)/s.units - l.g(T)/l.units;
     let lo=200, hi=6000; if(f(lo)*f(hi)>0) continue;
     for(let it=0;it<70;it++){ const m=0.5*(lo+hi); if(f(lo)*f(m)<=0) hi=m; else lo=m; }
     out.push({xi:s.xi, T:0.5*(lo+hi), solid:s.name, liquid:l.name});
@@ -1913,7 +1949,7 @@ function pdEndMeltT(comps, endA, endB, disc){
   for(const xiEnd of [0,1]){
     const sol=disc.find(d=>d.solid && Math.abs(d.xi-xiEnd)<1e-6); if(!sol) continue;
     const xq = xiEnd<0.5?PD_FLOOR:1-PD_FLOOR;
-    const f=T=> api.stG(db,sol.idx,T)/sol.units - pdLiquidG(comps,endA,endB,xq,T)*pdAtoms(endA,endB,xq);
+    const f=T=> sol.g(T)/sol.units - pdLiquidG(comps,endA,endB,xq,T)*pdAtoms(endA,endB,xq);
     let lo=250, hi=6000, flo=f(lo); if(flo*f(hi)>0) continue;
     for(let it=0;it<44;it++){ const m=0.5*(lo+hi), fm=f(m); if(flo*fm<=0) hi=m; else { lo=m; flo=fm; } }
     out.push({xi:xiEnd, T:0.5*(lo+hi), solid:sol.name});
@@ -1954,7 +1990,7 @@ function pdBuildHull(pts){
 function pdColumn(comps,endA,endB,disc,T,xiCells,cefs){
   const aps=xi=>pdAtoms(endA,endB,xi);
   const liqPt=xi=>[xi, pdLiquidG(comps,endA,endB,xi,T)*aps(xi), 'liq', 'LIQUID'];
-  const discPts=disc.map(d=>[d.xi, api.stG(db,d.idx,T)/d.units, d.solid?'sol':'liq', d.name])
+  const discPts=disc.map(d=>[d.xi, d.g(T)/d.units, d.solid?'sol':'liq', d.name])
     .concat(cefs&&cefs.length?pdCefPoints(cefs,T,120):[]);
 
   const coarse=[]; const nC=64;
@@ -2260,7 +2296,7 @@ function scheilPointsAt(T, ctx2){
   const n=110;
   for(let k=0;k<n;k++){ const xi=PD_FLOOR+(1-2*PD_FLOOR)*k/(n-1);
     pts.push([xi, pdLiquidG(comps,endA,endB,xi,T)*aps(xi), 'liq', 'LIQUID']); }
-  for(const d of disc) pts.push([d.xi, api.stG(db,d.idx,T)/d.units, d.solid?'sol':'liq', d.name]);
+  for(const d of disc) pts.push([d.xi, d.g(T)/d.units, d.solid?'sol':'liq', d.name]);
   if(cefs&&cefs.length) pts.push(...pdCefPoints(cefs,T,110));
   return pts;
 }
@@ -2822,7 +2858,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
   const yBase=H-PAD, apexY=yBase-S*HT;
   const M={FeO:71.844,MgO:40.304,SiO2:60.083};
   const PHASE_FILL={CRISTOBALITE:'#9aa0a6',OLIVINE:'#3a8f5a',ORTHOPYROXENE:'#3fb0a0',
-                    PERICLASE:'#6f6ad6',WUSTITE:'#d64b4b'};
+                    MAGNESIOWUSTITE:'#b0694f'};
   const ISO={1400:'#5b8fd0',1500:'#4cae8f',1600:'#3a8f5a',1700:'#d15450'};
   const B36="0123456789abcdefghijklmnopqrstuvwxyz";
   const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
@@ -2885,7 +2921,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
         placed.push(best);
         ctx.fillStyle=css('--card');ctx.strokeStyle=css('--card');ctx.lineWidth=4;
         ctx.font='700 13px '+css('--font-mono');ctx.textAlign='center';ctx.textBaseline='middle';
-        const iso=String(Math.round(window.kToU(it.degC+273.15))); ctx.strokeText(iso,best[0],best[1]); ctx.fillStyle=ISO[it.degC]; ctx.fillText(iso,best[0],best[1]); } }
+        const iso=String(Math.round(window.kToU(it.degC+273.15))); ctx.strokeText(iso,best[0],best[1]); ctx.fillStyle=ISO[it.degC]||css('--brand'); ctx.fillText(iso,best[0],best[1]); } }
     frame();
   }
   function legendProjection(){ legEl.innerHTML='';
@@ -2962,7 +2998,8 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
   const W=cv.width,H=cv.height,PAD=46,S=W-2*PAD,HT=Math.sqrt(3)/2,yBase=H-PAD,apexY=yBase-S*HT;
   const FILL={OLIVINE:'#3a8f5a',ORTHOPYROXENE:'#3fb0a0',CLINOPYROXENE:'#4f8fd8',
               WOLLASTONITE:'#cf5f9c',LARNITE:'#9a5fc8',
-              CRISTOBALITE:'#9aa0a6',LIME:'#aab6c2',PERICLASE:'#6f6ad6',WUSTITE:'#d64b4b'};
+              RANKINITE:'#c78f3a',HATRURITE:'#7c7f3a',
+              CRISTOBALITE:'#9aa0a6',LIME:'#aab6c2',MAGNESIOWUSTITE:'#b0694f'};
   const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   const cap=s=>s.charAt(0)+s.slice(1).toLowerCase();
   let data=null;

@@ -549,8 +549,8 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
     <h2>Steel-slag crystallization &middot; CaO&ndash;MgO&ndash;SiO<sub>2</sub> at FeO 5 mol%<span class="tern-badge">assessed</span></h2>
     <p class="tern-note">Which silicate crystallizes first from the calibrated CaO&ndash;FeO&ndash;MgO&ndash;SiO<sub>2</sub>
       slag melt, and at what temperature. The liquid, the olivine / orthopyroxene / clinopyroxene solid
-      solutions and the oxide solids sit on one calibrated scale (diopside melts at 1670&nbsp;K,
-      forsterite at 2163&nbsp;K); the multi-phase equilibrium is precomputed and validated against
+      solutions and the oxide solids sit on one calibrated scale (diopside melts at 1673&nbsp;K,
+      forsterite at 2080&nbsp;K, 83&nbsp;K below the measured value); the multi-phase equilibrium is precomputed and validated against
       pycalphad. Mafic melts crystallize olivine, calcium-rich melts crystallize clinopyroxene. Move
       over the diagram to read a composition, its primary phase and the liquidus. Like the section
       above, this is a precomputed showcase of the built-in slag database only, not generated for
@@ -571,7 +571,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       built-in demos; otherwise pick a demo. Press <b>Compute</b>, then hover to read a composition and
       its stable phases. The built-in iron&ndash;magnesium slag reproduces the assessed section above
       (validated against pycalphad), and the lime&ndash;alumina&ndash;silica demo is anchored to 45
-      published KEMS activities. A live section is a touch coarser at the field boundaries because it is
+      published silica activities (Knudsen effusion and gas equilibrium). A live section is a touch coarser at the field boundaries because it is
       sampled on the fly.</p>
     <div class="tern-ctl">
       <label>System
@@ -989,6 +989,7 @@ Hephaestus().then(M => {
     gasRNote: M.cwrap('mqmqa_gas_R_note','string',['number']),
     phaseKind: M.cwrap('mqmqa_db_phase_kind','number',['number','number']),
     cefG:   M.cwrap('mqmqa_ph_cef_gibbs','number',['number','number','number','number','number']),
+    cefLine: M.cwrap('mqmqa_ph_cef_line_gibbs','number',['number','number','number','number','number','number']),
     cefNumSubl: M.cwrap('mqmqa_ph_cef_num_subl','number',['number','number']),
     cefSublNcon: M.cwrap('mqmqa_ph_cef_subl_ncon',null,['number','number','number']),
     cefSiteRatio: M.cwrap('mqmqa_ph_cef_site_ratio',null,['number','number','number']),
@@ -1931,8 +1932,10 @@ function pdEndMeltT(comps, endA, endB, disc){
   const out=[];
   for(const xiEnd of [0,1]){
     const sol=disc.find(d=>d.solid && Math.abs(d.xi-xiEnd)<1e-6); if(!sol) continue;
-    const xq = xiEnd<0.5?PD_FLOOR:1-PD_FLOOR;
-    const f=T=> sol.g(T)/sol.units - pdLiquidG(comps,endA,endB,xq,T)*pdAtoms(endA,endB,xq);
+    // the pure liquid, solved with only this end's ions: a liquid held off the end at PD_FLOOR
+    // carries the other oxide's energy, which put pure SiO2's marker 100-170 K too high
+    const end = xiEnd<0.5?endA:endB, own=[comps[xiEnd<0.5?0:1], comps[2]];
+    const f=T=> sol.g(T)/sol.units - solveEquilibrium(buildInputs(own,T), {...end.els}).GM*end.atoms;
     let lo=250, hi=6000, flo=f(lo); if(flo*f(hi)>0) continue;
     for(let it=0;it<44;it++){ const m=0.5*(lo+hi), fm=f(m); if(flo*fm<=0) hi=m; else { lo=m; flo=fm; } }
     out.push({xi:xiEnd, T:0.5*(lo+hi), solid:sol.name});
@@ -3206,13 +3209,16 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
       els:['FE','MG','SI','O'], cats:['MG','FE','SI'], oxy:{FE:1,MG:1,SI:2},
       corners:['MgO','FeO','SiO₂'], mass:{A:40.304,B:71.844,C:60.084},
       tmin:1573, tmax:2073, tdef:1873,   // Kelvin
-      cef(sys,pts,phName,T){ const M=api.M, Yp=M._malloc(32);
-        for(let k=0;k<=80;k++){ const xFe=1e-4+(1-2e-4)*k/80;
-          M.setValue(Yp,xFe,'double');M.setValue(Yp+8,1-xFe,'double');
-          M.setValue(Yp+16,1,'double');M.setValue(Yp+24,1,'double');
-          pts.push([2*xFe/3,1/3, api.cefG(sys.TDB,sys.OLV,Yp,T,0)/3]); phName.push('OLIVINE');
-          pts.push([xFe/2,1/2, api.cefG(sys.TDB,sys.OPX,Yp,T,0)/4]); phName.push('ORTHOPYROXENE'); }
-        M._free(Yp); } },
+      // each Fe-Mg solution along its line, per mole of cations; the line function takes the
+      // two-site orthopyroxene at its internal order. [phase, name, cations, of which Si]
+      cef(sys,pts,phName,T){
+        for(const [p,name,nc,nsi] of [[sys.OLV,'OLIVINE',3,1],[sys.OPX,'ORTHOPYROXENE',4,2],
+                                      [sys.MW,'MAGNESIOWUSTITE',1,0]]){
+          if(p==null) continue;
+          const mgSecond=api.cefCon(sys.TDB,p,0,1)==='MG';
+          for(let k=0;k<=80;k++){ const xFe=1e-4+(1-2e-4)*k/80;
+            const g=api.cefLine(sys.TDB,p,mgSecond?1-xFe:xFe,T,0,0); if(!isFinite(g)) continue;
+            pts.push([xFe*(nc-nsi)/nc, nsi/nc, g/nc]); phName.push(name); } } } },
     cas:{ dat:'./CaO-Al2O3-SiO2.dat', liquid:'CAO-ALO1.5-SIO2-LIQUID',
       els:['CA','AL','SI','O'], cats:['CA','AL','SI'], oxy:{CA:1,AL:1.5,SI:2},
       corners:['CaO','Al₂O₃','SiO₂'], mass:{A:56.077,B:50.9805,C:60.084},
@@ -3260,7 +3266,8 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     return fetch(sys.dat).then(r=>r.text()).then(txt=>{
       sys.TDB=api.read(txt); if(api.error()) throw new Error(api.error());
       for(let p=0;p<api.nPh(sys.TDB);p++){ const nm=api.phName(sys.TDB,p);
-        if(nm===sys.liquid)sys.LIQ=p; if(nm==='OLIVINE')sys.OLV=p; if(nm==='ORTHOPYROXENE')sys.OPX=p; }
+        if(nm===sys.liquid)sys.LIQ=p; if(nm==='OLIVINE')sys.OLV=p; if(nm==='ORTHOPYROXENE')sys.OPX=p;
+        if(nm==='MAGNESIOWUSTITE')sys.MW=p; }
       // stoichiometric compounds: position and per-cation Gibbs from element stoichiometry
       const nel=api.nEl(sys.TDB), els=[]; for(let e=0;e<nel;e++) els.push(api.el(sys.TDB,e));
       const iA=els.indexOf(sys.cats[0]), iB=els.indexOf(sys.cats[1]), iC=els.indexOf(sys.cats[2]);
@@ -3951,7 +3958,8 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
 /* Coupling readout, two modes chosen by the loaded chemistry.
    Oxide slag: the FeO activity of the assessed FeO-SiO2 slag and the equilibrium CO2/CO and oxygen
    pressure, precomputed by the validated engine (python/mqmqa/gas_slag.py: activity from the MQMQA
-   solver, oxygen potential from the gas engine) at two steelmaking temperatures. Validated to under
+   solver on data/feo-sio2/FeO-SiO2-liquid.dat, oxygen potential from the gas engine) at two
+   steelmaking temperatures; regenerate when that liquid changes. Validated to under
    a percent against Cantera.
    Chloride flux: the fume partial pressure of each salt, p_i = a_i * p_i^o. The activities a_i are
    the validated engine output (python/mqmqa/gas_flux.py: partial molar on the C equilibrium solver,
@@ -3962,8 +3970,8 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
    activity far below its mole fraction. Precomputed and read back here, like the oxide showcase. */
 (function(){
   // Oxide slag mode. rows: [x_SiO2, a_FeO, CO2/CO, log10 pO2]
-  const SG = {"1873":[[0.02,0.9795,0.1099,-8.66],[0.051,0.9458,0.1061,-8.69],[0.082,0.9101,0.1021,-8.73],[0.114,0.8728,0.0979,-8.76],[0.145,0.8343,0.0936,-8.8],[0.176,0.7949,0.0892,-8.84],[0.207,0.7551,0.0847,-8.89],[0.238,0.7152,0.0802,-8.93],[0.269,0.6755,0.0758,-8.98],[0.301,0.6363,0.0714,-9.04],[0.332,0.5978,0.0671,-9.09],[0.363,0.5601,0.0628,-9.15],[0.394,0.5235,0.0587,-9.21],[0.425,0.4879,0.0547,-9.27],[0.456,0.4535,0.0509,-9.33],[0.488,0.4202,0.0471,-9.4],[0.519,0.388,0.0435,-9.47],[0.55,0.3569,0.04,-9.54]],
-    "1973":[[0.02,0.9796,0.1023,-7.94],[0.051,0.9463,0.0988,-7.97],[0.082,0.9116,0.0952,-8.0],[0.114,0.8756,0.0915,-8.03],[0.145,0.8388,0.0876,-8.07],[0.176,0.8013,0.0837,-8.11],[0.207,0.7636,0.0798,-8.15],[0.238,0.7258,0.0758,-8.2],[0.269,0.6881,0.0719,-8.24],[0.301,0.6509,0.068,-8.29],[0.332,0.6141,0.0641,-8.34],[0.363,0.578,0.0604,-8.4],[0.394,0.5426,0.0567,-8.45],[0.425,0.508,0.0531,-8.51],[0.456,0.4742,0.0495,-8.57],[0.488,0.4413,0.0461,-8.63],[0.519,0.4092,0.0427,-8.7],[0.55,0.3779,0.0395,-8.76]]};
+  const SG = {"1873":[[0.02,0.9777,0.1097,-8.66],[0.051,0.936,0.105,-8.7],[0.082,0.8901,0.0999,-8.74],[0.114,0.8423,0.0945,-8.79],[0.145,0.7975,0.0895,-8.84],[0.176,0.7546,0.0846,-8.89],[0.207,0.7134,0.08,-8.94],[0.238,0.673,0.0755,-8.99],[0.269,0.633,0.071,-9.04],[0.301,0.5918,0.0664,-9.1],[0.332,0.5525,0.062,-9.16],[0.363,0.5141,0.0577,-9.22],[0.394,0.4777,0.0536,-9.29],[0.425,0.4441,0.0498,-9.35],[0.456,0.4141,0.0464,-9.41],[0.488,0.3875,0.0435,-9.47],[0.519,0.3665,0.0411,-9.52],[0.55,0.3504,0.0393,-9.55]],
+    "1973":[[0.02,0.9779,0.1021,-7.94],[0.051,0.9379,0.098,-7.97],[0.082,0.895,0.0935,-8.02],[0.114,0.8512,0.0889,-8.06],[0.145,0.8107,0.0847,-8.1],[0.176,0.7722,0.0807,-8.14],[0.207,0.7352,0.0768,-8.19],[0.238,0.6988,0.073,-8.23],[0.269,0.6623,0.0692,-8.28],[0.301,0.6243,0.0652,-8.33],[0.332,0.5875,0.0614,-8.38],[0.363,0.5511,0.0576,-8.44],[0.394,0.516,0.0539,-8.49],[0.425,0.4831,0.0505,-8.55],[0.456,0.4532,0.0473,-8.61],[0.488,0.4262,0.0445,-8.66],[0.519,0.4045,0.0423,-8.71],[0.55,0.3875,0.0405,-8.74]]};
   // Chloride flux fume (bar): partial pressure of each salt over the NaCl-KCl-MgCl2 = 40/40/20
   // mol% flux, p_i = a_i * p_i^o. Activities a_i are the validated engine output (python/mqmqa/
   // gas_flux.py: partial molar on the C equilibrium solver, pure limit and NaCl-KCl binary

@@ -73,6 +73,9 @@ def _pyc(dbf, x_fe, x_si, T):
     return phases, float(eq.GM.values.squeeze())
 
 
+# Checked at 1560 K. Since the 2026-10-07 MgO-SiO2 refit, pycalphad puts about 4% liquid at
+# (0.20, 0.30) at 1600 K, so the two-solid answer there tested the fit, not the minimizer.
+# At 1560 K pycalphad on the same file gives these phase sets at all five points.
 INTERIOR = [
     (0.20, 0.30, {"OLIVINE", "MAGNESIOWUSTITE"}),
     (0.12, 0.46, {"OLIVINE", "ORTHOPYROXENE"}),
@@ -104,7 +107,7 @@ def test_minimizer_assemblages_match_pycalphad():
     td = _load("td", DDIR / "ternary_diagram.py")
     bc.build()
     dbf = Database(str(DDIR / "FeO-MgO-SiO2-combined.dat"))
-    T = 1600.0
+    T = 1560.0
     pts, facets = td.build(T, nsamp=8000, n_cef=161)
     for x_fe, x_si, expected in INTERIOR:
         our_ph, our_gm = _our(pts, facets, x_fe, x_si)

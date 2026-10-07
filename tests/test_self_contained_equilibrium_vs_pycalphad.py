@@ -21,6 +21,9 @@ from mqmqa._abi import _ffi, _lib                       # noqa: E402
 _ffi.cdef("int mqmqa_equilibrium_ternary(const void*,int,const int*,int,double,int,int,"
           "int,int,double,double,int*,double*,int,double*);", override=True)
 
+# Checked at 1560 K. Since the 2026-10-07 MgO-SiO2 refit, pycalphad puts about 4% liquid at
+# (0.20, 0.30) at 1600 K, so the two-solid answer there tested the fit, not the minimizer.
+# At 1560 K pycalphad on the same file gives these phase sets at all five points.
 INTERIOR = [
     (0.20, 0.30, {"OLIVINE", "MAGNESIOWUSTITE"}),
     (0.12, 0.46, {"OLIVINE", "ORTHOPYROXENE"}),
@@ -53,8 +56,10 @@ def test_self_contained_c_equilibrium_matches_pycalphad():
                for e in range(_lib.mqmqa_db_num_elements(cdb))]
         iFE, iSI = els.index("FE"), els.index("SI")
         liq = _lib.mqmqa_db_phase_index(cdb, b"FEO-MGO-SIO2-LIQUID")
-        cefs = _ffi.new("int[]", [_lib.mqmqa_db_phase_index(cdb, b"OLIVINE"),
-                                  _lib.mqmqa_db_phase_index(cdb, b"ORTHOPYROXENE")])
+        # magnesiowustite is a CEF solution since 2026-09-30, no longer a pair of oxides
+        cefs = _ffi.new("int[]", [_lib.mqmqa_db_phase_index(cdb, n)
+                                  for n in (b"OLIVINE", b"ORTHOPYROXENE", b"MAGNESIOWUSTITE")])
+        assert min(cefs) >= 0
 
         def tagname(t):
             if t >= 0:
@@ -63,7 +68,7 @@ def test_self_contained_c_equilibrium_matches_pycalphad():
 
         for x_fe, x_si, expected in INTERIOR:
             po = _ffi.new("int[]", 8); am = _ffi.new("double[]", 8); gm = _ffi.new("double[]", 1)
-            m = _lib.mqmqa_equilibrium_ternary(cdb, liq, cefs, 2, 1600.0, 120, 60,
+            m = _lib.mqmqa_equilibrium_ternary(cdb, liq, cefs, 3, 1560.0, 120, 60,
                                                iFE, iSI, x_fe, x_si, po, am, 8, gm)
             assert m > 0
             cset = {tagname(po[k]) for k in range(m) if am[k] > 1e-3}
@@ -75,7 +80,7 @@ def test_self_contained_c_equilibrium_matches_pycalphad():
             eq = equilibrium(dbf, ["FE", "MG", "SI", "O"],
                              ["FEO-MGO-SIO2-LIQUID", "OLIVINE", "ORTHOPYROXENE",
                               "MAGNESIOWUSTITE", "CRISTOBALITE"],
-                             {v.T: 1600.0, v.P: 1e5, v.N: 1,
+                             {v.T: 1560.0, v.P: 1e5, v.N: 1,
                               v.X("FE"): x_fe / tot, v.X("MG"): x_mg / tot, v.X("SI"): x_si / tot})
             pset = {_key(str(p)) for p in np.ravel(eq.Phase.values.squeeze())
                     if str(p) and str(p) != "nan"}

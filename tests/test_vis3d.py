@@ -500,7 +500,12 @@ def test_gibbs_surfaces_against_equilibrium(fms):
     k = int(np.floor((2.0 / 3.0 - x_fe_liq) * 30))
     liquid_side, solid_side = (round(k / 30, 9), round(1 / 3, 9)), (round((k + 1) / 30, 9), round(1 / 3, 9))
     assert 1 - k / 30 - 1 / 3 > x_fe_liq > 1 - (k + 1) / 30 - 1 / 3
-    assert height[liquid_side] == 0.0 and height[solid_side] > 1.0
+    # The height grows about as the square of the distance past the liquid end, so how high the
+    # first node sits depends on where the tie-line ends in its lattice cell (0.003 in x_Fe short
+    # of it since the 2026-10-07 refit: 0.24 J, then 47 J one node on). Positive, then climbing.
+    beyond = [height[(round((k + j) / 30, 9), round(1 / 3, 9))] for j in (1, 2, 3)]
+    assert height[liquid_side] == 0.0 and height[solid_side] == beyond[0]
+    assert 0.0 < beyond[0] < beyond[1] < beyond[2] and beyond[1] > 1.0, beyond
 
 
 def test_gibbs_surfaces_against_the_pure_components(fms):

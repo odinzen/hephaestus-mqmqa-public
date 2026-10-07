@@ -23,6 +23,9 @@ _ffi.cdef("int mqmqa_lower_hull_2d(const double*,int,int*,int);"
           "int mqmqa_hull_assemblage_2d(const double*,int,const int*,int,double,double,"
           "int*,double*,double*);", override=True)
 
+# Checked at 1560 K. Since the 2026-10-07 MgO-SiO2 refit, pycalphad puts about 4% liquid at
+# (0.20, 0.30) at 1600 K, so the two-solid answer there tested the fit, not the minimizer.
+# At 1560 K pycalphad on the same file gives these phase sets at all five points.
 INTERIOR = [
     (0.20, 0.30, {"OLIVINE", "MAGNESIOWUSTITE"}),
     (0.12, 0.46, {"OLIVINE", "ORTHOPYROXENE"}),
@@ -50,7 +53,7 @@ def test_c_hull_assemblage_matches_pycalphad():
     td = _load("td", DDIR / "ternary_diagram.py")
     bc.build()
     dbf = Database(str(DDIR / "FeO-MgO-SiO2-combined.dat"))
-    T = 1600.0
+    T = 1560.0
     pts, _ = td.build(T, nsamp=8000, n_cef=161)
     n = len(pts)
     flat = _ffi.new("double[]", [c for p in pts for c in (p.x_fe, p.x_si, p.g)])

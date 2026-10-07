@@ -34,6 +34,9 @@ _ffi.cdef("""
   int tq_stable_phase(const void*, int, double*);
 """, override=True)
 
+# Checked at 1560 K. Since the 2026-10-07 MgO-SiO2 refit, pycalphad puts about 4% liquid at
+# (0.20, 0.30) at 1600 K, so the two-solid answer there tested the fit, not the minimizer.
+# At 1560 K pycalphad on the same file gives these phase sets at all five points.
 INTERIOR = [(0.20, 0.30), (0.12, 0.46), (0.06, 0.52), (0.30, 0.10), (0.08, 0.12)]
 
 
@@ -67,7 +70,7 @@ def test_tq_interface_matches_pycalphad():
             O = x_fe + x_mg + 2 * x_si
             amt = _ffi.new("double[]", len(comps))
             amt[iFE] = x_fe; amt[iMG] = x_mg; amt[iSI] = x_si; amt[iO] = O
-            _lib.tq_set_TP(ctx, 1600.0, 101325.0)
+            _lib.tq_set_TP(ctx, 1560.0, 101325.0)
             _lib.tq_set_composition(ctx, amt)
             assert _lib.tq_compute_equilibrium(ctx) == 0, _ffi.string(_lib.tq_error(ctx)).decode()
             am = _ffi.new("double[]", 1)
@@ -82,7 +85,7 @@ def test_tq_interface_matches_pycalphad():
             eq = equilibrium(dbf, ["FE", "MG", "SI", "O"],
                              ["FEO-MGO-SIO2-LIQUID", "OLIVINE", "ORTHOPYROXENE",
                               "MAGNESIOWUSTITE", "CRISTOBALITE"],
-                             {v.T: 1600.0, v.P: 1e5, v.N: 1,
+                             {v.T: 1560.0, v.P: 1e5, v.N: 1,
                               v.X("FE"): x_fe / tot, v.X("MG"): x_mg / tot, v.X("SI"): x_si / tot})
             pset = {_key(str(p)) for p in np.ravel(eq.Phase.values.squeeze())
                     if str(p) and str(p) != "nan"}

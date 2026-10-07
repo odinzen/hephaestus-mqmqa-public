@@ -92,11 +92,13 @@ def test_three_phase_triangle_and_opx_appear():
     T = 1800.0
     pts, facets = td.build(T, nsamp=4000)
 
-    # a low-silica bulk between olivine and magnesiowustite gives liquid + olivine +
-    # magnesiowustite (3 phases)
-    asm = tern.assemblage(pts, facets, 0.40, 0.20)
+    # a low-silica bulk between olivine and magnesiowustite sits in the liquid + olivine +
+    # magnesiowustite triangle; pycalphad on the same file is the reference (it gives about
+    # 0.41 / 0.24 / 0.35 here, so no phase is near the edge of the triangle)
+    asm = tern.assemblage(pts, facets, 0.30, 0.14)
     phases = {ph for ph, amt, xf, xs in asm if amt > 1e-3}
-    assert phases == {"LIQUID", "OLIVINE", "MAGNESIOWUSTITE"}, phases
+    ref = {"LIQUID" if "LIQUID" in ph else ph for ph in _pycalphad_olivine_tieline(T, 0.30, 0.14)}
+    assert len(ref) == 3 and phases == ref, (phases, ref)
     assert abs(sum(amt for _, amt, _, _ in asm) - 1.0) < 1e-6  # lever rule
 
     # a Mg-rich composition near the enstatite point (below its ~1830 K peritectic) brings

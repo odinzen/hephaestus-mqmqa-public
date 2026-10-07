@@ -229,7 +229,8 @@ Reproduce with `v03_fit.py` (which also writes the .dat); it is the v0.3 fit + v
 - Stable across the whole join (no spurious miscibility gap); a(CaO), a(SiO2) monotonic and
   below 1 in the single-phase melt.
 - MLIP phonon spot-check: solid S298 for pseudowollastonite = 94 J/mol/K (vs Haas
-  wollastonite 81, our estimate 85) - the estimated solid entropies are confirmed reasonable
+  wollastonite 81, our estimate 85; the polymorphs differ, and pseudowollastonite is the
+  higher-entropy form, so the like-for-like gap is smaller than 13 J/K) - the estimated solid entropies are confirmed reasonable
   (~within 10 J/K), so they are NOT the source of the phase-diagram error.
 
 ### Honest limitations (what v0.3 is NOT)

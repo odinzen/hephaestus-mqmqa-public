@@ -46,6 +46,10 @@ W_BASIC = 3.0                    # a lime-side gap is unphysical: weighted above
 W_NOGAP = next((float(a.split("=", 1)[1]) for a in sys.argv if a.startswith("--wgap=")), 1.0)
 SIG_KT, SIG_STOL = 0.10, 0.50    # ln a; Stolyarova is the documented outlier (fit_excess)
 MLIP_DH, SIG_DH = -58000.0, 6000.0   # dH_mix at x=0.5, 1900 K (v03_fit.py), soft
+# Overrides for testing the anchor (MLIP audit 2026-10-07: the 9 kJ MatterSim formation bias
+# is per CaSiO3, two oxide units, and was applied in full to a per-oxide-unit dH_mix).
+MLIP_DH = float(os.environ.get("CAO_SIO2_MLIP_DH", MLIP_DH))
+SIG_DH = float(os.environ.get("CAO_SIO2_SIG_DH", SIG_DH))
 SIG_RANK = 10000.0               # R&H uncertainty of rankinite dHf
 # --cao-beta: the supercooled CaO(l) slope (build_dat.CAO_LIQ_BETA) joins the fit as the last
 # parameter, under the same 0 +- 5 J/K prior the MgO(l) slope carries

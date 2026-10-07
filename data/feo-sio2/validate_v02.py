@@ -1,5 +1,9 @@
 """Validate the fitted FeO-SiO2 v0.2 liquid (the excess, not just the endmembers).
 
+Historical: v0.2 was fitted to bias-corrected MLIP anchors. The shipped v0.4 is fitted to
+measured activities and the phase diagram (assessment/assess.py), and check 2 below no
+longer describes it.
+
 Loads the WRITTEN FeO-SiO2-liquid.dat (so the fitted excess round-trips through the .dat
 and the C reader) and checks:
   1. fayalite Fe2SiO4 CONGRUENT melting reproduces ~1478 K (Bowen & Schairer 1932).

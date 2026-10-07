@@ -18,5 +18,10 @@ Independent cross-checks behind the v0.2 excess (see ../PROVENANCE.md). Run in t
   from MgO-SiO2 (see PROVENANCE.md), which the measured fayalite congruent melting (1478 K)
   independently corroborates. A converged MD (GPU / faster CPU) is a v0.3 refinement.
 
+Two cautions if this is reused. mlip_hf.py references stoichiometric JANAF FeO (fayalite
+dHf_ox -23.41 kJ), but the database uses iron-saturated wustite Fe0.947O + 0.053 Fe (about
+-25.7 kJ), a 2.3 kJ mismatch. And MatterSim over-binds fayalite about twofold (-47.6 against
+-23.4 kJ). Neither number is consumed by the shipped v0.4.
+
 Foundation MLIP (MatterSim) and its weights are open; CIFs are open (COD, CC0). No
 proprietary content.

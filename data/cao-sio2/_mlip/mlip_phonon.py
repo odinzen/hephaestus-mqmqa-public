@@ -1,7 +1,8 @@
 """MLIP phonon entropy/heat-capacity of the Ca-silicates (finite displacement,
-MatterSim forces via phonopy). Replaces the estimated S298 / Neumann-Kopp Cp used
-in the phase-diagram solids. Phonon frequencies (curvature) are more robust to the
-MLIP's CaO-rich binding bias than formation energies, so S/Cp should be reliable.
+MatterSim forces via phonopy). A spot-check of the estimated S298 / Neumann-Kopp Cp of
+the phase-diagram solids; its values were not adopted (phase_diagram.py keeps 85.2 for
+pseudowollastonite). Phonon frequencies (curvature) are more robust to the MLIP's CaO-rich
+binding bias than formation energies, so S/Cp should be reliable.
 """
 import warnings; warnings.filterwarnings("ignore")
 import numpy as np

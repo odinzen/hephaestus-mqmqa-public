@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+message: "If you use Hephaestus, please cite it using the metadata below."
+title: "Hephaestus: an in-browser open-source engine and databases for the thermodynamics and phase diagrams of slags, molten salts, and alloys"
+type: software
+authors:
+  - given-names: Michael E.
+    family-names: Bustamante
+    affiliation: "Odinzen LLC, Houston, TX, United States"
+    orcid: "https://orcid.org/0009-0009-9001-8151"
+    email: michaelbusta@odinzen.io
+  - given-names: Gabriel
+    family-names: Bustamante
+    affiliation: "Odinzen LLC, Houston, TX, United States"
+    orcid: "https://orcid.org/0009-0005-3269-024X"
+repository-code: "https://github.com/odinzen/hephaestus-mqmqa-public"
+url: "https://odinzen.github.io/hephaestus-mqmqa-public/"
+license:
+  - AGPL-3.0-only
+  - CC-BY-SA-4.0
+abstract: >-
+  Hephaestus is a C engine with Python and WebAssembly front ends for the Modified
+  Quasichemical Model in the Quadruplet Approximation (MQMQA) and the Compound Energy
+  Formalism, with open databases for oxide slags, molten salts, and alloys. It reads and
+  writes FactSage-style .dat, Thermo-Calc .tdb, unified .utdb, and XTDB files, computes
+  equilibria and phase diagrams, and runs entirely in the browser. The engine is licensed
+  AGPL-3.0-only and the databases CC BY-SA 4.0.
+keywords:
+  - CALPHAD
+  - MQMQA
+  - modified quasichemical model
+  - slag
+  - molten salt
+  - phase diagram
+  - thermodynamics

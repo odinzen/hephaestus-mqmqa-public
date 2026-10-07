@@ -87,7 +87,7 @@ void vis3d_default_options(VisOptions *opt)
     opt->t_tol = 1.0;
     opt->z_per_kelvin = 1e-3;
     opt->seed = 0;
-    opt->max_refine = 16;
+    opt->max_refine = 32;
     opt->z_per_joule = 1e-5;
 }
 

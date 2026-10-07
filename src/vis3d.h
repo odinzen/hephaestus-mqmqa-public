@@ -59,7 +59,7 @@ typedef struct {
     double   z_per_joule;  /* display scale for a Gibbs energy (J per mole of cations) */
 } VisOptions;
 
-/* Defaults: lattice_n 60, x_tol 1e-3, z_per_kelvin 1e-3, seed 0, max_refine 16,
+/* Defaults: lattice_n 60, x_tol 1e-3, z_per_kelvin 1e-3, seed 0, max_refine 32,
  * z_per_joule 1e-5. */
 MQMQA_API void vis3d_default_options(VisOptions *opt);
 

@@ -67,7 +67,7 @@
   function section(M, db, o) {
     return withString(M, phaseList(o), pl => meshCall(M, 'section', mesh =>
       M._vis3d_section_js(db, pl, o.T, o.latticeN || 60, o.xTol || 1e-3, o.seed || 0,
-                          o.maxRefine || 16, o.zPerKelvin || 1e-3, mesh)));
+                          o.maxRefine || 32, o.zPerKelvin || 1e-3, mesh)));
   }
 
   function liquidus(M, db, o) {
@@ -86,7 +86,7 @@
   // The refined equilibrium at one temperature, for exact readouts; free() when done.
   function hull(M, db, o) {
     const h = withString(M, phaseList(o), pl =>
-      M._vis3d_hull_build_js(db, pl, o.T, o.xTol || 1e-3, o.seed || 0, o.maxRefine || 16));
+      M._vis3d_hull_build_js(db, pl, o.T, o.xTol || 1e-3, o.seed || 0, o.maxRefine || 32));
     if (!h) throw engineError(M, 'hull');
     const names = [];
     for (let k = 0; k < M._vis3d_hull_num_phases(h); k++) names.push(M.UTF8ToString(M._vis3d_hull_phase_name(h, k)));

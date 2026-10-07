@@ -129,6 +129,9 @@ class SystemSpec:
     binaries: list = field(default_factory=list)   # list[BinaryExcess]
     version: str = "v0.1"
     provenance: str = ""
+    # explicit quadruplet coordination rows for unlike-cation pairs, {(first, second): (Z_A, Z_B,
+    # Z_X, Z_Y)}, as when a binary orders most away from the charge-proportional composition
+    quad_z: dict = field(default_factory=dict)
 
     def __post_init__(self):
         n = len(self.components)
@@ -222,7 +225,7 @@ def write_dat(spec: SystemSpec, anion_sym="O", anion_charge=2.0, z_per_charge=No
     phase = f"{spec.name}-liquid"
     ap(f" {phase}")
     ap(" SUBQ")
-    ap(f"   {n_cat}   {n_cat}")                               # n_pairs, n_quads (MQMZ rows)
+    ap(f"   {n_cat}   {n_cat + len(spec.quad_z)}")            # n_pairs, n_quads (MQMZ rows)
     for c in comps:
         stoich_el = [(c.n_cation if el == c.cation else (c.n_oxygen if el == anion_sym else 0.0))
                      for el in elements]
@@ -252,6 +255,10 @@ def write_dat(spec: SystemSpec, anion_sym="O", anion_charge=2.0, z_per_charge=No
         z_an = z_cat * anion_charge / c.charge
         ap(f"   {i}   {i}   {an_idx}   {an_idx}   "
            f"{z_cat:.7f}   {z_cat:.7f}   {z_an:.7f}   {z_an:.7f}")
+    names = [c.name for c in comps]
+    for (a, b), z in spec.quad_z.items():
+        ap(f"   {names.index(a) + 1}   {names.index(b) + 1}   {an_idx}   {an_idx}   "
+           + "   ".join(f"{v:.7f}" for v in z))
 
     # excess (Muggianu from the binaries); a ternary/higher term is zero unless supplied.
     idx = {c.name: i for i, c in enumerate(comps, start=1)}

@@ -57,8 +57,10 @@ def feo_mgo_sio2_spec():
                                               q=ex["exp"][1], add_cat=name.get(ex["add"], ""),
                                               r=ex["exp"][2])])
                for ex in fms.ternary_excess()]
+    z_mgsi = fms._mgo.mgsi_mixed_z()
     return db.SystemSpec("FeO-MgO-SiO2", [feo, mgo, sio2], [feo_sio2, mgo_sio2, *ternary],
-                         version="v0.1", provenance="data/feo-mgo-sio2/PROVENANCE.md")
+                         version="v0.1", provenance="data/feo-mgo-sio2/PROVENANCE.md",
+                         quad_z={} if z_mgsi is None else {("MgO", "SiO2"): z_mgsi})
 
 
 def _numbers(text):

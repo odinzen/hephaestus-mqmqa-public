@@ -75,9 +75,12 @@ NAMES = [f"{c}{p}{q}" for p, q in TERMS for c in "ab"] + [f"dhf_{f}" for f, _ in
 
 # Hibonite's entropy of formation from the oxides is the least certain number here: no low-T
 # calorimetry, Geiger's +24.3 J/K at 1100 K rests on two electrochemical studies, and estimates of
-# S298 run from the oxide sum (344 J/K) to 432 J/K (Geiger 1988 section d). Assessed, 0 +- 15 J/K
-# around Geiger's value.
-DS_HIB_PRIOR = 15.0
+# S298 run from the oxide sum (344 J/K) to 432 J/K (Geiger 1988 section d). Harmonic phonons with
+# the 2b Al off the mirror give 42-50 J/K from the oxides at 1000 K (Orb-v3, MACE-MP-0; Station 2
+# round 3, branch station2-caal-phonons), approximate because that Al hops in a well shallower than
+# RT. Assessed around Geiger's value, 0 +- 25 J/K, wide enough to take in the phonon value and leave
+# the liquidus to decide (Michael 2026-10-07).
+DS_HIB_PRIOR = 25.0
 
 
 # --ca2-entropy: the CaAl4O7 parameter shifts its entropy (J/K) instead of its enthalpy, to tell an

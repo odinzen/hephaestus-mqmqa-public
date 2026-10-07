@@ -56,8 +56,7 @@ def face(pp):
     nb, t = pp[:NB], pp[NB:]
     mgo.OXIDES["MgO"]["dCp_fus"] = nb[-3]
     mgo.MGSI_SRO_X = 1.0 / 3.0 + nb[a.NLIQ]
-    mgsi = [dict(code="Q", li=[3, 4, 5, 5], exp=[pw, q, 0, 0], coeffs=[nb[2 * i], nb[2 * i + 1], 0, 0, 0, 0])
-            for i, (pw, q) in enumerate(a.TERMS)]
+    mgsi = a.liquid_excess(nb, li=(3, 4, 5, 5))
     excess = bq.EX_CAO_SIO2 + mgsi + bq.cms_excess([(t[0], 0.0), (t[1], 0.0), (t[2], 0.0)])
     liq = bq.build(excess=excess, cations=["Ca", "Mg", "Si"]).splitlines()
     head = [" System CaO-MgO-SiO2 face (joint fit scratch file)",
@@ -98,17 +97,20 @@ def _res(pp):
     return residuals(pp)
 
 
-def fit(p0, workers=12):
-    """assess.fit with the face terms appended: parallel forward-difference Jacobian, steps of 3%
-    of each parameter's typical size."""
+def fit(p0, workers=12, resfun=None, n_terms=3):
+    """assess.fit with ternary terms appended: parallel forward-difference Jacobian, steps of 3%
+    of each parameter's typical size. resfun (a module-level function, so the pool can pickle
+    it) defaults to this module's residuals; n_terms is the number of ternary terms after the
+    binary vector, each typical size 2e4 J (1e4 for the basic-oxide pair, every third)."""
     from multiprocessing import Pool
+    resfun = resfun or _res
     _init_worker()
     typ = []
-    for _ in a.TERMS:
-        typ += [2e4, 10.0]
-    typ = np.array(typ + [0.005, 10.0, 10.0, 2000.0, 2e4, 2e4, 1e4])
-    lo = np.array(a.LOWER + [-np.inf] * 3, float)
-    hi = np.array(a.UPPER + [np.inf] * 3, float)
+    for w in a.WIDTH:
+        typ += [2e4, 10.0, 10.0][:w]
+    typ = np.array(typ + [0.005, 10.0, 10.0, 2000.0] + [2e4, 2e4, 1e4] * (n_terms // 3))
+    lo = np.array(a.LOWER + [-np.inf] * n_terms, float)
+    hi = np.array(a.UPPER + [np.inf] * n_terms, float)
     lo[NB - 1], hi[NB - 1] = p0[NB - 1], p0[NB - 1] + 1e-6           # enstatite correction held
     n = [0]
     with Pool(workers, initializer=_init_worker) as pool:
@@ -117,19 +119,17 @@ def fit(p0, workers=12):
         def fun(x):
             key = tuple(np.round(x, 9))
             if key not in cache:
-                cache[key] = _res(x)
+                cache[key] = resfun(x)
                 n[0] += 1
                 r = cache[key]
-                nb = len(r) - len(COMPS) - 3
-                print(f"  eval {n[0]:3d}  cost={0.5 * float(r @ r):8.3f} (binary {0.5 * float(r[:nb] @ r[:nb]):.1f}, "
-                      f"face {0.5 * float(r[nb:] @ r[nb:]):.1f})  p0=" + ",".join(f"{v:.6g}" for v in x), flush=True)
+                print(f"  eval {n[0]:3d}  cost={0.5 * float(r @ r):8.3f}  p0=" + ",".join(f"{v:.6g}" for v in x), flush=True)
             return cache[key]
 
         def jac(x):
             h = 0.03 * np.maximum(np.abs(x), typ)
             h = np.where(x + h > hi, -h, h)
             pts = [x + np.eye(len(x))[i] * h[i] for i in range(len(x))]
-            cols = pool.map(_res, pts)
+            cols = pool.map(resfun, pts)
             f0 = fun(x)
             return np.column_stack([(c - f0) / hh for c, hh in zip(cols, h)])
 

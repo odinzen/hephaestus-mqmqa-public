@@ -12,6 +12,7 @@ there is co-assessed here, since R&H fit orthoenstatite only to 1000 K.
 
 Run:  PYTHONPATH=python python assess.py [--fit] [--write]
 """
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -46,11 +47,25 @@ COMP = pdg.COMPONENTS
 # this is the MgO-side freedom the stable liquidus needs, extrapolated into the ternaries like the
 # other silica terms (not through the Fe+Mg group). Its temperature part has a loose prior so the
 # data decide whether the MgO-rich melt is stabilized by entropy or by enthalpy.
-TERMS = [(0, 0), (0, 1), (0, 3), (0, 5), (0, 7), (0, 2)]
+TERMS = [(0, 0), (0, 1), (0, 3), (0, 5), (0, 7), (0, 2), (4, 0)]
+# Trial terms for model-form experiments, e.g. MGO_SIO2_EXTRA_TERMS="4,0" (an MgO-power term needs
+# silica power 4, which the list above lacks); empty by default.
+TERMS += [tuple(int(v) for v in t.split(",")) for t in os.environ.get("MGO_SIO2_EXTRA_TERMS", "").split(";") if t]
+# Terms that also carry an excess heat capacity (build_dat.excess_coeffs), e.g.
+# MGO_SIO2_CP_TERMS="0,7": a + b*T mixing terms cannot give the flat measured top of the two-liquid
+# dome (2026-10-05). Each stored with a heat capacity, plus any named here; its value follows the term's
+# a and b in the parameter vector.
+CP_TERMS = [(p, q) for p, q, *_, dcp in bd.assessed_terms() if dcp]
+CP_TERMS += [tuple(int(v) for v in t.split(",")) for t in os.environ.get("MGO_SIO2_CP_TERMS", "").split(";") if t]
+WIDTH = [3 if t in CP_TERMS else 2 for t in TERMS]
+OFFSET = [int(v) for v in np.cumsum([0] + WIDTH[:-1])]
 B_PRIOR_TERM = {(0, 2): 40.0}
 QPOW = [q for _, q in TERMS]
-NLIQ = 2 * len(TERMS)
+NLIQ = sum(WIDTH)
 B_PRIOR = 15.0          # J/mol/K, on each excess term's temperature part
+# J/mol/K, on an excess term's heat capacity. 40 on (0, 7) gives the liquid about 2 J/mol/K of excess
+# heat capacity near x 0.85 (100 gives 5.5 there and 7.5 at x 0.7 on (0, 5); probed on fit M2, 2026-10-05)
+CP_PRIOR = 40.0
 # after the liquid: MgO(l) heat capacity above the crystal's, SiO2 dCp_fus, enstatite high-T correction
 # after the liquid: the Mg-Si ordering composition as an offset from 1/3 (see build_dat.MGSI_SRO_X),
 # then the three below
@@ -72,12 +87,31 @@ def z_mixed(pp):
     return bd.mgsi_mixed_z(1.0 / 3.0 + pp[NLIQ]) or False
 
 
+def term_params(pp):
+    """(p, q, a, b, dcp) of each liquid term in parameter vector pp."""
+    return [(pw, q, pp[o], pp[o + 1], pp[o + 2] if w == 3 else 0.0)
+            for (pw, q), o, w in zip(TERMS, OFFSET, WIDTH)]
+
+
+def liquid_excess(pp, li=(1, 2, 3, 3)):
+    """The liquid's Q terms for pp on quadruplet li (MgO cation first), as build_dat writes them.
+    Every file the fits build (binary, CaO-MgO-SiO2 face, FeO-MgO-SiO2) takes its terms from here."""
+    return [dict(code="Q", li=list(li), exp=[pw, q, 0, 0], coeffs=bd.excess_coeffs(a, b, dcp))
+            for pw, q, a, b, dcp in term_params(pp)]
+
+
+def assessed_liquid():
+    """The stored liquid (build_dat.ASSESSED_EXCESS) as the first NLIQ parameters; a term in
+    TERMS that is not stored starts at zero."""
+    stored = {(p, q): (a, b, dcp) for p, q, a, b, dcp in bd.assessed_terms()}
+    out = []
+    for t, w in zip(TERMS, WIDTH):
+        out += list(stored.get(t, (0.0, 0.0, 0.0))[:w])
+    return out
+
+
 def build_db(pp):
-    excess = []
-    for i, (pw, q) in enumerate(TERMS):
-        a, b = pp[2 * i], pp[2 * i + 1]
-        excess.append(dict(code="Q", li=[1, 2, 3, 3], exp=[pw, q, 0, 0],
-                           coeffs=[a, b, 0, 0, 0, 0]))
+    excess = liquid_excess(pp)
     dcp_fus, ens_dg = pp[-2], pp[-1]
     set_enstatite(ens_dg)
     import os
@@ -138,6 +172,18 @@ def monotectic_T(db, p, lo=1850.0, hi=2150.0):
         m = 0.5 * (lo + hi)
         lo, hi = (m, hi) if f(lo) * f(m) > 0 else (lo, m)
     return 0.5 * (lo + hi)
+
+
+def fusion_enthalpy(db, p, solid, T, dT=5.0):
+    """H(liquid) - H(solid) at T for one formula of the compound (J), the liquid at the
+    compound's composition; H = G - T dG/dT, by central difference."""
+    n_mgo, n_sio2 = pdg.SOLIDS[solid][:2]
+    x = n_sio2 / (n_mgo + n_sio2)
+
+    def dg(TT):
+        inp = eq.build_inputs(db, p, TT, components=COMP)
+        return pdg.liquid_gibbs_per_formula_unit(inp, x, TT) - pdg.solid_gibbs_per_formula_unit(solid, TT)[0]
+    return (n_mgo + n_sio2) * (dg(T) - T * (dg(T + dT) - dg(T - dT)) / (2 * dT))
 
 
 def dh_mix(db, p, x, T=2100.0, dT=40.0):
@@ -271,15 +317,23 @@ def residuals(pp, detail=False):
     # at forsterite. The pairwise invariants vf.all_invariants gives there let the periclase field
     # run past forsterite unseen (2026-10-01: periclase first up to x 0.35, liquidus 2794 K at the
     # eutectic composition, measured 2123 K).
-    # The periclase-forsterite eutectic is scored as the invariant itself, T and liquid x, where
-    # the two saturation curves cross. Scored as the liquidus at the measured x (until
-    # 2026-10-02), a fit could match that point 12 K away while the eutectic sat 45 K low.
-    d = ds.INVARIANTS[0]
+    # The measured periclase-forsterite eutectic (T, x) is scored as the stable liquidus at its x
+    # and the composition where the two saturation curves cross. The liquidus reading is the
+    # guard: when the periclase field runs toward forsterite it misses by hundreds of K, where the
+    # eutectic T alone moved little (2026-10-04: the three-way fits sat 460 K high there at 3 sigma
+    # cost). The crossing x keeps a fit from matching the liquidus with the eutectic misplaced.
+    # MGO_SIO2_PE_SIGMA_SCALE widens both sigmas of this one 1914 point, for testing how much the
+    # fit leans on it (default 1, the stored assessment).
+    d = dict(ds.INVARIANTS[0])
+    scale = float(os.environ.get("MGO_SIO2_PE_SIGMA_SCALE", "1"))
+    d["sigT"], d["sigx"] = d["sigT"] * scale, d["sigx"] * scale
+    T, prim = liquidus_point(db, p, round(d["x"], 6), 1600.0, 3200.0)
+    ok = prim is not None and all(s in d["solids"] for s in prim.split("+"))
+    add(f"T[{d['name']}] (stable liquidus)", ((T - d["T"]) / d["sigT"]) if T else vf.PENALTY,
+        f"{T:.0f}/{d['T']:.0f} {prim}{'' if ok else ' (want ' + '/'.join(d['solids']) + ')'}" if T else "none")
     Te, xe = eutectic_pe_fo(db, p)
-    add(f"T[{d['name']}]", ((Te - d["T"]) / d["sigT"]) if Te else vf.PENALTY,
-        f"{Te:.0f}/{d['T']:.0f}" if Te else "none (periclase field past forsterite?)")
     add(f"x[{d['name']}]", ((xe - d["x"]) / d["sigx"]) if Te else vf.PENALTY,
-        f"{xe:.3f}/{d['x']:.3f}" if Te else "none")
+        f"{xe:.3f}/{d['x']:.3f} at {Te:.0f} K" if Te else "none (periclase field past forsterite?)")
     for d in ds.INVARIANTS[1:2]:
         T, prim = liquidus_point(db, p, round(d["x"], 6), 1600.0, 3200.0)
         ok = prim is not None and all(s in d["solids"] for s in prim.split("+"))
@@ -345,9 +399,10 @@ def residuals(pp, detail=False):
 
     # the temperature parts stay modest: a large b on a high silica power keeps the two-liquid
     # field open to 3200 K (2026-09-30), which no measurement supports
-    for i, (pw, q) in enumerate(TERMS):
-        add(f"prior b(p={pw},q={q})", pp[2 * i + 1] / B_PRIOR_TERM.get((pw, q), B_PRIOR),
-            f"{pp[2 * i + 1]:.1f}/0")
+    for pw, q, _, b, dcp in term_params(pp):
+        add(f"prior b(p={pw},q={q})", b / B_PRIOR_TERM.get((pw, q), B_PRIOR), f"{b:.1f}/0")
+        if (pw, q) in CP_TERMS:
+            add(f"prior dCp(p={pw},q={q})", dcp / CP_PRIOR, f"{dcp:.1f}/0 J/K")
 
     add("prior MgO(l) dCp", (pp[-3] - DCP_PRIOR[0]) / DCP_PRIOR[1], f"{pp[-3]:.1f}/{DCP_PRIOR[0]:.1f} J/K")
 
@@ -355,6 +410,11 @@ def residuals(pp, detail=False):
     for d in ds.DH_MIX:
         add(f"dHmix@x{d['x']:.2f}", (dh_mix(db, p, d["x"]) - d["value"]) / d["sig"],
             f"{dh_mix(db,p,d['x']):.1f}/{d['value']:.1f}")
+
+    # compound fusion enthalpies, at the measured melting point
+    for d in ds.FUSION:
+        h = fusion_enthalpy(db, p, d["solid"], d["T"]) / 1000.0
+        add(f"dHfus[{d['solid']}]", (h - d["dH"]) / d["sig"], f"{h:.1f}/{d['dH']:.1f} kJ")
 
     return (np.asarray(out, float), rows) if detail else np.asarray(out, float)
 
@@ -374,8 +434,8 @@ def fit(p0, workers=13):
     from multiprocessing import Pool
     _init_worker()
     typ = []
-    for _ in TERMS:
-        typ += [2e4, 10.0]
+    for w in WIDTH:
+        typ += [2e4, 10.0, 10.0][:w]
     typ += [0.005, 10.0, 10.0, 2000.0]
     typ = np.array(typ)
     lo, hi = np.array(LOWER, float), np.array(UPPER, float)
@@ -414,6 +474,9 @@ def report(pp, write=False):
         print(f"    {tag:26s} {info:14s}  r={rr:+6.2f}")
     print(f"  Mg-Si ordering peaks at x_SiO2 = {1.0 / 3.0 + pp[NLIQ]:.4f}")
     print(f"\n  total cost = {0.5*float(res@res):.3f}   RMS residual = {np.sqrt(np.mean(res**2)):.2f}")
+    for pw, q, a, b, dcp in term_params(pp):
+        if (pw, q) in CP_TERMS:
+            print(f"  excess heat capacity on (p={pw}, q={q}): {dcp:.2f} J/mol/K (a, b at {bd.XS_CP_T0:.0f} K)")
     if write:
         _, _, excess = build_db(pp)
         (HERE.parent / "MgO-SiO2-liquid.dat").write_text(
@@ -429,8 +492,7 @@ if __name__ == "__main__":
     # (which had made it 2.3 kJ too stable): total cost 30.5, RMS 1.75. --fit re-runs from it.
     # The liquid lives in build_dat.ASSESSED_EXCESS and the enstatite correction in
     # data/olivine/endmembers.py; the SiO2 dCp_fus assessed to zero.
-    ASSESSED = [v for t in bd.ASSESSED_EXCESS for v in t[-2:]]
-    ASSESSED += [0.0] * (NLIQ - len(ASSESSED)) + [bd.MGSI_SRO_X - 1.0 / 3.0, bd.MGO_LIQ_DCP, 0.0, pdg.em.ENSTATITE_DG_1830]
+    ASSESSED = assessed_liquid() + [bd.MGSI_SRO_X - 1.0 / 3.0, bd.MGO_LIQ_DCP, 0.0, pdg.em.ENSTATITE_DG_1830]
     for arg in sys.argv:
         if arg.startswith("--p0="):
             ASSESSED = [float(v) for v in arg[5:].split(",")]

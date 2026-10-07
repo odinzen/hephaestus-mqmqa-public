@@ -59,7 +59,8 @@ X_PF_EUTECTIC = _nSi / (_nSi + _nMg)                  # ~0.265
 # Bias-corrected MLIP dH_mix per mole of oxide unit, at the forsterite (x=1/3) and
 # enstatite (x=1/2) compositions. Filled from _mlip/mix_*.log after the MD, then
 # deepened by the dHf-spot-check under-binding bias (mlip_hf.py): forsterite +2.7,
-# enstatite +6.2 kJ/mol-oxide-unit. These ARE fit anchors (targets 2 and 3).
+# enstatite +6.2 kJ/mol-oxide-unit. These ARE fit anchors (targets 2 and 3). Carrying a
+# solid's formation bias over to a liquid mixing enthalpy is an assumption, not a measurement.
 MLIP_BIAS = {X_FORST: -2670.0, 0.5: -6150.0}   # J/mol-oxide-unit, added to raw MD dH
 # Raw MatterSim melt-mixing MD at 3200 K (_mlip/mix_mattersim.log; seed 1234,
 # 1.5/3/6 ps melt/eq/samp): dH_mix(x=1/3) = -21.8, dH_mix(x=1/2) = -16.2 kJ/mol-oxide.

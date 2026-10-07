@@ -34,7 +34,7 @@ def pair(tmp_path_factory):
     sys.path.insert(0, here)
     try:
         a = importlib.import_module("assess")
-        pp = [v for t in a.bd.ASSESSED_EXCESS for v in t[-2:]]
+        pp = a.assessed_liquid()
         pp += [X_SRO - 1.0 / 3.0, a.bd.MGO_LIQ_DCP, 0.0, a.pdg.em.ENSTATITE_DG_1830]
         db, p, _ = a.build_db(pp)
         fms = _load("fms_sro_test", ROOT / "data" / "feo-mgo-sio2" / "build_dat.py")

@@ -61,3 +61,23 @@ if __name__ == "__main__":
         gm_py = _pycalphad_GM(xO)
         print(f"xO={xO}: C GM={res['GM']:.3f}  pycalphad GM={gm_py:.3f}  "
               f"|d|={abs(res['GM'] - gm_py):.3e}  comp_err={res['comp_error']:.1e}")
+
+
+@pytest.mark.parametrize("el", [{"MG": 2, "SI": 1, "O": 4}, {"MG": 1, "SI": 1, "O": 3},
+                                {"FE": 0.2, "MG": 0.5, "SI": 0.3, "O": 1.3}])
+def test_rounded_mixed_coordination_row_reaches_the_minimum(el):
+    """The shipped MgO-SiO2 liquid orders through an explicit (Mg,Si/O,O) coordination row at
+    seven decimals. The solver once read the rounding as an extra constraint and returned an
+    unmixed liquid 10-13 kJ/mol-atom above pycalphad's minimum."""
+    root = Path(__file__).resolve().parents[1]
+    path = root / "data" / "feo-mgo-sio2" / "FeO-MgO-SiO2-combined.dat"
+    db = mqmqa.Database.read(path)
+    comps = [e for e in ("FE", "MG", "SI") if el.get(e, 0) > 0] + ["O"]
+    inp = eqm.build_inputs(db, db.phase_index("FEO-MGO-SIO2-LIQUID"), 2300.0, components=comps)
+    ours = mqmqa.c_equilibrate(inp, el)["GM"]
+    tot = sum(el.values())
+    conds = {v.T: 2300.0, v.P: 101325, v.N: 1}
+    for e in comps[:-1]:
+        conds[v.X(e)] = el[e] / tot
+    ref = float(equilibrium(Database(str(path)), comps, ["FEO-MGO-SIO2-LIQUID"], conds).GM.values.squeeze())
+    assert abs(ours - ref) < 0.05, (el, ours - ref)

@@ -704,7 +704,12 @@ double mqmqa_coordination(
 static int constraint_nullspace(const double *Cin, const double *d, int m, int n,
                                 double *x0, double *Nspace, int *n_null)
 {
-    const double tol = 1e-12;
+    /* Coordination numbers come from files at seven decimals, so quadruplet charge balance,
+     * and with it the dependence between element rows, holds only to ~1e-7. A pivot or a
+     * leftover right-hand side below 1e-6 is that rounding, not an independent constraint;
+     * at 1e-12 a rounded mixed-coordination row (Mg-Si in the FeO-MgO-SiO2 slag) read as one
+     * more constraint and pinned the liquid to an unmixed state 11 kJ/mol-atom too high. */
+    const double tol = 1e-6;
     double *M = (double *)malloc((size_t)m * (n + 1) * sizeof(double));
     int *pivcol = (int *)malloc((size_t)m * sizeof(int));
     if (!M || !pivcol) { free(M); free(pivcol); return -1; }
@@ -742,7 +747,7 @@ static int constraint_nullspace(const double *Cin, const double *d, int m, int n
 
     /* inconsistent if a pivot-free row still carries a nonzero right-hand side */
     for (int r = rank; r < m; ++r) {
-        if (fabs(M[(size_t)r * (n + 1) + n]) > 1e-9) {
+        if (fabs(M[(size_t)r * (n + 1) + n]) > tol) {
             free(M); free(pivcol); return -1;
         }
     }
@@ -853,6 +858,57 @@ static double obj_energy(const double *t, void *vc)
         if (c->Xbuf[q] < EQ_XMIN) viol += (EQ_XMIN - c->Xbuf[q]);
     if (viol > 0.0) return 1e12 + 1e6 * viol;
     return ctx_gibbs_per_quad(c, c->Xbuf);
+}
+
+/* Move t to the lowest-energy point found on chords through it: 32 directions, 7
+ * points each between the chord's two ends on the feasible set. Deterministic, so a
+ * composition always gives the same answer. */
+static void eq_seed_global(eqctx *c, double *t)
+{
+    enum { NDIR = 32, NPT = 7 };
+    const int k = c->n_null, n = c->n_quads;
+    double *dir = (double *)malloc((size_t)k * sizeof(double));
+    double *nd = (double *)malloc((size_t)n * sizeof(double));
+    double *xc = (double *)malloc((size_t)n * sizeof(double));
+    double *tt = (double *)malloc((size_t)k * sizeof(double));
+    double *best = (double *)malloc((size_t)k * sizeof(double));
+    if (!dir || !nd || !xc || !tt || !best) {
+        free(dir); free(nd); free(xc); free(tt); free(best); return;
+    }
+    ctx_X_from_t(c, t);
+    for (int q = 0; q < n; ++q) xc[q] = c->Xbuf[q];
+    for (int j = 0; j < k; ++j) best[j] = t[j];
+    double fbest = obj_energy(t, c);
+    unsigned long long s = 0x9E3779B97F4A7C15ull;
+    for (int r = 0; r < NDIR; ++r) {
+        double nrm = 0.0;
+        for (int j = 0; j < k; ++j) {
+            s = s * 6364136223846793005ull + 1442695040888963407ull;
+            dir[j] = (double)(s >> 11) / 9007199254740992.0 - 0.5;
+            nrm += dir[j] * dir[j];
+        }
+        if (nrm <= 0.0) continue;
+        nrm = sqrt(nrm);
+        for (int j = 0; j < k; ++j) dir[j] /= nrm;
+        /* chord ends where the first fraction reaches EQ_XMIN */
+        double lo = -INFINITY, hi = INFINITY;
+        for (int q = 0; q < n; ++q) {
+            double v = 0.0;
+            for (int j = 0; j < k; ++j) v += c->N[(size_t)j * n + q] * dir[j];
+            nd[q] = v;
+            if (v > 1e-14) { double b = (EQ_XMIN - xc[q]) / v; if (b > lo) lo = b; }
+            else if (v < -1e-14) { double b = (EQ_XMIN - xc[q]) / v; if (b < hi) hi = b; }
+        }
+        if (!(hi > lo) || !isfinite(lo) || !isfinite(hi)) continue;
+        for (int i = 1; i <= NPT; ++i) {
+            double a = lo + (hi - lo) * i / (NPT + 1.0);
+            for (int j = 0; j < k; ++j) tt[j] = t[j] + a * dir[j];
+            double f = obj_energy(tt, c);
+            if (f < fbest) { fbest = f; for (int j = 0; j < k; ++j) best[j] = tt[j]; }
+        }
+    }
+    for (int j = 0; j < k; ++j) t[j] = best[j];
+    free(dir); free(nd); free(xc); free(tt); free(best);
 }
 
 typedef double (*eq_objfn)(const double *t, void *ctx);
@@ -1028,6 +1084,12 @@ double mqmqa_equilibrate(
 
         /* Phase 1: reach a strictly interior feasible point. */
         nelder_mead(obj_feasible, &ctx, n_null, t, 0.1, 4000, 1e-16);
+        /* The energy can have more than one minimum on the feasible set: a strongly
+         * ordering pair with its own coordination row (Mg-Si in the FeO-MgO-SiO2 slag) has
+         * an unmixed branch 11 kJ per mole of atoms above the ordered one, and a simplex
+         * started at the interior point stays in whichever basin holds it. So sample chords
+         * through that point in fixed pseudo-random directions and descend from the lowest. */
+        eq_seed_global(&ctx, t);
         /* Phase 2: descend the energy, restarting the simplex to sharpen it. */
         for (int r = 0; r < 4; ++r)
             nelder_mead(obj_energy, &ctx, n_null, t, 0.05, 4000, 1e-12);

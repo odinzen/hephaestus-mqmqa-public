@@ -120,7 +120,8 @@ def report(pp):
 
 
 if __name__ == "__main__":
-    p0 = [v1.STORED[0], 0.0, v1.STORED[1], 0.0, 0.0, 0.0]
+    # start from the shipped liquid (build_dat.ASSESSED_EXCESS, in TERMS order)
+    p0 = [v for _, _, a, b in build_dat.ASSESSED_EXCESS for v in (a, b)]
     for arg in sys.argv:
         if arg.startswith("--p0="):
             p0 = [float(v) for v in arg[5:].split(",")]

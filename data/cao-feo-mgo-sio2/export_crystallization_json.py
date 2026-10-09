@@ -21,14 +21,49 @@ NGRID = 60           # triangular grid over the remaining CaO-MgO-SiO2 (step 1/N
 PHASES = ["OLIVINE", "ORTHOPYROXENE", "CLINOPYROXENE", "WOLLASTONITE", "RANKINITE", "LARNITE",
           "HATRURITE", "CRISTOBALITE", "LIME", "MAGNESIOWUSTITE"]
 
+# Cooling scan in 20 K steps. A cell still holding a solid at the top of T_LOW is scanned again
+# over T_HIGH: until 2026-10-07 the scan stopped at 2130 K, and in about half the section (the
+# periclase and calcium-silicate side, where the liquidus runs up to the oxide melting points
+# near 3100-3200 K) it reported whatever solid was stable at 2130 K as the primary phase.
+T_LOW = np.arange(1250.0, 2150.0, 20.0)       # K
+T_HIGH = np.arange(2150.0, 3250.0, 20.0)
+
+
+def _first_solid(pdb, el, grid):
+    """(phases, T) at the highest grid temperature that holds a solid, or (None, None)."""
+    from pycalphad import equilibrium, variables as v
+    tot = sum(el.values())
+    r = equilibrium(pdb, ["CA", "FE", "MG", "SI", "O"], list(pdb.phases.keys()),
+                    {v.T: grid, v.P: 101325, v.N: 1, v.X("CA"): el["CA"] / tot,
+                     v.X("FE"): el["FE"] / tot, v.X("MG"): el["MG"] / tot,
+                     v.X("SI"): el["SI"] / tot})
+    for t in range(len(grid) - 1, -1, -1):
+        ph = set(str(x) for x in r.Phase.isel(T=t).values.ravel()
+                 if x and str(x) != "CAO-FEO-MGO-SIO2-LIQUID")
+        if ph:
+            return ph, float(grid[t])
+    return None, None
+
+
+def primary(pdb, el, idx):
+    """Primary phase digit and liquidus (degC) at one bulk composition: cool from the top,
+    the first solid is primary. None for the liquidus when the cell never melts in range."""
+    ph, T = _first_solid(pdb, el, T_LOW)
+    if ph is None:
+        return ".", None
+    if T == T_LOW[-1]:
+        hi, Th = _first_solid(pdb, el, T_HIGH)
+        if hi is not None:
+            ph, T = hi, Th
+    return idx.get(sorted(ph)[0], "."), round(T - 273.15, 1)
+
 
 def build():
-    from pycalphad import Database, equilibrium, variables as v
+    from pycalphad import Database
     bc = importlib.util.spec_from_file_location("bc", HERE / "build_combined_dat.py")
     m = importlib.util.module_from_spec(bc); bc.loader.exec_module(m)
     pdb = Database(str(m.build()))
     idx = {p: str(i) for i, p in enumerate(PHASES)}
-    Tgrid = np.arange(1250.0, 2150.0, 20.0)      # K
 
     field = {}       # (i,j) -> primary phase digit
     tliq = {}        # (i,j) -> liquidus degC
@@ -42,22 +77,10 @@ def build():
                 continue
             el = {"CA": xca, "FE": X_FE, "MG": max(xmg, 0.0), "SI": xsi}
             el["O"] = el["CA"] + el["FE"] + el["MG"] + 2 * el["SI"]
-            tot = sum(el.values())
-            r = equilibrium(pdb, ["CA", "FE", "MG", "SI", "O"], list(pdb.phases.keys()),
-                            {v.T: Tgrid, v.P: 101325, v.N: 1, v.X("CA"): el["CA"] / tot,
-                             v.X("FE"): el["FE"] / tot, v.X("MG"): el["MG"] / tot,
-                             v.X("SI"): el["SI"] / tot})
-            prim, tl = ".", None
-            for t in range(len(Tgrid) - 1, -1, -1):    # cool from the top; first solid = primary
-                ph = set(str(x) for x in r.Phase.isel(T=t).values.ravel()
-                         if x and str(x) != "CAO-FEO-MGO-SIO2-LIQUID")
-                if ph:
-                    prim = idx.get(sorted(ph)[0], ".")
-                    tl = float(Tgrid[t]) - 273.15
-                    break
+            prim, tl = primary(pdb, el, idx)
             field[(i, j)] = prim
             if tl is not None:
-                tliq[(i, j)] = round(tl, 1)
+                tliq[(i, j)] = tl
         print(f"row {i}/{NGRID} done", flush=True)
 
     rows = ["".join(field.get((i, j), ".") for j in range(NGRID + 1 - i))

@@ -11,27 +11,21 @@ PHASES = ["OLIVINE","ORTHOPYROXENE","CLINOPYROXENE","WOLLASTONITE","RANKINITE","
           "HATRURITE","CRISTOBALITE","LIME","MAGNESIOWUSTITE"]
 
 def compute(lo, hi):
-    from pycalphad import Database, equilibrium, variables as v
+    from pycalphad import Database
+    ex = importlib.util.spec_from_file_location("ex", HERE/"export_crystallization_json.py")
+    xm = importlib.util.module_from_spec(ex); ex.loader.exec_module(xm)
     bc = importlib.util.spec_from_file_location("bc", HERE/"build_combined_dat.py")
     m = importlib.util.module_from_spec(bc); bc.loader.exec_module(m)
     pdb = Database(str(m.build())); idx = {p:str(i) for i,p in enumerate(PHASES)}
-    Tgrid = np.arange(1250.0, 2150.0, 20.0); s = 1.0 - X_FE; out = {}
+    s = 1.0 - X_FE; out = {}
     for i in range(lo, min(hi, NGRID)+1):
         xca = s*i/NGRID
         for j in range(NGRID+1-i):
             xsi = s*j/NGRID; xmg = s - xca - xsi
             if xmg < -1e-9: continue
             el = {"CA":xca,"FE":X_FE,"MG":max(xmg,0.0),"SI":xsi}
-            el["O"] = el["CA"]+el["FE"]+el["MG"]+2*el["SI"]; tot = sum(el.values())
-            r = equilibrium(pdb, ["CA","FE","MG","SI","O"], list(pdb.phases.keys()),
-                {v.T:Tgrid, v.P:101325, v.N:1, v.X("CA"):el["CA"]/tot, v.X("FE"):el["FE"]/tot,
-                 v.X("MG"):el["MG"]/tot, v.X("SI"):el["SI"]/tot})
-            prim, tl = ".", None
-            for t in range(len(Tgrid)-1, -1, -1):
-                ph = set(str(x) for x in r.Phase.isel(T=t).values.ravel()
-                         if x and str(x) != "CAO-FEO-MGO-SIO2-LIQUID")
-                if ph: prim = idx.get(sorted(ph)[0], "."); tl = float(Tgrid[t])-273.15; break
-            out[f"{i},{j}"] = [prim, round(tl,1) if tl is not None else None]
+            el["O"] = el["CA"]+el["FE"]+el["MG"]+2*el["SI"]
+            out[f"{i},{j}"] = list(xm.primary(pdb, el, idx))   # the one scan both exports share
         print(f"row {i} done", flush=True)
     (CHUNKS/f"chunk_{lo}.json").write_text(json.dumps(out))
 
@@ -53,4 +47,6 @@ def assemble():
     print(f"wrote {OUT} ({OUT.stat().st_size/1024:.0f} KB, ngrid={NGRID}, chunks={len(list(CHUNKS.glob('chunk_*.json')))})")
 
 if __name__ == "__main__":
-    (assemble() if sys.argv[1]=="assemble" else compute(int(sys.argv[1]), int(sys.argv[1])+5))
+    # compute LO [HI]: rows LO..HI inclusive (default six rows)
+    (assemble() if sys.argv[1]=="assemble"
+     else compute(int(sys.argv[1]), int(sys.argv[2]) if len(sys.argv) > 2 else int(sys.argv[1])+5))

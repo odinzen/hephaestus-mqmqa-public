@@ -1,5 +1,5 @@
 """Capture the two panels of Figure 6 (uTDB steelmaking: Fe-C diagram + Scheil) at
-high resolution via headless-Chrome CDP, then greyscale-compose them.
+high resolution via headless-Chrome CDP, then compose them in colour.
 
 Panel (a): the steelmaking .utdb loaded, Melt/Alloy toggle on Alloy, the Fe-C phase
 diagram calculated in the browser with two pinned readouts.
@@ -8,6 +8,7 @@ Panel (b): the Scheil solidification panel for the same join.
 Run with the web app already served at http://localhost:8781.
 """
 import base64
+import os
 import json
 import subprocess
 import time
@@ -18,7 +19,7 @@ import websocket
 from PIL import Image, ImageDraw, ImageFont
 
 CHROME = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-URL = "http://localhost:8781/"
+URL = os.environ.get("HEPH_URL", "http://localhost:8781/")   # the served web/ folder
 PORT = 9455
 HERE = Path(__file__).resolve().parent
 
@@ -115,30 +116,30 @@ def main():
     finally:
         proc.terminate()
 
-    # greyscale + compose stacked, with (a)/(b) labels
-    a = Image.open(HERE / "_fig6a.png").convert("L")
-    b = Image.open(HERE / "_fig6b.png").convert("L")
+    # compose stacked in colour, with (a)/(b) labels
+    a = Image.open(HERE / "_fig6a.png").convert("RGB")
+    b = Image.open(HERE / "_fig6b.png").convert("RGB")
     W = max(a.width, b.width)
     def pad(im):
         if im.width == W:
             return im
-        c = Image.new("L", (W, im.height), 255)
+        c = Image.new("RGB", (W, im.height), (255, 255, 255))
         c.paste(im, ((W - im.width) // 2, 0))
         return c
     a, b = pad(a), pad(b)
     lab_h = 60
     gap = 40
-    canvas = Image.new("L", (W, lab_h + a.height + gap + lab_h + b.height), 255)
+    canvas = Image.new("RGB", (W, lab_h + a.height + gap + lab_h + b.height), (255, 255, 255))
     try:
         font = ImageFont.truetype("times.ttf", 40)
     except Exception:
         font = ImageFont.load_default()
     d = ImageDraw.Draw(canvas)
     y = 0
-    d.text((0, y + 8), "(a)", fill=0, font=font)
+    d.text((0, y + 8), "(a)", fill=(0, 0, 0), font=font)
     y += lab_h
     canvas.paste(a, (0, y)); y += a.height + gap
-    d.text((0, y + 8), "(b)", fill=0, font=font)
+    d.text((0, y + 8), "(b)", fill=(0, 0, 0), font=font)
     y += lab_h
     canvas.paste(b, (0, y))
     canvas.save(HERE / "fig6_utdb_steel.png")

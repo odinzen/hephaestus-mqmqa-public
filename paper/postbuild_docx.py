@@ -1,8 +1,9 @@
-"""Post-process a pandoc .docx: keep each table on one page.
+"""Post-process a pandoc .docx: keep tables readable across pages.
 
-Adds cantSplit to every table row (no row breaks mid-row) and keepNext to the
-paragraphs of every row except the table's last (so a table that does not fit
-moves to the next page as a block). Run after every pandoc rebuild:
+Adds cantSplit to every table row (no row breaks mid-row). A short table gets keepNext
+on every row but its last, so it moves to the next page as a block; a table longer than
+a page keeps only its header with the first row and repeats the header on each page.
+The caption paragraph above a table stays with it. Run after every pandoc rebuild:
 
     python postbuild_docx.py Bustamante_Hephaestus_JORS_manuscript.docx
 """
@@ -12,12 +13,30 @@ import sys
 import zipfile
 
 NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"'
+LONG_TABLE_CHARS = 2500      # above this a table is treated as longer than a page
+
+
+def _with_trpr(row: str, tag: str) -> str:
+    if tag in row:
+        return row
+    if "<w:trPr>" in row:
+        return row.replace("<w:trPr>", "<w:trPr>" + tag, 1)
+    return re.sub(r"(<w:tr\b[^>]*>)", r"\1<w:trPr>" + tag + "</w:trPr>", row, 1)
 
 
 def keep_tables_together(xml: str) -> str:
     def fix_table(m):
         tbl = m.group(0)
         rows = re.findall(r"<w:tr\b.*?</w:tr>", tbl, re.S)
+        # A table longer than a page cannot move as a block (its caption ends up alone on a
+        # page): chain only the header row to the first body row, repeat the header on each
+        # page, and let it break between rows.
+        long_table = len(re.sub(r"<[^>]+>", "", tbl)) >= LONG_TABLE_CHARS
+        chain = 1 if long_table else len(rows) - 1
+        if long_table and rows:
+            head = _with_trpr(rows[0], "<w:tblHeader/>")
+            tbl = tbl.replace(rows[0], head, 1)
+            rows[0] = head
         for i, row in enumerate(rows):
             new = row
             if "<w:cantSplit/>" not in new:
@@ -25,7 +44,7 @@ def keep_tables_together(xml: str) -> str:
                     new = new.replace("<w:trPr>", "<w:trPr><w:cantSplit/>", 1)
                 else:
                     new = re.sub(r"(<w:tr\b[^>]*>)", r"\1<w:trPr><w:cantSplit/></w:trPr>", new, 1)
-            if i < len(rows) - 1:
+            if i < chain:
                 new = re.sub(
                     r"<w:p\b([^>]*)>(?!<w:pPr>)", r'<w:p\1><w:pPr><w:keepNext/></w:pPr>', new
                 )
@@ -35,7 +54,19 @@ def keep_tables_together(xml: str) -> str:
             tbl = tbl.replace(row, new, 1)
         return tbl
 
-    return re.sub(r"<w:tbl\b.*?</w:tbl>", fix_table, xml, flags=re.S)
+    xml = re.sub(r"<w:tbl\b.*?</w:tbl>", fix_table, xml, flags=re.S)
+
+    # the paragraph just above a table (its "Table N:" caption) stays with the table
+    def bind_caption(m):
+        para = m.group(1)
+        if "<w:keepNext/>" not in para:
+            if "<w:pPr>" in para:
+                para = para.replace("<w:pPr>", "<w:pPr><w:keepNext/>", 1)
+            else:
+                para = re.sub(r"(<w:p\b[^>]*>)", r"\1<w:pPr><w:keepNext/></w:pPr>", para, 1)
+        return para + m.group(2)
+
+    return re.sub(r"(<w:p\b(?:(?!<w:p\b).)*?</w:p>)(\s*<w:tbl\b)", bind_caption, xml, flags=re.S)
 
 
 def left_align_code(styles_xml: str) -> str:

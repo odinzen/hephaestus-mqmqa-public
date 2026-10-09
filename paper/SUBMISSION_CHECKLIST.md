@@ -1,5 +1,31 @@
 # JORS submission checklist (Hephaestus metapaper)
 
+## Resubmission of v0.7.0 (updated 2026-10-09)
+
+**STATUS:** v0.6.0 is under review at JORS (sent to reviewers 2026-09-16). Michael has asked the
+editor (Stephen Piccolo) to resubmit the improved version; his reply is pending and sets the
+route (withdraw and resubmit, or a revision to the same reviewers). The public repository stays
+at v0.6.x until then.
+
+Done:
+- Manuscript on the shipped v0.7.0 data: every Table 2 row, the validation text and Table 3
+  re-derived from the shipped files; Figure 3 (crystallization, new) and Figure 4 (FeO-MgO-SiO2,
+  colour) regenerated; 11 figures.
+- Assessments stored: MgO-SiO2 three-way fit N1, CaO-Al2O3 dry v0.2, Al2O3-SiO2 v0.2,
+  CaO-Al2O3-SiO2 v0.3; CaO-SiO2 v0.4 kept with its open two-liquid region stated.
+- Test suite: 742 cases in 63 files, two clean runs (740 passed, 1 expected failure, 1 skip).
+- argus order: 68 references in first-citation order, no gaps or orphans; 11 figures and 3
+  tables numbered and referenced. argus check: every entry agrees with Crossref, OpenAlex,
+  DataCite or arXiv; the 7 without DOIs read consistently. Word and PDF rebuilt.
+
+Still to do:
+- Zotero: add all 68 references by DOI and regenerate the list via CSL (citations are typed
+  text today). Crossref lists G. A. Rankin as "G. S." on doi:10.2475/ajs.s4-28.166.293.
+- Cover letter for the route the editor picks; release v0.7.0 tag and Zenodo (Michael).
+- Final manuscript-vs-repo consistency sweep.
+
+## Original submission (v0.6.0)
+
 **STATUS: SUBMITTED to the Journal of Open Research Software (JORS) on 2026-09-16.** Version of
 record v0.6.0 (release https://github.com/odinzen/hephaestus-mqmqa-public/releases/tag/v0.6.0).
 Corresponding author Michael E. Bustamante (Odinzen LLC); second author Gabriel Bustamante.

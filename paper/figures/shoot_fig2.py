@@ -1,5 +1,5 @@
 """Capture Figure 2 (the live ternary solver card, light theme) at high resolution
-via headless-Chrome CDP, then greyscale it.
+via headless-Chrome CDP (colour, like the other phase-diagram figures).
 
 Flow matches the caption: load the shipped slag database, compute the live
 FeO-MgO-SiO2 section at 1600 degC, tap a composition so the pinned comparison
@@ -9,6 +9,7 @@ Run with the web app already served at http://localhost:8781. Prints the solver
 readout line so the caption's sample/facet numbers can be checked against it.
 """
 import base64
+import os
 import json
 import subprocess
 import time
@@ -19,7 +20,7 @@ import websocket
 from PIL import Image
 
 CHROME = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-URL = "http://localhost:8781/"
+URL = os.environ.get("HEPH_URL", "http://localhost:8781/")   # the served web/ folder
 PORT = 9456
 HERE = Path(__file__).resolve().parent
 
@@ -95,7 +96,7 @@ def main():
 
     raw = HERE / "_fig2.png"
     raw.write_bytes(base64.b64decode(r["data"]))
-    Image.open(raw).convert("L").save(HERE / "fig2_browser_app.png")
+    Image.open(raw).convert("RGB").save(HERE / "fig2_browser_app.png")
     raw.unlink(missing_ok=True)
     im = Image.open(HERE / "fig2_browser_app.png")
     print("fig2_browser_app.png written", im.size)

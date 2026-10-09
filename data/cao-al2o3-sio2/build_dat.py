@@ -1,9 +1,10 @@
-"""CaO-Al2O3-SiO2 v0.1: the ternary assembled from the three fitted binaries.
+"""CaO-Al2O3-SiO2 v0.3: the ternary on the three shipped binaries plus three ternary terms.
 
-Liquid: SUBQ (Ca, Al, Si / O) carrying the SHIPPED binary excesses verbatim (CaO-SiO2
-v0.3, CaO-Al2O3 v0.1, Al2O3-SiO2 v0.1), combined by the writer's Muggianu extension -
-no ternary term is fitted. The 45 Kay & Taylor / Zaitsev KEMS activity points in the
-assessment workspace are a pure VALIDATION set (validate_kt.py), never inputs.
+Liquid: SUBQ (Ca, Al, Si / O) carrying the shipped binary excesses verbatim (CaO-SiO2 v0.4,
+CaO-Al2O3 v0.2 dry, Al2O3-SiO2 v0.2), all three cations in one chemical group (a symmetric
+interpolation), plus the three ternary-level terms in TERNARY, fitted (assessment/assess.py) to
+the Rankin & Wright 1915 liquidus and the 45 measured silica activities in measured_asio2.csv
+(24 by gas-slag equilibrium, Kay & Taylor 1960; 21 by KEMS, Zaitsev 1997).
 
 Solids: the three binary edges' compounds plus the two key ternary compounds,
 gehlenite Ca2Al2SiO7 and anorthite CaAl2Si2O8 (Robie & Hemingway 1995; gehlenite's
@@ -40,11 +41,11 @@ _cas_bin = _load("cao_sio2_build", HERE.parent / "cao-sio2" / "build_dat.py")
 _alsi = _load("al2o3_sio2_build", HERE.parent / "al2o3-sio2" / "build_dat.py")
 
 # Ternary-level terms (Poschmann Eq. 25-26, r = 1), J: the Ca-Si interaction with Al as the
-# additional cation, fitted in v0.2 to the 21 Zaitsev CaO-rich KEMS activities, which showed a
-# uniform +3.28 bias in ln a(SiO2) under the pure binary assembly (-110 kJ on the v0.3 binary,
-# rescanned to -105 kJ on v0.4; Kay-Taylor held out as validation, see PROVENANCE.md); the Al-Si
-# interaction with Ca; the Ca-Al interaction with Si. Zero terms are not written.
-TERNARY = {"casi_al": -105000.0, "alsi_ca": 0.0, "caal_si": 0.0}
+# additional cation, the Al-Si interaction with Ca, the Ca-Al interaction with Si. Fitted together
+# (assessment/assess.py, 2026-10-08) to the Rankin & Wright 1915 liquidus and the 45 measured silica
+# activities, on the dry CaO-Al2O3 and Al2O3-SiO2 v0.2 binaries. The last two sit 2.1 and 3.6 times
+# their 50 kJ priors; see PROVENANCE.md. Zero terms are not written.
+TERNARY = {"casi_al": 43823.4, "alsi_ca": -107456.5, "caal_si": -178314.5}
 SI_GROUP = 1          # chemical group of SiO2; CaO and AlO1.5 are group 1
 
 
@@ -141,9 +142,9 @@ def build(out=None, ternary=None, si_group=None):
     si = dataclasses.replace(SIO2, group=SI_GROUP if si_group is None else si_group)
     spec = SystemSpec(
         "CaO-AlO1.5-SiO2", [CAO, ALO15, si], binaries(ternary),
-        version="v0.2",
-        provenance="three shipped binaries (Muggianu) + one ternary term fitted to "
-                   "the Zaitsev KEMS activities; see PROVENANCE.md")
+        version="v0.3",
+        provenance="three shipped binaries + three ternary terms fitted to the Rankin & "
+                   "Wright 1915 liquidus and 45 silica activities; see PROVENANCE.md")
     lines = dbbuild.write_dat(spec).splitlines()
     lines[1] = f"    4    1    3    {len(SOLIDS)}"
     for name, (n_ca, n_al, n_si, cf) in SOLIDS.items():

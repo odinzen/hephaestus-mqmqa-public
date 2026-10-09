@@ -1,4 +1,4 @@
-# CaO-Al2O3-SiO2 — provenance and limits
+# CaO-Al2O3-SiO2 v0.3 - provenance and limits
 
 ## Scope: dry slags only (2026-10-01)
 
@@ -10,6 +10,47 @@ Ceram. Int. 27, 25-28, doi:10.1016/S0272-8842(00)00037-7). In the dry system eve
 aluminate melts peritectically. Water is unlikely in a molten slag, so the dry diagram is the one
 that applies to slag practice; the older air measurements (Shepherd, Rankin & Wright 1909; Rankin &
 Wright 1915) are used only where they do not involve Ca12Al14O33.
+
+## v0.3 (shipped 2026-10-08): three ternary terms on the rebuilt binaries
+
+The binaries under the ternary changed on 2026-10-07: CaO-Al2O3 is now the dry v0.2 assessment
+(no Ca12Al14O33, shifted aluminate enthalpies) and Al2O3-SiO2 the v0.2 Bowen & Greig liquid. On
+those, the v0.2 term alone left the anorthite liquidus 289 K high. All three ternary-level terms
+(`build_dat.TERNARY`, Poschmann Eq. 25-26, r = 1) were then fitted together in
+`assessment/assess.py` to the Rankin & Wright (1915) liquidus (84 points, scored where the liquid
+is stable) and the 45 measured silica activities (`measured_asio2.csv`):
+
+| Term | Value | Prior |
+|---|---|---|
+| Ca-Si interaction with Al | +43.8 kJ | +-50 kJ |
+| Al-Si interaction with Ca | -107.5 kJ | +-50 kJ |
+| Ca-Al interaction with Si | -178.3 kJ | +-50 kJ |
+
+Liquidus misses against Rankin & Wright (1915), mean absolute, before (the v0.2 term on the new
+binaries) and after:
+
+| Primary field | Points | Before | After |
+|---|---|---|---|
+| anorthite | 12 | 289 K | 45 K |
+| gehlenite | 18 | 74 K | 25 K |
+| corundum | 8 | 189 K | 34 K |
+| Ca2SiO4 | 14 | 125 K | 56 K |
+| pseudowollastonite | 9 | 139 K | 103 K |
+| CaAl2O4 | 7 | 51 K | 34 K |
+| CaAl4O7 | 4 | 40 K | 27 K |
+| Ca3Al2O6 | 6 | 116 K | 116 K |
+| ternary eutectics | 6 | 278 K | 149 K |
+| primary phase as measured | 84 | 47 | 65 |
+
+Silica activities, RMS in ln a: Kay & Taylor (gas-slag equilibrium) 0.76 -> 0.23; Zaitsev (KEMS)
+0.56 -> 0.82. Cost 3627 -> 828.
+
+**Limits.** The Al-Si and Ca-Al terms are 2.1 and 3.6 times their priors: the liquidus data
+demand much stronger ternary interactions than the binaries supply, so these are fitted values
+with little physical constraint of their own. The six ternary eutectics remain about 150 K high
+(worst 301 K, the pseudowollastonite eutectic near 23 / 15 / 62 wt%). At 60 / 35 / 5 wt% CaO /
+Al2O3 / SiO2 lime crystallizes first 422 K above the measured Ca3Al2O6 liquidus. The Zaitsev KEMS
+activities, matched by the v0.2 term alone, are now missed by 0.82 in ln a with a -0.33 bias.
 
 ## v0.2 (2026-08-26): the ternary term
 
@@ -133,9 +174,11 @@ measurements above, not to MLIP energies. Repro: `_mlip/mlip_mix.py <model> all 
 
 ## Known limits
 
-- No ternary excess term (by construction in v0.1). The Zaitsev bias above IS the
-  measurement of what is missing; fitting a ternary term to those 21 points is the
-  designated v0.2 step (the writer does not yet emit ternary MQMX terms).
+- One ternary term only (v0.2, above), fitted to the 21 Zaitsev points; the rest of the
+  interior is the binaries' extrapolation.
+- The shipped file predates the dry CaO-Al2O3 rebuild and the Al2O3-SiO2 v0.2 liquid: its
+  Al2O3-SiO2 edge is the 2026-09-29 v0.1 refit and it still carries Ca12Al14O33. Both change
+  together when the CaO-Al2O3 hold (new CaAl4O7 calorimetry) is lifted.
 - Every binary edge inherits its own documented limits (CaO-SiO2 silica gap
   temperature, CaO-Al2O3 +-90 K invariants, Al2O3-SiO2 Al-rich flank).
 - Ternary liquidus surfaces/invariants not yet mapped (the FeO-MgO-SiO2 ternary

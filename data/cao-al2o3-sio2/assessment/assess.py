@@ -2,8 +2,9 @@
 binaries fixed: the Ca-Si interaction with Al as the additional cation, the Al-Si interaction
 with Ca and the Ca-Al interaction with Si (Poschmann Eq. 25-26, r = 1).
 
-Data: the Rankin & Wright (1915) liquidus (rankin1915_liquidus.csv) and the 45 KEMS silica
-activities of Kay & Taylor (1960) and Zaitsev (1997) that validate_kt.py reads; the first term
+Data: the Rankin & Wright (1915) liquidus (rankin1915_liquidus.csv) and the 45 measured silica
+activities that validate_kt.py reads (24 by gas-slag equilibrium, Kay & Taylor 1960; 21 by KEMS,
+Zaitsev 1997); the first term
 was fitted to the Zaitsev points alone in v0.2, so both sets enter together here. The two new
 terms carry a prior of 0 +- 50 kJ.
 
@@ -62,14 +63,10 @@ T_MEAS = np.array([float(r["T_C"]) + 273.15 for r in ROWS])
 
 
 def _activity_points():
-    arts = json.loads(kt.MANIFEST.read_text(encoding="utf-8"))["artifacts"]
-    out = []
-    for a in arts:
-        if "aSiO2" in a.get("id", "") or a.get("quantity") == "activity":
-            c = a.get("conditions", {})
-            out.append((a["id"], c.get("temperature_K"), kt.parse_composition(c.get("composition", "")),
-                        float(a["value"])))
-    return out
+    """(id, T, composition, a_SiO2) from measured_asio2.csv, the file validate_kt.py reads."""
+    with open(kt.MEASURED, newline="", encoding="utf-8") as f:
+        return [(a["id"], float(a["T_K"]), kt.parse_composition(a["composition"]), float(a["a_SiO2"]))
+                for a in csv.DictReader(f)]
 
 
 ACT = _activity_points()

@@ -3204,21 +3204,25 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
   // fractions of the B- and C-corner cations. Stoichiometric compounds place themselves
   // from their element stoichiometry; a per-system cef() closure adds solution lines.
   const LIQ_G=40;                 // liquid cation grid (~0.5 s/section)
+  // each Fe-Mg solution along its line, per mole of cations; the line function takes the two-site
+  // orthopyroxene at its internal order. [phase key, name, cations, of which Si]. Positions go
+  // through the system's own corner order, so a loaded file (Fe, Mg, Si) and the built-in slag
+  // (Mg, Fe, Si) sample the same phases.
+  const FEMG_LINES=[['OLV','OLIVINE',3,1],['OPX','ORTHOPYROXENE',4,2],['MW','MAGNESIOWUSTITE',1,0]];
+  function feMgLines(sys,pts,phName,T){
+    for(const [key,name,nc,nsi] of FEMG_LINES){
+      const p=sys[key]; if(p==null) continue;
+      const mgSecond=api.cefCon(sys.TDB,p,0,1)==='MG';
+      for(let k=0;k<=80;k++){ const xFe=1e-4+(1-2e-4)*k/80;
+        const g=api.cefLine(sys.TDB,p,mgSecond?1-xFe:xFe,T,0,0); if(!isFinite(g)) continue;
+        const f={FE:xFe*(nc-nsi)/nc, MG:(1-xFe)*(nc-nsi)/nc, SI:nsi/nc};
+        pts.push([f[sys.cats[1]], f[sys.cats[2]], g/nc]); phName.push(name); } } }
   const SYSTEMS={
     slag:{ dat:'./FeO-MgO-SiO2-combined.dat', liquid:'FEO-MGO-SIO2-LIQUID',
       els:['FE','MG','SI','O'], cats:['MG','FE','SI'], oxy:{FE:1,MG:1,SI:2},
       corners:['MgO','FeO','SiO₂'], mass:{A:40.304,B:71.844,C:60.084},
       tmin:1573, tmax:2073, tdef:1873,   // Kelvin
-      // each Fe-Mg solution along its line, per mole of cations; the line function takes the
-      // two-site orthopyroxene at its internal order. [phase, name, cations, of which Si]
-      cef(sys,pts,phName,T){
-        for(const [p,name,nc,nsi] of [[sys.OLV,'OLIVINE',3,1],[sys.OPX,'ORTHOPYROXENE',4,2],
-                                      [sys.MW,'MAGNESIOWUSTITE',1,0]]){
-          if(p==null) continue;
-          const mgSecond=api.cefCon(sys.TDB,p,0,1)==='MG';
-          for(let k=0;k<=80;k++){ const xFe=1e-4+(1-2e-4)*k/80;
-            const g=api.cefLine(sys.TDB,p,mgSecond?1-xFe:xFe,T,0,0); if(!isFinite(g)) continue;
-            pts.push([xFe*(nc-nsi)/nc, nsi/nc, g/nc]); phName.push(name); } } } },
+      cef:feMgLines },
     cas:{ dat:'./CaO-Al2O3-SiO2.dat', liquid:'CAO-ALO1.5-SIO2-LIQUID',
       els:['CA','AL','SI','O'], cats:['CA','AL','SI'], oxy:{CA:1,AL:1.5,SI:2},
       corners:['CaO','Al₂O₃','SiO₂'], mass:{A:56.077,B:50.9805,C:60.084},
@@ -3258,8 +3262,15 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
       if(ncat<=0) continue; stoich.push({idx:s,name:api.stName(db,s),b:nB/ncat,c:nC/ncat,ncat}); }
     api.M._free(buf);
     const oxide = anEl==='O';
+    // the Fe-Mg silicate and oxide solutions, when the loaded file carries them; until
+    // 2026-10-09 a loaded file sampled the liquid and stoichiometric phases only
+    const sol={};
+    if([...cats].sort().join()==='FE,MG,SI')
+      for(let p=0;p<api.nPh(db);p++){ const nm=api.phName(db,p);
+        for(const [key,name] of FEMG_LINES) if(nm===name && api.phaseKind(db,p)===1) sol[key]=p; }
     return { loaded:true, TDB:db, LIQ:phase, cats, anEl, els:[...cats,anEl], oxy, corners, mass, molOnly,
-      stoich, inpCache:{}, cef:null, tmin:oxide?1273:673, tmax:oxide?2473:1473, tdef:oxide?1873:1073 }   // Kelvin;
+      stoich, inpCache:{}, ...sol, cef:Object.keys(sol).length?feMgLines:null,
+      tmin:oxide?1273:673, tmax:oxide?2473:1473, tdef:oxide?1873:1073 }   // Kelvin;
   }
 
   function ensure(sys){ if(sys.loaded) return Promise.resolve();

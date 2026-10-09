@@ -4,6 +4,51 @@ Every number in `CaO-SiO2-liquid.dat` and its source. The database is built by
 `build_dat.py`; this file records where each input comes from and how the derived
 quantities are computed. All primary sources are open or public domain.
 
+## v0.4 (shipped): the liquid on the Robie-Hemingway calcium silicates
+
+The shipped liquid is `build_dat.ASSESSED_EXCESS`: Q terms in chi_Si^q for q = 0, 1, 3, 5, 7, the
+first two with entropy parts, on the calcium silicates of `silicates.py` (rankinite enthalpy
+shifted -1.77 kJ). It was fitted with `assessment/assess.py` to the invariants of Abdul et al.
+(2023), the Greig (1927) two liquids, the Kay & Taylor (1960) and Stolyarova silica and lime
+activities, and a soft machine-learned mixing-enthalpy anchor. The anchor stays, at low weight
+(-53 +- 15 kJ at x 0.5, 1900 K): a model value counts as data but weighs little until validated,
+and MatterSim misses the measured silicate formation enthalpies. -53 corrects a unit slip in the
+bias shift (-58 before 2026-10-07). Refits with the anchor tightened or removed moved nothing.
+
+Re-derived from the shipped file (fit tool, stable phases only), model / measured:
+
+| Target | Model | Measured |
+|---|---|---|
+| pseudowollastonite congruent | 1823 K | 1817 K |
+| alpha-Ca2SiO4 congruent | 2431 K | 2403 K |
+| Ca3Si2O7 + CaSiO3 invariant | 1728 / 1759 K | 1733 K |
+| CaSiO3 + SiO2 eutectic | 1694 / 1681 K | 1709 K |
+| Ca3SiO5 + alpha-Ca2SiO4 invariant | 2445 / 2228 K | 2323 K |
+| CaO + Ca3SiO5 invariant | 2557 / 2473 K | 2423 K |
+| monotectic (silica + two liquids) | 1980 K | 1971 K |
+| top of the two-liquid region | above 3000 K (closes near 3976 K) | 1998 K |
+| a(SiO2), Kay & Taylor, x 0.511 / 0.466 / 0.422 | 0.32 / 0.16 / 0.07 | 0.25 / 0.17 / 0.09 |
+| a(CaO), Stolyarova, x 0.41 to 0.50 | 0.047 to 0.012 | 0.29 to 0.07 |
+
+**Known limits.** The silica-rich two-liquid region does not close: pycalphad on the shipped file
+finds two liquids at x_SiO2 0.80-0.90 at 2000, 2500 and 3000 K, against a measured top of 1998 K.
+This matters only for melts above about 65% SiO2 above about 2000 K. The lime-side invariants are
+95-134 K off, at 2300-2450 K. The Stolyarova a(CaO) points are missed by a factor of about 6 by
+every form tried while their a(SiO2) points are matched; that set is treated as an outlier.
+
+**Refits tried, 2026-10-07 (none shipped).** The tool's two-liquid residual used to score the gap
+width 15 K above the measured top, which stops changing once the gap is wide; it now scores where
+the gap closes. With that residual, refits from three starts, then with entropy parts on the
+q = 3, 5, 7 terms, with the Ca-Si ordering composition free (`--sro`, `build_dat.CASI_SRO_X`), and
+with q = 4, 6, 9 added (`--qx`), all settle at the same compromise. The best (cost 208, ordering at
+x_SiO2 0.343) closes the gap at 2083 K but puts the CaSiO3 + SiO2 eutectic silica liquidus at 1552 K
+(measured 1709 K), the monotectic at 1911 K and the CaO + Ca3SiO5 lime liquidus at 2657 K. Moving any
+added term away from zero raises the cost (scanned to +-60 kJ), so the minimum is genuine. A measured
+liquid-silica heat capacity (about 81 against the 74 J/K assumed) would shift the silica liquidus
+the wrong way, by about 150 J at 1709 K. The dome measurement (Greig 1927) and the 2023 invariants
+cannot be met together with this liquid; the shipped fit keeps the liquidus where slags are used
+(Michael, 2026-10-07).
+
 ## Primary sources
 
 - **Robie & Hemingway (1995)**, "Thermodynamic Properties of Minerals and Related

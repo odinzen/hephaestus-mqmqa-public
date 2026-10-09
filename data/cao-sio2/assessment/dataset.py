@@ -1,6 +1,7 @@
 """The measured CaO-SiO2 dataset the v0.4 liquid is assessed against.
 
-Invariants: Abdul et al. 2023, Cement and Concrete Research 174, 107039 (CC BY), Table 9
+Invariants: Abdul et al. 2023, Cement and Concrete Research 173, 107309, doi:10.1016/j.cemconres.2023.107309
+(CC BY), Table 9
 (experimental values they collect; liquid compositions in mole fraction SiO2), and their
 own DSC for the rankinite peritectic (section 6.1, 1737 +- 5 K). Each invariant enters as
 the liquidus of every solid it involves, at the tabulated liquid composition. Those

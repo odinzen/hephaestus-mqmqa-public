@@ -21,8 +21,9 @@ transitions are not yet resolved (a documented refinement, see notes).
 
 Open sources (all measured/evaluated, no TDB parameters):
   - CaO, SiO2 endmembers: as in build_dat.py (Robie-Hemingway 1995, NIST-JANAF).
-  - Compound dHf_ox(298), measured: Abdul et al. 2023, Cement & Concrete Research 174,
-    107039 (CC-BY), Table A.2 (experimental fit dataset, primary calorimetry).
+  - Compound dHf_ox(298), measured: Abdul et al. 2023, Cement & Concrete Research 173,
+    107309, doi:10.1016/j.cemconres.2023.107309 (CC-BY), Table A.2 (experimental fit dataset,
+    primary calorimetry).
   - Compound S298: Abdul 2023 Table 7 (Haas et al. evaluated).
   - Pseudowollastonite fusion (Tm=1817 K, dHfus=57300 J/mol): Abdul 2023 Table 9
     (Adamkovicova 1980).  Published invariants for validation: Abdul 2023 Table 9.

@@ -126,7 +126,24 @@ def assessed_excess(li=(1, 2, 3, 3)):
             for q, a, b in ASSESSED_EXCESS]
 
 
-def build(excess=None, version=None, cao_liq_beta=None):
+# Ca-Si ordering composition: the x_SiO2 at which the (Ca,Si/O,O) quadruplet orders most. At 1/3
+# (charge-proportional coordination) no explicit row is written; otherwise one (Ca,Si/O,O) row with
+# the quadruplet charge balance 2/Z_Ca + 4/Z_Si = 4/Z_O kept, at full precision (the balance needs
+# every digit; see data/mgo-sio2 mgsi_mixed_z, the same construction).
+CASI_SRO_X = 1.0 / 3.0
+
+
+def casi_mixed_z(x_sro=None):
+    x = CASI_SRO_X if x_sro is None else x_sro
+    if abs(x - 1.0 / 3.0) < 1e-12:
+        return None
+    z_o = 2 * Z_PER_CHARGE
+    r = x / (1.0 - x)                      # Z_Ca / Z_Si
+    z_ca = (2.0 + 4.0 * r) * z_o / 4.0
+    return (z_ca, z_ca / r, z_o, z_o)
+
+
+def build(excess=None, version=None, cao_liq_beta=None, x_sro=None):
     L = []
     ap = L.append
 
@@ -144,7 +161,8 @@ def build(excess=None, version=None, cao_liq_beta=None):
     # --- the single solution phase ---
     ap(" CaO-SiO2-liquid")
     ap(" SUBQ")
-    ap("   2   2")  # n_pairs, n_quads
+    z_mixed = casi_mixed_z(x_sro)
+    ap(f"   2   {3 if z_mixed else 2}")  # n_pairs, n_quads (MQMZ rows)
 
     order = ["CaO", "SiO2"]
     for name in order:
@@ -189,6 +207,8 @@ def build(excess=None, version=None, cao_liq_beta=None):
     z_o = 2 * Z_PER_CHARGE
     ap(f"   1   1   3   3   {z_ca:.7f}   {z_ca:.7f}   {z_o:.7f}   {z_o:.7f}")
     ap(f"   2   2   3   3   {z_si:.7f}   {z_si:.7f}   {z_o:.7f}   {z_o:.7f}")
+    if z_mixed:
+        ap("   1   2   3   3   " + "   ".join(f"{v:.15f}" for v in z_mixed))
 
     # --- excess (MQMX): none in v0.1 (ideal), fitted Q terms in v0.2. ---
     if excess:
@@ -201,7 +221,8 @@ def build(excess=None, version=None, cao_liq_beta=None):
 
 if __name__ == "__main__":
     out = Path(__file__).with_name("CaO-SiO2-liquid.dat")
-    out.write_text(build(), encoding="ascii")
+    # the assessed liquid; build() with no excess is the ideal v0.1 one
+    out.write_text(build(assessed_excess(), version="v0.4"), encoding="ascii")
     print(f"wrote {out}")
     for name in ("CaO", "SiO2"):
         print(name, "liquid G coeffs [A,B,C,D,E,F] =",

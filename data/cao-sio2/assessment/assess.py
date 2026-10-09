@@ -40,22 +40,37 @@ R = 8.3145
 # q = 2 with an entropy part, 2026-10-01: the CaO-side freedom (in a binary a CaO-power term is a
 # combination of silica powers 0-2), for the lime liquidus that sat 134 K high at x 0.27
 QTERMS = [(0, True), (1, True), (3, False), (5, False), (7, False), (2, True)]
-NAMES = ["a00", "b00", "a01", "b01", "a03", "a05", "a07", "a02", "b02", "rankinite_dHf"]
+# --qb=3,5: entropy parts on those silica-rich terms as well, each under a 0 +- 15 J/K prior. The
+# measured dome closes only 27 K above the monotectic, which an enthalpy-only silica side could not
+# reproduce without dragging the silica liquidus down (2026-10-07 refits).
+QB = {int(q) for a in sys.argv if a.startswith("--qb=") for q in a[5:].split(",")}
+QTERMS = [(q, has_b or q in QB) for q, has_b in QTERMS]
+# --qx=4,6,9: further silica powers, enthalpy only (q = 4 and 6 complete the degree-7 polynomial)
+QTERMS += [(int(q), int(q) in QB) for a in sys.argv if a.startswith("--qx=") for q in a[5:].split(",")]
+SIG_QB = 15.0
+NAMES = [n for q, has_b in QTERMS for n in ([f"a0{q}", f"b0{q}"] if has_b else [f"a0{q}"])]
+NAMES.append("rankinite_dHf")
 W_BASIC = 3.0                    # a lime-side gap is unphysical: weighted above one sigma
 # slope of the missing-gap penalty per unit of stability margin (d2G/dx2 over RT)
 W_NOGAP = next((float(a.split("=", 1)[1]) for a in sys.argv if a.startswith("--wgap=")), 1.0)
 SIG_KT, SIG_STOL = 0.10, 0.50    # ln a; Stolyarova is the documented outlier (fit_excess)
-MLIP_DH, SIG_DH = -58000.0, 6000.0   # dH_mix at x=0.5, 1900 K (v03_fit.py), soft
-# Overrides for testing the anchor (MLIP audit 2026-10-07: the 9 kJ MatterSim formation bias
-# is per CaSiO3, two oxide units, and was applied in full to a per-oxide-unit dH_mix).
-MLIP_DH = float(os.environ.get("CAO_SIO2_MLIP_DH", MLIP_DH))
-SIG_DH = float(os.environ.get("CAO_SIO2_SIG_DH", SIG_DH))
+# MatterSim melt mixing enthalpy at x = 0.5, 1900 K, shifted by the potential's formation bias
+# against the measured calcium silicates. A model value is data, but low weight until validated
+# against experiment, and this potential misses the measured silicate formation enthalpies (9 kJ
+# per CaSiO3), so the anchor is wide. -53 kJ corrects the bias, per CaSiO3 (two oxide units), that
+# v0.4 applied in full to a per-oxide-unit dH_mix (-58; MLIP audit 2026-10-07). Refits with the
+# anchor tightened or removed moved nothing (cost 133.27 / 133.08).
+MLIP_DH, SIG_DH = -53000.0, 15000.0
 SIG_RANK = 10000.0               # R&H uncertainty of rankinite dHf
 # --cao-beta: the supercooled CaO(l) slope (build_dat.CAO_LIQ_BETA) joins the fit as the last
 # parameter, under the same 0 +- 5 J/K prior the MgO(l) slope carries
 CAO_BETA = "--cao-beta" in sys.argv
 SIG_BETA = 5.0
-I_RANK = -2 if CAO_BETA else -1
+# --sro: the Ca-Si ordering composition joins as the last parameter (offset from 1/3), as in the
+# MgO-SiO2 assessment
+SRO = "--sro" in sys.argv
+I_RANK = -1 - int(CAO_BETA) - int(SRO)
+I_BETA = I_RANK + 1
 X_SOLID = {name: n_si / (n_ca + n_si) for name, (n_ca, n_si, *_rest) in pdg.SOLIDS.items()}
 
 
@@ -73,7 +88,8 @@ def build_db(pp):
     # scratch copy per process (parallel fits), outside the repository
     path = Path(tempfile.gettempdir()) / f"_cao-sio2_assess_{os.getpid()}.dat"
     path.write_text(bd.build(excess_of(pp), version="v0.4",
-                             cao_liq_beta=float(pp[-1]) if CAO_BETA else None), encoding="ascii")
+                             cao_liq_beta=float(pp[I_BETA]) if CAO_BETA else None,
+                             x_sro=1.0 / 3.0 + float(pp[-1]) if SRO else None), encoding="ascii")
     db = mqmqa.Database.read(str(path))
     return db, db.phase_index("CAO-SIO2-LIQUID")
 
@@ -177,6 +193,19 @@ def monotectic_T(db, p, lo=1800.0, hi=2150.0):
     return hi + 300.0 * math.asinh((Tx - hi) / 300.0)
 
 
+def consolute_T(db, p, lo, hi=4000.0):
+    """Temperature where the silica-side gap closes, or None with no gap at lo; hi if it is
+    still open there."""
+    if binodal(db, p, lo) is None:
+        return None
+    if binodal(db, p, hi) is not None:
+        return hi
+    while hi - lo > 0.5:
+        mid = 0.5 * (lo + hi)
+        lo, hi = (mid, hi) if binodal(db, p, mid) else (lo, mid)
+    return lo
+
+
 def residuals(pp, detail=False):
     db, p = build_db(pp)
     res, rows = [], []
@@ -216,8 +245,12 @@ def residuals(pp, detail=False):
     add("consolute: gap below", 0.0 if lo_gap
         else 5.0 + W_NOGAP * stability_margin(db, p, c["T"] - c["sigT"], 0.55, 0.9995),
         f"{lo_gap[0]:.3f}-{lo_gap[1]:.3f}" if lo_gap else "none")
-    add("consolute: closed above", ((hi_gap[1] - hi_gap[0]) / c["sigx"]) if hi_gap else 0.0,
-        f"{hi_gap[0]:.3f}-{hi_gap[1]:.3f}" if hi_gap else "closed")
+    # where the gap closes, softened beyond 300 K. The width 15 K above the measured top, the
+    # residual used until 2026-10-07, stops changing once the gap is wide, and the fit left the
+    # dome open past 3000 K.
+    Tc = consolute_T(db, p, c["T"] - c["sigT"])
+    add("consolute T", (300.0 / c["sigT"]) * math.asinh((Tc - c["T"]) / 300.0) if Tc else 0.0,
+        f"{Tc:.0f}/{c['T']:.0f}" if Tc else "no gap")
 
     # no two liquids on the lime side (curvature terms can open one; fit_excess notes)
     for Tb in (2000.0, 2300.0, 2600.0):
@@ -242,10 +275,17 @@ def residuals(pp, detail=False):
     T0 = 1900.0
     gT = lambda T: act.delta_g_mix(eq.build_inputs(db, p, T, components=COMP), 0.5)
     dH = gT(T0) - T0 * (gT(T0 + 50.0) - gT(T0 - 50.0)) / 100.0
-    add("MLIP dH_mix x=0.5", (dH - MLIP_DH) / SIG_DH, f"{dH / 1000:.1f}/{MLIP_DH / 1000:.1f} kJ")
+    add("MLIP dH_mix x=0.5 (low weight)", (dH - MLIP_DH) / SIG_DH, f"{dH / 1000:.1f}/{MLIP_DH / 1000:.1f} kJ")
+    i = 0
+    for q, has_b in QTERMS:
+        if has_b and q in QB:
+            add(f"prior b0{q}", pp[i + 1] / SIG_QB, f"{pp[i + 1]:.2f} J/K")
+        i += 2 if has_b else 1
     add("rankinite dHf prior", pp[I_RANK] / SIG_RANK, f"{pp[I_RANK] / 1000:+.2f} kJ")
     if CAO_BETA:
-        add("prior CaO(l) beta", pp[-1] / SIG_BETA, f"{pp[-1]:.2f} J/K")
+        add("prior CaO(l) beta", pp[I_BETA] / SIG_BETA, f"{pp[I_BETA]:.2f} J/K")
+    if SRO:
+        rows.append(("Ca-Si ordering x_SiO2", 0.0, f"{1.0 / 3.0 + pp[-1]:.4f}"))
     return (np.array(res), rows) if detail else np.array(res)
 
 
@@ -263,7 +303,8 @@ def fit(p0):
         return r
     # solve in units of each parameter's scale: scipy's finite-difference step is relative
     # to |x| (floored at 1), so a term starting at zero would otherwise get a 0.02 J step
-    scale = np.array([5e4, 10.0, 5e4, 10.0, 5e4, 5e4, 5e4, 5e4, 10.0, 3e3] + ([10.0] if CAO_BETA else []))
+    scale = np.array([v for _, has_b in QTERMS for v in ([5e4, 10.0] if has_b else [5e4])]
+                     + [3e3] + ([10.0] if CAO_BETA else []) + ([0.02] if SRO else []))
     sol = least_squares(lambda u: fun(u * scale), np.asarray(p0) / scale,
                         diff_step=0.02, ftol=1e-5, xtol=1e-6, max_nfev=150)
     return sol.x * scale
@@ -284,11 +325,16 @@ if __name__ == "__main__":
     # The assessed liquid is build_dat.ASSESSED_EXCESS and the rankinite shift is in
     # silicates.py (2026-09-29): total cost 133.3, RMS 2.61, nearly all of it the Stolyarova
     # a(CaO) points and the consolute. --fit re-runs from here.
-    (_, a00, b00), (_, a01, b01), (_, a03, _), (_, a05, _), (_, a07, _) = bd.ASSESSED_EXCESS
-    ASSESSED = [a00, b00, a01, b01, a03, a05, a07, 0.0, 0.0, sil.RANKINITE_DHF_SHIFT]
+    stored = {q: (a, b) for q, a, b in bd.ASSESSED_EXCESS}
+    ASSESSED = [v for q, has_b in QTERMS
+                for v in (stored.get(q, (0.0, 0.0)) if has_b else stored.get(q, (0.0, 0.0))[:1])]
+    ASSESSED.append(sil.RANKINITE_DHF_SHIFT)
     if CAO_BETA:
         ASSESSED.append(bd.CAO_LIQ_BETA)
         NAMES.append("cao_liq_beta")
+    if SRO:
+        ASSESSED.append(bd.CASI_SRO_X - 1.0 / 3.0)
+        NAMES.append("casi_sro_dx")
     for arg in sys.argv:
         if arg.startswith("--p0="):
             ASSESSED = [float(v) for v in arg[5:].split(",")]

@@ -135,10 +135,12 @@ def _g_cas(name):
 SOLIDS = {
     "Lime": ((1, 0, 0, 0, 0), _g_dict(_caal.SOLIDS["CaO_solid"][2]), "CaO"),
     "Corundum": ((0, 0, 2, 0, 0), _g_dict(_caal.SOLIDS["Al2O3_corundum"][2]), "Al2O3"),
-    "CaAl2O4": ((1, 0, 2, 0, 0), _g_dict(_caal.SOLIDS["CaAl2O4"][2]), "CaAl2O4"),
-    "CaAl4O7": ((1, 0, 4, 0, 0), _g_dict(_caal.SOLIDS["CaAl4O7"][2]), "CaAl4O7"),
-    "Ca3Al2O6": ((3, 0, 2, 0, 0), _g_dict(_caal.SOLIDS["Ca3Al2O6"][2]), "Ca3Al2O6"),
-    "Hibonite": ((1, 0, 12, 0, 0), _g_dict(_caal.SOLIDS["CaAl12O19"][2]), "CaAl12O19"),
+    # the aluminates on their measured values: the CaO-Al2O3 assessment shifts them to fit the
+    # melting data, a high-temperature compromise this 298 K database does not take
+    "CaAl2O4": ((1, 0, 2, 0, 0), _g_dict(_caal.MEASURED["CaAl2O4"]), "CaAl2O4"),
+    "CaAl4O7": ((1, 0, 4, 0, 0), _g_dict(_caal.MEASURED["CaAl4O7"]), "CaAl4O7"),
+    "Ca3Al2O6": ((3, 0, 2, 0, 0), _g_dict(_caal.MEASURED["Ca3Al2O6"]), "Ca3Al2O6"),
+    "Hibonite": ((1, 0, 12, 0, 0), _g_dict(_caal.MEASURED["CaAl12O19"]), "CaAl12O19"),
     "Wollastonite": ((1, 0, 0, 1, 0), _sil.gibbs("CaSiO3", T), "CaSiO3"),
     "Larnite": ((2, 0, 0, 1, 0), _sil.gibbs("Ca2SiO4", T), "Ca2SiO4"),
     "Hatrurite": ((3, 0, 0, 1, 0), _sil.gibbs("Ca3SiO5", T), "Ca3SiO5"),
@@ -166,8 +168,8 @@ def _h_cas(name):
 # coefficient dicts the 298 K enthalpy is dHf itself)
 H298 = {
     "Lime": _caal.SOLIDS["CaO_solid"][2]["dHf"], "Corundum": _caal.SOLIDS["Al2O3_corundum"][2]["dHf"],
-    "CaAl2O4": _caal.SOLIDS["CaAl2O4"][2]["dHf"], "CaAl4O7": _caal.SOLIDS["CaAl4O7"][2]["dHf"],
-    "Ca3Al2O6": _caal.SOLIDS["Ca3Al2O6"][2]["dHf"], "Hibonite": _caal.SOLIDS["CaAl12O19"][2]["dHf"],
+    "CaAl2O4": _caal.MEASURED["CaAl2O4"]["dHf"], "CaAl4O7": _caal.MEASURED["CaAl4O7"]["dHf"],
+    "Ca3Al2O6": _caal.MEASURED["Ca3Al2O6"]["dHf"], "Hibonite": _caal.MEASURED["CaAl12O19"]["dHf"],
     "Wollastonite": _h(lambda t: _sil.gibbs("CaSiO3", t)), "Larnite": _h(lambda t: _sil.gibbs("Ca2SiO4", t)),
     "Hatrurite": _h(lambda t: _sil.gibbs("Ca3SiO5", t)), "Rankinite": _h(lambda t: _sil.gibbs("Ca3Si2O7", t)),
     "Forsterite_H": _h(lambda t: _olv.gibbs("forsterite", t)), "Enstatite_H": _h(lambda t: _olv.gibbs("enstatite", t)),

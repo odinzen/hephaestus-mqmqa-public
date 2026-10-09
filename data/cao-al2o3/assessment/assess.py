@@ -76,8 +76,9 @@ NAMES = [f"{c}{p}{q}" for p, q in TERMS for c in "ab"] + [f"dhf_{f}" for f, _ in
 # Hibonite's entropy of formation from the oxides is the least certain number here: no low-T
 # calorimetry, Geiger's +24.3 J/K at 1100 K rests on two electrochemical studies, and estimates of
 # S298 run from the oxide sum (344 J/K) to 432 J/K (Geiger 1988 section d). Assessed, 0 +- 15 J/K
-# around Geiger's value. Machine-learned phonons are not used: they miss the measured entropies of
-# the other aluminates (PROVENANCE.md); only a measurement settles this one.
+# around Geiger's value. The machine-learned phonon values (42-50 J/K) dispute it but are not
+# validated (they miss the measured entropies of the other aluminates, PROVENANCE.md), so they do
+# not move the prior; only a measurement settles this one.
 DS_HIB_PRIOR = 15.0
 
 
@@ -112,8 +113,10 @@ def offset(pp, k):
 def set_shifts(values, ds_hib=0.0):
     for (f, _), v in zip(SHIFTS, values):
         n_ca, n_al, _ = build_dat.SOLIDS[f]
-        base = _BASE[f]["dHf"] - (build_dat.CA2_DHF_SHIFT if f == "CaAl4O7" else 0.0)
-        extra = {"S298": _BASE[f]["S298"] + ds_hib} if f == "CaAl12O19" else {}
+        # _BASE is build_dat.SOLIDS, which carries the stored shifts: take them out first
+        base = _BASE[f]["dHf"] - build_dat.DHF_SHIFT.get(f, 0.0)
+        extra = ({"S298": _BASE[f]["S298"] - build_dat.HIBONITE_DS_SHIFT + ds_hib}
+                 if f == "CaAl12O19" else {})
         if f == "CaAl4O7" and CA2_ENTROPY:
             extra, v = {"S298": _BASE[f]["S298"] + v}, 0.0
         build_dat.SOLIDS[f] = (n_ca, n_al, dict(_BASE[f], dHf=base + v, **extra))
@@ -279,7 +282,11 @@ def report(pp):
 
 
 if __name__ == "__main__":
-    p0 = [v1.STORED[0], v1.STORED[1], v1.STORED[2], 0.0, 0.0, 0.0, build_dat.CA2_DHF_SHIFT, 0.0, 0.0, 0.0, 0.0]
+    # start from the stored assessment (build_dat), in TERMS and SHIFTS order
+    start = {(p, q): (a, b) for p, q, a, b in build_dat.ASSESSED_EXCESS}
+    p0 = [v for t in TERMS for v in start.get(t, (0.0, 0.0))]
+    p0 += [build_dat.DHF_SHIFT.get(f, 0.0) for f, _ in SHIFTS] + [build_dat.HIBONITE_DS_SHIFT]
+    p0 += [0.0] * ((1 if CAO_BETA else 0) + (2 if OFFSETS else 0))
     for arg in sys.argv:
         if arg.startswith("--p0="):
             p0 = [float(v) for v in arg[5:].split(",")]
@@ -297,7 +304,7 @@ if __name__ == "__main__":
             print(f"  eval {n[0]:3d} cost={0.5 * float(r @ r):.2f} p0="
                   + ",".join(f"{v:.6g}" for v in (u - 1.0) * scale), flush=True)
             return r
-        u = least_squares(fun, 1.0 + np.asarray(p0) / scale, diff_step=0.05, max_nfev=60,
+        u = least_squares(fun, 1.0 + np.asarray(p0) / scale, diff_step=0.05, max_nfev=400,
                           ftol=1e-4, xtol=1e-4).x
         p0 = list((u - 1.0) * scale)
     report(p0)

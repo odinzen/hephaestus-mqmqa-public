@@ -111,15 +111,40 @@ def _anchored():
 
 
 TABLES = _bonnickson(_anchored())
-# CaAl4O7's enthalpy of formation from the oxides is the least certain of the four: one oxide-melt
-# measurement (Geiger 1988, 89 % pure sample), Barin implies -39.3. A constant shift, assessed
-# with the liquid (assessment/assess.py) under a prior of Geiger's stated uncertainty (+-4.7 kJ).
-CA2_DHF_SHIFT = 0.0
 HIBONITE_DHF_OX = -33000.0      # J per CaAl12O19
 HIBONITE_DS_OX = 24.3           # J/K per CaAl12O19
 HIBONITE = _D(dHf=CAO.dHf + 6 * AL2O3_SOLID["dHf"] + HIBONITE_DHF_OX,
               S298=CAO.S298 + 6 * AL2O3_SOLID["S298"] + HIBONITE_DS_OX,
               **{k: CAO_SOLID[k] + 6 * AL2O3_SOLID[k] for k in ("a", "b", "c")})
+
+# The dry assessment (assessment/assess.py, 2026-10-07): constant shifts on the measured
+# enthalpies of formation (J per formula) and on hibonite's entropy (J/K), fitted with the liquid
+# under the priors listed there. CaAl4O7 moves 3.0 sigma off Geiger's calorimetry and Ca3Al2O6
+# 2.3 sigma off Coughlin's; no newer calorimetry exists, so the dry phase diagram decides
+# (PROVENANCE.md). The measured values above stay as they are; only SOLIDS carries the shifts.
+DHF_SHIFT = {"CaAl4O7": 14072.76, "Ca3Al2O6": -6756.04, "CaAl2O4": 1762.06, "CaAl12O19": 1096.96}
+HIBONITE_DS_SHIFT = 2.99
+# Liquid excess, (p, q, a, b) for (a + b T) chi_Ca^p chi_Al^q, in assess.TERMS order
+ASSESSED_EXCESS = [(0, 0, -220271.95, 9.3), (1, 0, 194681.72, -22.43), (0, 1, 73407.31, 29.31),
+                   (2, 0, 34925.39, -24.72), (0, 2, -120936.69, 26.13)]
+
+
+def assessed_terms():
+    return [ExcessTerm(a=a, b=b, p=p, q=q) for p, q, a, b in ASSESSED_EXCESS]
+
+
+def _shifted(f, cf):
+    out = dict(cf, dHf=cf["dHf"] + DHF_SHIFT.get(f, 0.0))
+    if f == "CaAl12O19":
+        out["S298"] = cf["S298"] + HIBONITE_DS_SHIFT
+    return out
+
+
+# The aluminates on their measured values, before the assessment's shifts. The 298 K aqueous
+# database (data/wet-slag) reads these: the shifts are a compromise for the melting data, and at
+# room temperature the calorimetry is the better number (Michael, 2026-10-07).
+MEASURED = {"Ca3Al2O6": _sil.fit(TABLES["Ca3Al2O6"]), "CaAl2O4": _sil.fit(TABLES["CaAl2O4"]),
+            "CaAl4O7": _sil.fit(TABLES["CaAl4O7"]), "CaAl12O19": HIBONITE}
 
 # DRY SLAGS ONLY. Ca12Al14O33 (C12A7, mayenite) is left out: it is stable only with absorbed water
 # (under 1 mass%) and does not form in a dry atmosphere (Nurse, Welch & Majumdar 1965; Jerebtsov &
@@ -129,11 +154,10 @@ SOLIDS = {
     # name: (n_CaO_units, n_AlO15_units, coeff dict per formula)
     "CaO_solid": (1, 0, CAO_SOLID),
     "Al2O3_corundum": (0, 2, AL2O3_SOLID),
-    "Ca3Al2O6": (3, 2, _sil.fit(TABLES["Ca3Al2O6"])),
-    "CaAl2O4": (1, 2, _sil.fit(TABLES["CaAl2O4"])),
-    "CaAl4O7": (1, 4, dict(_sil.fit(TABLES["CaAl4O7"]),
-                           dHf=_sil.fit(TABLES["CaAl4O7"])["dHf"] + CA2_DHF_SHIFT)),
-    "CaAl12O19": (1, 12, HIBONITE),
+    "Ca3Al2O6": (3, 2, _shifted("Ca3Al2O6", MEASURED["Ca3Al2O6"])),
+    "CaAl2O4": (1, 2, _shifted("CaAl2O4", MEASURED["CaAl2O4"])),
+    "CaAl4O7": (1, 4, _shifted("CaAl4O7", MEASURED["CaAl4O7"])),
+    "CaAl12O19": (1, 12, _shifted("CaAl12O19", HIBONITE)),
 }
 
 
@@ -153,14 +177,15 @@ def _stoich_block(name, coeffs, n_ca, n_al):
             "  6000.0000   " + "   ".join(f"{v:.12E}" for v in (A, B, C, D, E, F))]
 
 
-def build(terms=(), out=None):
-    """Write the .dat with the given liquid ExcessTerms; returns the path."""
+def build(terms=None, out=None):
+    """Write the .dat; terms None means the assessed liquid, () an ideal one."""
+    terms = assessed_terms() if terms is None else terms
     spec = SystemSpec(
         "CaO-AlO1.5", [CAO, ALO15],
         [BinaryExcess("CaO", "AlO1.5", list(terms))] if terms else [],
-        version="v0.1",
-        provenance="Rankin&Wright 1915 invariants + Coughlin 1956/Geiger 1988 calorimetry "
-                   "+ Barin 1995/CODATA endmembers; see PROVENANCE.md")
+        version="v0.2",
+        provenance="dry assessment: Shepherd, Rankin & Wright 1909 + Jerebtsov & Mikhailov 2001 "
+                   "liquidus, Bonnickson 1955 heat contents; see PROVENANCE.md")
     lines = dbbuild.write_dat(spec).splitlines()
     lines[1] = f"    3    1    2    {len(SOLIDS)}"      # 3 elements, 1 solution (2 cations), solids
     for name, (n_ca, n_al, coeffs) in SOLIDS.items():

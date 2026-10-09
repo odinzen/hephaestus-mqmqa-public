@@ -1,4 +1,4 @@
-# CaO-Al2O3 v0.1 — provenance and limits
+# CaO-Al2O3 v0.2 (dry) - provenance and limits
 
 ## Scope: dry slags only (2026-10-01)
 
@@ -15,6 +15,47 @@ Literature-only open database: MQMQA liquid (components CaO, AlO1.5) + six stoic
 solids. Built 2026-08-25 from the paper set gathered for this system (Rankin & Wright 1915;
 Coughlin 1956; Bonnickson 1955; Geiger 1988) plus open compilations (CODATA, NIST-JANAF,
 Barin 1995, TKV). No value derives from any prior assessment or commercial database.
+
+## v0.2: the dry assessment (shipped 2026-10-07)
+
+The shipped liquid and solids are the dry fit of `assessment/assess.py`, stored in `build_dat.py`
+(`ASSESSED_EXCESS`, `DHF_SHIFT`, `HIBONITE_DS_SHIFT`). Six solids: lime, corundum, Ca3Al2O6,
+CaAl2O4, CaAl4O7 (Bonnickson 1955 heat contents) and hibonite (oxide sum, Geiger 1988). Fitted in
+one weighted least squares to the Jerebtsov & Mikhailov (2001) dry DTA invariants and fusion
+heats and the Shepherd, Rankin & Wright (1909) liquidus, each liquidus point scored only where the
+liquid is stable. Liquid excess: five terms (a + bT) chi_Ca^p chi_Al^q, (p, q) = (0,0), (1,0),
+(0,1), (2,0), (0,2). Cost 1240 (v0.1 liquid on these solids) -> 60.6, RMS residual 0.97.
+
+The fit moves measured solid data, under priors:
+
+| Quantity | Shift | Prior (1 sigma) |
+|---|---|---|
+| CaAl4O7 enthalpy of formation | +14.07 kJ | 4.7 kJ (Geiger's spread) |
+| Ca3Al2O6 enthalpy of formation | -6.76 kJ | 3 kJ |
+| CaAl2O4 enthalpy of formation | +1.76 kJ | 3 kJ |
+| CaAl12O19 enthalpy of formation | +1.10 kJ | 5 kJ |
+| CaAl12O19 entropy of formation | +2.99 J/K (to 27.3) | 15 J/K |
+
+The CaAl4O7 shift is 3.0 sigma and the Ca3Al2O6 shift 2.3 sigma off their calorimetry. No newer
+calorimetry exists for either, so the dry phase diagram decides them (Michael, 2026-10-07); the
+shifted values are fitted, not measured, and the measured ones stay in `build_dat.py` (`MEASURED`).
+The 298 K aqueous database (data/wet-slag) reads the measured values, not the shifted ones.
+
+Re-derived from the shipped file with pycalphad, stable phases only:
+
+| Invariant | Model | Measured (Jerebtsov & Mikhailov 2001) |
+|---|---|---|
+| CaAl12O19 = Al2O3 + L | 2190 K | 2125 K |
+| CaAl4O7 = CaAl12O19 + L | 2048 K | 2035 K |
+| CaAl2O4 = CaAl4O7 + L | 1836 K | 1877 K |
+| Ca3Al2O6 + CaAl2O4 = L | 1651 K | 1644 K |
+| Ca3Al2O6 = CaO + L | 1833 K | 1813 K |
+
+Fusion heats (fit tool): CaAl12O19 606 vs 710 +- 30 kJ, CaAl4O7 176 vs 210 +- 10, CaAl2O4 83 vs
+84 +- 10, Ca3Al2O6 166 vs 145 +- 30. Hibonite melts 65 K high and with too small a fusion heat;
+CaAl2O4 breaks down 41 K low.
+
+The sections below record v0.1 (Rankin & Wright 1915 invariants, with Ca12Al14O33) for history.
 
 ## Endmembers
 
@@ -82,14 +123,14 @@ Reported, not fitted: C3A correctly decomposes peritectically below its melting 
 - Validation: engine and pycalphad agree on all six stoichiometric phases to machine
   precision and on the liquid at grid tolerance (2026-08-25, this folder's scripts).
 
-## Pending assessment: hibonite entropy (2026-10-07)
+## Hibonite entropy (2026-10-07)
 
-The next fit (`assessment/assess.py`, on hold) adds hibonite. Its entropy of formation from the
-oxides has one source, Geiger (1988, Eqn 10): +24.3 J/K at 1100 K from two electrochemical
-studies. There is no low-temperature calorimetry. Machine-learned phonon calculations gave 42-50
-J/K (Orb-v3, MACE-MP-0; branch `station2-caal-phonons`), but the same potentials miss the measured
-entropies of CaAl2O4, CaAl4O7 and Ca3Al2O6 (King 1955) by 2, 5-6 and 12-13 J/K, so they are not
-used. Settling this number needs a measurement: the low-temperature heat capacity of hibonite.
+Hibonite's entropy of formation from the oxides has one source, Geiger (1988, Eqn 10): +24.3 J/K at
+1100 K from two electrochemical studies; there is no low-temperature calorimetry. The fit moves it
+by +3 J/K. Machine-learned phonon calculations gave 42-50 J/K (Orb-v3, MACE-MP-0; branch
+`station2-caal-phonons`), but the same potentials miss the measured entropies of CaAl2O4, CaAl4O7
+and Ca3Al2O6 (King 1955) by 2, 5-6 and 12-13 J/K. Unvalidated, they cannot settle a dispute with
+Geiger's value; only a low-temperature heat capacity measurement of hibonite can.
 
-Repro: `build_dat.py` (writes CaO-Al2O3.dat with the stored excess), `v01_fit.py`
-(evaluates the invariants; `--fit` re-optimizes).
+Repro: `build_dat.py` writes CaO-Al2O3.dat from the stored v0.2 assessment; `assessment/assess.py`
+reports it (`--fit` re-optimizes from it). `v01_fit.py` is the v0.1 tool, kept for history.

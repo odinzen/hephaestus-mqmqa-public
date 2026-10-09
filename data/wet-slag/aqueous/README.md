@@ -21,6 +21,12 @@ copied from `wateq4f`. Both parent databases are distributed with PHREEQC by the
 from the phreeqpython package) and those parts keep their original terms. The appended slag phases are ours, under
 `data/LICENSE`. Hydrate and C-S-H values are Cemdata18's (Lothenbach et al. 2019); cite it with this database.
 
+The calcium aluminates (CaAl2O4, CaAl4O7, Ca3Al2O6, hibonite) enter on their measured values
+(`data/cao-al2o3/build_dat.py` `MEASURED`), not the shifted ones the dry CaO-Al2O3 assessment ships for
+the melt: those shifts (CaAl4O7 +14 kJ, Ca3Al2O6 -6.8 kJ) fit the melting data, and at 25 C the
+calorimetry is the better number. With the shift, CaAl4O7 would sit 1.7 log units from Cemdata18
+instead of 0.7.
+
 ## Checks so far
 
 - **CODATA water.** Checked against R&H lime + water = portlandite: 0.06 kJ.

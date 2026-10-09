@@ -1,12 +1,12 @@
-"""Regenerate fig3_ternary.png: (a) liquidus projection, (b) 1873 K isothermal section.
+"""Regenerate fig3_ternary.png: (a) liquidus projection, (b) isothermal section at 1873 K.
 
-Readability rules: large in-field labels with white halos (dark fills cannot eat them),
-contour labels at 9 pt with halos, greyscale house fills, no baked caption.
-Panel (a) reads the cached projection (data/feo-mgo-sio2/_liquidus_projection.npz);
-panel (b) recomputes the section through the same assemblage machinery the web export uses.
+Both panels draw the browser's precomputed exports (web/ternary_feo_mgo_sio2.json and
+web/ternary_isothermal_feo_mgo_sio2.json), so the figure shows what the application shows; those
+files are written from the shipped combined database by data/feo-mgo-sio2/export_*_json.py.
+Colour fields with direct labels and halos, Kelvin throughout, no baked caption. The field colours
+are the ones on the group deck's slide 18 and pass the dataviz palette check on white.
 """
-import importlib.util
-import sys
+import json
 from pathlib import Path
 
 import matplotlib
@@ -14,122 +14,162 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.patheffects as pe
 import matplotlib.pyplot as plt
-import matplotlib.tri as mtri
 import numpy as np
+from matplotlib.colors import to_rgba
+from matplotlib.patches import Polygon
+from scipy.ndimage import (binary_dilation, distance_transform_edt, gaussian_filter,
+                           map_coordinates)
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[1]
-sys.path.insert(0, str(ROOT / "python"))
-DATA = ROOT / "data" / "feo-mgo-sio2"
-
+WEB = HERE.parents[1] / "web"
+H = np.sqrt(3) / 2
+INK = "#1a1a1a"
 plt.rcParams.update({"font.family": "serif", "font.serif": ["Times New Roman", "DejaVu Serif"]})
 
-ABBR = {"LIQUID": "L", "OLIVINE": "Ol", "ORTHOPYROXENE": "Opx", "PERICLASE": "Per",
-        "WUSTITE": "Wus", "CRISTOBALITE": "Crs"}
-HALO = [pe.withStroke(linewidth=2.8, foreground="white")]
-S3 = np.sqrt(3) / 2
+COLOUR = {"CRISTOBALITE": "#8f84c9", "OLIVINE": "#44a065", "ORTHOPYROXENE": "#3d78d6",
+          "MAGNESIOWUSTITE": "#d07a43"}
+ABBR = {"LIQUID": "L", "CRISTOBALITE": "Crs", "OLIVINE": "Ol", "ORTHOPYROXENE": "Opx",
+        "MAGNESIOWUSTITE": "Mw"}
+R = 1400                       # raster columns per panel
 
 
-def tri_xy(x_fe, x_si):
-    """MgO left (0,0), FeO right (1,0), SiO2 top."""
-    return x_fe + 0.5 * x_si, S3 * x_si
+def tint(c, f):
+    """c mixed toward white, f = share of the colour kept."""
+    r = np.array(to_rgba(c))
+    r[:3] = 1.0 - f * (1.0 - r[:3])
+    return tuple(r)
 
 
-def frame(ax):
-    ax.plot([0, 1, 0.5, 0], [0, 0, S3, 0], color="black", linewidth=1.2)
-    ax.text(-0.02, -0.045, "MgO", ha="right", fontsize=12)
-    ax.text(1.02, -0.045, "FeO", ha="left", fontsize=12)
-    ax.text(0.5, S3 + 0.035, "SiO$_2$", ha="center", fontsize=12)
-    ax.set_xlim(-0.14, 1.14)
-    ax.set_ylim(-0.10, S3 + 0.10)
+def raster(field_rows, n):
+    """Nearest-node raster of an export's field digits, with a one-node blur on each field's
+    indicator so edges follow the grid without stairs (boundaries move under one node)."""
+    grid = np.full((n + 1, n + 1), -1, int)
+    for i, row in enumerate(field_rows):
+        for j, ch in enumerate(row):
+            if ch != ".":
+                grid[i, j] = int(ch)
+    _, (ii, jj) = distance_transform_edt(grid < 0, return_indices=True)
+    full = grid[ii, jj]
+    X, Y = np.meshgrid(np.linspace(0, 1, R), np.linspace(0, H, int(R * H)))
+    xsi = Y / H
+    xfe = X - 0.5 * xsi
+    inside = (xfe >= -1e-9) & (xsi >= -1e-9) & (xfe + xsi <= 1 + 1e-9)
+    coords = [np.clip(xfe * n, 0, n), np.clip(xsi * n, 0, n)]
+    k_all = sorted(set(full.ravel()) - {-1})
+    stack = np.stack([map_coordinates(gaussian_filter((full == k).astype(float), 1.0), coords,
+                                      order=1, mode="nearest") for k in k_all])
+    idx = np.array(k_all)[np.argmax(stack, axis=0)]
+    idx[~inside] = -1
+    return X, Y, idx
+
+
+def paint(ax, idx, colours):
+    rgba = np.zeros(idx.shape + (4,))
+    for k, c in colours.items():
+        rgba[idx == k] = to_rgba(c)
+    ax.imshow(rgba, origin="lower", extent=(0, 1, 0, H), interpolation="nearest")
+
+
+def label_fields(ax, X, Y, idx, names, blocked, size=12.5, min_frac=0.02):
+    """Each field labelled at its most interior point, away from lines and their labels. A field
+    too thin to hold its label gets it outside the left edge with a leader line."""
+    for k, name in names.items():
+        dist = distance_transform_edt(np.pad((idx == k) & ~blocked, 1),
+                                      sampling=(1.0, 0.35))[1:-1, 1:-1]
+        if dist.max() < min_frac * R:
+            band = distance_transform_edt(np.pad(idx == k, 1))[1:-1, 1:-1]
+            if band.max() == 0:
+                continue
+            rows, cols = np.nonzero(band >= 0.5 * band.max())
+            m = np.argmin(X[rows, cols])                 # the band's end nearest the left edge
+            x0, y0 = X[rows[m], cols[m]] + 0.04, Y[rows[m], cols[m]]
+            ax.annotate(name, xy=(x0, y0), xytext=(y0 / (2 * H) - 0.09, y0 + 0.05),
+                        fontsize=size, color=INK, ha="right", va="center", zorder=7,
+                        arrowprops=dict(arrowstyle="-", color=INK, lw=0.9))
+            continue
+        r, c = np.unravel_index(np.argmax(dist), dist.shape)
+        ax.text(X[r, c], Y[r, c], name, color=INK, fontsize=size, ha="center", va="center",
+                zorder=5, path_effects=[pe.withStroke(linewidth=3.2, foreground="white")])
+
+
+def frame(ax, title):
+    ax.add_patch(Polygon([(0, 0), (1, 0), (0.5, H)], closed=True, fill=False, ec=INK, lw=1.2,
+                         zorder=6))
+    for x, y, s, ha, va in ((-0.012, -0.025, "MgO", "right", "top"),
+                            (1.012, -0.025, "FeO", "left", "top"),
+                            (0.5, H + 0.02, "SiO$_2$", "center", "bottom")):
+        ax.text(x, y, s, color=INK, fontsize=13, ha=ha, va=va)
+    ax.set_xlim(-0.1, 1.1)
+    ax.set_ylim(-0.08, H + 0.08)
     ax.set_aspect("equal")
     ax.axis("off")
+    ax.set_title(title, fontsize=14)
 
-
-def label_regions(ax, X, Y, names, min_pts=25, size=12, skip=()):
-    for nm in sorted(set(names)):
-        if not nm or nm in skip:
-            continue
-        m = np.array([n == nm for n in names])
-        if m.sum() < min_pts:
-            continue
-        # densest-point placement: the region point closest to the region's centroid
-        cx, cy = X[m].mean(), Y[m].mean()
-        i = np.argmin((X[m] - cx) ** 2 + (Y[m] - cy) ** 2)
-        ax.text(X[m][i], Y[m][i], nm, ha="center", va="center",
-                fontsize=size, path_effects=HALO)
-
-
-# ---------- panel (a): liquidus projection ----------
-d = np.load(DATA / "_liquidus_projection.npz", allow_pickle=True)
-fe, si = d["comps"][:, 0], d["comps"][:, 1]
-Xa, Ya = tri_xy(fe, si)
-prim = [str(p) for p in d["prim"]]
-liqK = d["liqT"]                # Kelvin throughout (Kristina Rule #1)
-
-GREY = {"OLIVINE": "0.78", "ORTHOPYROXENE": "0.88", "PERICLASE": "0.55",
-        "WUSTITE": "0.42", "CRISTOBALITE": "0.68", "": "1.0"}
-cats = sorted(set(prim))
-code = np.array([cats.index(p) for p in prim], float)
 
 fig, (axa, axb) = plt.subplots(1, 2, figsize=(12.6, 5.6), dpi=600)
-ok = np.array([p != "" for p in prim]) & ~np.isnan(liqK)
-axa.scatter(Xa[ok], Ya[ok], c=[GREY[p] for p in np.array(prim)[ok]], s=4.5,
-            marker="s", linewidths=0)
-# the cache is a regular barycentric grid: contour it as a 2-D field so no
-# triangulation bridges across gaps (that produced jagged phantom contours)
-fu = np.unique(np.round(fe, 9)); step = fu[1] - fu[0]
-n = len(fu)
-T2 = np.full((n, n), np.nan)
-I = np.rint(fe / step).astype(int); J = np.rint(si / step).astype(int)
-T2[J, I] = np.where(ok, liqK, np.nan)
-# NaN-aware Gaussian smoothing: the cached scan quantizes the liquidus in 10 K
-# steps, which staircases raw contours; smooth the field, not the physics
-from scipy.ndimage import gaussian_filter
-w = np.isfinite(T2).astype(float)
-T0 = np.where(w > 0, T2, 0.0)
-num = gaussian_filter(T0, 1.8); den = gaussian_filter(w, 1.8)
-T2s = np.where(w > 0, num / np.maximum(den, 1e-9), np.nan)
-FE2, SI2 = np.meshgrid(fu, fu)
-X2 = FE2 + 0.5 * SI2; Y2 = S3 * SI2
-cs = axa.contour(X2, Y2, T2s, levels=[1600, 1700, 1800, 1900, 2000, 2100],
-                 colors="black", linewidths=1.0)
-cl = axa.clabel(cs, fmt="%.0f", fontsize=9)
-for t in cl:
-    t.set_path_effects(HALO)
-label_regions(axa, Xa[ok], Ya[ok], [ABBR[p] for p in np.array(prim)[ok]],
-              min_pts=220, size=13, skip={"Crs"})
-frame(axa)
-axa.set_title("(a)", fontsize=13)
 
-# ---------- panel (b): isothermal section at 1873 K ----------
-_spec = importlib.util.spec_from_file_location("td", DATA / "ternary_diagram.py")
-td = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(td)
-from mqmqa import ternary as tern
+# ---------- (a) liquidus projection ----------
+d = json.load(open(WEB / "ternary_feo_mgo_sio2.json", encoding="utf-8"))
+X, Y, idx = raster(d["field_rows"], d["ngrid"])
+missing = set(d["phases"]) - set(COLOUR)
+assert not missing, f"no colour for {missing}"
+paint(axa, idx, {k: COLOUR[p] for k, p in enumerate(d["phases"])})
+arcs = [(it["degC"], np.column_stack((np.asarray(a)[:, 0] + 0.5 * np.asarray(a)[:, 1],
+                                      H * np.asarray(a)[:, 1])))
+        for it in d["isotherms"] for a in it["arcs"]]
+for _, P in arcs:
+    axa.plot(P[:, 0], P[:, 1], color=INK, lw=1.0, zorder=3)
+# each isotherm labelled where it crosses x_SiO2 = 0.24 or 0.32 (alternating), on the olivine
+# side, where every isotherm crosses once and they are evenly spaced
+halo = [pe.withStroke(linewidth=3, foreground="white")]
+for m, it in enumerate(sorted(d["isotherms"], key=lambda q: q["degC"])):
+    y0 = H * (0.32 if m % 2 else 0.24)
+    hits = [(P[k, 0] + (y0 - P[k, 1]) / (P[k + 1, 1] - P[k, 1]) * (P[k + 1, 0] - P[k, 0]), y0)
+            for t, P in arcs if t == it["degC"] for k in range(len(P) - 1)
+            if (P[k, 1] - y0) * (P[k + 1, 1] - y0) <= 0 and P[k, 1] != P[k + 1, 1]]
+    if hits:
+        x, y = min(hits)
+        axa.text(x, y, f"{it['degC'] + 273}", color=INK, fontsize=9.5, ha="center", va="center",
+                 zorder=4, path_effects=halo,
+                 bbox=dict(boxstyle="round,pad=0.12", fc="white", ec="none", alpha=0.75))
+lines = np.zeros(idx.shape, bool)
+ny, nx = idx.shape
+for _, P in arcs:
+    t = np.linspace(0, 1, 40 * len(P))
+    px = np.interp(t, np.linspace(0, 1, len(P)), P[:, 0])
+    py = np.interp(t, np.linspace(0, 1, len(P)), P[:, 1])
+    lines[np.clip((py / H * (ny - 1)).astype(int), 0, ny - 1),
+          np.clip((px * (nx - 1)).astype(int), 0, nx - 1)] = True
+label_fields(axa, X, Y, idx, {k: ABBR[p] for k, p in enumerate(d["phases"])},
+             binary_dilation(lines, iterations=int(0.02 * R)))
+frame(axa, "(a)")
 
-TK = 1873.0
-pts, facets = td.build(TK, nsamp=9000)
-N = 95
-gx, gy, nsol, names = [], [], [], []
-for i in range(N + 1):
-    for j in range(N + 1 - i):
-        x_fe, x_si = i / N, j / N
-        a = tern.assemblage(pts, facets, x_fe, x_si)
-        if a is None:
-            continue
-        key = sorted({("LIQUID" if ph.startswith("FEO") else ph)
-                      for ph, amt, xf, xs in a if amt > 1e-3})
-        x, y = tri_xy(x_fe, x_si)
-        gx.append(x); gy.append(y)
-        nsol.append(sum(1 for k in key if k != "LIQUID"))
-        names.append("+".join(ABBR[k] for k in key))
-gx, gy = np.array(gx), np.array(gy)
-shade = {0: "1.0", 1: "0.82", 2: "0.60", 3: "0.42"}
-axb.scatter(gx, gy, c=[shade[min(n, 3)] for n in nsol], s=5.5, marker="s", linewidths=0)
-label_regions(axb, gx, gy, names, min_pts=30, size=11.5)
-frame(axb)
-axb.set_title("(b)", fontsize=13)
+# ---------- (b) isothermal section, 1873 K ----------
+iso = json.load(open(WEB / "ternary_isothermal_feo_mgo_sio2.json", encoding="utf-8"))
+sec = next(s for s in iso["sections"] if s["degC"] == 1600)        # 1873 K
+X, Y, idx = raster(sec["field_rows"], iso["ngrid"])
+
+
+def assemblage_colour(phs):
+    solids = [p for p in phs if p != "LIQUID"]
+    if not solids:
+        return "#f6f3ec"                                  # liquid alone
+    if len(solids) == 1:
+        c = COLOUR[solids[0]]
+        return tint(c, 0.45) if "LIQUID" in phs else c    # pale where liquid coexists
+    if "LIQUID" in phs:
+        return "#b9b9b9"                                  # three-phase triangle
+    mix = np.mean([np.array(to_rgba(COLOUR[s])) for s in solids], axis=0)
+    return tuple(mix)
+
+
+asm = sec["assemblages"]
+paint(axb, idx, {k: assemblage_colour(p) for k, p in enumerate(asm)})
+label_fields(axb, X, Y, idx, {k: " + ".join(ABBR[p] for p in ["LIQUID"] * ("LIQUID" in a)
+                                            + sorted(q for q in a if q != "LIQUID"))
+                              for k, a in enumerate(asm)},
+             np.zeros(idx.shape, bool), size=11.5, min_frac=0.025)
+frame(axb, "(b)")
 
 fig.savefig(HERE / "fig3_ternary.png", bbox_inches="tight", facecolor="white")
 print("fig3_ternary.png written")

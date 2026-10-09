@@ -30,66 +30,31 @@ folder, add an entry to `databases.toml`, and run the sync. Store one format per
 
 ## Scope and status
 
-- `cao-sio2/` - CaO-SiO2 liquid slag, MQMQA (ChemSage SUBQ). Version 0.1.
-  - `CaO-SiO2-liquid.dat` - the database.
-  - `build_dat.py` - the build script (computes every coefficient from open data).
-  - `validate.py` - loads the `.dat` in the engine and checks it against published data.
-  - `PROVENANCE.md` - the per-number source for everything in the `.dat`.
-- `mgo-sio2/` - MgO-SiO2 liquid slag, MQMQA (ChemSage SUBQ). Assessed liquid; see its
-  `PROVENANCE.md`.
-- `feo-sio2/` - FeO-SiO2 liquid slag, MQMQA (ChemSage SUBQ), v0.2 (fitted excess).
-  Iron-saturated (Fe2+ only); FeO endmember from NIST-JANAF. The Fe-side binary for the
-  FeO-MgO-SiO2 ternary slag; the excess is anchored on fayalite congruent melting (1478 K,
-  Bowen-Schairer 1932) with an MLIP-informed / dHf_ox-scaled depth. See
-  `feo-sio2/PROVENANCE.md`.
-- `olivine/` - olivine (Mg,Fe)2SiO4 solid solution, the first **compound-energy-formalism
-  (CEF)** system. A CEF model on the shared `cef/cef.py` kernel and a ChemSage SUBL `.dat`
-  the C reader parses, validated against pycalphad to machine precision and against open
-  olivine calorimetry (incl. the metastable solvus by the multiphase solver). See
-  `olivine/PROVENANCE.md`.
-- `olivine-opx/` - olivine + orthopyroxene (Mg,Fe) Fe-Mg **exchange equilibrium**: two CEF
-  solid solutions in one SUBL `.dat`, their partitioning (K_D) computed through the C kernel
-  and validated against pycalphad's two-phase equilibrium (~1e-9) and the measured K_D of
-  von Seckendorff & O'Neill 1993. See `olivine-opx/PROVENANCE.md`.
-- `INVENTORY.md` - the digitized open data available for this system and its sources.
+Each folder's `PROVENANCE.md` is the authority for its sources, fitted values and limits; this
+list only says what ships and how settled it is (2026-10-07).
 
-### What v0.1 is
+Oxide slags (MQMQA liquids, Fe2+ only):
 
-A well-formed MQMQA liquid phase with the two pure-oxide liquid endmembers, CaO(liq) and
-SiO2(liq), assembled entirely from open pure-substance data (Robie & Hemingway 1995,
-public domain, for the solid reference and heat capacity; NIST-JANAF for fusion). The
-file loads in the engine, the engine reads its cations, anion, pairs, and coordination,
-and the endmember energies round-trip exactly (see the validation output below).
+- `cao-sio2/` - CaO-SiO2 liquid, v0.4, assessed on Robie-Hemingway calcium silicates.
+- `mgo-sio2/` - MgO-SiO2 liquid, three-way fit N1 (with the two ternary faces below).
+- `feo-sio2/` - FeO-SiO2 liquid, v0.4, iron-saturated wustite as the FeO solid.
+- `al2o3-sio2/` - Al2O3-SiO2 with mullite, v0.2 (Bowen & Greig 1924).
+- `cao-al2o3/` - CaO-Al2O3 v0.2, dry (no Ca12Al14O33), with the CaAl4O7 and Ca3Al2O6
+  formation enthalpies shifted by the assessment; the measured values stay in `MEASURED`.
+- `cao-al2o3-sio2/` - the CaO-Al2O3-SiO2 ternary v0.3 with gehlenite and anorthite, three
+  ternary terms on the shipped binaries.
+- `feo-mgo-sio2/` - the ternary liquid with olivine, two-site orthopyroxene,
+  magnesiowustite and cristobalite (`FeO-MgO-SiO2-combined.dat`).
+- `cao-feo-mgo-sio2/` - the quaternary slag, with clinopyroxene and the calcium silicates.
 
-### What v0.1 is NOT (yet)
+Solid solutions (CEF): `olivine/`, `olivine-opx/`, `olivine-opx-cpx/`, `clinopyroxene/`,
+`magnesiowustite/`, `spinel/`; `solidsolutions/` holds the MLIP and SQS mixing-energy checks.
 
-The interior mixing of v0.1 is IDEAL: the excess (short-range-order) MQMQA parameters are
-zero. An ideal CaO-SiO2 liquid does not reproduce the measured eutectics or the strong
-negative-deviation silica activities, because those are set by the ordering energy around
-the orthosilicate composition. Producing those requires excess MQMQA parameters, and no
-open source publishes them in the SUBQ quadruplet form the engine reads. They are not
-fabricated and not taken from any proprietary source, so they are left at zero and the
-model is labeled ideal.
+Molten salts: `licl-kcl/`, `nacl-kcl/`, `kcl-mgcl2/`, `nacl-mgcl2/`, `nacl-kcl-mgcl2/`.
 
-## Roadmap: the excess-parameter fit
-
-The next increment adds the excess terms by optimizing against the open digitized data in
-`INVENTORY.md`:
-
-1. Liquid activities (Kay & Taylor 1960 a(SiO2); Stolyarova 1991 if it can be sourced
-   openly) constrain the ordering energy directly.
-2. The silica-side two-liquid dome (Greig 1927, public domain) constrains the
-   silica-rich excess terms.
-3. The experimental invariants and congruent meltings (Abdul et al. 2023, CC-BY)
-   constrain the liquidus, once open intermediate-solid Gibbs functions are added on the
-   same reference.
-
-Tooling note: ESPEI fits two-sublattice ionic and CEF liquids, not the MQMQA quadruplet
-model, so this optimization needs an MQMQA-aware optimizer, not ESPEI. Published MQMQA
-CaO-SiO2 parameter sets exist in the assessment literature (for example Pelton & Blander
-1986, DOI 10.1007/bf02657144, the foundational silicate MQM paper) and are the reference
-point for the fit; they are cited, not silently copied, and any transcription would be a
-documented model conversion, not a claim of an independent fit.
+Other: `wet-slag/` (aqueous PhreeqC database for slag minerals at 298 K), `gas/` (NASA
+polynomials), `al-zn/` and `fe-c/` (alloy TDBs), `unified/` (.utdb demonstrations), `xtdb/`
+and `xtdb-alc/` (XTDB examples and the reference prototype).
 
 ## Reproducing and validating
 

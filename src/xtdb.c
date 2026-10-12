@@ -93,7 +93,7 @@ static const char *find_tag(const char *s, const char *tag, const char **body, c
 
 /* ---- expression evaluator (recursive descent) ----------------------------------------- */
 
-typedef struct { const struct xtdb_db *db; double T; const char *p; int err; } Ev;
+typedef struct { const struct xtdb_db *db; double T; const char *p; int err; int depth; } Ev;
 static double ev_expr(Ev *e);
 
 static void ev_ws(Ev *e) { while (*e->p && isspace((unsigned char)*e->p)) e->p++; }
@@ -103,7 +103,7 @@ static const TPfun *find_tp(const struct xtdb_db *db, const char *name) {
     return NULL;
 }
 
-static double eval_tp(const struct xtdb_db *db, const TPfun *f, double T, int *err);
+static double eval_tp(const struct xtdb_db *db, const TPfun *f, double T, int *err, int depth);
 
 static double ev_atom(Ev *e) {
     ev_ws(e);
@@ -127,32 +127,35 @@ static double ev_atom(Ev *e) {
         if (!strcmp(id, "T")) return e->T;
         if (!strcmp(id, "P")) return 1.0e5;
         const TPfun *f = find_tp(e->db, id);
-        if (f) { int er = 0; double v = eval_tp(e->db, f, e->T, &er); if (er) e->err = 1; return v; }
+        if (f) { int er = 0; double v = eval_tp(e->db, f, e->T, &er, e->depth + 1); if (er) e->err = 1; return v; }
         e->err = 1; return 0.0;
     }
     e->err = 1; return 0.0;
+}
+
+static double ev_unary(Ev *e);
+
+/* '**' binds tighter than a unary minus on its left: -T**2 is -(T^2) */
+static double ev_power(Ev *e) {
+    double base = ev_atom(e);
+    ev_ws(e);
+    if (e->p[0] == '*' && e->p[1] == '*') { e->p += 2; double ex = ev_unary(e); return pow(base, ex); }
+    return base;
 }
 
 static double ev_unary(Ev *e) {
     ev_ws(e);
     if (*e->p == '+') { e->p++; return ev_unary(e); }
     if (*e->p == '-') { e->p++; return -ev_unary(e); }
-    return ev_atom(e);
-}
-
-static double ev_power(Ev *e) {
-    double base = ev_unary(e);
-    ev_ws(e);
-    if (e->p[0] == '*' && e->p[1] == '*') { e->p += 2; double ex = ev_power(e); return pow(base, ex); }
-    return base;
+    return ev_power(e);
 }
 
 static double ev_term(Ev *e) {
-    double v = ev_power(e);
+    double v = ev_unary(e);
     for (;;) {
         ev_ws(e);
-        if (e->p[0] == '*' && e->p[1] != '*') { e->p++; v *= ev_power(e); }
-        else if (*e->p == '/') { e->p++; v /= ev_power(e); }
+        if (e->p[0] == '*' && e->p[1] != '*') { e->p++; v *= ev_unary(e); }
+        else if (*e->p == '/') { e->p++; v /= ev_unary(e); }
         else return v;
     }
 }
@@ -167,17 +170,28 @@ static double ev_expr(Ev *e) {
     }
 }
 
-static double eval_str(const struct xtdb_db *db, const char *expr, double T, int *err) {
-    Ev e = { db, T, expr, 0 };
+/* The whole expression must be read: anything left over but the closing ';' is an error,
+ * never ignored. Functions nest at most 64 deep, so a cycle fails instead of recursing. */
+static double eval_str_d(const struct xtdb_db *db, const char *expr, double T, int *err, int depth) {
+    Ev e = { db, T, expr, 0, depth };
+    if (depth > 64) { *err = 1; return 0.0; }
     double v = ev_expr(&e);
+    ev_ws(&e);
+    if (*e.p == ';') e.p++;
+    ev_ws(&e);
+    if (*e.p) e.err = 1;
     if (e.err) *err = 1;
     return v;
 }
 
-static double eval_tp(const struct xtdb_db *db, const TPfun *f, double T, int *err) {
+static double eval_str(const struct xtdb_db *db, const char *expr, double T, int *err) {
+    return eval_str_d(db, expr, T, err, 0);
+}
+
+static double eval_tp(const struct xtdb_db *db, const TPfun *f, double T, int *err, int depth) {
     int r = 0;
     while (r < f->nr - 1 && T > f->hiT[r]) r++;   /* pick the range holding T */
-    return eval_str(db, f->expr[r], T, err);
+    return eval_str_d(db, f->expr[r], T, err, depth);
 }
 
 static const char *find_param(const struct xtdb_db *db, const char *kind, const char *phase,
@@ -448,6 +462,31 @@ xtdb_db *xtdb_read_string(const char *text) {
         const char *am = find_tag(gt, "AmendPhase", &ab, &agt);
         if (am && (!pend || am < pend) && attr(ab, agt, "Models", v, XEXPR) && strstr(v, "LIQ2STATE"))
             ph->twostate = 1;
+    }
+    /* every expression the engine evaluates must read in full, so a typo or an unknown
+     * function fails here rather than as a NaN later */
+    for (int i = 0; i < db->ntp; ++i)
+        for (int r = 0; r < db->tp[i].nr; ++r) {
+            int err = 0;
+            eval_str(db, db->tp[i].expr[r], 1000.0, &err);
+            if (err) {
+                snprintf(g_err, sizeof g_err, "cannot read the expression of TPfun %s: %.200s",
+                         db->tp[i].id, db->tp[i].expr[r]);
+                free(db);
+                return NULL;
+            }
+        }
+    for (int i = 0; i < db->npar; ++i) {
+        const Param *pr = &db->par[i];
+        int err = 0;
+        if (strcmp(pr->kind, "G") && strcmp(pr->kind, "LNTH") && strcmp(pr->kind, "GD")) continue;
+        eval_str(db, pr->expr, 1000.0, &err);
+        if (err) {
+            snprintf(g_err, sizeof g_err, "cannot read the expression of %s(%s,%s;%d): %.120s",
+                     pr->kind, pr->phase, pr->cons, pr->deg, pr->expr);
+            free(db);
+            return NULL;
+        }
     }
     return db;
 }

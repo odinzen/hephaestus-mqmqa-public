@@ -1108,19 +1108,19 @@ void mqmqa_enumerate_quadruplets(int n_cat, int n_an, int *ca, int *cb, int *ax,
 #define TDB_MAX_FUNCS 4096
 #define TDB_MAX_SUBL  10
 #define TDB_MAX_CON   64
+#define TDB_POLY_POOL 32   /* scratch polynomials for one expression */
 
-/* one additive term: c * T^power, c * T*ln(T), or c * FUNC(T) */
+/* one additive term: c * T^power, c * T*ln(T), or c * FUNC^fpow [* FUNC2^fpow2] */
 typedef struct {
     double c;
     int kind;        /* 0 = T^power, 1 = T*ln(T), 2 = function reference */
     double power;
     int func;        /* kind==2: index into the function table */
-    /* deferred combinations, folded at resolution when the tables are complete:
-     * func2   : second function in a product (one of the two must be constant)
-     * fpow_on : the function is raised to fpow (must then be constant)
-     * tmul    : 0 none, 1 times T^power, 2 times T*ln(T) (function must be constant) */
-    int func2;
-    int fpow_on; double fpow;
+    /* folded at resolution, when the tables are complete: every factor but one must be
+     * constant, the one that is not keeps power 1, and tmul (0 none, 1 times T^power,
+     * 2 times T*ln(T)) needs all of them constant */
+    double fpow;
+    int func2; double fpow2;
     int tmul;
 } TdbTerm;
 
@@ -1135,6 +1135,7 @@ typedef struct {
     int n_seg;
     TdbSeg *seg;     /* heap, TDB_MAX_SEG entries once defined (WASM-friendly) */
     int state;       /* 0 unresolved, 1 resolving (cycle guard), 2 resolved */
+    char *why;       /* heap: why the body is outside the subset, an error only once used */
 } TdbFunc;
 
 typedef struct {
@@ -1195,12 +1196,25 @@ typedef struct {
     char magnetic_typedefs[16]; int n_mag_td;
     double mag_td_afm[16], mag_td_p[16];
     char order_typedefs[16];    int n_ord_td;
+    struct TdbPoly *poly;     int n_poly;   /* expression scratch, TDB_POLY_POOL entries */
+    jmp_buf *subset_jb;       /* set while a FUNCTION body is read: subset errors land here */
 } Tdb;
 
 static void tdb_fail(Tdb *tb, const char *what)
 {
     snprintf(tb->lx->err, sizeof tb->lx->err, "TDB line %d: %s", tb->line, what);
     longjmp(tb->lx->jb, 1);
+}
+
+/* Syntax outside the v1 subset. In a FUNCTION body it only marks the function, since many
+ * files define helpers (the SGTE RTLNP pressure term) that no parameter uses. */
+static void tdb_fail_subset(Tdb *tb, const char *what)
+{
+    if (tb->subset_jb) {
+        snprintf(tb->lx->err, sizeof tb->lx->err, "line %d: %s", tb->line, what);
+        longjmp(*tb->subset_jb, 1);
+    }
+    tdb_fail(tb, what);
 }
 
 static int tdb_detect(const char *text)
@@ -1298,112 +1312,346 @@ static void tdb_func_segs(Tdb *tb, int fi)
     if (!tb->func[fi].seg) tdb_fail(tb, "out of memory");
 }
 
+/* An expression is read into a sum of monomials c * T^p * ln(T)^q * F1^e1 * F2^e2 by
+ * recursive descent, so '/' and '**' bind as written; tdb_mono_term then maps each
+ * monomial onto a TdbTerm or fails. Anything the grammar does not cover is an error,
+ * never skipped: a dropped "/T" once read 1000/T as 1000. */
+typedef struct {
+    double c, p, q;
+    int nf, f[2];
+    double e[2];
+} TdbMono;
+
+typedef struct TdbPoly {
+    int n;
+    TdbMono m[TDB_MAX_TERMS];
+} TdbPoly;
+
+static void tdb_ws(char **s)
+{
+    while (**s == ' ' || **s == '\t' || **s == '\r' || **s == '\n') (*s)++;
+}
+
+static void tdb_fail_at(Tdb *tb, const char *what, const char *at)
+{
+    char msg[160];
+    int n = (int)strcspn(at, ";");
+    if (n == 0) snprintf(msg, sizeof msg, "%s at the end of the expression", what);
+    else snprintf(msg, sizeof msg, "%s at '%.*s'", what, n < 24 ? n : 24, at);
+    tdb_fail(tb, msg);
+}
+
+static void tdb_fail_subset_at(Tdb *tb, const char *what, const char *at)
+{
+    char msg[160];
+    int n = (int)strcspn(at, ";");
+    snprintf(msg, sizeof msg, "%s at '%.*s'", what, n < 24 ? n : 24, at);
+    tdb_fail_subset(tb, msg);
+}
+
+/* polynomials come from a pool so deep nesting costs no stack (WASM stacks are small) */
+static TdbPoly *tdb_poly_new(Tdb *tb)
+{
+    TdbPoly *P;
+    if (tb->n_poly >= TDB_POLY_POOL) tdb_fail(tb, "expression nested too deeply");
+    P = &tb->poly[tb->n_poly++];
+    P->n = 0;
+    return P;
+}
+
+static int tdb_same_funcs(const TdbMono *a, const TdbMono *b)
+{
+    int i, j;
+    if (a->nf != b->nf) return 0;
+    for (i = 0; i < a->nf; ++i) {
+        for (j = 0; j < b->nf; ++j)
+            if (a->f[i] == b->f[j] && fabs(a->e[i] - b->e[j]) < 1e-12) break;
+        if (j == b->nf) return 0;
+    }
+    return 1;
+}
+
+static void tdb_poly_add(Tdb *tb, TdbPoly *P, const TdbMono *m, double sign)
+{
+    int i;
+    if (m->c == 0.0) return;
+    for (i = 0; i < P->n; ++i) {
+        TdbMono *a = &P->m[i];
+        if (fabs(a->p - m->p) < 1e-12 && fabs(a->q - m->q) < 1e-12 && tdb_same_funcs(a, m)) {
+            a->c += sign * m->c;
+            if (a->c == 0.0) P->m[i] = P->m[--P->n];
+            return;
+        }
+    }
+    if (P->n >= TDB_MAX_TERMS) tdb_fail(tb, "too many terms in one segment");
+    P->m[P->n] = *m;
+    P->m[P->n].c *= sign;
+    P->n++;
+}
+
+static void tdb_mono_mul(Tdb *tb, TdbMono *r, const TdbMono *a, const TdbMono *b)
+{
+    int i, j, k = 0;
+    *r = *a;
+    r->c *= b->c; r->p += b->p; r->q += b->q;
+    for (i = 0; i < b->nf; ++i) {
+        for (j = 0; j < r->nf; ++j)
+            if (r->f[j] == b->f[i]) { r->e[j] += b->e[i]; break; }
+        if (j < r->nf) continue;
+        if (r->nf >= 2) tdb_fail_subset(tb, "product of three functions is outside the v1 subset");
+        r->f[r->nf] = b->f[i]; r->e[r->nf] = b->e[i]; r->nf++;
+    }
+    for (i = 0; i < r->nf; ++i)          /* F/F cancels */
+        if (fabs(r->e[i]) >= 1e-12) { r->f[k] = r->f[i]; r->e[k] = r->e[i]; k++; }
+    r->nf = k;
+}
+
+/* A <- A * B */
+static void tdb_poly_mul(Tdb *tb, TdbPoly *A, const TdbPoly *B)
+{
+    int mark = tb->n_poly, i, j;
+    TdbPoly *R = tdb_poly_new(tb);
+    for (i = 0; i < A->n; ++i)
+        for (j = 0; j < B->n; ++j) {
+            TdbMono m;
+            tdb_mono_mul(tb, &m, &A->m[i], &B->m[j]);
+            tdb_poly_add(tb, R, &m, 1.0);
+        }
+    *A = *R;
+    tb->n_poly = mark;
+}
+
+/* A <- A ** x, defined only for a single monomial (or zero) */
+static void tdb_poly_pow(Tdb *tb, TdbPoly *A, double x, const char *at)
+{
+    TdbMono *m = &A->m[0];
+    int i;
+    if (A->n == 0) {
+        if (x < 0.0) tdb_fail_at(tb, "division by zero", at);
+        if (x == 0.0) { memset(m, 0, sizeof *m); m->c = 1.0; A->n = 1; }
+        return;
+    }
+    if (A->n > 1) {
+        if (x == 1.0) return;
+        tdb_fail_subset_at(tb, "power of a sum is outside the v1 subset", at);
+    }
+    if (m->c < 0.0 && x != floor(x))
+        tdb_fail_at(tb, "fractional power of a negative number", at);
+    m->c = pow(m->c, x);
+    if (!isfinite(m->c)) tdb_fail_at(tb, "power is not finite", at);
+    m->p *= x; m->q *= x;
+    for (i = 0; i < m->nf; ++i) m->e[i] *= x;
+    if (x == 0.0) { m->p = m->q = 0.0; m->nf = 0; }
+}
+
+static int tdb_poly_const(const TdbPoly *A, double *v)
+{
+    if (A->n == 0) { *v = 0.0; return 1; }
+    if (A->n == 1 && A->m[0].nf == 0 && A->m[0].p == 0.0 && A->m[0].q == 0.0) {
+        *v = A->m[0].c;
+        return 1;
+    }
+    return 0;
+}
+
+static void tdb_parse_sum(Tdb *tb, char **s, TdbPoly *out);
+static void tdb_parse_unary(Tdb *tb, char **s, TdbPoly *out);
+
+static void tdb_parse_atom(Tdb *tb, char **s, TdbPoly *out)
+{
+    TdbMono m;
+    char c;
+    memset(&m, 0, sizeof m);
+    m.c = 1.0;
+    out->n = 0;
+    tdb_ws(s);
+    c = **s;
+    if (c == '(') {
+        (*s)++;
+        tdb_parse_sum(tb, s, out);
+        tdb_ws(s);
+        if (**s != ')') tdb_fail_at(tb, "missing ')'", *s);
+        (*s)++;
+        return;
+    }
+    if ((c >= '0' && c <= '9') || c == '.') {
+        char *end = NULL;
+        if (c == '0' && (*s)[1] == 'X') tdb_fail_at(tb, "bad number", *s);
+        m.c = strtod(*s, &end);
+        if (end == *s) tdb_fail_at(tb, "bad number", *s);
+        *s = end;
+    } else if (isalpha((unsigned char)c) || c == '_') {
+        char name[NAME_MAX]; size_t n = 0;
+        while (**s && (isalnum((unsigned char)**s) || **s == '_')) {
+            if (n + 1 < sizeof name) name[n++] = **s;
+            (*s)++;
+        }
+        name[n] = '\0';
+        if (tdb_peekc(*s) == '(') {
+            int mark = tb->n_poly;
+            TdbPoly *arg;
+            double v;
+            if (strcmp(name, "LN") != 0) {
+                char msg[NAME_MAX + 48];
+                snprintf(msg, sizeof msg, "%s(...) term is outside the v1 subset", name);
+                tdb_fail_subset(tb, msg);
+            }
+            tdb_ws(s);
+            (*s)++;
+            arg = tdb_poly_new(tb);
+            tdb_parse_sum(tb, s, arg);
+            tdb_ws(s);
+            if (**s != ')') tdb_fail_at(tb, "missing ')'", *s);
+            (*s)++;
+            if (tdb_poly_const(arg, &v)) {
+                if (!(v > 0.0)) tdb_fail(tb, "LN of a number that is not positive");
+                m.c = log(v);
+            } else if (arg->n == 1 && arg->m[0].c == 1.0 && arg->m[0].p == 1.0 &&
+                       arg->m[0].q == 0.0 && arg->m[0].nf == 0) {
+                m.q = 1.0;
+            } else {
+                tdb_fail_subset(tb, "LN of anything but T or a number is outside the v1 subset");
+            }
+            tb->n_poly = mark;
+        } else if (strcmp(name, "T") == 0) {
+            m.p = 1.0;
+        } else {
+            int fi;
+            if (**s == '#') (*s)++;
+            fi = tdb_func_index(tb, name);
+            if (fi < 0) {
+                if (tb->n_func >= TDB_MAX_FUNCS) tdb_fail(tb, "too many functions");
+                fi = tb->n_func++;
+                snprintf(tb->func[fi].name, NAME_MAX, "%s", name);
+                tb->func[fi].n_seg = 0;
+                tb->func[fi].seg = NULL;
+            }
+            m.nf = 1; m.f[0] = fi; m.e[0] = 1.0;
+        }
+    } else {
+        tdb_fail_at(tb, "expected a number, T, a function or '('", *s);
+    }
+    tdb_poly_add(tb, out, &m, 1.0);
+}
+
+/* '**' binds tighter than a unary minus on its left and takes a signed exponent on its
+ * right: -T**2 is -(T^2), T**-1 is 1/T */
+static void tdb_parse_power(Tdb *tb, char **s, TdbPoly *out)
+{
+    tdb_parse_atom(tb, s, out);
+    tdb_ws(s);
+    if ((*s)[0] == '*' && (*s)[1] == '*') {
+        int mark = tb->n_poly;
+        TdbPoly *ex = tdb_poly_new(tb);
+        const char *at;
+        double x;
+        *s += 2;
+        tdb_ws(s);
+        at = *s;
+        tdb_parse_unary(tb, s, ex);
+        if (!tdb_poly_const(ex, &x)) tdb_fail_subset_at(tb, "exponent that is not a number", at);
+        tdb_poly_pow(tb, out, x, at);
+        tb->n_poly = mark;
+    }
+}
+
+static void tdb_parse_unary(Tdb *tb, char **s, TdbPoly *out)
+{
+    tdb_ws(s);
+    if (**s == '+') { (*s)++; tdb_parse_unary(tb, s, out); return; }
+    if (**s == '-') {
+        int i;
+        (*s)++;
+        tdb_parse_unary(tb, s, out);
+        for (i = 0; i < out->n; ++i) out->m[i].c = -out->m[i].c;
+        return;
+    }
+    tdb_parse_power(tb, s, out);
+}
+
+static void tdb_parse_product(Tdb *tb, char **s, TdbPoly *out)
+{
+    int mark = tb->n_poly;
+    TdbPoly *f = tdb_poly_new(tb);
+    tdb_parse_unary(tb, s, out);
+    for (;;) {
+        const char *at;
+        tdb_ws(s);
+        if ((*s)[0] == '*' && (*s)[1] != '*') {
+            (*s)++;
+            tdb_parse_unary(tb, s, f);
+            tdb_poly_mul(tb, out, f);
+        } else if (**s == '/') {
+            (*s)++;
+            tdb_ws(s);
+            at = *s;
+            tdb_parse_unary(tb, s, f);
+            if (f->n == 0) tdb_fail_at(tb, "division by zero", at);
+            if (f->n > 1) tdb_fail_subset_at(tb, "division by a sum is outside the v1 subset", at);
+            tdb_poly_pow(tb, f, -1.0, at);
+            tdb_poly_mul(tb, out, f);
+        } else {
+            break;
+        }
+    }
+    tb->n_poly = mark;
+}
+
+static void tdb_parse_sum(Tdb *tb, char **s, TdbPoly *out)
+{
+    int mark = tb->n_poly, i;
+    TdbPoly *t = tdb_poly_new(tb);
+    out->n = 0;
+    tdb_parse_product(tb, s, t);
+    for (i = 0; i < t->n; ++i) tdb_poly_add(tb, out, &t->m[i], 1.0);
+    for (;;) {
+        double sign;
+        tdb_ws(s);
+        if (**s != '+' && **s != '-') break;
+        sign = (**s == '-') ? -1.0 : 1.0;
+        (*s)++;
+        tdb_parse_product(tb, s, t);
+        for (i = 0; i < t->n; ++i) tdb_poly_add(tb, out, &t->m[i], sign);
+    }
+    tb->n_poly = mark;
+}
+
+static void tdb_mono_term(Tdb *tb, const TdbMono *m, TdbTerm *t)
+{
+    int tpart = 0;   /* 0 none, 1 T^p, 2 T*ln(T): the tmul codes */
+    memset(t, 0, sizeof *t);
+    t->c = m->c;
+    t->func = -1; t->func2 = -1; t->fpow = 1.0; t->fpow2 = 1.0;
+    if (fabs(m->q) < 1e-12) tpart = fabs(m->p) < 1e-12 ? 0 : 1;
+    else if (fabs(m->q - 1.0) < 1e-12 && fabs(m->p - 1.0) < 1e-12) tpart = 2;
+    else tdb_fail_subset(tb, "LN(T) other than in T*LN(T) is outside the v1 subset");
+    if (tpart == 1) t->power = m->p;
+    if (m->nf == 0) {
+        t->kind = tpart == 2 ? 1 : 0;
+        return;
+    }
+    t->kind = 2;
+    t->tmul = tpart;
+    t->func = m->f[0]; t->fpow = m->e[0];
+    if (m->nf == 2) { t->func2 = m->f[1]; t->fpow2 = m->e[1]; }
+}
+
 static void tdb_parse_expr(Tdb *tb, char **s, TdbSeg *seg)
 {
-    double sign = 1.0;
-    seg->n = 0;
-    for (;;) {
-        char c = tdb_peekc(*s);
-        double coeff = 1.0;
-        int have_num = 0;
-        int kind = 0; double power = 0.0; int func = -1;
-        int power_set = 0;
-        int func2 = -1, fpow_on = 0, tmul = 0; double fpow = 1.0;
-        if (c == '\0' || c == ';') break;
-        for (;;) {
-            while (**s == ' ' || **s == '\t' || **s == '\r' || **s == '\n') (*s)++;
-            c = **s;
-            if (c == '+' || c == '-') {
-                if (have_num || power_set || func >= 0 || kind == 1) break;
-                if (c == '-') sign = -sign;
-                (*s)++;
-                continue;
-            }
-            if ((c >= '0' && c <= '9') || c == '.') {
-                char *end = NULL;
-                double v = strtod(*s, &end);
-                if (end == *s) tdb_fail(tb, "bad number in expression");
-                *s = end;
-                coeff *= v; have_num = 1;
-            } else if (c == 'T' && !isalnum((unsigned char)(*s)[1]) && (*s)[1] != '_') {
-                (*s)++;
-                if ((*s)[0] == '*' && (*s)[1] == '*') {
-                    char *end = NULL; double v; int paren;
-                    *s += 2;
-                    while (**s == ' ') (*s)++;
-                    paren = (**s == '(');
-                    if (paren) (*s)++;
-                    v = strtod(*s, &end);
-                    if (end == *s) tdb_fail(tb, "bad exponent");
-                    *s = end;
-                    if (paren) { while (**s == ' ') (*s)++; if (**s == ')') (*s)++; }
-                    power += v; power_set = 1;
-                } else if (strncmp(*s, "*LN(T)", 6) == 0) {
-                    *s += 6; kind = 1;
-                } else {
-                    power += 1.0; power_set = 1;
-                }
-            } else if (strncmp(*s, "LN(T)", 5) == 0) {
-                tdb_fail(tb, "standalone LN(T) term is outside the v1 subset");
-            } else if (strncmp(*s, "EXP(", 4) == 0) {
-                tdb_fail(tb, "EXP(...) term is outside the v1 subset");
-            } else if (isalpha((unsigned char)c) || c == '_') {
-                char name[NAME_MAX]; size_t n = 0;
-                int fi;
-                while (**s && (isalnum((unsigned char)**s) || **s == '_')) {
-                    if (n + 1 < sizeof name) name[n++] = **s;
-                    (*s)++;
-                }
-                name[n] = '\0';
-                if (**s == '#') (*s)++;
-                fi = tdb_func_index(tb, name);
-                if (fi < 0) {
-                    if (tb->n_func >= TDB_MAX_FUNCS) tdb_fail(tb, "too many functions");
-                    fi = tb->n_func++;
-                    snprintf(tb->func[fi].name, NAME_MAX, "%s", name);
-                    tb->func[fi].n_seg = 0;
-                    tb->func[fi].seg = NULL;
-                }
-                /* NAME#**n : store the power, folded at resolution time */
-                while (**s == ' ') (*s)++;
-                if ((*s)[0] == '*' && (*s)[1] == '*') {
-                    char *end = NULL; double v; int paren;
-                    *s += 2;
-                    while (**s == ' ') (*s)++;
-                    paren = (**s == '(');
-                    if (paren) (*s)++;
-                    v = strtod(*s, &end);
-                    if (end == *s) tdb_fail(tb, "bad exponent");
-                    *s = end;
-                    if (paren) { while (**s == ' ') (*s)++; if (**s == ')') (*s)++; }
-                    if (func >= 0) tdb_fail(tb, "product of powered functions is outside the v1 subset");
-                    func = fi; kind = 2; fpow_on = 1; fpow = v; fi = -1;
-                }
-                if (fi >= 0 && func >= 0) {
-                    if (func2 >= 0) tdb_fail(tb, "product of three functions is outside the v1 subset");
-                    func2 = fi; fi = -1;
-                }
-                if (fi >= 0) { func = fi; kind = 2; }
-            } else {
-                break;
-            }
-            while (**s == ' ') (*s)++;
-            if (**s == '*' && (*s)[1] != '*') (*s)++;
-        }
-        if (!have_num && !power_set && func < 0 && kind != 1) break;
-        if (seg->n >= TDB_MAX_TERMS) tdb_fail(tb, "too many terms in one segment");
-        {
-            TdbTerm *t = &seg->t[seg->n++];
-            t->c = sign * coeff;
-            if (func >= 0 && (power_set || kind == 1)) {
-                tmul = power_set ? 1 : 2;
-                kind = 2;
-            }
-            t->kind = kind; t->power = power; t->func = func;
-            t->func2 = func2; t->fpow_on = fpow_on; t->fpow = fpow; t->tmul = tmul;
-        }
-        sign = 1.0;
+    int mark = tb->n_poly, i;
+    TdbPoly *P = tdb_poly_new(tb);
+    tdb_ws(s);
+    if (**s != ';' && **s != '\0') {
+        tdb_parse_sum(tb, s, P);
+        tdb_ws(s);
+        if (**s != ';' && **s != '\0') tdb_fail_at(tb, "unexpected text in expression", *s);
     }
+    seg->n = 0;
+    for (i = 0; i < P->n; ++i) {
+        if (seg->n >= TDB_MAX_TERMS) tdb_fail(tb, "too many terms in one segment");
+        tdb_mono_term(tb, &P->m[i], &seg->t[seg->n++]);
+    }
+    tb->n_poly = mark;
 }
 
 /* Parse "lowT expr ; T Y expr ; ... T N [ref]" into segments. */
@@ -1423,9 +1671,11 @@ static int tdb_parse_piecewise(Tdb *tb, char **s, TdbSeg *seg, int max_seg)
         tdb_parse_expr(tb, s, &seg[n]);
         while (**s == ' ' || **s == '\t' || **s == '\r' || **s == '\n') (*s)++;
         if (**s == ';') (*s)++;
+        while (tdb_peekc(*s) == ',') { tdb_ws(s); (*s)++; }
         if (!tdb_word(s, buf, sizeof buf)) { seg[n].hi = 6000.0; n++; break; }
         hi = strtod(buf, &end);
-        if (end == buf) { seg[n].hi = 6000.0; n++; break; }  /* trailing ref name */
+        if (end == buf) { seg[n].hi = 6000.0; n++; break; }  /* no limit: N or a reference */
+        if (*end) tdb_fail(tb, "bad upper temperature limit");
         seg[n].hi = hi; n++;
         if (!tdb_word(s, buf, sizeof buf)) break;
         if (buf[0] == 'Y') { lo = hi; continue; }
@@ -1434,9 +1684,60 @@ static int tdb_parse_piecewise(Tdb *tb, char **s, TdbSeg *seg, int max_seg)
     return n;
 }
 
+/* Read a FUNCTION body into function fi. A body outside the subset leaves the function
+ * marked rather than failing the file; using it fails then. */
+static void tdb_read_function(Tdb *tb, char **s, int fi)
+{
+    jmp_buf jb;
+    jmp_buf *outer = tb->subset_jb;
+    int mark = tb->n_poly;
+    TdbFunc *f = &tb->func[fi];
+    tdb_func_segs(tb, fi);
+    free(f->why);
+    f->why = NULL;
+    f->state = 0;
+    if (setjmp(jb) == 0) {
+        tb->subset_jb = &jb;
+        f->n_seg = tdb_parse_piecewise(tb, s, f->seg, TDB_MAX_SEG);
+    } else {
+        f = &tb->func[fi];
+        f->n_seg = 0;
+        f->why = malloc(strlen(tb->lx->err) + 1);
+        if (!f->why) { tb->subset_jb = outer; tdb_fail(tb, "out of memory"); }
+        memcpy(f->why, tb->lx->err, strlen(tb->lx->err) + 1);
+        tb->lx->err[0] = '\0';
+        tb->n_poly = mark;
+    }
+    tb->subset_jb = outer;
+}
+
 /* ---- resolution: inline function references, splitting at breakpoints ---- */
 
 static void tdb_resolve_func(Tdb *tb, int fi);
+
+/* Fold the constant function factors of a kind-2 term into *cmul and return the one that
+ * is not constant (resolved), or -1. */
+static int tdb_term_var(Tdb *tb, const TdbTerm *t, double *cmul)
+{
+    int fs[2] = { t->func, t->func2 }, var = -1, j;
+    double es[2] = { t->fpow, t->fpow2 };
+    for (j = 0; j < 2; ++j) {
+        double cv;
+        if (fs[j] < 0) continue;
+        if (tdb_func_const(tb, fs[j], &cv)) {
+            cv = pow(cv, es[j]);
+            if (!isfinite(cv)) tdb_fail(tb, "power of a function is not finite (a zero divisor?)");
+            if (cmul) *cmul *= cv;
+            continue;
+        }
+        if (var >= 0) tdb_fail(tb, "product of two non-constant functions is outside the v1 subset");
+        if (fabs(es[j] - 1.0) >= 1e-12)
+            tdb_fail(tb, "power of a non-constant function is outside the v1 subset");
+        var = fs[j];
+    }
+    if (var >= 0 && t->tmul) tdb_fail(tb, "function times T-power is outside the v1 subset");
+    return var;
+}
 
 static void tdb_collect_breaks(Tdb *tb, const TdbSeg *seg, double lo, double hi,
                                double *br, int *n_br, int max_br)
@@ -1446,13 +1747,8 @@ static void tdb_collect_breaks(Tdb *tb, const TdbSeg *seg, double lo, double hi,
         int fi, k;
         TdbFunc *f;
         if (seg->t[i].kind != 2) continue;
-        if (seg->t[i].fpow_on || seg->t[i].tmul) continue;   /* folds to a constant */
-        fi = seg->t[i].func;
-        if (seg->t[i].func2 >= 0) {
-            double cv;
-            if (tdb_func_const(tb, fi, &cv)) fi = seg->t[i].func2;
-        }
-        tdb_resolve_func(tb, fi);
+        fi = tdb_term_var(tb, &seg->t[i], NULL);
+        if (fi < 0) continue;   /* folds to a constant */
         f = &tb->func[fi];
         for (k = 0; k < f->n_seg; ++k) {
             double b[2]; int j;
@@ -1488,7 +1784,7 @@ static void tdb_add_term(Tdb *tb, TdbSeg *dst, double c, int kind, double power)
     dst->t[dst->n].power = power;
     dst->t[dst->n].func = -1;
     dst->t[dst->n].func2 = -1;
-    dst->t[dst->n].fpow_on = 0; dst->t[dst->n].fpow = 1.0;
+    dst->t[dst->n].fpow = 1.0; dst->t[dst->n].fpow2 = 1.0;
     dst->t[dst->n].tmul = 0;
     dst->n++;
 }
@@ -1528,28 +1824,12 @@ static void tdb_expand_into(Tdb *tb, const TdbSeg *seg, double lo, double hi,
             }
             {
                 double cmul = scale * t->c;
-                int fmain = t->func;
-                if (t->func2 >= 0) {
-                    double cv;
-                    if (tdb_func_const(tb, t->func2, &cv)) cmul *= cv;
-                    else if (tdb_func_const(tb, fmain, &cv)) { cmul *= cv; fmain = t->func2; }
-                    else tdb_fail(tb, "product of two non-constant functions is outside the v1 subset");
-                }
-                if (t->fpow_on) {
-                    double cv;
-                    if (!tdb_func_const(tb, fmain, &cv))
-                        tdb_fail(tb, "power of a non-constant function is outside the v1 subset");
-                    tdb_add_term(tb, dst, cmul * pow(cv, t->fpow), 0, 0.0);
+                int fmain = tdb_term_var(tb, t, &cmul);
+                if (fmain < 0) {
+                    tdb_add_term(tb, dst, cmul, t->tmul == 2 ? 1 : 0,
+                                 t->tmul == 1 ? t->power : 0.0);
                     continue;
                 }
-                if (t->tmul) {
-                    double cv;
-                    if (!tdb_func_const(tb, fmain, &cv))
-                        tdb_fail(tb, "function times T-power is outside the v1 subset");
-                    tdb_add_term(tb, dst, cmul * cv, t->tmul == 2 ? 1 : 0, t->power);
-                    continue;
-                }
-                tdb_resolve_func(tb, fmain);
                 f = &tb->func[fmain];
                 for (k = 0; k < f->n_seg; ++k)
                     if (a >= f->seg[k].lo - 1e-9 && b <= f->seg[k].hi + 1e-9) { src = &f->seg[k]; break; }
@@ -1572,15 +1852,20 @@ static void tdb_resolve_func(Tdb *tb, int fi)
     TdbFunc *f = &tb->func[fi];
     TdbSeg *out; int n_out = 0;
     int k, i;
-    out = calloc(TDB_MAX_SEG, sizeof(TdbSeg));
-    if (!out) tdb_fail(tb, "out of memory");
     if (f->state == 2) return;
     if (f->state == 1) tdb_fail(tb, "circular function reference");
+    if (f->why) {
+        char msg[sizeof tb->lx->err];
+        snprintf(msg, sizeof msg, "function %s is used but cannot be evaluated (%.200s)", f->name, f->why);
+        tdb_fail(tb, msg);
+    }
     if (f->n_seg == 0) {
         snprintf(tb->lx->err, sizeof tb->lx->err,
                  "TDB: function %s referenced but never defined", f->name);
         longjmp(tb->lx->jb, 1);
     }
+    out = calloc(TDB_MAX_SEG, sizeof(TdbSeg));
+    if (!out) tdb_fail(tb, "out of memory");
     f->state = 1;
     for (k = 0; k < f->n_seg; ++k)
         tdb_expand_into(tb, &f->seg[k], f->seg[k].lo, f->seg[k].hi, 1.0,
@@ -2157,7 +2442,8 @@ static Db *read_tdb(char *text_owned)
         tb.par = calloc((size_t)tb.cap_par, sizeof(TdbParam));
         tb.cap_mq = 8192;
         tb.mq = calloc((size_t)tb.cap_mq, sizeof(TdbMq));
-        if (!tb.func || !tb.el_name || !tb.el_mass || !tb.sp || !tb.ph || !tb.par || !tb.mq)
+        tb.poly = calloc(TDB_POLY_POOL, sizeof(TdbPoly));
+        if (!tb.func || !tb.el_name || !tb.el_mass || !tb.sp || !tb.ph || !tb.par || !tb.mq || !tb.poly)
             tdb_fail(&tb, "out of memory");
 
         /* built-in: the gas constant, referenced as R# in some files */
@@ -2198,9 +2484,7 @@ static Db *read_tdb(char *text_owned)
                             snprintf(pre.func[fi].name, NAME_MAX, "%s", name);
                             pre.func[fi].seg = NULL;
                         }
-                        tdb_func_segs(&pre, fi);
-                        pre.func[fi].n_seg = tdb_parse_piecewise(&pre, &s, pre.func[fi].seg, TDB_MAX_SEG);
-                        pre.func[fi].state = 0;
+                        tdb_read_function(&pre, &s, fi);
                     }
                 }
                 tb.n_func = pre.n_func;   /* the table itself is shared storage */
@@ -2249,9 +2533,7 @@ static Db *read_tdb(char *text_owned)
                     snprintf(tb.func[fi].name, NAME_MAX, "%s", name);
                     tb.func[fi].seg = NULL;
                 }
-                tdb_func_segs(&tb, fi);
-                tb.func[fi].n_seg = tdb_parse_piecewise(&tb, &s, tb.func[fi].seg, TDB_MAX_SEG);
-                tb.func[fi].state = 0;
+                tdb_read_function(&tb, &s, fi);
             } else if (strncmp(kw, "TYPE_DEF", 8) == 0) {
                 char ch[NAME_MAX];
                 if (!tdb_word(&s, ch, sizeof ch)) continue;
@@ -2514,12 +2796,12 @@ static Db *read_tdb(char *text_owned)
     }
     {
         int i;
-        for (i = 0; i < tb.n_func; ++i) free(tb.func[i].seg);
+        for (i = 0; i < tb.n_func; ++i) { free(tb.func[i].seg); free(tb.func[i].why); }
         for (i = 0; i < tb.n_par; ++i) free(tb.par[i].expr);
         for (i = 0; i < tb.n_mq; ++i) free(tb.mq[i].expr);
     }
     free(tb.func); free(tb.el_name); free(tb.el_mass);
-    free(tb.sp); free(tb.ph); free(tb.par); free(tb.mq);
+    free(tb.sp); free(tb.ph); free(tb.par); free(tb.mq); free(tb.poly);
     free(text_owned);
     return db;
 }

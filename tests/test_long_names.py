@@ -465,14 +465,12 @@ def test_xtdb_carried_text_past_the_limit_blocks_the_writers():
 
 def test_xtdb_overlong_function_reference_is_not_cut():
     """A 64-character reference in an expression names no function (Ids hold 63), so the
-    engine flags the energy and a TDB conversion is refused; cut to 63 it would name the
-    63-character function the file does define."""
+    read fails on that expression; cut to 63 it would name the 63-character function the
+    file does define."""
     ref = nm("F", XNAME + 1)
-    x = XTDB.read_string(xtdb_text(F=nm("F", XNAME)).replace(
-        f'Expr="+{nm("F", XNAME)};"', f'Expr="+{ref};"'))
-    assert math.isnan(x.endmember_gibbs("LIQ", "AL", 1000.0))
-    with pytest.raises(ConversionError, match=rf"longer than {NAME} characters"):
-        x.write_tdb()
+    with pytest.raises(OSError, match=rf"cannot read the expression of G\(LIQ,AL;0\): \+{ref};"):
+        XTDB.read_string(xtdb_text(F=nm("F", XNAME)).replace(
+            f'Expr="+{nm("F", XNAME)};"', f'Expr="+{ref};"'))
 
 
 # ---------------------------------------------------------------------------------

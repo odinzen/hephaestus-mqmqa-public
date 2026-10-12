@@ -55,9 +55,7 @@ def main():
     print(f"  {'dataset':13s}{'x_SiO2':>7s}{'T/K':>7s}{'measured':>10s}"
           f"{'engine':>9s}{'ln ratio':>10s}")
     lnres = {"aCaO": [], "aSiO2_S": [], "aSiO2_KT": []}
-    for x, (aC, aS) in sorted(fx.STOL.items()):
-        if x in fx.STOL_DROP:
-            continue
+    for x, aC, aS in fx.stolyarova_points():
         cC, cS = act.activities(inp_s, x, fx.T_STOL)
         lnres["aCaO"].append(np.log(cC / aC))
         lnres["aSiO2_S"].append(np.log(cS / aS))
@@ -86,9 +84,7 @@ def main():
     print("3. INTEGRAL GIBBS ENERGY OF MIXING at 1933 K (J/mol oxide formula)")
     print("=" * 72)
     RT = fx.R * fx.T_STOL
-    for x, (aC, aS) in sorted(fx.STOL.items()):
-        if x in fx.STOL_DROP:
-            continue
+    for x, aC, aS in fx.stolyarova_points():
         dg_m = (1 - x) * RT * np.log(aC) + x * RT * np.log(aS)
         dg_c = act.delta_g_mix(inp_s, x)
         print(f"  x_SiO2={x:.2f}  measured={dg_m:8.0f}  engine={dg_c:8.0f}  "

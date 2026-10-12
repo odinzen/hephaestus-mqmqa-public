@@ -5,11 +5,14 @@ coefficients L we compute a(CaO), a(SiO2) from the C engine (see _activity.py) a
 least-squares match them, in ln(a) space, to two open datasets:
 
   Stolyarova et al. 1991, J. Electrochem. Soc. 138(12) 3710, KEMS at 1933 K
-    (Tables IIa/IIb, direct-measurement columns Eq [2]/[3]); reference = pure oxide
-    (a -> 1 at the pure component), taken as the pure liquid to match the engine.
-    The two CaO-richest points (x_SiO2 = 0.25, 0.33) are DROPPED: there a(CaO)
-    reaches 0.96-1.00, the signature of CaO/silicate saturation (a two-phase melt),
-    which the single-liquid model cannot and should not reproduce.
+    (Tables IIa/IIb, direct-measurement columns Eq [2]/[3]). Eq [2a] and [3] (p.3711)
+    ratio the sample's ion current to that of the individual oxide in the same cell at
+    1933 K, where pure CaO and SiO2 are both solid, so the reference is the pure SOLID
+    oxide. Converted to the liquid reference with each oxide's fusion data, as for
+    Kay & Taylor below (CaO factor 0.205 with Tm 2845 K, SiO2 0.981). The CaO-rich
+    points (x_SiO2 <= 0.40) are DROPPED: there a(CaO) reaches 0.96-1.00, lime
+    saturation (a two-phase melt), which the single-liquid model cannot and should
+    not reproduce.
 
   Kay & Taylor 1960, Trans. Faraday Soc. 56, 1372, CO/SiC gas-slag equilibrium at
     ~1821 K (Table 3); a(SiO2) referenced to pure SOLID SiO2. Converted to the pure
@@ -44,7 +47,9 @@ T_KT = 1821.65  # mean of the Kay-Taylor run temperatures (1820.15-1822.15 K)
 
 # --- Stolyarova 1991, Table IIa: a(CaO) at 1933 K, Eq [2] (direct measurement) ---
 # --- Stolyarova 1991, Table IIb: a(SiO2) at 1933 K, Eq [3] (direct measurement) ---
-# x_SiO2 : (a_CaO, a_SiO2).  Reference = pure oxide (liquid).
+# x_SiO2 : (a_CaO, a_SiO2) as published, referenced to the pure SOLID oxide (Eq [2a]/[3]).
+# The assessment tools compare against these after shifting the model to the solid
+# reference; stolyarova_points() gives the liquid-referenced values.
 STOL = {
     0.50: (0.07, 0.20),
     0.49: (0.11, 0.09),
@@ -76,7 +81,18 @@ KAYTAYLOR = [
     (55.8, 43.6, 0.096, 1822.15, "38"),
 ]
 MW_CAO, MW_SIO2 = 56.077, 60.083
-DHFUS_SIO2, TM_SIO2 = bd.OXIDES["SiO2"]["dHfus"], bd.OXIDES["SiO2"]["Tm"]
+
+
+def solid_to_liquid(oxide, T):
+    """a(liquid ref) / a(solid ref) = exp(-dG_fus/RT), from the fusion data the .dat is built on."""
+    ox = bd.OXIDES[oxide]
+    return np.exp(-ox["dHfus"] * (1.0 - T / ox["Tm"]) / (R * T))
+
+
+def stolyarova_points():
+    """[(x_SiO2, a_CaO_liquidref, a_SiO2_liquidref), ...], single-phase points only."""
+    fc, fs = solid_to_liquid("CaO", T_STOL), solid_to_liquid("SiO2", T_STOL)
+    return [(x, aC * fc, aS * fs) for x, (aC, aS) in sorted(STOL.items()) if x not in STOL_DROP]
 
 
 # The CaO-SiO2 liquid has a silica-rich miscibility gap (x_SiO2 > ~0.65 at these
@@ -92,8 +108,7 @@ def kaytaylor_points(all_pts=False):
     for cao, sio2, a_sol, T, _run in KAYTAYLOR:
         n_cao, n_sio2 = cao / MW_CAO, sio2 / MW_SIO2
         x = n_sio2 / (n_cao + n_sio2)
-        dg_fus = DHFUS_SIO2 * (1.0 - T / TM_SIO2)
-        a_liq = a_sol / np.exp(dg_fus / (R * T))
+        a_liq = a_sol * solid_to_liquid("SiO2", T)
         if all_pts or x <= KT_XMAX:
             pts.append((x, a_liq, T))
     return pts
@@ -143,9 +158,7 @@ def residuals(L, inp_s, inp_k, kt_pts, report=False):
     act.set_excess_L(inp_s, L)
     act.set_excess_L(inp_k, L)
     res, rows = [], []
-    for x, (aC, aS) in sorted(STOL.items()):
-        if x in STOL_DROP:
-            continue
+    for x, aC, aS in stolyarova_points():
         cC, cS = act.activities(inp_s, x, T_STOL)
         res.append(W_CAO * (np.log(cC) - np.log(aC)))
         res.append(W_SIO2_STOL * (np.log(cS) - np.log(aS)))
@@ -230,9 +243,7 @@ def main(write=True):
     print("\n  Delta_G_mix at 1933 K (J/mol oxide formula):")
     act.set_excess_L(inp_s, L)
     RT = R * T_STOL
-    for x, (aC, aS) in sorted(STOL.items()):
-        if x in STOL_DROP:
-            continue
+    for x, aC, aS in stolyarova_points():
         dg_m = (1 - x) * RT * np.log(aC) + x * RT * np.log(aS)
         dg_c = act.delta_g_mix(inp_s, x)
         print(f"    x_SiO2={x:.2f}  measured={dg_m:8.0f}  engine={dg_c:8.0f}  "

@@ -27,14 +27,25 @@ Re-derived from the shipped file (fit tool, stable phases only), model / measure
 | CaO + Ca3SiO5 invariant | 2557 / 2473 K | 2423 K |
 | monotectic (silica + two liquids) | 1980 K | 1971 K |
 | top of the two-liquid region | above 3000 K (closes near 3976 K) | 1998 K |
-| a(SiO2), Kay & Taylor, x 0.511 / 0.466 / 0.422 | 0.32 / 0.16 / 0.07 | 0.25 / 0.17 / 0.09 |
-| a(CaO), Stolyarova, x 0.41 to 0.50 | 0.047 to 0.012 | 0.29 to 0.07 |
+| a(SiO2), Kay & Taylor, x 0.511 / 0.466 / 0.422, liquid SiO2 reference | 0.32 / 0.16 / 0.07 | 0.25 / 0.17 / 0.09 |
+| a(CaO), Stolyarova, x 0.41 to 0.50, solid CaO reference | 0.047 to 0.012 | 0.29 to 0.07 |
 
 **Known limits.** The silica-rich two-liquid region does not close: pycalphad on the shipped file
 finds two liquids at x_SiO2 0.80-0.90 at 2000, 2500 and 3000 K, against a measured top of 1998 K.
 This matters only for melts above about 65% SiO2 above about 2000 K. The lime-side invariants are
-95-134 K off, at 2300-2450 K. The Stolyarova a(CaO) points are missed by a factor of about 6 by
+95-134 K off, at 2300-2450 K. The Stolyarova a(CaO) points are missed by a factor of 6 to 9 by
 every form tried while their a(SiO2) points are matched; that set is treated as an outlier.
+
+**Stolyarova reference state (checked 2026-10-12).** Eq. [2a] and [3] (p.3711) ratio each ion
+current to that over the individual oxide in the same cell at 1933 K, where pure CaO and SiO2 are
+both solid, and a(CaO) = 1.00 at x_SiO2 0.25 is lime saturation. The data are therefore referenced
+to the solid oxides, which is how `assessment/assess.py` scores them (the model is shifted by
+dG_fus) and how the table row above is stated. On the liquid reference, with the fusion data the
+database is built on (CaO Tm 2845 K, factor exp(-dG_fus/RT) = 0.205; SiO2 0.981), the a(CaO) data
+become 0.059 to 0.014 against a model 0.0096 to 0.0024, the same factor of 6 to 9. A reference
+shift applied to both sides cancels in the ratio, so the reference state does not explain the miss.
+With the old JANAF Tm of 3200 K (factor 0.141) the solid-referenced model would be 0.068 to 0.017
+and the miss a factor of 4 to 6.
 
 **Refits tried, 2026-10-07 (none shipped).** The tool's two-liquid residual used to score the gap
 width 15 K above the measured top, which stops changing once the gap is wide; it now scores where
@@ -183,7 +194,10 @@ miscibility gap, so it is excluded.
   0.44, 0.49, 0.50. Stolyarova state the 1933 K liquidus at x_SiO2 = 0.41 (p.3711); points
   below that are sub-liquidus (solid Ca-silicate + liquid), where a(CaO) rises to 0.96-1.00
   (saturation) - two-phase data the single-liquid model must not be fit to. Those points
-  (x_SiO2 = 0.25, 0.33, 0.38, 0.39, 0.40) are excluded.
+  (x_SiO2 = 0.25, 0.33, 0.38, 0.39, 0.40) are excluded. v0.2 compared the published values,
+  which are referenced to the solid oxides (see the v0.4 known limits), with liquid-referenced
+  engine activities. `fit_excess.py` converts them since 2026-10-12, so rerunning it no longer
+  reproduces the v0.2 numbers recorded here.
 - **Kay & Taylor 1960 (~1821 K):** a(SiO2) converted from the pure-SOLID-SiO2 reference to
   the pure-LIQUID reference by a(liq) = a(solid)/exp(dG_fus,SiO2/RT) (a 5-6% shift; dG_fus is
   small this close to Tm). Mass-percent compositions renormalized to CaO+SiO2 mole fraction

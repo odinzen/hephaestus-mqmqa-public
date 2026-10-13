@@ -183,8 +183,8 @@ if __name__ == "__main__":
     print("=" * 70)
     for name, Tm in (("CS(pseudowoll)", 1817.0), ("C2S", 2403.0)):
         diagnose(db, p, name, Tm)
-    print("\n  Reading: the liquid (from the v0.2 activity fit) is far less stable than")
-    print("  the calorimetric compounds at their melting points, so nothing melts. The")
-    print("  gap traces to the flagged CaO liquid endmember (Tm=3200 K -> large dgfus_CaO)")
-    print("  and to the Stolyarova reference-state assumption (liquid vs solid oxide),")
-    print("  which together set how deep the liquid mixing energy really is.")
+    print("\n  Reading: a positive gap means the liquid is slightly less stable than the")
+    print("  compound at its published Tm, so the compound melts a little above it. The")
+    print("  solid-oxide line is the one to set against the Stolyarova 1991 activities,")
+    print("  which are referenced to the solid oxides (Eq [2a]/[3], p.3711); dgfus_CaO")
+    print(f"  uses the CaO endmember's Tm = {bd.OXIDES['CaO']['Tm']:.0f} K (build_dat.OXIDES).")

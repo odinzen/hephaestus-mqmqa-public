@@ -4,7 +4,7 @@
 
 ## Core capabilities
 
-**Universal CALPHAD Interoperability** includes lossless native readers and writers for ChemSage (.dat), Thermo-Calc (.tdb), .utdb, and XTDB formats.   
+**Universal CALPHAD Interoperability** includes native readers for ChemSage (.dat), Thermo-Calc (.tdb), .utdb, and XTDB formats.   
 
 **Run-Anywhere Architecture** as a C core, a Python module (import mqmqa), or compiled to WebAssembly (WASM) for client-side execution in a browser.   
 
@@ -86,15 +86,13 @@ refresh the branch with:
 
 ## Publication
 
-Intended as a single-author **JORS** (Journal of Open Research Software) metapaper covering
+Submitted to **JORS** (Journal of Open Research Software) as a metapaper by Michael E. Bustamante
+and Gabriel Bustamante, covering
 both the engine and the open slag database as one open-science contribution. See
 `docs/DESIGN.md`.
 
 ## License
 
-Hephaestus is released under copyleft terms:
-
-* **Engine & Code** [GNU Affero General Public License v3.0 (AGPL-3.0)](https://www.gnu.org/licenses/agpl-3.0)
-* **Databases & Assessments** [Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/)
-
-Anyone may use, teach with, extend, or build consulting work on this software, provided all distributed or hosted versions remain open-source and credited under the same terms. Model equations are public domain; this codebase is an independent clean-room implementation.
+The engine and code are MIT (see `LICENSE`); the databases under `data/` are CC BY 4.0 (see
+`data/LICENSE`). Model equations are public; this is an independent clean-room implementation
+of them.

@@ -2,7 +2,7 @@
 #define MQMQA_XTDB_H
 
 /* XTDB (XML CALPHAD) reader with third-generation Einstein + two-state models. Self-contained;
- * see xtdb.c. Clean-room from the published XTDB format and model equations. */
+ * see xtdb.c for its sources. */
 
 #include "mqmqa.h"   /* MQMQA_API, extern "C" */
 

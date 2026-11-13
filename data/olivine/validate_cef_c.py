@@ -2,7 +2,7 @@
 
 Both sides read the SAME olivine SUBL .dat (data/olivine/Olivine-CEF.dat, written by
 build_subl_dat.py). The C reader parses the SUBL block and the C kernel (mqmqa_cef_gibbs,
-a clean-room port of cef/cef.py) computes GM; pycalphad's Model.GM is the oracle. Agreement
+a C port of cef/cef.py) computes GM; pycalphad's Model.GM is the oracle. Agreement
 to machine precision closes the loop: the C reader parsed the sublattice model correctly and
 the C energy kernel matches the reference formalism.
 

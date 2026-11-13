@@ -7,8 +7,8 @@
  * classic TQ interface (itself the de-facto embedding standard originating in
  * Thermo-Calc's TQ), so an application written against OCASI can bind Hephaestus
  * instead and run where OpenCalphad cannot, in the browser through WebAssembly.
- * It is written clean-room from the documented interface
- * semantics; no OpenCalphad (GPL) source or headers are copied or linked.
+ * The function shapes follow OpenCalphad's OCASI C binding (octqc.h and
+ * liboctqisoc.F90), which were read while writing this; OpenCalphad is not linked.
  *
  * Model coverage is Hephaestus's own: MQMQA liquids, compound-energy-formalism
  * solids with the Inden-Hillert-Jarl magnetic term, stoichiometric compounds, and

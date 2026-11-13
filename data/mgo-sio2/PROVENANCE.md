@@ -257,8 +257,8 @@ periclase-forsterite eutectic +43 K), because its liquid was anchored to a singl
 (forsterite melting) rather than fit to the whole invariant set. v0.5 fits the liquid excess
 SIMULTANEOUSLY to the four condensed invariants, following the published method (a CALPHAD
 assessment IS a parameter optimization to the whole dataset - the reason FactSage reproduces
-the measured diagram is fitting, not secret physics; the MQM method itself is published, our
-clean-room basis: Pelton, Degterov, Eriksson et al., Metall. Mater. Trans. B 31 (2000) 651 and
+the measured diagram is fitting, not secret physics; the MQM method itself is published:
+Pelton, Degterov, Eriksson et al., Metall. Mater. Trans. B 31 (2000) 651 and
 Metall. Mater. Trans. A 32 (2001) 1355/1409; the specific MgO-SiO2 optimization is Wu, Eriksson
 & Pelton, J. Eur. Ceram. Soc. 2004, and Decterov & Pelton, J. Am. Ceram. Soc. 2002 - method
 only, none of their fitted parameters are used here).

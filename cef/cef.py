@@ -8,8 +8,8 @@ energy per mole of formula units (sum of site multiplicities) is
       + R T Sum_s a_s Sum_i y_i^s ln y_i^s                            (ideal config)
       + Sum_interactions  ( Prod_{other s} y ) * y_i y_j Sum_v L_v (y_i - y_j)^v  (excess, RK)
 
-This is a clean-room implementation of the published formalism (Hillert; Sundman &
-Agren; Lukas-Fries-Sundman), validated to machine precision against pycalphad's Model.GM.
+Written from the published formalism (Hillert; Sundman & Agren; Lukas-Fries-Sundman)
+and checked to machine precision against pycalphad's Model.GM.
 A Python prototype first (get the physics right), then ported to C alongside the MQMQA
 energy and wired into the ChemSage-.dat reader (SUBL blocks).
 

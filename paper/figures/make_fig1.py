@@ -51,7 +51,7 @@ b_core = box(10, 25, 62, 17, "C core (C99, no dependencies)",
              ["reader and writers · MQMQA + CEF Gibbs energy",
               "Inden magnetic · XTDB third generation · multiphase hull",
               "NASA-polynomial gas engine · gas coupling · 3D meshes"], size=12.5)
-b_pyc = box(78, 29, 20, 11, "pycalphad", ["independent oracle,", "machine precision"], dashed=True,
+b_pyc = box(78, 29, 20, 11, "pycalphad", ["source of the MQMQA", "translation; reference"], dashed=True,
             title_size=14, size=12.5)
 
 # bottom row

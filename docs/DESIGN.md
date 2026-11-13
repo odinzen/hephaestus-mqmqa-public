@@ -22,9 +22,10 @@ bindings.
 - **ChemSage `.dat` reader**: ingest existing open databases (MSTDB-TC salts on day one),
   not a new format. Interop over novelty.
 
-## The model (implemented clean-room from the papers)
+## The model (a C translation of pycalphad's ModelMQMQA)
 
-Sources: Pelton, Chartrand, Eriksson 2001 (MMTA 32:1409); Poschmann 2021 (Calphad 75:102341).
+Translated from pycalphad's `models/model_mqmqa.py` (MIT; see NOTICE), which implements
+Pelton, Chartrand, Eriksson 2001 (MMTA 32:1409) and Poschmann 2021 (Calphad 75:102341).
 G = G_reference + G_ideal_mixing (the quadruplet configurational entropy) + G_excess.
 Two sublattices (cations / anions), quadruplets (i,j / k,l), coordination numbers Z and the
 zeta (quadruplets-per-pair) terms, SUBQ and SUBG variants. Build term by term.
@@ -55,7 +56,8 @@ giving an immediate demo without any assessment work.
 
 ## Boundaries
 
-Clean-room from the published papers only; no proprietary code is reused. The open slag
+The MQMQA core is translated from pycalphad (MIT, credited in NOTICE); no proprietary code
+is reused. The open slag
 database is assembled solely from published experimental literature (digitized phase
 diagrams and calorimetry); no closed, optimized, or otherwise proprietary database
 parameters go into it. No FactSage code, database, or trademark; only open data.

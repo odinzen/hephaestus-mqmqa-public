@@ -56,10 +56,11 @@ the engine should keep those comparisons passing at their existing tolerances. S
 
 ## Provenance and licensing boundary
 
-Hephaestus is a clean-room implementation of published model equations (Pelton et al. 2001;
-Poschmann et al. 2021), apart from one maintainer-approved term adapted from pycalphad (MIT)
-and credited in the README. Do not copy code, algorithms, or solver internals from any other
-implementation. The database is assembled only from published experimental data with per-value
+The MQMQA core is a C translation of pycalphad's MIT-licensed `ModelMQMQA`, credited in the
+README and `NOTICE`. Code taken or translated from any other implementation must be under a
+license compatible with AGPL-3.0, must keep its copyright notice, and must be named in the
+README's Provenance section in the same pull request. Say in the pull request which source
+files you read while writing the change. The database is assembled only from published experimental data with per-value
 provenance. Contributions must respect the same boundary.
 
 ## Getting in touch

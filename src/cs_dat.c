@@ -326,7 +326,7 @@ static void parse_subq_phase(Lexer *lx, Db *db, Phase *ph, const char *type)
     for (int k = 0; k < ph->n_an; ++k) tok_name(lx, ph->an_name[k]);
     for (int i = 0; i < ph->n_cat; ++i) ph->cat_charge[i] = tok_dbl(lx);
     for (int i = 0; i < ph->n_cat; ++i) ph->cat_group[i] = tok_int(lx);
-    /* anion charges are given as positive magnitudes in the file */
+    /* the file stores anion charges unsigned, and the engine keeps charge magnitudes throughout */
     for (int k = 0; k < ph->n_an; ++k) ph->an_charge[k] = tok_dbl(lx);
     for (int k = 0; k < ph->n_an; ++k) ph->an_group[k] = tok_int(lx);
 
@@ -424,8 +424,7 @@ static void parse_subq_phase(Lexer *lx, Db *db, Phase *ph, const char *type)
 /* ------------------------------------------------------------------ *
  * SUBL (compound-energy-formalism) phase
  *
- * Grammar (clean-room from the ChemApp format and cross-checked against
- * pycalphad's open ChemSage reader):
+ * Grammar (follows pycalphad's ChemSage reader, pycalphad/io/cs_dat.py, MIT; see NOTICE):
  *   num_const endmembers (parse_endmember)
  *   num_subl
  *   site fraction of each sublattice          [num_subl floats]
@@ -1407,8 +1406,8 @@ void mqmqa_enumerate_quadruplets(int n_cat, int n_an, int *ca, int *cb, int *ax,
  * Reads the Thermo-Calc TDB dialect (the CALPHAD lingua franca used by
  * Thermo-Calc, OpenCalphad and pycalphad) into the same in-memory Db the
  * ChemSage reader builds, so every accessor, the Python binding and the
- * WASM build work unchanged. Clean-room from the published format as
- * handled by pycalphad's open-source parser; pycalphad is the oracle.
+ * WASM build work unchanged. Written to match pycalphad's TDB parser
+ * (pycalphad/io/tdb.py), which was read for its handling of the format.
  *
  * v1 subset: ELEMENT / SPECIES / FUNCTION (piecewise, nested references) /
  * PHASE + CONSTITUENT (compound-energy formalism) / PARAMETER G and L

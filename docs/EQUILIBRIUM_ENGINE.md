@@ -50,10 +50,11 @@ Stage 1 supports the common case and grows outward:
 - **Later:** fix a component activity or chemical potential; fix a phase as stable
   (compute the condition that makes it so); suspend/enter phases.
 
-## OCASI/TQ-compatible entry points (clean-room)
+## OCASI/TQ-compatible entry points
 
-Implemented from the documented TQ interface semantics (a de-facto standard originating
-in Thermo-Calc's TQ), **never by copying OpenCalphad's GPL headers or source**. Names
+Shaped after OpenCalphad's OCASI C binding (`octqc.h`, `liboctqisoc.F90`, read while
+writing `src/tq.c`; the interface descends from Thermo-Calc's TQ). OpenCalphad is not
+linked. Names
 mirror OCASI so an application written against it can bind Hephaestus instead.
 
 | TQ entry | Meaning | Backed by |
@@ -97,6 +98,6 @@ and the new minimiser.
 
 ## Licensing
 
-Everything here is clean-room and AGPL-3.0-only. OpenCalphad is read for its *interface shape and
-its published model descriptions only*; no GPL code is copied or linked. XTDB is an open
-documented format and is read directly.
+Everything here is AGPL-3.0-only. The MQMQA energy underneath is a C translation of
+pycalphad (MIT, see NOTICE). OpenCalphad was read for its interface shape; it is not linked.
+XTDB is an open documented format and is read directly.

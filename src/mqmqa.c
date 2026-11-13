@@ -1,3 +1,7 @@
+/* MQMQA energy, translated into C from pycalphad's ModelMQMQA
+ * (pycalphad/models/model_mqmqa.py). pycalphad is MIT licensed, Copyright (c) 2014-2019
+ * Richard Otis and Zi-Kui Liu and the other holders listed in NOTICE. */
+
 #include "mqmqa.h"
 #include "fmtbuf.h"
 #include "mqmqa_priv.h"
@@ -362,9 +366,7 @@ static int needs_groups(const int *grp, int n, int i, int j)
  * The reciprocal terms carry weight 1.0, as in pycalphad's ModelMQMQA._Chi_mix, whose
  * sum over both slots of the fixed sublattice counts each X(ab/fm) twice at 1/2. The
  * equation as published (Paz Soldan Palma et al., arXiv:2204.09111, Eq 9, after
- * Poschmann et al. 2021) weights them 0.5; this engine uses 1.0 to match pycalphad.
- * Adapted from pycalphad (MIT License, Copyright (c) 2014-2019 Richard Otis and
- * Zi-Kui Liu, and the other holders listed in README.md). */
+ * Poschmann et al. 2021) weights them 0.5; this engine uses 1.0 to match pycalphad. */
 static double chi_quads(int n_quads, const int *ca, const int *cb,
                         const int *ax, const int *ay, const double *X,
                         int cmix, int n_fixed, int subq, int a, int b, int f)

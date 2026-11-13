@@ -11,7 +11,7 @@ each pair this fixes the coexisting compositions and the distribution coefficien
     K_D = (X_Fe/X_Mg)_A / (X_Fe/X_Mg)_B.
 
 All G(X_Fe) come from the C CEF kernel on the combined .dat. Each pair is checked against
-pycalphad's own equilibrium() on the same file (independent oracle). ol-opx additionally
+pycalphad's own equilibrium() on the same file (oracle). ol-opx additionally
 carries the measured cross-check from data/olivine-opx (von Seckendorff & O'Neill 1993).
 """
 import importlib.util

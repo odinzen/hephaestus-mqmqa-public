@@ -3,7 +3,7 @@
 
 The liquidus is computed entirely by this engine (the LIQUID2 MQMQA solution plus
 the database's stoichiometric condensed phases, resolved by a lower convex hull on
-the KF-NiF2 join) and validated against pycalphad as an independent oracle.
+the KF-NiF2 join) and validated against pycalphad's equilibrium as the oracle.
 
 What actually reaches the hull in the KF-NIF2_switched database is narrow: LIQUID2,
 NiF2 solid (NIF2_S1) below its melting point, and NiF2 liquid (NIF2_L1) above it.

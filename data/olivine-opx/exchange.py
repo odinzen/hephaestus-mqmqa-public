@@ -14,7 +14,7 @@ composition, giving the exchange isotherm and the distribution coefficient
 
     K_D = (X_Fe/X_Mg)_olivine / (X_Fe/X_Mg)_orthopyroxene.
 
-Validation: pycalphad's own equilibrium() on the same .dat (independent oracle), plus a
+Validation: pycalphad's own equilibrium() on the same .dat (oracle), plus a
 cross-check against the measured K_D of von Seckendorff & O'Neill 1993.
 
 Run from the repo root:

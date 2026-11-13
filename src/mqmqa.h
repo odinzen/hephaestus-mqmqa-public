@@ -3,16 +3,10 @@
 
 /* Public C API for the MQMQA core.
  *
- * Walking-skeleton stage: the two functions below exist only to exercise the
- * C -> DLL -> cffi -> Python -> pytest pipeline end to end. Real MQMQA energy
- * terms (reference, ideal mixing, excess) are added incrementally, each
- * validated against pycalphad and Thermochimica before landing.
- *
- * Model implemented clean-room from published papers:
- *   Pelton, Chartrand, Eriksson, Metall. Mater. Trans. A 32 (2001) 1409.
- *   Poschmann, Bajpai, Fitzpatrick, Piro, Calphad 75 (2021) 102341.
- * except the reciprocal-quadruplet terms of the G-code Chi in SUBQ phases, adapted from
- * pycalphad (MIT; see chi_quads in mqmqa.c and README.md).
+ * The energy terms are a C translation of pycalphad's ModelMQMQA
+ * (pycalphad/models/model_mqmqa.py, MIT License; notice in NOTICE and README.md),
+ * which implements Pelton, Chartrand, Eriksson, Metall. Mater. Trans. A 32 (2001) 1409
+ * and Poschmann, Bajpai, Fitzpatrick, Piro, Calphad 75 (2021) 102341.
  */
 
 #ifdef _WIN32

@@ -11,7 +11,7 @@
  *     + R T sum_s a_s sum_i y_i^s ln y_i^s                                (ideal config)
  *     + sum_interactions ( prod_{other s} y ) y_i y_j L (y_i - y_j)^order  (excess, RK)
  *
- * A clean-room port of the validated Python prototype (cef/cef.py), for the engine and
+ * A C port of the validated Python prototype (cef/cef.py), for the engine and
  * the in-browser WASM build. It reads the SUBL (compound-energy) phases the ChemSage
  * reader now parses; the reference oracle is pycalphad's Model.GM.
  *

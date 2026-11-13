@@ -8,9 +8,9 @@
  * plus the SUBQ/SUBG phase structure without pycalphad at runtime. pycalphad is
  * only the validation oracle.
  *
- * Clean-room from the published format description (ChemApp documentation,
- * "The format of a ChemApp data-file") and the model papers (Pelton 2001;
- * Poschmann 2021). No FactSage or other implementation code is used.
+ * The block grammar follows pycalphad's ChemSage reader (pycalphad/io/cs_dat.py,
+ * MIT; see NOTICE), which was read while writing this, together with the ChemApp
+ * format description ("The format of a ChemApp data-file"). No FactSage code is used.
  *
  * The database is an opaque handle. Read it with mqmqa_db_read_file/read_string,
  * query it through the accessors below, and release it with mqmqa_db_free. On a

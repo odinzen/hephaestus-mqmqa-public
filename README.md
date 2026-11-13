@@ -9,19 +9,88 @@ the forge, it computes the thermodynamics of the melt.
 The scientific model is MQMQA (a standard acronym); the engine that implements it is
 Hephaestus. The library is currently imported as `mqmqa`.
 
+## Use it now
+
+Open **<https://odinzen.github.io/hephaestus-mqmqa-public/>** in any current browser. Nothing
+to install and no account: press **Load the open slag database** (or the salt or alloy one),
+then use **What is in my melt?** to type a composition and temperature and read which phases
+are present and how much of each, or click any phase diagram to read the phases and their
+amounts at that point. Files you load stay on your computer. A step-by-step guide for
+non-programmers is `paper/Supplementary_S1_primer.md`.
+
+To run the same page offline, serve the `web/` folder from any static web server, for
+example `cd web && python -m http.server 8123`, then open <http://localhost:8123>.
+
+## Getting help
+
+Questions, wrong-looking results, or help with your own data: email **info@odinzen.io**.
+Security reports: see `SECURITY.md`.
+
+## For programmers
+
+The C core has no dependencies. Build the shared library the Python package loads:
+
+- Windows: `bash scripts/build.sh` (clang from the conda environment named in the script;
+  override with `MQMQA_ENV` or `MQMQA_CLANG`).
+- Linux / macOS: any C11 compiler, for example
+
+      cc -O2 -std=c11 -fPIC -shared -Isrc -o python/mqmqa/libmqmqa.so src/*.c -lm
+
+  (name the output `libmqmqa.dylib` on macOS).
+
+Then `pip install -e python` and `import mqmqa`. The browser build is
+`bash scripts/build_wasm.sh` (emscripten), which writes `web/hephaestus.js`. Run the tests
+with `pytest` from the repository root in an environment that also has pycalphad and Cantera.
+
+## What is where
+
+| Path | Contents |
+|---|---|
+| `src/` | the C engine: MQMQA and CEF Gibbs energies, file readers and writers, equilibrium, gas, 3D meshes |
+| `python/mqmqa/` | the Python package over the C library, including the database builder (`dbbuild.py`) |
+| `web/` | the browser app (`index.html`), its WebAssembly engine (`hephaestus.js`) and shipped databases |
+| `data/` | the open databases, one folder per system, each with the fitting scripts and a `PROVENANCE.md` |
+| `tests/` | the pytest suite, including the comparisons against pycalphad and Cantera |
+| `scripts/` | build scripts (native, WebAssembly) and the script that syncs databases into `web/` |
+| `docs/` | design notes and the unified `.utdb` format specification |
+| `cef/` | the Python prototype of the compound-energy-formalism kernel |
+| `paper/` | the JORS manuscript, its figures and the S1 primer |
+| `LICENSE`, `NOTICE` | the licence, and the third-party notices (pycalphad) |
+
 ## Scope and honest positioning
 
 This is a lightweight, framework-independent MQMQA energy library, meant to be
 embedded or called from other codes without pulling in a full CALPHAD stack.
 
 It is not the first open MQMQA. pycalphad already ships one
-(`pycalphad.models.model_mqmqa`, Paz Soldan Palma et al., Calphad 2023). This
-library's value is being small, dependency-light, and callable from C or Python
-directly. pycalphad is used here as the validation oracle, not as a dependency.
+(`pycalphad.models.model_mqmqa`, Paz Soldan Palma et al., Calphad 2023), and the
+Hephaestus MQMQA energy is a translation of it into C. This library's value is being
+small, dependency-light, callable from C or Python directly, and runnable in a web
+browser. pycalphad is not a runtime dependency.
 
 ## Provenance
 
-The model is implemented from the published literature, with the one exception below:
+The MQMQA Gibbs energy in `src/mqmqa.c` (reference energy, configurational entropy,
+excess terms, and the coordination-number recursion) is a translation into C of
+pycalphad's `ModelMQMQA` (`pycalphad/models/model_mqmqa.py`). It was written with that
+source open, method by method, and then checked against pycalphad on shared databases.
+It follows pycalphad's choices where the papers leave room, including the AB/XX
+coordination numbers, which pycalphad takes from Thermochimica. Because the code was
+derived from pycalphad, agreement with pycalphad confirms the translation; it is not an
+independent check of the model.
+
+Other parts consulted third-party source as follows:
+
+- `src/cs_dat.c`, ChemSage .dat reader: the SUBQ/SUBG/SUBL block grammar follows
+  pycalphad's `pycalphad/io/cs_dat.py`, which was read while writing it.
+- `src/cs_dat.c`, TDB reader: pycalphad's `pycalphad/io/tdb.py` was read to match its
+  handling of expressions.
+- `src/tq.c`: function signatures follow OpenCalphad's OCASI C binding (`octqc.h`,
+  `liboctqisoc.F90`), which were read; no OpenCalphad model code was translated.
+- `src/xtdb.c`: written from the published XTDB specification (Sundman's XTDB repository
+  documents and example files).
+
+The equations themselves are published in:
 
 - Pelton, Chartrand, Eriksson, "The Modified Quasi-chemical Model: Part IV.
   Two-Sublattice Quadruplet Approximation," Metall. Mater. Trans. A 32 (2001)
@@ -34,21 +103,22 @@ The model is implemented from the published literature, with the one exception b
   into PyCalphad and ESPEI," arXiv:2204.09111, Eqs 8-10 (the chemical-group excess
   interpolation of Pelton et al., restated).
 
-No code, algorithms, or solver internals from any other implementation are used, except
-for one term. In a SUBQ phase where both sublattices mix, the G-code Chi variables also
-count the reciprocal quadruplets. The published equation (Paz Soldan Palma et al., Eq 9)
-weights them 0.5; pycalphad's `ModelMQMQA._Chi_mix` weights them 1.0. The engine follows
-pycalphad (`chi_quads` in `src/mqmqa.c`, adapted from that method), so its results
-agree with pycalphad there. pycalphad is distributed under the MIT License:
+One known difference between the papers and pycalphad: in a SUBQ phase where both
+sublattices mix, the G-code Chi variables also count the reciprocal quadruplets. The
+published equation (Paz Soldan Palma et al., Eq 9) weights them 0.5; pycalphad's
+`ModelMQMQA._Chi_mix` weights them 1.0, and the engine follows pycalphad (`chi_quads` in
+`src/mqmqa.c`). pycalphad is distributed under the MIT License, whose notice is kept here
+and in `NOTICE`:
 
     pycalphad, a Python library for the CALculation of PHAse Diagrams
 
     The MIT License (MIT)
 
-    Copyright (c) 2014-2019 Richard Otis and Zi-Kui Liu
-    Copyright (c) 2016-2019 Brandon Bocklund
-    Copyright (c) 2016-2019 California Institute of Technology
-    Copyright (c) 2018-2019 Materials Genome Foundation
+    Copyright (c) 2014-2023 Richard Otis and Zi-Kui Liu
+    Copyright (c) 2016-2023 Brandon Bocklund
+    Copyright (c) 2016-2023 California Institute of Technology
+    Copyright (c) 2018-2023 Materials Genome Foundation
+    Copyright (c) 2020      David Walz
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -243,9 +313,8 @@ under `web/` are licensed under Creative Commons Attribution-ShareAlike 4.0 Inte
 (CC BY-SA 4.0; see `data/LICENSE`). Anyone may use, study, teach with, extend, and build
 consulting work on either. Any modified version that is distributed, or offered to users
 over a network, must carry the same license and keep the credits, so the engine and the
-thermodynamics it carries stay open. Model equations are public; this is an independent,
-clean-room implementation of them, apart from the one pycalphad-derived term credited
-under Provenance. Releases up to and including v0.6.1 were published under
+thermodynamics it carries stay open. The MQMQA core is a C translation of pycalphad's
+MIT-licensed model, credited under Provenance and in `NOTICE`. Releases up to and including v0.6.1 were published under
 MIT (engine) and CC BY 4.0 (data), and those releases keep those terms.
 
 Two pieces of third-party data keep their own terms. `data/gas/nasa_gas.dat` (and its copy

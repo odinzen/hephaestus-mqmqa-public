@@ -18,7 +18,8 @@
  * (2021) 102250: pure-Al melting 933.47 K, the Al4C3 peritectic near 2430 K, and physical
  * heat capacities (graphite ~8.5, Al ~3R, Al4C3 approaching 7*3R).
  *
- * Clean-room from the published format and model equations; no GPL source is used.
+ * Written from the published XTDB specification (Sundman's XTDB repository: paper,
+ * appendices, example databases) and the model equations.
  */
 #include "xtdb.h"
 #include "cs_dat.h"      /* the writers hand TDB text to the TDB reader and .dat writer */

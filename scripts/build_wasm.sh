@@ -39,3 +39,5 @@ for f in $FUNCS; do EXPORTS="$EXPORTS,\"_$f\""; done
     -o "$OUT/hephaestus.js"
 
 echo "built $OUT/hephaestus.js"
+# a new engine needs a new URL, or browsers keep serving the cached old one to the new page
+"$CONDA" run -n wasm python "$ROOT/scripts/stamp_engine.py"

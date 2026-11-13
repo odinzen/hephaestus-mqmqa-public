@@ -2,7 +2,7 @@
  * in this worker alone; the page never calls it while the worker does. Requests run one at
  * a time in arrival order, and every reply carries the request's id. Meshes go back as
  * transferred buffers: ownership moves to the page, nothing is copied. */
-importScripts('hephaestus.js', 'vis3d_engine.js');
+importScripts('hephaestus.js?v=b96085caacdc', 'vis3d_engine.js');
 
 let M = null, db = 0;
 const hulls = new Map();   // readout hulls by temperature, freed when the database changes

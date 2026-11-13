@@ -38,27 +38,25 @@ We will find the LiCl-KCl eutectic, a workhorse molten salt.
 1. Open the calculator page.
 2. In the card titled "1 · Load a thermodynamic database," press **Load the open salt database**.
 3. The page fills in. The **System** card lists what the file contains: the liquid solution phase and the solid phases it can freeze into.
-4. Scroll to the **Phase diagram** card. The full temperature-composition diagram is drawn from the loaded data, calculated live in your browser, not a stored picture.
+4. Scroll to the **Phase diagram** card and press **Generate diagram**. The full temperature-composition diagram is drawn from the loaded data, calculated live in your browser, not a stored picture.
 5. Click anywhere inside the diagram. A readout reports the temperature, the composition you clicked, and which phases are stable there, with amounts.
 
-The lowest point of the liquid region is the eutectic, near 45 mol% LiCl and 626 K in the measured literature; the assessed database reproduces it within a few kelvin. Every point you click is added to a pinned history list under the diagram, so you can click several conditions and compare them side by side without writing anything down.
+The lowest point of the liquid region is the eutectic, near 58.5 mol% LiCl (about 45 wt%; on the diagram's axis, about 41 mol% KCl) and 626 K in the measured literature; the assessed database reproduces it within a few kelvin. Every point you click is added to a pinned history list under the diagram, so you can click several conditions and compare them side by side without writing anything down.
 
 That is the entire workflow. Load, click, read. Every other feature on the page is a variation of these three steps.
 
 ### 4. Reading the readouts
 
-Compositions on the salt and slag diagrams are in mole percent on a cation basis (for LiCl-KCl, the fraction of Li among Li+K; the chlorine follows automatically). Temperatures are in kelvin. When a clicked point falls in a two-phase region, the readout names both phases and gives their proportions by the lever rule, exactly the construction you would do by hand on a printed diagram, done for you at the clicked point.
+Compositions on the salt and slag diagrams are in mole percent on a cation basis (for LiCl-KCl, the fraction of Li among Li+K; the chlorine follows automatically). Temperatures are in kelvin; the **K** button at the top of the page switches every temperature on the page to degrees Celsius. When a clicked point falls in a two-phase region, the readout names both phases, gives their proportions by the lever rule and the composition of each, exactly the construction you would do by hand on a printed diagram, done for you at the clicked point.
 
-The **Solve equilibrium** card does the same job numerically instead of graphically: enter a composition, pick a temperature, press Compute, and read the equilibrium Gibbs energy and phase amounts. Use the diagram when you want the whole landscape and the solver when you want numbers for one condition.
+The **What is in my melt?** card does the same job numerically instead of graphically: enter a composition (as mole fractions or, with the **wt%** button, as weight percent), pick a temperature, press **Solve equilibrium**, and read which phases are present and how much of each, or that the melt is fully liquid. Use the diagram when you want the whole landscape and the card when you want numbers for one condition. The two agree, because both use the same construction.
 
 ### 5. The slag ternary
 
-Press **Load the open slag database**. The page loads the assessed FeO-MgO-SiO~2~ system and adds ternary views. Two kinds are offered, and the toggle between them is the main control:
+Press **Load the open slag database**. The page loads the assessed FeO-MgO-SiO~2~ system. Two kinds of triangle are offered:
 
-- An **isothermal section** is the triangle at one fixed temperature: which phase fields exist at, say, 1873 K. Click inside any field and the readout names the phases; in a three-phase triangle the lever rule gives all three amounts.
-- A **liquidus projection** looks down on the whole temperature axis at once: it shows which solid appears first on cooling at every composition, with temperature contours.
-
-If you have only ever read these diagrams in handbooks, the difference here is that the diagram is computed from the loaded file while you watch, so when a database improves, the diagram improves with it.
+- The **Ternary phase diagram** card is a precomputed picture of this one database, with two views. A **liquidus projection** looks down on the whole temperature axis at once: it shows which solid appears first on cooling at every composition, with temperature contours. An **isothermal section** is the triangle at one fixed temperature. Move over either to read a composition and the phases there.
+- The **Live ternary phase diagram** card computes the isothermal section from the loaded file while you watch. Pick a temperature, press **Compute at this temperature**, then click inside any field: the readout names the phases and gives the amount of each by the lever rule, in a three-phase triangle all three. This card works for any loaded file with three cations and one anion, not only the built-in slag, so when a database improves, the diagram improves with it.
 
 ### 6. Freezing a melt: the Scheil panel
 

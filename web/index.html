@@ -93,6 +93,8 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
   .rnote-box { margin-top:.75rem; padding:.55rem .7rem; background:var(--field);
                border:1px solid var(--line); border-radius:8px; }
   .rnote-box[hidden] { display:none; }
+  details.rnote-box > summary { cursor:pointer; }
+  details.rnote-box[open] > summary { margin-bottom:.4rem; }
   .rnote-head { display:block; font-size:var(--fs-xs); font-weight:600;
                 color:var(--muted); letter-spacing:.02em; margin-bottom:.4rem; }
 
@@ -102,6 +104,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
              color:var(--muted); margin:0 0 .85rem; font-weight:600; }
 
   .row { display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; }
+  .row[hidden] { display:none; }
   .kv { display:grid; grid-template-columns:auto 1fr; gap:.28rem 1rem; margin:0; }
   .kv dt { color:var(--muted); }
   .kv dd { margin:0; }
@@ -311,10 +314,10 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
         <svg class="pixmark" width="30" height="30" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="2.09" y="12.09" width=".82" height=".82" fill="currentColor"/><rect x="2.09" y="13.09" width=".82" height=".82" fill="currentColor"/><rect x="2.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="3.09" y="10.09" width=".82" height=".82" fill="currentColor"/><rect x="3.09" y="11.09" width=".82" height=".82" fill="currentColor"/><rect x="3.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="4.09" y="9.09" width=".82" height=".82" fill="currentColor"/><rect x="4.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="5.09" y="6.09" width=".82" height=".82" fill="currentColor"/><rect x="5.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="6.09" y="4.09" width=".82" height=".82" fill="currentColor"/><rect x="6.09" y="5.09" width=".82" height=".82" fill="currentColor"/><rect x="6.09" y="9.09" width=".82" height=".82" fill="currentColor"/><rect x="6.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="7.09" y="2.09" width=".82" height=".82" fill="currentColor"/><rect x="7.09" y="3.09" width=".82" height=".82" fill="currentColor"/><rect x="7.09" y="9.09" width=".82" height=".82" fill="currentColor"/><rect x="7.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="8.09" y="1.09" width=".82" height=".82" fill="currentColor"/><rect x="8.09" y="2.09" width=".82" height=".82" fill="currentColor"/><rect x="8.09" y="10.09" width=".82" height=".82" fill="currentColor"/><rect x="8.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="9.09" y="3.09" width=".82" height=".82" fill="currentColor"/><rect x="9.09" y="4.09" width=".82" height=".82" fill="currentColor"/><rect x="9.09" y="10.09" width=".82" height=".82" fill="currentColor"/><rect x="9.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="10.09" y="5.09" width=".82" height=".82" fill="currentColor"/><rect x="10.09" y="6.09" width=".82" height=".82" fill="currentColor"/><rect x="10.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="11.09" y="7.09" width=".82" height=".82" fill="currentColor"/><rect x="11.09" y="8.09" width=".82" height=".82" fill="currentColor"/><rect x="11.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="12.09" y="9.09" width=".82" height=".82" fill="currentColor"/><rect x="12.09" y="10.09" width=".82" height=".82" fill="currentColor"/><rect x="12.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="13.09" y="11.09" width=".82" height=".82" fill="currentColor"/><rect x="13.09" y="12.09" width=".82" height=".82" fill="currentColor"/><rect x="13.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="14.09" y="13.09" width=".82" height=".82" fill="currentColor"/><rect x="14.09" y="14.09" width=".82" height=".82" fill="currentColor"/><rect x="4.09" y="7.09" width=".82" height=".82" fill="#3fbf63"/><rect x="4.09" y="8.09" width=".82" height=".82" fill="#3fbf63"/><rect x="5.09" y="7.09" width=".82" height=".82" fill="#3fbf63"/><rect x="5.09" y="8.09" width=".82" height=".82" fill="#3fbf63"/><rect x="10.09" y="10.09" width=".82" height=".82" fill="#e5484d"/><rect x="10.09" y="11.09" width=".82" height=".82" fill="#e5484d"/><rect x="11.09" y="10.09" width=".82" height=".82" fill="#e5484d"/><rect x="11.09" y="11.09" width=".82" height=".82" fill="#e5484d"/></svg>
         <h1>hephaestus-mqmqa</h1>
       </div>
-      <p class="tag">The user-friendly, multilingual calculator for thermodynamic databases:
-         slags, salts, and alloys, speaking ChemSage .dat, Thermo-Calc .tdb, the unified
-         .utdb, and the XML .xtdb. No code to write and nothing to install: pick a database, click the
-         diagram, read the numbers. Everything runs in your browser; nothing is uploaded.</p>
+      <p class="tag">A free calculator for slags, salts and alloys. Load a database, then ask what is
+         present at your composition and temperature, or click a phase diagram and read the phases
+         and how much of each. No code to write and nothing to install; everything runs in your
+         browser and nothing is uploaded. Reads ChemSage .dat, Thermo-Calc .tdb, .utdb and .xtdb files.</p>
     </div>
     <button class="theme-toggle" id="tunit-toggle" type="button"
             aria-label="Toggle temperature unit" title="Temperature unit"></button>
@@ -351,13 +354,13 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
               title="Open the database library: what ships, what is being assessed, and what is on the list">More&hellip;</button>
       <span id="loadmsg" class="muted">No database loaded yet.</span>
     </div>
-    <div class="rnote-box" id="rnote-row" hidden>
-      <span class="rnote-head">Gas constant recorded in this file</span>
+    <details class="rnote-box" id="rnote-row" hidden>
+      <summary class="rnote-head">Gas constant used for this file (advanced: open to check or change)</summary>
       <div class="row" style="gap:.4rem; align-items:center">
         <span id="rnote" class="muted"></span>
         <span class="rdecl" id="rdecl"></span>
       </div>
-    </div>
+    </details>
     <div class="row saveas" id="saveas-row"
          style="margin-top:.85rem; padding-top:.85rem; border-top:1px solid var(--line)" hidden>
       <span class="muted">Save this database as</span>
@@ -381,8 +384,8 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       and known limits are in its PROVENANCE file in the
       <a href="https://github.com/odinzen/hephaestus-mqmqa-public/tree/main/data">open data directory</a>;
       code and databases live in the
-      <a href="https://github.com/odinzen/hephaestus-mqmqa-public">GitHub repository</a>. Uploaded files pin by dialect: .dat purple, .tdb teal, .utdb blue; up to
-      three at once, either mix.
+      <a href="https://github.com/odinzen/hephaestus-mqmqa-public">GitHub repository</a>. Every file you upload stays as a reload button, coloured by dialect:
+      .dat purple, .tdb teal, .utdb blue.
     </div>
     <div id="temp-note" class="muted" hidden style="margin-top:.6rem; font-size:var(--fs-xs)">
       Uploaded databases are temporary &mdash; they live only in this tab and vanish when you refresh.
@@ -423,22 +426,35 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
     </div>
 
     <div class="card">
-      <h2>Solve equilibrium</h2>
+      <h2>What is in my melt?</h2>
       <p class="muted" style="margin:0 0 .8rem">
-        Pick the components (the oxide or salt end members), set their mole fractions
-        and a temperature, and the engine minimizes the Gibbs energy over the quadruplet
-        distribution. Working in components keeps the melt electroneutral automatically.</p>
+        Pick the components (the oxide or salt end members), set their mole fractions and a
+        temperature, and press Solve. The answer is what is present at equilibrium: which phases,
+        how much of each, and whether the melt is fully liquid.</p>
       <div id="complist" class="row" style="margin-bottom:.6rem"></div>
+      <div class="row" style="margin-bottom:.6rem">
+        <span class="muted">Enter amounts as</span>
+        <div class="seg" id="compbasis">
+          <button type="button" class="seg-btn on" data-b="mol">mole fraction</button>
+          <button type="button" class="seg-btn" data-b="wt">wt%</button>
+        </div>
+      </div>
       <div id="compfields" class="kv" style="max-width:340px;margin-bottom:.9rem"></div>
       <label class="temp" style="margin:.2rem 0 1rem">Temperature
-        <input type="number" id="eqT" min="200" max="6000" step="1" value="1873" style="width:6rem">
-        <span class="muted">K</span>
+        <input type="number" id="eqT" min="-273" max="6000" step="1" value="1873" style="width:6rem">
+        <span class="muted" id="eqT-unit">K</span>
       </label>
       <div class="row">
         <button id="solve" type="button">Solve equilibrium</button>
         <span id="eqmsg" class="muted"></span>
       </div>
       <div id="eqout" class="hidden" style="margin-top:1rem">
+        <p id="eqphases" style="font-size:1.05rem;margin:0 0 .4rem"></p>
+        <p id="eqphases-note" class="muted" style="margin:0 0 1rem"></p>
+        <h3 style="font-size:.95rem;margin:.6rem 0 .4rem">The liquid itself</h3>
+        <p class="muted" style="margin:0 0 .6rem">The Gibbs energy and short-range order of a liquid
+          of this overall composition, from the MQMQA model. Where solids are present above, this
+          describes the liquid alone, not the equilibrium mixture.</p>
         <dl class="kv">
           <dt>Molar Gibbs energy</dt><dd id="gm"></dd>
           <dt>Composition error</dt><dd id="cerr"></dd>
@@ -536,10 +552,10 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
     <div class="tern-read" id="ternread">&nbsp;</div>
     <div class="legend" id="ternlegend"></div>
     <div class="tern-live" id="ternlive">
-      <b>Live melt calculator</b> &mdash; click anywhere in the triangle to solve the equilibrium
-      liquid there in your browser (the WASM engine, not the precomputed data above), at the
-      section temperature. Reports the liquid Gibbs energy and dominant melt species. Every click
-      is added to the list below, numbered to its marker, so you can compare points.
+      <b>Live melt calculator.</b> Click anywhere in the triangle to solve the equilibrium there in
+      your browser, at the section temperature: which phases are present and how much of each,
+      then the liquid's Gibbs energy and its dominant melt species. Every click is added to the
+      list below, numbered to its marker, so you can compare points.
       <span id="ternliveout" class="tern-liveout"></span>
       <div id="ternhist" class="calc-hist"></div>
     </div>
@@ -592,7 +608,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
     <div class="tern-read" id="liveread">Press Compute to solve the diagram at the chosen temperature.</div>
     <div class="legend" id="livelegend"></div>
     <div id="livehist" class="calc-hist"></div>
-    <div class="bld-caution">
+    <div class="tern-note" style="margin-top:.8rem">
       <b>Reading this diagram.</b> Every phase boundary here is solved live by the open engine, not
       looked up &mdash; the liquid by the MQMQA solver, the solids by their compound-energy models,
       combined on a lower convex hull. It reproduces the assessed FeO&ndash;MgO&ndash;SiO<sub>2</sub>
@@ -663,6 +679,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
         </select>
       </label>
     </div>
+    <p class="muted" id="bld-note" hidden style="margin:.2rem 0 .6rem"></p>
     <div class="bld-grid" id="bld-comps"></div>
     <div class="bld-wblock">
       <label>Liquid interaction W (kJ/mol)
@@ -736,7 +753,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
   <div class="card" id="slaggascard">
     <h2 id="sg-title">Slag &harr; furnace gas &middot; iron-saturated<span class="tern-badge">coupled</span></h2>
     <p class="tern-note" id="sg-note">The furnace atmosphere and the melt settle at one oxygen potential. For the
-      assessed FeO-SiO~2~ slag held at iron saturation, the engine gives the FeO activity, and the
+      assessed FeO-SiO<sub>2</sub> slag held at iron saturation, the engine gives the FeO activity, and the
       gas engine turns it into the CO&#8322;/CO ratio the melt sits under. Add silica and the FeO
       activity falls, so a more reducing gas is needed to keep iron from oxidising, exactly as
       slag-gas equilibration is measured. The pure-FeO limit is the iron-wustite buffer, within a
@@ -774,13 +791,13 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <!-- /shipped-databases:xtdb -->
       <span id="xtdb-msg" class="muted">Al&ndash;C is the third-generation assessment of He et&nbsp;al. (2021); Pb&ndash;Sn is a classic assessment written in the XTDB format.</span>
     </div>
-    <div class="rnote-box" id="xtdb-rnote-row" hidden>
-      <span class="rnote-head">Gas constant recorded in this file</span>
+    <details class="rnote-box" id="xtdb-rnote-row" hidden>
+      <summary class="rnote-head">Gas constant used for this file (advanced: open to check or change)</summary>
       <div class="row" style="gap:.4rem; align-items:center">
         <span id="xtdb-rnote" class="muted"></span>
         <span class="rdecl" id="xtdb-rdecl"></span>
       </div>
-    </div>
+    </details>
     <div class="row saveas" id="xtdb-saveas-row"
          style="margin-top:.85rem; padding-top:.85rem; border-top:1px solid var(--line)" hidden>
       <span class="muted">Save this XTDB database as</span>
@@ -837,8 +854,8 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <span class="oz-word"><span class="oz-odin">odin</span><span class="oz-zen">zen</span></span>
     </div>
     <p style="margin:0 0 .5rem">Engine AGPL-3.0, databases CC BY-SA 4.0. An open Modified Quasichemical Model for slags and
-      salts, running fully in your browser. Single-phase equilibrium and binary phase
-      diagrams are solved client-side; larger multicomponent systems are on the roadmap.</p>
+      salts, running fully in your browser: equilibrium, binary and ternary phase diagrams,
+      and the 3D liquidus are all computed on your own computer.</p>
     <p style="margin:0">Questions, errors, or help with your own data? Email
       <a href="mailto:info@odinzen.io">info@odinzen.io</a>.</p>
   </footer>
@@ -918,15 +935,27 @@ window.uToK = v => window.tUnit==='C' ? v+273.15 : v;      // displayed number -
 window.tLabel = (K,dp=0)=> (isFinite(K) ? window.kToU(K).toFixed(dp).replace(/\.0+$/,'') : '—') + ' ' + window.tSym();
 window.onTUnit = fn => window.addEventListener('hmqmqa-tunit', fn);
 window.onTUnit(()=>{ const el=document.getElementById('temp'); if(el) document.getElementById('tval').textContent=window.tLabel(+el.value); });
-window.onTUnit(()=>{
-  ['pdTmin','pdTmax','gas-T','c0-Tm','c1-Tm','c2-Tm','c3-Tm'].forEach(id=>{
-    const el=document.getElementById(id); if(!el||el.value==='') return;
-    el.value = String(Math.round(window.tUnit==='C' ? (+el.value)-273.15 : (+el.value)+273.15));
-  });
+function applyTUnitLabels(){
   const sym=window.tSym();
   const pl=document.getElementById('pdT-label'); if(pl) pl.textContent='Temperature range ('+sym+')';
   const gl=document.getElementById('gasT-unit'); if(gl) gl.textContent='('+sym+')';
+  const el=document.getElementById('eqT-unit'); if(el) el.textContent=sym;
   document.querySelectorAll('.tm-unit').forEach(x=>x.textContent='('+sym+')');
+}
+window.onTUnit(()=>{
+  ['pdTmin','pdTmax','gas-T','eqT','c0-Tm','c1-Tm','c2-Tm','c3-Tm'].forEach(id=>{
+    const el=document.getElementById(id); if(!el||el.value==='') return;
+    el.value = String(Math.round(window.tUnit==='C' ? (+el.value)-273.15 : (+el.value)+273.15));
+  });
+  applyTUnitLabels();
+});
+// The page's default temperatures are written in kelvin. A remembered °C preference converts them
+// once at load, or a returning visitor's boxes would hold kelvin numbers read as °C.
+document.addEventListener('DOMContentLoaded', ()=>{
+  if(window.tUnit!=='C') return;
+  ['pdTmin','pdTmax','gas-T','eqT'].forEach(id=>{
+    const el=document.getElementById(id); if(el&&el.value!=='') el.value=String(Math.round(+el.value-273.15)); });
+  applyTUnitLabels();
 });
 
 Hephaestus().then(M => {
@@ -1198,18 +1227,25 @@ function loadDatabase(text, name) {
   for (let p = 0; p < api.nPh(db); p++)
     if (api.phaseKind(db, p) === 0) { window.alloyMode = false; phase = p; break; }
   // unified file: an MQMQA liquid plus CEF phases built on plain elements
+  // A solution phase that holds the melt's own anion (olivine with O beside an oxide slag) is an
+  // oxide or salt solid of the melt, not an alloy, so it does not make the file "two chemistries".
   window.unifiedAlloy = false;
   if (!window.alloyMode) {
+    const meltAnions = new Set();
+    for (let k = 0; k < api.nAn(db, phase); k++) meltAnions.add(elementOf(api.an(db, phase, k)));
     for (let p = 0; p < api.nPh(db); p++) {
       if (api.phaseKind(db, p) === 0) continue;
       const ns = api.cefNumSubl(db, p);
       const nb = api.M._malloc(ns*4); api.cefSublNcon(db, p, nb);
       const ncon = readI(nb, ns); api.M._free(nb);
-      let els2 = 0;
+      let els2 = 0, holdsAnion = false;
       for (let s2 = 0; s2 < ns; s2++)
-        for (let i2 = 0; i2 < ncon[s2]; i2++)
-          if (/^[A-Z]{1,2}$/.test(api.cefCon(db, p, s2, i2))) els2++;
-      if (els2 >= 2) { window.unifiedAlloy = true; break; }
+        for (let i2 = 0; i2 < ncon[s2]; i2++) {
+          const c2 = api.cefCon(db, p, s2, i2);
+          if (meltAnions.has(c2)) holdsAnion = true;
+          if (/^[A-Z]{1,2}$/.test(c2)) els2++;
+        }
+      if (els2 >= 2 && !holdsAnion) { window.unifiedAlloy = true; break; }
     }
   }
   {
@@ -1507,59 +1543,71 @@ function selectedComponentIdx(){
   return [...document.querySelectorAll('#complist input:checked')].map(c=>+c.value);
 }
 
-function fmtFrac(v){ return String(+Math.max(0, v).toFixed(4)); }
+// The composition is entered as mole fractions (summing to 1) or as wt% (summing to 100).
+window._compBasis='mol';
+const compTotalFor=()=>window._compBasis==='wt'?100:1;
+function fmtFrac(v){ return String(+Math.max(0, v).toFixed(window._compBasis==='wt'?2:4)); }
+
+// Standard atomic weights (g/mol) for converting wt% to moles.
+const ATOMIC_WT={H:1.008,LI:6.94,BE:9.012,B:10.81,C:12.011,N:14.007,O:15.999,F:18.998,NA:22.99,MG:24.305,
+  AL:26.982,SI:28.085,P:30.974,S:32.06,CL:35.45,K:39.098,CA:40.078,SC:44.956,TI:47.867,V:50.942,
+  CR:51.996,MN:54.938,FE:55.845,CO:58.933,NI:58.693,CU:63.546,ZN:65.38,GA:69.723,BR:79.904,RB:85.468,
+  SR:87.62,Y:88.906,ZR:91.224,NB:92.906,MO:95.95,CS:132.905,BA:137.327,LA:138.905,CE:140.116,
+  ND:144.242,HF:178.49,TA:180.948,W:183.84,PB:207.2,BI:208.98,TH:232.038,U:238.029};
+const compMolarMass=c=>c.nCat*(ATOMIC_WT[c.catEl]??NaN)+c.nAn*(ATOMIC_WT[c.anEl]??NaN);
 
 function updateCompTotal(){
   const el=document.getElementById('comptotal');
   if(!el) return;
   const inputs=[...document.querySelectorAll('#compfields input')];
-  const s=inputs.reduce((a,i)=>a+(parseFloat(i.value)||0),0);
-  el.textContent='Total '+s.toFixed(3);
-  el.style.color = Math.abs(s-1)<5e-4 ? 'var(--muted)' : 'var(--neg)';
+  const s=inputs.reduce((a,i)=>a+(parseFloat(i.value)||0),0), tot=compTotalFor();
+  el.textContent='Total '+s.toFixed(window._compBasis==='wt'?1:3);
+  el.style.color = Math.abs(s-tot)<5e-4*tot ? 'var(--muted)' : 'var(--neg)';
 }
 
-// Editing one mole fraction rebalances the others so the set always sums to 1,
+// Editing one amount rebalances the others so the set always sums to the total (1 or 100),
 // distributing the remainder in proportion to their current values (equal split
 // if they are all zero). The solver normalizes too, but the fields should read true.
 function rebalanceComp(changed){
-  const inputs=[...document.querySelectorAll('#compfields input')];
-  if(inputs.length===1){ inputs[0].value='1'; updateCompTotal(); return; }
-  const v=Math.min(1, Math.max(0, parseFloat(changed.value)||0));
+  const inputs=[...document.querySelectorAll('#compfields input')], tot=compTotalFor();
+  if(inputs.length===1){ inputs[0].value=String(tot); updateCompTotal(); return; }
+  const v=Math.min(tot, Math.max(0, parseFloat(changed.value)||0));
   const others=inputs.filter(i=>i!==changed);
-  const rem=1-v;
+  const rem=tot-v;
   const sumOthers=others.reduce((s,i)=>s+(parseFloat(i.value)||0),0);
   others.forEach(i=>{
     const cur=parseFloat(i.value)||0;
     i.value=fmtFrac(sumOthers>1e-9 ? rem*cur/sumOthers : rem/others.length);
   });
   changed.value=fmtFrac(v);
-  // put any rounding residual on the last other field so the sum is exactly 1
+  // put any rounding residual on the last other field so the sum is exactly the total
   const s=inputs.reduce((a,i)=>a+(parseFloat(i.value)||0),0);
   const last=others[others.length-1];
-  last.value=fmtFrac((parseFloat(last.value)||0)+(1-s));
+  last.value=fmtFrac((parseFloat(last.value)||0)+(tot-s));
   updateCompTotal();
 }
 
-function renderCompFields(){
+function renderCompFields(values){
   const box=document.getElementById('compfields'); box.innerHTML='';
-  const sel=selectedComponentIdx();
-  const val = sel.length ? (1/sel.length) : 0;
+  const sel=selectedComponentIdx(), wt=window._compBasis==='wt', tot=compTotalFor();
+  const val = sel.length ? (tot/sel.length) : 0;
   for(const idx of sel){
     const c=window._components[idx];
-    const dt=document.createElement('dt'); dt.textContent=c.label+' mole fraction';
+    const dt=document.createElement('dt'); dt.textContent=c.label+(wt?' wt%':' mole fraction');
     const dd=document.createElement('dd');
-    const inp=document.createElement('input'); inp.type='number'; inp.step='0.01';
-    inp.min='0'; inp.max='1'; inp.value=val.toFixed(3); inp.dataset.idx=String(idx);
+    const inp=document.createElement('input'); inp.type='number'; inp.step=wt?'1':'0.01';
+    inp.min='0'; inp.max=String(tot); inp.dataset.idx=String(idx);
+    inp.value=values&&values[idx]!=null ? fmtFrac(values[idx]) : val.toFixed(wt?2:3);
     inp.style.cssText='width:6rem;font:inherit;padding:.3rem .45rem;border:1px solid var(--line);'+
                       'border-radius:6px;background:var(--field);color:var(--fg)';
     inp.addEventListener('change', ()=>rebalanceComp(inp));
     dd.appendChild(inp); box.appendChild(dt); box.appendChild(dd);
   }
-  // absorb the rounding residual into the last field so the initial set sums to 1
+  // absorb the rounding residual into the last field so the initial set sums to the total
   const inps=[...box.querySelectorAll('input')];
   if(inps.length>1){
     let s=0; for(let k=0;k<inps.length-1;k++) s+=parseFloat(inps[k].value)||0;
-    inps[inps.length-1].value=fmtFrac(1-s);
+    inps[inps.length-1].value=fmtFrac(tot-s);
   }
   if(sel.length>1){
     const dt=document.createElement('dt'); dt.textContent='';
@@ -1570,6 +1618,24 @@ function renderCompFields(){
   }
   updateCompTotal();
 }
+
+// Switching between mole fraction and wt% converts the amounts already entered, so the
+// composition stays the same and only its units change.
+document.querySelectorAll('#compbasis .seg-btn').forEach(b=>b.addEventListener('click',()=>{
+  const want=b.dataset.b; if(want===window._compBasis) return;
+  const comps=window._components||[], cur={};
+  for(const i of document.querySelectorAll('#compfields input')) cur[+i.dataset.idx]=parseFloat(i.value)||0;
+  const idxs=Object.keys(cur).map(Number);
+  if(idxs.some(i=>!isFinite(compMolarMass(comps[i])))){
+    document.getElementById('eqmsg').textContent='wt% needs the atomic weight of every element here; use mole fractions.';
+    return; }
+  const w=idxs.map(i=> want==='wt' ? cur[i]*compMolarMass(comps[i]) : cur[i]/compMolarMass(comps[i]));
+  const s=w.reduce((a,v)=>a+v,0)||1, next={};
+  idxs.forEach((i,k)=>{ next[i]=w[k]/s*(want==='wt'?100:1); });
+  window._compBasis=want;
+  document.querySelectorAll('#compbasis .seg-btn').forEach(x=>x.classList.toggle('on', x===b));
+  renderCompFields(next);
+}));
 
 // Assemble the solver inputs for the selected element subsystem at temperature T.
 // Mirrors python/mqmqa/equilibrium.build_inputs: restrict cations/anions to the
@@ -1698,6 +1764,44 @@ function solveEquilibrium(inp, target){
   return {GM:gm, X, comp_error:cerr};
 }
 
+// What is present at equilibrium for the solve card: every candidate phase on one lower hull, the
+// construction the diagrams use, so a solve and a click on a diagram agree. A three-cation melt
+// goes through the live ternary's hull, a two-cation melt through the binary join.
+function meltPhases(target, T){
+  if(window.loadedAssemblageAt){ const r=window.loadedAssemblageAt(T, target); if(r) return r; }
+  const cats=pdVary.filter(v=>v.isCat && (target[v.sym]||0)>1e-12);
+  if(cats.length===2 && pdCommon.length===1){
+    const endA=pdEnd(cats[0],pdCommon[0]), endB=pdEnd(cats[1],pdCommon[0]);
+    const uA=target[endA.vary]/endA.els[endA.vary], uB=target[endB.vary]/endB.els[endB.vary];
+    const ph=pdPhasesOnJoin([cats[0].sym,cats[1].sym,pdCommon[0].sym], endA, endB,
+      pdDiscretes(endA,endB), uB/(uA+uB), T);
+    if(ph) return {unit:'mol%', basis:'of '+endA.label+' and '+endB.label+' units',
+      phases:ph.map(p=>({name:p.name, f:p.f}))};
+  }
+  return null;
+}
+
+function showMeltPhases(target, T){
+  const p=document.getElementById('eqphases'), note=document.getElementById('eqphases-note');
+  let r=null, err='';
+  try{ r=meltPhases(target, T); }catch(e){ err=e.message; }
+  if(!r){
+    p.textContent='Phases present: not computed for this selection.';
+    note.textContent=(err?'The phase calculation failed ('+err+'). ':'')
+      +'Phase amounts are computed for two or three end members of a melt with one anion. '
+      +'For other selections use the phase diagram cards below.';
+    return;
+  }
+  const ph=r.phases.filter(x=>x.f>5e-4).sort((a,b)=>b.f-a.f);
+  const liquid=ph.some(x=>/liquid/i.test(x.name));
+  const pct=f=>100*f<0.5 ? '<1' : (100*f).toFixed(0);
+  const list=ph.map(x=>phaseNice(x.name)+' '+pct(x.f)+' '+r.unit).join('  +  ');
+  p.textContent='At '+window.tLabel(T)+': '+(ph.length===1&&liquid ? 'fully liquid.'
+    : !liquid ? 'fully solid, '+list+'.' : list+'.');
+  note.textContent='Amounts in '+r.unit+' '+r.basis+', by the lever rule on the same lower convex hull '
+    +'the phase diagrams use.';
+}
+
 document.getElementById('solve').addEventListener('click', () => {
   const msg=document.getElementById('eqmsg'), out=document.getElementById('eqout');
   out.classList.add('hidden');
@@ -1707,6 +1811,9 @@ document.getElementById('solve').addEventListener('click', () => {
   const comps=window._components||[];
   const rows=[...document.querySelectorAll('#compfields input')]
     .map(i=>({c:comps[+i.dataset.idx], x:parseFloat(i.value)||0}));
+  // wt% in, moles out: each amount over its component's molar mass
+  if(window._compBasis==='wt') rows.forEach(r=>{ r.x = r.c ? r.x/compMolarMass(r.c) : 0; });
+  if(rows.some(r=>!isFinite(r.x))){ msg.textContent='wt% needs the atomic weight of every element here; use mole fractions.'; return; }
   let sum=0; rows.forEach(r=>sum+=r.x);
   if(sum<=0){ msg.textContent='Enter a nonzero amount for at least one component.'; return; }
 
@@ -1718,7 +1825,9 @@ document.getElementById('solve').addEventListener('click', () => {
     target[c.anEl] =(target[c.anEl] ||0)+c.nAn *x/sum;
     elems.add(c.catEl); elems.add(c.anEl);
   }
-  const T=parseFloat(document.getElementById('eqT').value)||1873;
+  const tIn=parseFloat(document.getElementById('eqT').value);
+  const T=isFinite(tIn) ? window.uToK(tIn) : 1873;
+  if(!(T>0)){ msg.textContent='Enter a temperature above absolute zero.'; return; }
 
   // show the spinner and let it paint before the (blocking) solve, so the card never
   // looks frozen during a slow equilibrium
@@ -1730,7 +1839,9 @@ document.getElementById('solve').addEventListener('click', () => {
       msg.textContent='The solver did not converge at '+window.tLabel(T)+'. Try another temperature or composition.';
       return;
     }
-    msg.textContent='';
+    // Thermodynamic data are assessed from 298.15 K up; below that the numbers are extrapolations.
+    msg.textContent = T<298.15 ? 'Below 298 K the databases are extrapolated, so treat this result with caution.' : '';
+    showMeltPhases(target, T);
     document.getElementById('gm').textContent =
       res.GM.toLocaleString(undefined,{maximumFractionDigits:2})+' J/mol';
     document.getElementById('cerr').textContent = res.comp_error.toExponential(1);
@@ -1974,6 +2085,27 @@ function pdBuildHull(pts){
 // not both survive at their melting crossover. Returns the region classification per
 // xi cell (0 liquid, 1 two-phase, 2 subsolidus) and the liquidus envelope xL, rL.
 function pdColumn(comps,endA,endB,disc,T,xiCells,cefs){
+  const H=pdHullAt(comps,endA,endB,disc,T,cefs);
+  const hx=H.map(h=>h[0]);
+  const cls=new Int8Array(xiCells);
+  for(let c=0;c<xiCells;c++){
+    const xi=(c+0.5)/xiCells;
+    let k=0; while(k<hx.length && hx[k]<xi) k++;
+    k=Math.min(Math.max(k,1),H.length-1);
+    const a=H[k-1][2], b=H[k][2];
+    cls[c] = (a==='liq'&&b==='liq') ? 0 : (a==='sol'&&b==='sol') ? 2 : 1;
+  }
+  let rL=NaN, lL=NaN;
+  for(let k=0;k<H.length-1;k++){
+    const a=H[k][2], b=H[k+1][2];
+    if(a==='liq'&&b==='sol'){ const x=H[k][0]; if(isNaN(rL)||x>rL) rL=x; }
+    if(a==='sol'&&b==='liq'){ const x=H[k+1][0]; if(isNaN(lL)||x<lL) lL=x; }
+  }
+  return {T, cls, rL, lL};
+}
+
+// The lower hull of every candidate phase at one temperature, as [xi, G, 'liq'|'sol', name].
+function pdHullAt(comps,endA,endB,disc,T,cefs){
   const aps=xi=>pdAtoms(endA,endB,xi);
   const liqPt=xi=>[xi, pdLiquidG(comps,endA,endB,xi,T)*aps(xi), 'liq', 'LIQUID'];
   const discPts=disc.map(d=>[d.xi, d.g(T)/d.units, d.solid?'sol':'liq', d.name])
@@ -1992,23 +2124,91 @@ function pdColumn(comps,endA,endB,disc,T,xiCells,cefs){
     for(let k=0;k<nF;k++){ const xi=lo+(hi-lo)*k/(nF-1); fine.push(liqPt(xi)); }
     H=pdBuildHull(coarse.concat(fine, discPts));
   }
+  return H;
+}
 
-  const hx=H.map(h=>h[0]);
-  const cls=new Int8Array(xiCells);
-  for(let c=0;c<xiCells;c++){
-    const xi=(c+0.5)/xiCells;
-    let k=0; while(k<hx.length && hx[k]<xi) k++;
-    k=Math.min(Math.max(k,1),H.length-1);
-    const a=H[k-1][2], b=H[k][2];
-    cls[c] = (a==='liq'&&b==='liq') ? 0 : (a==='sol'&&b==='sol') ? 2 : 1;
+// Readable phase names: LIQUID -> Liquid, MAGNESIOWUSTITE -> Magnesiowustite, LICL_SOLID -> LiCl (solid).
+// An all-caps word that spells out element symbols is a formula and gets their case back.
+const PH_ELEMENTS=new Set(('H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn '
+  +'Ga Ge As Se Br Kr Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe Cs Ba La Ce Pr Nd Sm Eu Gd '
+  +'Tb Dy Ho Er Tm Yb Lu Hf Ta W Re Os Ir Pt Au Hg Tl Pb Bi Th U').split(' '));
+function formulaCase(word){
+  const out=[]; let i=0;
+  while(i<word.length){
+    if(/\d/.test(word[i])){ out.push(word[i++]); continue; }
+    const two=word[i]+(word[i+1]||'').toLowerCase();
+    if(word[i+1] && /[A-Z]/.test(word[i+1]) && PH_ELEMENTS.has(two)){ out.push(two); i+=2; continue; }
+    if(PH_ELEMENTS.has(word[i])){ out.push(word[i]); i+=1; continue; }
+    return null;
   }
-  let rL=NaN, lL=NaN;
-  for(let k=0;k<H.length-1;k++){
-    const a=H[k][2], b=H[k+1][2];
-    if(a==='liq'&&b==='sol'){ const x=H[k][0]; if(isNaN(rL)||x>rL) rL=x; }
-    if(a==='sol'&&b==='liq'){ const x=H[k+1][0]; if(isNaN(lL)||x<lL) lL=x; }
+  return out.join('');
+}
+function phaseNice(name){
+  name=String(name||'');
+  if(/^[A-Z]+_[A-Z]\d+$/.test(name)) return name;          // structure names: FCC_A1, BCC_A2
+  if(/(^|-)liquid$/i.test(name)) return 'Liquid';          // FEO-MGO-SIO2-LIQUID, LiCl-KCl-liquid
+  const m=name.match(/^(.*?)(?:_(solid|liquid|s|l))?$/i);
+  const base=m[1].replace(/_/g,' '), state=m[2]?' ('+({s:'solid',l:'liquid'}[m[2].toLowerCase()]||m[2].toLowerCase())+')':'';
+  if(/[a-z]/.test(base)) return base+state;
+  const f=base.length<=8 ? formulaCase(base) : null;
+  return (f||base.charAt(0)+base.slice(1).toLowerCase())+state;
+}
+
+// Phases at join composition xi and temperature T with their amounts by the lever rule, as
+// [{name, f, x}] (f and x on the diagram's own mole basis). The hull is recomputed at exactly T,
+// so a pinned point is not limited to the diagram's temperature grid. Two hull points of one
+// phase further apart than the sampling step are a miscibility gap, not one phase.
+function pdPhasesAt(xi,T){
+  const {comps,endA,endB,disc,alloy}=pdResult;
+  if(alloy){   // an alloy join: the same solution and compound points the alloy diagram samples
+    const phs=pdAlloyPhases(alloy.ia,alloy.ib), sto=pdAlloyStoich(alloy.ia,alloy.ib);
+    try{ return pdPhasesFromHull(pdBuildHull(scheilPointsAt(T,{phs,sto})), xi); }
+    finally{ phs.forEach(c=>api.M._free(c.Yp)); }
   }
-  return {T, cls, rL, lL};
+  return pdPhasesOnJoin(comps,endA,endB,disc,xi,T);
+}
+function pdPhasesOnJoin(comps,endA,endB,disc,xi,T){
+  const cefs=pdCefOnJoin(endA,endB);
+  let H;
+  try{ H=pdHullAt(comps,endA,endB,disc,T,cefs); }
+  finally{ cefs.forEach(c=>api.M._free(c.Yp)); }
+  return pdPhasesFromHull(H, xi);
+}
+function pdPhasesFromHull(H, xi){
+  if(!H||H.length<2) return null;
+  let k=1; while(k<H.length-1 && H[k][0]<xi) k++;
+  const a=H[k-1], b=H[k];
+  if(a[3]===b[3] && b[0]-a[0]<0.02) return [{name:a[3], f:1, x:xi}];
+  const f=b[0]>a[0] ? Math.min(1,Math.max(0,(xi-a[0])/(b[0]-a[0]))) : 0;
+  return [{name:a[3], f:1-f, x:a[0]}, {name:b[3], f, x:b[0]}].filter(p=>p.f>5e-4);
+}
+
+// Colours for phase-field maps. Each solid has its own colour and liquid a pale green; a field
+// is the average of its phases, a little darker for each extra phase, so fields differ by colour
+// and not only by the legend. Known phases keep a fixed colour across diagrams.
+const SOLID_RGB=[[100,149,215],[230,145,80],[160,120,205],[215,95,100],[215,185,80],
+                 [75,170,165],[215,125,175],[140,165,85],[165,120,90],[120,130,150]];
+const LIQUID_RGB=[170,220,180];
+const PHASE_SLOT={CRISTOBALITE:0, OLIVINE:1, ORTHOPYROXENE:2, MAGNESIOWUSTITE:3, CLINOPYROXENE:4,
+  WOLLASTONITE:5, LIME:6, LARNITE:7, RANKINITE:8, HATRURITE:9, PERICLASE:3, TRIDYMITE:0, QUARTZ:0};
+function phaseRGB(name){
+  name=String(name).toUpperCase();
+  if(/LIQUID/.test(name)) return LIQUID_RGB;
+  let k=PHASE_SLOT[name];
+  if(k==null){ let h=0; for(const ch of name) h=(h*31+ch.charCodeAt(0))>>>0; k=h%SOLID_RGB.length; }
+  return SOLID_RGB[k];
+}
+function assemblageRGB(ph){
+  const c=[0,0,0]; for(const p of ph){ const r=phaseRGB(p); c[0]+=r[0]; c[1]+=r[1]; c[2]+=r[2]; }
+  const dark=1-0.13*(ph.length-1);
+  return c.map(v=>Math.round(v/ph.length*dark));
+}
+
+function pdPhasesText(ph, endB){
+  if(!ph) return '';
+  if(ph.length===1) return phaseNice(ph[0].name)+' only';
+  return ph.map(p=>phaseNice(p.name)+' '+(100*p.f<0.5?'<1':(100*p.f).toFixed(0))+'% (at '+(100*p.x).toFixed(0)+' mol% '+endB.label+')')
+    .join('  +  ');
 }
 
 function populateDiagram(){
@@ -2064,6 +2264,10 @@ function populateDiagram(){
   const fill=(sel,ions)=>{ sel.innerHTML=''; ions.forEach((ion,i)=>{ const o=document.createElement('option');
     o.value=i; o.textContent=elSym(ion.sym); sel.appendChild(o); }); };
   fill(A,pdVary); fill(B,pdVary); fill(C,pdCommon);
+  // With one shared ion, name the end members as compounds (FeO, MgO, SiO2), the way the rest of
+  // the page and the diagram title do, rather than bare elements.
+  if(pdCommon.length===1) [A,B].forEach(sel=>[...sel.options].forEach((o,i)=>{
+    try{ o.textContent=pdEnd(pdVary[i],pdCommon[0]).label; }catch(e){} }));
   A.value=0; B.value=Math.min(1,pdVary.length-1); C.value=0;
   const commonRow = pdCommon.length>1;
   document.getElementById('pdCommonLab').style.display = commonRow?'':'none';
@@ -2257,8 +2461,9 @@ async function generateAlloyDiagram(){
   const melts=[];
   if(meltTs[0]) melts.push({xi:0, T:meltTs[0], solid:endA.label});
   if(meltTs[1]) melts.push({xi:1, T:meltTs[1], solid:endB.label});
-  pdResult={endA, endB, comps:[], Tmin, Tmax, cols, xiCells, disc:[], melts};
+  pdResult={endA, endB, comps:[], Tmin, Tmax, cols, xiCells, disc:[], melts, alloy:{ia, ib}};
   pdPins.length=0; renderPdHist();
+  document.getElementById('pdread').textContent='Tap the diagram to read a composition and pin it.';
   out.classList.remove('hidden');
   drawDiagram();
   renderLegend();
@@ -2470,6 +2675,7 @@ async function generateDiagram(){
   msg.textContent='';
   pdResult={endA, endB, comps, Tmin, Tmax, cols, xiCells, disc, melts};
   pdPins.length=0; renderPdHist();   // a new join/range invalidates old pinned points
+  document.getElementById('pdread').textContent='Tap the diagram to read a composition and pin it.';
   out.classList.remove('hidden');
   drawDiagram();
   renderLegend();
@@ -2493,9 +2699,9 @@ function pdReadAt(clientX, clientY){
   let liqT=null;   // highest T at this composition where it stops being all-liquid
   for(let jj=nT-1;jj>=0;jj--){ if(cols[jj].cls[c]!==0){ liqT=jj<nT-1?0.5*(cols[jj].T+cols[jj+1].T):cols[jj].T; break; } }
   const molB=Math.round(f*100);
-  const txt=endA.label+' '+(100-molB)+'  '+endB.label+' '+molB+' mol%  @ '+Math.round(window.kToU(T))+' '+window.tSym()+'   ·   '+region
-    +(liqT!=null?'   ·   liquidus '+Math.round(window.kToU(liqT))+' '+window.tSym():'   ·   liquidus below range');
-  return {xi:f, T, txt};
+  const head=endA.label+' '+(100-molB)+'  '+endB.label+' '+molB+' mol%  @ '+Math.round(window.kToU(T))+' '+window.tSym();
+  const tail=liqT!=null?'   ·   liquidus '+Math.round(window.kToU(liqT))+' '+window.tSym():'   ·   liquidus below range';
+  return {xi:f, T, head, tail, txt:head+'   ·   '+region+tail};
 }
 function renderPdHist(){ renderCalcHist(document.getElementById('pdhist'), pdPins.map(p=>p.txt),
   ()=>{ pdPins.length=0; renderPdHist(); drawDiagram(); }); }
@@ -2749,7 +2955,11 @@ document.getElementById('pdmode').addEventListener('click', e => {
   cv.addEventListener('mousemove', ev=>{ const r=pdReadAt(ev.clientX,ev.clientY);
     if(r) read.textContent=r.txt; });
   cv.addEventListener('click', ev=>{ const r=pdReadAt(ev.clientX,ev.clientY); if(!r) return;
-    read.textContent=r.txt; pdPins.push({xi:r.xi,T:r.T,txt:r.txt}); drawDiagram(); renderPdHist(); });
+    // Hover reads the drawn grid; a click asks the engine which phases are present and how much.
+    let txt=r.txt;
+    try{ const ph=pdPhasesText(pdPhasesAt(r.xi,r.T), pdResult.endB); if(ph) txt=r.head+'   ·   '+ph+r.tail; }
+    catch(e){ txt=r.txt+'   ·   phase amounts unavailable ('+e.message+')'; }
+    read.textContent=txt; pdPins.push({xi:r.xi,T:r.T,txt}); drawDiagram(); renderPdHist(); });
 })();
 window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
 // redraw the binary diagram when the light/dark theme flips
@@ -2864,7 +3074,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     a=s*Math.min(l,1-l), f=n=>l-a*Math.max(-1,Math.min(k(n)-3,9-k(n),1));
     return [Math.round(255*f(0)),Math.round(255*f(8)),Math.round(255*f(4))]; }
   // liquid-bearing regions warm, solid-only cool; darker with more coexisting phases
-  const asmRGB=ph=>hsl2rgb(ph.includes('LIQUID')?150:210, ph.includes('LIQUID')?38:12, 74-(ph.length-1)*14);
+  const asmRGB=ph=>assemblageRGB(ph);
 
   function frame(){
     ctx.strokeStyle=css('--ink'); ctx.lineWidth=1.4; ctx.beginPath();
@@ -3059,8 +3269,8 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
    BROWSER with the WASM engine (mqmqa_equilibrate, validated to pycalphad to machine precision) -
    its molar Gibbs energy and the dominant melt quadruplets (the short-range-order structure) - at
    the temperature set by the section slider. This is the real engine solving live, distinct from
-   the precomputed diagram above. (Which solid crystallizes needs an in-browser global minimiser -
-   the roadmap next step; here the liquid itself is computed exactly.) */
+   the precomputed diagram above. The phases present and their amounts come from the live
+   ternary's hull (window.builtinSlagAmountsAt), the same one the melt card uses. */
 (function(){
   const cv=document.getElementById('terncanvas'); if(!cv) return;
   const ctx=cv.getContext('2d'), out=document.getElementById('ternliveout');
@@ -3114,17 +3324,25 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     const r=cv.getBoundingClientRect();
     const c=pxToComp((ev.clientX-r.left)*W/r.width,(ev.clientY-r.top)*H/r.height);
     if(!c){ out.textContent=''; return; }
-    out.textContent='computing…';
+    out.textContent='computing (the first click at a temperature takes a few seconds)…';
     if(!ready){ try{ await init(); }catch(e){ out.textContent='engine load failed: '+e.message; return; } }
-    setTimeout(()=>{
+    setTimeout(async ()=>{
       const [xfe,xsi]=c, xmg=1-xfe-xsi, t=currentT();
       const mFe=xfe*Mm.FeO,mMg=xmg*Mm.MgO,mSi=xsi*Mm.SiO2,tot=mFe+mMg+mSi, w=x=>(100*x/tot).toFixed(0);
       const L=liquidAt(xfe,xsi,t);
       const [px,py]=triXY(xfe,xsi);
-      if(!L){ out.textContent='liquid did not converge at this composition.'; return; }
+      // what is present there, from the same equilibrium the live ternary and the melt card use
+      let phases='';
+      try{ const r=window.builtinSlagAmountsAt ? await window.builtinSlagAmountsAt(t,{FE:xfe,MG:xmg,SI:xsi}) : null;
+        if(r){ const ph=r.phases.filter(p=>p.f>5e-4).sort((a,b)=>b.f-a.f);
+          phases = ph.length===1 ? phaseNice(ph[0].name)+' only'
+            : ph.map(p=>phaseNice(p.name)+' '+(100*p.f<0.5?'<1':(100*p.f).toFixed(0))+' '+r.unit).join(' + '); } }
+      catch(e){ phases='phases not computed ('+e.message+')'; }
+      if(!L && !phases){ out.textContent='the engine did not converge at this composition.'; return; }
       const line='FeO '+w(mFe)+'  MgO '+w(mMg)+'  SiO₂ '+w(mSi)+' wt%  @ '+window.tLabel(t)
-        +'   →   liquid G = '+L.GM.toLocaleString(undefined,{maximumFractionDigits:0})
-        +' J/mol-atom' + (L.top.length?'   ·   melt: '+L.top.join(', '):'');
+        +(phases?'   ·   '+phases:'')
+        +(L?'   ·   liquid G = '+L.GM.toLocaleString(undefined,{maximumFractionDigits:0})+' J/mol-atom'
+            +(L.top.length?', melt: '+L.top.join(', '):''):'');
       out.textContent=line;
       hist.push({txt:line}); marker(px,py,hist.length); renderHist();
     }, 20);
@@ -3155,7 +3373,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
   function hsl2rgb(h,s,l){ s/=100; l/=100; const k=n=>(n+h/30)%12, a=s*Math.min(l,1-l),
     f=n=>l-a*Math.max(-1,Math.min(k(n)-3,9-k(n),1));
     return [Math.round(255*f(0)),Math.round(255*f(8)),Math.round(255*f(4))]; }
-  const asmRGB=ph=>hsl2rgb(ph.includes('LIQUID')?150:210, ph.includes('LIQUID')?38:12, 74-(ph.length-1)*14);
+  const asmRGB=ph=>assemblageRGB(ph);
 
   // ---- lower convex hull (validated vs scipy to machine precision, incl. degenerate grid data) ----
   const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],
@@ -3197,6 +3415,20 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
             l2=((c[1]-a[1])*(q[0]-c[0])+(a[0]-c[0])*(q[1]-c[1]))/det, l3=1-l1-l2;
       if(l1>=-tol&&l2>=-tol&&l3>=-tol){ const w=[l1,l2,l3],set=new Set();
         for(let k=0;k<3;k++) if(w[k]>1e-6) set.add(phName[tri[k]]); return [...set].sort(); } }
+    return null; }
+  // The same lookup with amounts: the barycentric weights of the facet's corners are the phase
+  // amounts (lever rule), per mole of cations; corners of one phase are merged.
+  function assemblageAmountsAt(P,facets,boxes,phName,q,tol=1e-9){
+    for(let fi=0;fi<facets.length;fi++){ const bb=boxes[fi];
+      if(q[0]<bb[0]-tol||q[0]>bb[1]+tol||q[1]<bb[2]-tol||q[1]>bb[3]+tol) continue;
+      const tri=facets[fi], a=P[tri[0]],b=P[tri[1]],c=P[tri[2]];
+      const det=(a[0]-c[0])*(b[1]-c[1])-(b[0]-c[0])*(a[1]-c[1]); if(Math.abs(det)<1e-15) continue;
+      const l1=((b[1]-c[1])*(q[0]-c[0])+(c[0]-b[0])*(q[1]-c[1]))/det,
+            l2=((c[1]-a[1])*(q[0]-c[0])+(a[0]-c[0])*(q[1]-c[1]))/det, l3=1-l1-l2;
+      if(l1>=-tol&&l2>=-tol&&l3>=-tol){ const w=[l1,l2,l3], by=new Map();
+        for(let k=0;k<3;k++){ if(w[k]<=1e-6) continue; const n=phName[tri[k]], p=P[tri[k]];
+          const e=by.get(n)||{name:n,w:0,xb:0,xc:0}; e.w+=w[k]; e.xb+=w[k]*p[0]; e.xc+=w[k]*p[1]; by.set(n,e); }
+        return [...by.values()].map(e=>({name:e.name, w:e.w, xb:e.xb/e.w, xc:e.xc/e.w})).sort((x,y)=>y.w-x.w); } }
     return null; }
 
   // ---- engine: per-system db pointer, sample + hull -------------------------------
@@ -3291,8 +3523,8 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
       api.M._free(buf);
       sys.inpCache={}; sys.loaded=true; }); }
 
-  function sample(T){
-    const sys=SYS, pts=[], phName=[];
+  function sample(T, sys=SYS){
+    const pts=[], phName=[];
     const sd=db,sp=phase; db=sys.TDB; phase=sys.LIQ;
     try {
       if(!sys.inpCache[T]) sys.inpCache[T]=buildInputs(sys.els,T);
@@ -3312,7 +3544,76 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     return {pts,phName};
   }
 
+  // The section's hull with the liquid resampled where it meets a solid. On the coarse grid a
+  // liquid boundary can only sit on a grid node, which drew field edges as staircases. Two passes
+  // add liquid samples around every liquid corner of a mixed facet, at a half and then a quarter
+  // of the grid step, on the six neighbours of the triangular lattice.
+  function refinedHull(T, sys=SYS){
+    const {pts,phName}=sample(T, sys); if(pts.length<4) return null;
+    let facets=lowerHull(pts);
+    const inp=sys.inpCache[T], [cA,cB,cC]=sys.cats, key=(b,c)=>b.toFixed(6)+','+c.toFixed(6);
+    const seen=new Set(pts.map(p=>key(p[0],p[1])));
+    const NB=[[1,0],[-1,0],[0,1],[0,-1],[1,-1],[-1,1]];
+    for(const div of [2,4]){
+      const seeds=new Set();
+      for(const f of facets){ const liq=f.filter(k=>phName[k]==='LIQUID');
+        if(liq.length && liq.length<3) liq.forEach(k=>seeds.add(k)); }
+      const h=1/(LIQ_G*div), add=[];
+      for(const k of seeds) for(const [di,dj] of NB){
+        let xb=pts[k][0]+di*h, xc=pts[k][1]+dj*h;
+        if(xb<-1e-12||xc<-1e-12||xb+xc>1+1e-12) continue;
+        xb=Math.max(0,xb); xc=Math.max(0,xc); const xa=1-xb-xc;
+        if((xa<1e-9&&xb<1e-9)||(xb<1e-9&&xc<1e-9)||(xa<1e-9&&xc<1e-9)) continue;   // pure corners
+        const kk=key(xb,xc); if(seen.has(kk)) continue; seen.add(kk); add.push([xb,xc,xa]); }
+      if(!add.length) break;
+      const sd=db, sp=phase; db=sys.TDB; phase=sys.LIQ;
+      try{
+        for(const [xb,xc,xa] of add){
+          const t={}; t[cA]=xa; t[cB]=xb; t[cC]=xc;
+          const nAn=xa*sys.oxy[cA]+xb*sys.oxy[cB]+xc*sys.oxy[cC]; t[sys.anEl||'O']=nAn;
+          const r=solveEquilibrium(inp,t);
+          if(isFinite(r.GM)){ pts.push([xb,xc,r.GM*(1+nAn)]); phName.push('LIQUID'); } }
+      } finally { db=sd; phase=sp; }
+      facets=lowerHull(pts);
+    }
+    return {pts, phName, facets, boxes:facetBoxes(pts,facets)};
+  }
+
   let model=null;   // {pts,phName,facets,T}
+
+  // The solve card's equilibrium for a loaded three-cation melt: the same sampled hull as this
+  // card, so a solve and a click here agree. Cached per database load and temperature.
+  let solveHull=null;
+  window.loadedAssemblageAt=(T, target)=>{
+    const sys=buildLoadedSystem(); if(!sys) return null;
+    if(Object.keys(target).some(e=>e!==sys.anEl && !sys.cats.includes(e))) return null;
+    const tot=sys.cats.reduce((s,c)=>s+(target[c]||0),0); if(!(tot>0)) return null;
+    if(!solveHull || solveHull.comps!==window._components || solveHull.T!==T){
+      const h=refinedHull(T, sys); if(!h) return null;
+      solveHull={comps:window._components, T, ...h};
+    }
+    return amountsFrom(sys, solveHull, target);
+  };
+  // Phase amounts at a bulk composition (element amounts) on a solved hull, by mass unless the
+  // system's atomic weights are unknown.
+  function amountsFrom(sys, h, target){
+    const tot=sys.cats.reduce((s,c)=>s+(target[c]||0),0); if(!(tot>0)) return null;
+    const q=[(target[sys.cats[1]]||0)/tot, (target[sys.cats[2]]||0)/tot];
+    const am=assemblageAmountsAt(h.pts,h.facets,h.boxes,h.phName,q);
+    if(!am) return null;
+    const mass=p=>sys.molOnly?1:(1-p.xb-p.xc)*sys.mass.A+p.xb*sys.mass.B+p.xc*sys.mass.C;
+    const m=am.map(p=>p.w*mass(p)), mt=m.reduce((s,v)=>s+v,0);
+    return {unit:sys.molOnly?'mol%':'wt%', basis:sys.molOnly?'of the cations':'of the whole sample',
+      phases:am.map((p,i)=>({name:p.name, f:m[i]/mt}))};
+  }
+  // The same for the built-in FeO-MgO-SiO2 slag, which the assessed card shows whether or not
+  // the user has loaded it.
+  let builtinHull=null;
+  window.builtinSlagAmountsAt=async (T, target)=>{
+    const sys=SYSTEMS.slag; await ensure(sys);
+    if(!builtinHull || builtinHull.T!==T){ const h=refinedHull(T, sys); if(!h) return null; builtinHull={T, ...h}; }
+    return amountsFrom(sys, builtinHull, target);
+  };
   function frame(){
     ctx.strokeStyle=css('--ink'); ctx.lineWidth=1.4; ctx.beginPath();
     const A=triXY(0,0),B=triXY(1,0),C=triXY(0,1);
@@ -3401,19 +3702,18 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
   };
   go.addEventListener('click',()=>{
     if(!api||!api.M){ read.textContent='Engine still loading, try again in a moment.'; return; }
-    const T=+tsl.value; read.textContent='Solving the diagram at '+window.tLabel(T)+' (a second or two)…';
+    const T=+tsl.value; read.textContent='Solving the diagram at '+window.tLabel(T)+' (a few seconds)…';
     go.disabled=true;
     setTimeout(async()=>{
       try{ await ensure(SYS); }catch(e){ read.textContent='Could not load the database: '+e.message; go.disabled=false; return; }
       try{
         const t0=performance.now();
-        const {pts,phName}=sample(T);
-        if(pts.length<4) throw new Error('too few solvable phase samples at this temperature');
-        const facets=lowerHull(pts), boxes=facetBoxes(pts,facets);
-        model={pts,phName,facets,boxes,T}; render();
-        const ms=Math.round(performance.now()-t0);
-        read.textContent='Solved at '+window.tLabel(T)+' in '+ms+' ms — '+pts.length+' phase samples, '+facets.length
-          +' tie-facets. Tap a composition to read and pin it to the list (hover previews on desktop).';
+        const h=refinedHull(T);
+        if(!h) throw new Error('too few solvable phase samples at this temperature');
+        model={...h, T}; render();
+        const s=((performance.now()-t0)/1000).toFixed(1);
+        read.textContent='Solved at '+window.tLabel(T)+' in '+s+' s. Click a composition to read the phases '
+          +'and how much of each, and pin it to the list (hover previews on desktop).';
       }catch(err){
         model=null; render();
         read.textContent='Could not solve this system at '+window.tLabel(T)+' ('+err.message+'). Try another temperature, or email info@odinzen.io.';
@@ -3431,10 +3731,19 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
   function pin(ev){ if(!model){ read.textContent='Press Compute first, then tap to pin points.'; return; }
     const r=cv.getBoundingClientRect();
     const c=pxToComp((ev.clientX-r.left)*W/r.width,(ev.clientY-r.top)*H/r.height); if(!c){ return; }
-    const [xb,xc,xa]=c, a=assemblageAt(model.pts,model.facets,model.boxes,model.phName,[xb,xc]);
+    const [xb,xc,xa]=c, am=assemblageAmountsAt(model.pts,model.facets,model.boxes,model.phName,[xb,xc]);
     const mA=xa*SYS.mass.A,mB=xb*SYS.mass.B,mC=xc*SYS.mass.C,tot=mA+mB+mC, w=x=>(100*x/tot).toFixed(0);
+    // phase amounts in the same unit as the composition: mass weights each phase by its own
+    // composition's mass per mole of cations
+    const unit=SYS.molOnly?' mol%':' wt%';
+    let amounts='outside the sampled field';
+    if(am){ const m=am.map(p=>p.w*(SYS.molOnly?1:(1-p.xb-p.xc)*SYS.mass.A+p.xb*SYS.mass.B+p.xc*SYS.mass.C)),
+        mt=m.reduce((s,v)=>s+v,0);
+      amounts=am.length===1 ? phaseNice(am[0].name)+' only'
+        : am.map((p,i)=>({n:phaseNice(p.name), f:m[i]/mt})).sort((x,y)=>y.f-x.f)
+            .map(p=>p.n+' '+(100*p.f<0.5?'<1':(100*p.f).toFixed(0))+unit).join('  +  '); }
     const line=SYS.corners[0]+' '+w(mA)+'  '+SYS.corners[1]+' '+w(mB)+'  '+SYS.corners[2]+' '+w(mC)
-      +(SYS.molOnly?' mol%  @ ':' wt%  @ ')+window.tLabel(model.T)+(a?'   ·   '+asmLabel(a):'   ·   outside the sampled field');
+      +unit+'  @ '+window.tLabel(model.T)+'   ·   '+amounts;
     read.textContent=line; pins.push({xb,xc,txt:line}); pinMarker(xb,xc,pins.length); renderLiveHist(); }
   cv.addEventListener('mousemove',hover);
   cv.addEventListener('click',pin);
@@ -3726,9 +4035,20 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
   // edits anything a later load no longer overwrites their values.
   window._bldLoadSystem=(comps, salt)=>{
     _bldSeedFor(salt);                        // preset-dropdown visibility (+ generic seed if untouched)
+    const note=$('bld-note'); note.hidden=true;
     if(userTouched) return;
     const use=(comps||[]).slice(0,4);
     if(use.length<2) return;                  // not enough to build a diagram - keep the generic seed
+    // A component whose melting point the file does not give (its solid lives inside a solution,
+    // as MgO does in magnesiowustite) must not borrow the generic example's numbers under its real
+    // name: keep the whole generic example and say why.
+    const missing=use.filter(c=>c.TmC==null||c.dHf==null).map(c=>c.name);
+    if(missing.length){
+      const names=missing.length<3 ? missing.join(' and ') : missing.slice(0,-1).join(', ')+' and '+missing[missing.length-1];
+      note.textContent='This database does not give a melting point for '+names
+        +', so the builder keeps its generic example. Enter your own values to build this system.';
+      note.hidden=false; return;
+    }
     use.forEach((c,i)=>{ $('c'+i+'-name').value=c.name;
       if(c.TmC!=null) $('c'+i+'-Tm').value=Math.round(window.kToU(c.TmC));
       if(c.dHf!=null) $('c'+i+'-dH').value=(+c.dHf).toFixed(1); });

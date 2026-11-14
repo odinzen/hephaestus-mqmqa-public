@@ -95,6 +95,10 @@ Other parts consulted third-party source as follows:
   `liboctqisoc.F90`), which were read; no OpenCalphad model code was translated.
 - `src/xtdb.c`: written from the published XTDB specification (Sundman's XTDB repository
   documents and example files).
+- `python/mqmqa/utdb_xtdb.py`: written from the XTDB paper and the documentation in
+  Sundman's XTDB repository (GPL-3.0, documents only); the magnetic model Ids follow the
+  writer of pycalphad-xtdb (Odinzen, MIT). The MQMQA form it writes is our proposal
+  (`docs/XTDB_MQMQA_PROPOSAL.md`).
 
 The equations themselves are published in:
 
@@ -243,7 +247,20 @@ or two-state term in `.tdb` or `.dat`. A source the reader had to skip
 part of (a ChemSage magnetic record, a TDB parameter type the engine does not read) is
 refused too, since the copy would silently lack it. Functions in a TDB source are written
 expanded, one polynomial per temperature interval, with every coefficient printed to
-read back as the same number. `python/mqmqa/dbbuild.py` is a different tool: it builds a
+read back as the same number.
+
+`python/mqmqa/utdb_xtdb.py` is a separate converter between `.utdb` and `.xtdb` that
+carries what the engine's own `.xtdb` writer refuses: the magnetic model, written as XTDB
+defines it, and MQMQA liquids, written in a form proposed in `docs/XTDB_MQMQA_PROPOSAL.md`
+because XTDB does not yet define their parameters. It works on the file text, so every
+expression is kept as written:
+
+```bash
+python -m mqmqa.utdb_xtdb data/unified/FeC-FeOMgOSiO2.utdb steel.xtdb
+python -m mqmqa.utdb_xtdb steel.xtdb steel.utdb
+```
+
+`python/mqmqa/dbbuild.py` is a different tool: it builds a
 new `.dat` from a user's measured data, while the writers re-serialize a database that
 is already loaded.
 

@@ -1,3 +1,8 @@
+Sources consulted, not copied: the XTDB paper (Sundman et al., Calphad 90 (2025) 102849,
+CC BY-NC) and the XTDB documentation at https://github.com/sundmanbo/XTDB (GPL-3.0,
+documents and example databases) were read to write src/xtdb.c and
+python/mqmqa/utdb_xtdb.py. No text, code or data from them is included here.
+
 Hephaestus contains code translated from third-party software. Each source keeps its
 license and copyright notice, reproduced below. Which files are affected is listed in the
 Provenance section of README.md.

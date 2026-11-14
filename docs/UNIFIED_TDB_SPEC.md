@@ -56,8 +56,13 @@ third-generation Al-C (He et al., Calphad 72 (2021) 102250) and a classic Pb-Sn 
 written in XTDB. It was written from the published XTDB specification and the model
 equations, and validated against our own Python reference to
 < 1e-6 J/mol-atom, reproducing Al melting 933.47 K, the Al4C3 peritectic 2429 K, and the Pb-Sn
-eutectic (456 K, x(Sn) 0.74). Converting uTDB statements to XTDB elements remains mechanical
-once that schema's wider tooling settles.
+eutectic (456 K, x(Sn) 0.74).
+
+**uTDB to XTDB:** `python/mqmqa/utdb_xtdb.py` converts a uTDB file to XTDB and back. The
+compound energy formalism, stoichiometric phases and the magnetic model are written as XTDB
+defines them. XTDB defines MQMQA quadruplets but not the parameters of an MQMQA liquid, so
+those are written in a proposed form that keeps the `MQ*` identifiers of this page
+(`docs/XTDB_MQMQA_PROPOSAL.md`); no other program reads that part yet.
 
 ## Grammar
 

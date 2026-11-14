@@ -2,11 +2,12 @@
 
 **Hephaestus** is an open-source Gibbs energy minimizer with the **Modified
 Quasichemical Model in the Quadruplet Approximation (MQMQA)**, running in the browser,
-with open databases for slags, molten salts, and alloys. A C core does the
-thermodynamics behind a thin Python wrapper and a WebAssembly build. The MQMQA describes
-short-range ordering in ionic liquids (molten salts, oxide slags, electrolytes), the
-physics behind FactSage's oxide/slag databases. Named for the god of the forge, it
-computes the thermodynamics of the melt.
+with open databases for slags, molten salts, and alloys. You can also load your own
+database (.dat, .tdb, .utdb or XTDB) and calculate with it in the browser. A C core does
+the thermodynamics behind a thin Python wrapper and a WebAssembly build. The MQMQA
+describes short-range ordering in ionic liquids (molten salts, oxide slags,
+electrolytes), the physics behind FactSage's oxide/slag databases. Named for the god of
+the forge, it computes the thermodynamics of the melt.
 
 The scientific model is MQMQA (a standard acronym); the engine that implements it is
 Hephaestus. The library is currently imported as `mqmqa`.

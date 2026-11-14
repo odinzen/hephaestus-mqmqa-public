@@ -1,4 +1,4 @@
-# Hephaestus: an in-browser open-source engine and databases for the thermodynamics and phase diagrams of slags, molten salts, and alloys
+# Hephaestus: an open-source Gibbs energy minimizer with MQMQA, in the browser, with open databases for slags, molten salts, and alloys
 
 Michael E. Bustamante, Gabriel Bustamante
 

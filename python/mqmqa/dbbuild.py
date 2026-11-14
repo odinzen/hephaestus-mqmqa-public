@@ -12,8 +12,7 @@ Scope and boundaries:
   - Literature-only. Endmembers come from open compilations (JANAF, CODATA, Robie-Hemingway);
     excess parameters are the USER's own fit to open measured data. Nothing here bundles an
     external TDB's optimized parameters.
-  - Free self-assessment is capped at FOUR components. Five and up is the premium tier - the
-    real multicomponent industrial systems - and raises PremiumFeatureError pointing to support.
+  - Any number of components, two or more.
 
 The N-cation liquid is assembled Muggianu-style from the binary excesses (a ternary/higher
 excess is zero unless the user supplies one), exactly as the shipped FeO-MgO-SiO2 database is
@@ -33,7 +32,6 @@ from ._abi import gas_constant_choice
 R = gas_constant_choice("calphad")
 T0 = 298.15           # K, reference temperature for dHf and S298
 Z_PER_CHARGE = 1.3774438 / 2.0   # charge-proportional coordination (FactSage oxide convention)
-MAX_FREE_COMPONENTS = 4          # free self-assessment cap; 5+ is premium
 
 # Atomic masses (g/mol) for the elements this tool supports as cations, plus oxygen.
 ATOMIC_MASS = {
@@ -41,13 +39,6 @@ ATOMIC_MASS = {
     "Ti": 47.867, "Cr": 51.996, "Mn": 54.938, "Fe": 55.845, "Na": 22.990, "K": 39.098,
     "Li": 6.94, "Cl": 35.453,
 }
-
-SUPPORT_EMAIL = "info@odinzen.io"
-
-
-class PremiumFeatureError(Exception):
-    """Raised when a spec exceeds the free component cap (self-assess is free to 4 components)."""
-
 
 @dataclass
 class Component:
@@ -120,10 +111,7 @@ class BinaryExcess:
 
 @dataclass
 class SystemSpec:
-    """A complete slag system: 2..4 oxide components + the binary excesses between them.
-
-    Raises PremiumFeatureError at construction if more than four components are given.
-    """
+    """A complete slag system: two or more oxide components + the binary excesses between them."""
     name: str
     components: list           # list[Component]
     binaries: list = field(default_factory=list)   # list[BinaryExcess]
@@ -137,12 +125,6 @@ class SystemSpec:
         n = len(self.components)
         if n < 2:
             raise ValueError("a slag system needs at least two components")
-        if n > MAX_FREE_COMPONENTS:
-            raise PremiumFeatureError(
-                f"{n}-component self-assessment is a premium feature. Free database-building "
-                f"covers up to {MAX_FREE_COMPONENTS} components (one past FactSage's free tier); "
-                f"five and up - the real multicomponent industrial systems - are Odinzen's "
-                f"premium tier. Email {SUPPORT_EMAIL}.")
         names = [c.name for c in self.components]
         if len(set(names)) != n:
             raise ValueError(f"duplicate component names: {names}")

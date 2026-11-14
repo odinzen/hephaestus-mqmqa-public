@@ -7,8 +7,6 @@ The workflow for someone who has published measurements but no ChemSage database
   2. Fit each binary's liquid excess to your measured activities (the engine optimizes it).
   3. Assemble the components + binary excesses into a system and emit a .dat the app loads.
 
-Free self-assessment covers up to four components; five and up is the premium tier.
-
 Run:  PYTHONPATH=python python examples/build_slag_db.py
 """
 import sys
@@ -75,14 +73,6 @@ def main():
     p = d.phase_index("FEO-MGO-SIO2-LIQUID")
     print(f"  wrote {out.name} ({len(spec.components)} components); engine loads it, "
           f"liquid phase index = {p}")
-
-    print("\n" + "=" * 70)
-    print("STEP 4  the free cap: five components is premium")
-    try:
-        db.SystemSpec("five", [db.starter_component(n) for n in ("FeO", "MgO", "SiO2", "CaO")]
-                      + [db.starter_component("CaO")])
-    except db.PremiumFeatureError as e:
-        print(f"  {e}")
 
 
 if __name__ == "__main__":

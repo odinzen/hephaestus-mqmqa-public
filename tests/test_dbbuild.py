@@ -4,8 +4,9 @@ Strongest checks: rebuild the shipped, pycalphad-validated FeO-MgO-SiO2 liquid d
 the generic builder and confirm it reproduces the hand-written .dat numerically and loads in the
 engine; fit the FeO-SiO2 excess to the measured activities behind v0.3 through the
 engine-as-optimizer and check it reaches the least-squares minimum, consistent with the v0.3
-parameters; and confirm the four-component free cap is enforced.
+parameters; and build a five-component liquid that the engine and pycalphad evaluate alike.
 """
+import dataclasses
 import importlib.util
 import math
 import re
@@ -82,15 +83,60 @@ def test_built_dat_loads_in_engine():
     assert d.phase_index("FEO-MGO-SIO2-LIQUID") >= 0
 
 
-def test_four_component_cap():
+def test_five_component_liquid_matches_pycalphad():
+    """Nothing caps the component count: a five-cation liquid builds, loads, and its Gibbs
+    energy equals pycalphad's over fixed quadruplet distributions."""
+    import pytest
+    pytest.importorskip("pycalphad")
+    from pycalphad import Database, variables as v
+    from pycalphad.models.model_mqmqa import ModelMQMQA
+    from mqmqa import equilibrium as eqm
+
     comps = [db.starter_component(n) for n in ("FeO", "MgO", "SiO2", "CaO")]
-    db.SystemSpec("quaternary", comps)                       # 4 components: allowed
-    extra = db.starter_component("CaO"); extra.name, extra.cation = "MnO", "Mn"
-    try:
-        db.SystemSpec("five", comps + [extra])
-        assert False, "5-component spec should have raised PremiumFeatureError"
-    except db.PremiumFeatureError as e:
-        assert "premium" in str(e).lower() and db.SUPPORT_EMAIL in str(e)
+    # a fifth cation for the format only: CaO's numbers under Mn, not a description of MnO
+    comps.append(dataclasses.replace(db.starter_component("CaO"), name="MnO", cation="Mn",
+                                     source="test fixture, CaO values relabelled"))
+    binaries = [
+        db.BinaryExcess("FeO", "SiO2", [db.ExcessTerm(-42839.4, 17.83),
+                                        db.ExcessTerm(-8000.0, 0.0, 1, 0)]),
+        db.BinaryExcess("MgO", "SiO2", [db.ExcessTerm(-86000.0, 12.0)]),
+        db.BinaryExcess("CaO", "SiO2", [db.ExcessTerm(-158000.0, 19.0),
+                                        db.ExcessTerm(-21000.0, 0.0, 0, 1)]),
+        db.BinaryExcess("MnO", "SiO2", [db.ExcessTerm(-60000.0, 5.0)]),
+        db.BinaryExcess("FeO", "MgO", [db.ExcessTerm(5000.0)]),
+    ]
+    spec = db.SystemSpec("FeO-MgO-SiO2-CaO-MnO", comps, binaries)
+    out = Path(tempfile.gettempdir()) / "_dbbuild_test_five.dat"
+    out.write_text(db.write_dat(spec), encoding="ascii")
+
+    d = mqmqa.Database.read(str(out))
+    assert len(d.cations(0)) == 5
+    T = 1873.0
+    inp = eqm.build_inputs(d, 0, T)
+    cats = [c["name"] for c in d.cations(0)]
+    ans = [a["name"] for a in d.anions(0)]
+
+    def elem(s):
+        return re.match(r"[A-Za-z]+", str(s)).group(0).upper()
+
+    def key(A, B, X, Y):
+        return tuple(sorted([elem(A), elem(B)])) + tuple(sorted([elem(X), elem(Y)]))
+
+    keys = [key(cats[a], cats[b], ans[x], ans[y]) for (a, b, x, y) in inp["quads"]]
+    dbf = Database(str(out))
+    phase = next(n for n in dbf.phases if "LIQ" in n.upper())
+    mod = ModelMQMQA(dbf, ["FE", "MG", "SI", "CA", "MN", "O", "VA"], phase)
+    gm = mod.symbol_replace(mod.GM, dict(dbf.symbols))
+    worst = 0.0
+    for seed in range(4):
+        vals = [0.03 + 0.011 * ((i * 7 + seed * 5) % len(keys)) for i in range(len(keys))]
+        X = [x / sum(vals) for x in vals]
+        xmap = dict(zip(keys, X))
+        g_eng = eqm.gibbs_per_quad(inp, X) / sum(eqm.element_moles(inp, X).values())
+        subs = {v.T: T}
+        subs.update({mod._X_ijkl(*q): xmap[key(*q)] for q in mod._quadruplets})
+        worst = max(worst, abs(g_eng - float(gm.subs(subs))))
+    assert worst < 1e-6, f"engine vs pycalphad worst |diff| = {worst:.2e} J/mol-atom"
 
 
 def _load_bjorkman():

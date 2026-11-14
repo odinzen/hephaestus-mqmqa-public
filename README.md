@@ -163,7 +163,7 @@ solutions) and a chloride molten-salt family (LiCl-KCl through the NaCl-KCl-MgCl
 ternary with its halite solid solution), every parameter traced to published
 measurements in the per-system provenance notes.
 `python/mqmqa/dbbuild.py` turns a user's own measured data into a loadable `.dat`
-(two to four components). See `docs/DESIGN.md`.
+(any number of components). See `docs/DESIGN.md`.
 
 An MQMQA excess term the engine does not evaluate is refused with a message naming the
 phase (`Database.excess_unsupported`, `UnsupportedModelError`, a note in the browser),

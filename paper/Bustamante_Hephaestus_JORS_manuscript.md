@@ -150,11 +150,11 @@ Michael E. Bustamante (design, implementation, validation, data curation, writin
 **Archive**
 
 - Name: Zenodo
-- Persistent identifier: [Zenodo DOI, assigned at release]
+- Persistent identifier: https://doi.org/10.5281/zenodo.24210541
 - Licence: AGPL-3.0 (code), CC BY-SA 4.0 (database)
 - Publisher: Michael E. Bustamante
 - Version published: v0.7.0
-- Date published: [release date]
+- Date published: 2026-11-13
 
 **Code repository**
 
@@ -253,7 +253,7 @@ The gap the present work addresses was never the model, which has been published
 
 ## Data availability
 
-The engine, the database, the browser application, and the validation suite are openly available in the code repository listed above; the version described here is archived as release v0.7.0. The database files and their provenance records are in the repository's data directory under CC BY-SA 4.0, except the GRI-Mech 3.0 gas data and the USGS PHREEQC databases beneath the aqueous slag file, which keep their original terms.
+The engine, the database, the browser application, and the validation suite are openly available in the code repository listed above; the version described here is archived as release v0.7.0 (doi:10.5281/zenodo.24210541). The database files and their provenance records are in the repository's data directory under CC BY-SA 4.0, except the GRI-Mech 3.0 gas data and the USGS PHREEQC databases beneath the aqueous slag file, which keep their original terms.
 
 ## Acknowledgements
 

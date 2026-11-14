@@ -1,5 +1,7 @@
 # Hephaestus
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24210540.svg)](https://doi.org/10.5281/zenodo.24210540)
+
 **Hephaestus** is an open-source Gibbs energy minimizer with the **Modified
 Quasichemical Model in the Quadruplet Approximation (MQMQA)**, running in the browser,
 with open databases for slags, molten salts, and alloys. You can also load your own

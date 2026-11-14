@@ -12,6 +12,7 @@ authors:
     family-names: Bustamante
     affiliation: "Odinzen LLC, Houston, TX, United States"
     orcid: "https://orcid.org/0009-0005-3269-024X"
+doi: 10.5281/zenodo.24210540
 repository-code: "https://github.com/odinzen/hephaestus-mqmqa-public"
 url: "https://odinzen.github.io/hephaestus-mqmqa-public/"
 license:

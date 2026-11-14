@@ -18,9 +18,10 @@ license:
   - AGPL-3.0-only
   - CC-BY-SA-4.0
 abstract: >-
-  Hephaestus is a C engine with Python and WebAssembly front ends for the Modified
-  Quasichemical Model in the Quadruplet Approximation (MQMQA) and the Compound Energy
-  Formalism, with open databases for oxide slags, molten salts, and alloys. It reads and
+  Hephaestus is an open-source Gibbs energy minimizer with the Modified Quasichemical
+  Model in the Quadruplet Approximation (MQMQA) and the Compound Energy Formalism, a C
+  engine with Python and WebAssembly front ends, with open databases for oxide slags,
+  molten salts, and alloys. It reads and
   writes FactSage-style .dat, Thermo-Calc .tdb, unified .utdb, and XTDB files, computes
   equilibria and phase diagrams, and runs entirely in the browser. The engine is licensed
   AGPL-3.0-only and the databases CC BY-SA 4.0.

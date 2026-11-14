@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "mqmqa"
 version = "0.7.0"
-description = "Standalone Modified Quasichemical Model in the Quadruplet Approximation (C core, cffi ABI)"
+description = "Open-source Gibbs energy minimizer with the Modified Quasichemical Model in the Quadruplet Approximation (C core, cffi ABI)"
 requires-python = ">=3.11"
 dependencies = [
     "cffi>=1.15",

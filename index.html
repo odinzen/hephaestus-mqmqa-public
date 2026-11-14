@@ -565,8 +565,8 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
     <h2>Steel-slag crystallization &middot; CaO&ndash;MgO&ndash;SiO<sub>2</sub> at FeO 5 mol%<span class="tern-badge">assessed</span></h2>
     <p class="tern-note">Which silicate crystallizes first from the calibrated CaO&ndash;FeO&ndash;MgO&ndash;SiO<sub>2</sub>
       slag melt, and at what temperature. The liquid, the olivine / orthopyroxene / clinopyroxene solid
-      solutions and the oxide solids sit on one calibrated scale (diopside melts at 1673&nbsp;K,
-      forsterite at 2080&nbsp;K, 83&nbsp;K below the measured value); the multi-phase equilibrium is precomputed and validated against
+      solutions and the oxide solids sit on one calibrated scale (diopside melts at <span data-k="1673">1673&nbsp;K</span>,
+      forsterite at <span data-k="2080">2080&nbsp;K</span>, <span data-dk="83">83&nbsp;K</span> below the measured value); the multi-phase equilibrium is precomputed and validated against
       pycalphad. Mafic melts crystallize olivine, calcium-rich melts crystallize clinopyroxene. Move
       over the diagram to read a composition, its primary phase and the liquidus. Like the section
       above, this is a precomputed showcase of the built-in slag database only, not generated for
@@ -764,8 +764,8 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       </label>
       <span id="sg-xval" style="font-family:var(--font-mono)">0.20</span>
       <span class="seg" id="sg-temp" style="display:inline-flex">
-        <button class="seg-btn on" data-t="1873" type="button">1873 K</button>
-        <button class="seg-btn" data-t="1973" type="button">1973 K</button>
+        <button class="seg-btn on" data-t="1873" type="button"><span data-k="1873">1873 K</span></button>
+        <button class="seg-btn" data-t="1973" type="button"><span data-k="1973">1973 K</span></button>
       </span>
     </div>
     <div id="sg-out" class="bld-hint" style="margin-top:.7rem"></div>
@@ -776,7 +776,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
     <h2>Third-generation diagram &middot; XTDB<span class="tern-badge">3rd-gen</span></h2>
     <p class="tern-note">A separate reader for the open XML <b>XTDB</b> format (Sundman et al.,
       Calphad 90 (2025) 102849), the format the CALPHAD community is standardising on. It assembles
-      <b>third-generation</b> Gibbs energies down to 0&nbsp;K: an Einstein heat-capacity term in place
+      <b>third-generation</b> Gibbs energies down to absolute zero: an Einstein heat-capacity term in place
       of the old polynomial, and a two-state description of the liquid, so a single function spans
       cryogenic to superheated temperatures. This is a distinct engine from the ChemSage .dat /
       Thermo-Calc .tdb calculator above; it reads XTDB files and computes their binary phase diagram
@@ -934,6 +934,20 @@ window.kToU = K => window.tUnit==='C' ? K-273.15 : K;      // Kelvin -> displaye
 window.uToK = v => window.tUnit==='C' ? v+273.15 : v;      // displayed number -> Kelvin
 window.tLabel = (K,dp=0)=> (isFinite(K) ? window.kToU(K).toFixed(dp).replace(/\.0+$/,'') : '—') + ' ' + window.tSym();
 window.onTUnit = fn => window.addEventListener('hmqmqa-tunit', fn);
+// Results keep their temperatures in kelvin and are formatted when shown, so one press of the
+// toggle converts text already on the page, saved-point lists included. tTok marks a
+// temperature inside a result string, tFmt formats the marks, setT shows a marked string.
+window.tTok = (K,dp=0)=> isFinite(K) ? '\u2063'+K+'|'+dp+'\u2063' : window.tLabel(K,dp);
+window.tFmt = s => String(s).replace(/\u2063([^|\u2063]+)\|(\d)\u2063/g, (m,k,dp)=>window.tLabel(+k,+dp));
+window.setT = (el, s, html=false)=>{ if(!el) return;
+  const out=window.tFmt(s); if(html) el.innerHTML=out; else el.textContent=out;
+  el._tsrc=s; el._thtml=html; el._tshown=html ? el.innerHTML : el.textContent; };
+window.onTUnit(()=>{ document.querySelectorAll('body *').forEach(el=>{
+  if(el._tsrc!==undefined){
+    // re-render only if nothing else has written to the element since
+    if((el._thtml ? el.innerHTML : el.textContent)===el._tshown) window.setT(el, el._tsrc, el._thtml);
+    else el._tsrc=undefined; }
+  if(el._hist) window.renderCalcHist(el, el._hist.rows, el._hist.onClear); }); });
 window.onTUnit(()=>{ const el=document.getElementById('temp'); if(el) document.getElementById('tval').textContent=window.tLabel(+el.value); });
 function applyTUnitLabels(){
   const sym=window.tSym();
@@ -941,6 +955,9 @@ function applyTUnitLabels(){
   const gl=document.getElementById('gasT-unit'); if(gl) gl.textContent='('+sym+')';
   const el=document.getElementById('eqT-unit'); if(el) el.textContent=sym;
   document.querySelectorAll('.tm-unit').forEach(x=>x.textContent='('+sym+')');
+  // temperatures written into the page text: data-k is a temperature, data-dk a difference
+  document.querySelectorAll('[data-k]').forEach(x=>x.textContent=window.tLabel(+x.dataset.k).replace(' ',' '));
+  document.querySelectorAll('[data-dk]').forEach(x=>x.textContent=x.dataset.dk+' '+sym);
 }
 window.onTUnit(()=>{
   ['pdTmin','pdTmax','gas-T','eqT','c0-Tm','c1-Tm','c2-Tm','c3-Tm'].forEach(id=>{
@@ -953,6 +970,9 @@ window.onTUnit(()=>{
 // once at load, or a returning visitor's boxes would hold kelvin numbers read as °C.
 document.addEventListener('DOMContentLoaded', ()=>{
   if(window.tUnit!=='C') return;
+  [['temp','tval'],['live-t','live-tval'],['v3-t','v3-tval']].forEach(([s,l])=>{
+    const sl=document.getElementById(s), lb=document.getElementById(l);
+    if(sl&&lb) lb.textContent=window.tLabel(+sl.value); });
   ['pdTmin','pdTmax','gas-T','eqT'].forEach(id=>{
     const el=document.getElementById(id); if(el&&el.value!=='') el.value=String(Math.round(+el.value-273.15)); });
   applyTUnitLabels();
@@ -1335,7 +1355,7 @@ function loadDatabase(text, name) {
 
   // keep the label honest with the actual (possibly step-snapped) slider value
   const t = document.getElementById('temp');
-  document.getElementById('tval').textContent = t.value + ' K';
+  document.getElementById('tval').textContent = window.tLabel(+t.value);
   // the pair-energies and quadruplet-equilibrium cards are MQMQA-liquid tools
   const pairCard = document.getElementById('pairs').closest('.card');
   const solveCard = document.getElementById('solve').closest('.card');
@@ -1384,7 +1404,7 @@ function updatePairs() {
 }
 
 document.getElementById('temp').addEventListener('input', e => {
-  document.getElementById('tval').textContent = e.target.value + ' K';
+  document.getElementById('tval').textContent = window.tLabel(+e.target.value);
   updatePairs();
 });
 
@@ -1796,8 +1816,8 @@ function showMeltPhases(target, T){
   const liquid=ph.some(x=>/liquid/i.test(x.name));
   const pct=f=>100*f<0.5 ? '<1' : (100*f).toFixed(0);
   const list=ph.map(x=>phaseNice(x.name)+' '+pct(x.f)+' '+r.unit).join('  +  ');
-  p.textContent='At '+window.tLabel(T)+': '+(ph.length===1&&liquid ? 'fully liquid.'
-    : !liquid ? 'fully solid, '+list+'.' : list+'.');
+  window.setT(p, 'At '+window.tTok(T)+': '+(ph.length===1&&liquid ? 'fully liquid.'
+    : !liquid ? 'fully solid, '+list+'.' : list+'.'));
   note.textContent='Amounts in '+r.unit+' '+r.basis+', by the lever rule on the same lower convex hull '
     +'the phase diagrams use.';
 }
@@ -1836,11 +1856,11 @@ document.getElementById('solve').addEventListener('click', () => {
     const inp=buildInputs([...elems], T);
     const res=solveEquilibrium(inp, target);
     if(!isFinite(res.GM)){
-      msg.textContent='The solver did not converge at '+window.tLabel(T)+'. Try another temperature or composition.';
+      window.setT(msg, 'The solver did not converge at '+window.tTok(T)+'. Try another temperature or composition.');
       return;
     }
     // Thermodynamic data are assessed from 298.15 K up; below that the numbers are extrapolations.
-    msg.textContent = T<298.15 ? 'Below 298 K the databases are extrapolated, so treat this result with caution.' : '';
+    window.setT(msg, T<298.15 ? 'Below '+window.tTok(298.15)+' the databases are extrapolated, so treat this result with caution.' : '');
     showMeltPhases(target, T);
     document.getElementById('gm').textContent =
       res.GM.toLocaleString(undefined,{maximumFractionDigits:2})+' J/mol';
@@ -2545,11 +2565,11 @@ async function runScheil(){
       if(!t) continue;
       if(t.state==='liq'){ sch.push([T,1-fL]); xlPrev=xL; continue; }
       if(t.state==='sol'){
-        events.push('residual liquid ('+(100*fL).toFixed(1)+'%) freezes at '+Math.round(window.kToU(T+dT))+' '+window.tSym()+' as '+(t.names||[]).filter(Boolean).join(' + '));
+        events.push('residual liquid ('+(100*fL).toFixed(1)+'%) freezes at '+window.tTok(T+dT)+' as '+(t.names||[]).filter(Boolean).join(' + '));
         Tfreeze=T+dT; fLfrz=fL;
         sch.push([T,1]); fL=0; continue;
       }
-      if(!started){ started=true; Tfirst=T; events.push('first solid '+t.solName+' at '+Math.round(window.kToU(T))+' '+window.tSym()); }
+      if(!started){ started=true; Tfirst=T; events.push('first solid '+t.solName+' at '+window.tTok(T)); }
       const xlNew=t.xl;
       const denomOld=t.xs-xlPrev, denomNew=t.xs-xlNew;
       if(Math.abs(denomNew)>1e-9 && Math.abs(denomOld)>1e-9){
@@ -2588,7 +2608,7 @@ async function runScheil(){
     c2.textAlign='right'; c2.textBaseline='middle';
     const span2=Thi-Tlo;
     const ts=[500,300,200,100,50,25,20,10].find(t=>span2/t>=3)||10;
-    for(let T=Math.ceil(Tlo/ts)*ts;T<=Thi;T+=ts) c2.fillText(T+'', mL2-5, Y2(T));
+    for(let u=Math.ceil(window.kToU(Tlo)/ts)*ts;u<=window.kToU(Thi);u+=ts) c2.fillText(u+'', mL2-5, Y2(window.uToK(u)));
     const drawCurve=(arr,color,dash)=>{ if(!arr.length) return;
       c2.setLineDash(dash); c2.strokeStyle=color; c2.lineWidth=2; c2.beginPath();
       let st=false;
@@ -2606,12 +2626,12 @@ async function runScheil(){
     if(Tfirst!=null){
       const [x,y]=mark(0,Tfirst);
       c2.fillStyle=rgba(col.ink,0.95); c2.textAlign='left'; c2.textBaseline='middle';
-      c2.fillText('first solid appears ('+Math.round(Tfirst)+' K)', x+9, Math.max(mT2+8,y-10));
+      c2.fillText('first solid appears ('+window.tLabel(Tfirst)+')', x+9, Math.max(mT2+8,y-10));
     }
     if(Tfreeze!=null){
       const [x,y]=mark(1,Tfreeze);
       c2.fillStyle=rgba(col.ink,0.95); c2.textAlign='right'; c2.textBaseline='middle';
-      c2.fillText('last liquid freezes ('+Math.round(Tfreeze)+' K)', x-9, Math.min(mT2+PH2-8,y-12));
+      c2.fillText('last liquid freezes ('+window.tLabel(Tfreeze)+')', x-9, Math.min(mT2+PH2-8,y-12));
       if(fLfrz>0.25){
         const midX=X2(1-fLfrz/2);
         c2.textAlign='center';
@@ -2623,14 +2643,14 @@ async function runScheil(){
     // temperature axis label, rotated up the left margin
     c2.save(); c2.translate(13, mT2+PH2/2); c2.rotate(-Math.PI/2);
     c2.fillStyle=rgba(col.ink,0.85); c2.textAlign='center'; c2.textBaseline='middle';
-    c2.fillText('temperature (K)', 0, 0); c2.restore();
+    c2.fillText('temperature ('+window.tSym()+')', 0, 0); c2.restore();
     // keep the finished plot + its coordinate mapping so hover/click can read values off it
     window._scheilPlot={Tlo,Thi,mL2,mT2,PW2,PH2,cssW,cssH,dpr,x0,
       sch:schP.slice(),lever:leverP.slice(),
       snap:c2.getImageData(0,0,cvS.width,cvS.height)};
-    read.textContent=events.length?('Scheil: '+events.join('  ·  ')
+    window.setT(read, events.length?('Scheil: '+events.join('  ·  ')
       +'   (solid line: Scheil; dashed: equilibrium lever rule)')
-      :'No solidification within the diagram temperature range.';
+      :'No solidification within the diagram temperature range.');
     msg.textContent='';
   }catch(err){
     if(window.alloyMode && ctx2 && ctx2.phs) ctx2.phs.forEach(c=>{try{api.M._free(c.Yp);}catch(e){}});
@@ -2699,8 +2719,8 @@ function pdReadAt(clientX, clientY){
   let liqT=null;   // highest T at this composition where it stops being all-liquid
   for(let jj=nT-1;jj>=0;jj--){ if(cols[jj].cls[c]!==0){ liqT=jj<nT-1?0.5*(cols[jj].T+cols[jj+1].T):cols[jj].T; break; } }
   const molB=Math.round(f*100);
-  const head=endA.label+' '+(100-molB)+'  '+endB.label+' '+molB+' mol%  @ '+Math.round(window.kToU(T))+' '+window.tSym();
-  const tail=liqT!=null?'   ·   liquidus '+Math.round(window.kToU(liqT))+' '+window.tSym():'   ·   liquidus below range';
+  const head=endA.label+' '+(100-molB)+'  '+endB.label+' '+molB+' mol%  @ '+window.tTok(T);
+  const tail=liqT!=null?'   ·   liquidus '+window.tTok(liqT):'   ·   liquidus below range';
   return {xi:f, T, head, tail, txt:head+'   ·   '+region+tail};
 }
 function renderPdHist(){ renderCalcHist(document.getElementById('pdhist'), pdPins.map(p=>p.txt),
@@ -2819,10 +2839,11 @@ function drawDiagram(){
     ctx.fillText(p+'', px, BP+5); }
   ctx.textAlign='right'; ctx.textBaseline='middle';
   const tstep = (Tmax-Tmin)>1200?300:(Tmax-Tmin)>600?200:100;
-  const t0=Math.ceil(Tmin/tstep)*tstep;
-  for(let t=t0;t<=Tmax;t+=tstep){ const py=Y(t);
+  // ticks at round values of the unit shown, so a diagram in degrees C reads 400, 600, 800
+  const u0=Math.ceil(window.kToU(Tmin)/tstep)*tstep;
+  for(let u=u0;u<=window.kToU(Tmax);u+=tstep){ const py=Y(window.uToK(u));
     ctx.strokeStyle=rgba(col.line,0.7); ctx.beginPath(); ctx.moveTo(L,py); ctx.lineTo(R,py); ctx.stroke();
-    ctx.fillText(String(Math.round(window.kToU(t))), L-6, py); }
+    ctx.fillText(String(u), L-6, py); }
 
   // labels
   ctx.fillStyle=rgba(col.muted,1); ctx.textAlign='center'; ctx.textBaseline='top';
@@ -2865,6 +2886,8 @@ document.getElementById('pdgen').addEventListener('click', generateDiagram);
 for(const id of ['pdXmin','pdXmax'])
   document.getElementById(id).addEventListener('change', pdSyncXWindow);
 document.getElementById('scheil-go').addEventListener('click', runScheil);
+// the Scheil chart draws its axis in the shown unit, so redraw it after the toggle
+window.onTUnit(()=>{ if(window._scheilPlot && pdResult) runScheil(); });
 
 // Unified files: flip the diagram machinery between the melt joins and the alloy joins.
 document.getElementById('pdmode').addEventListener('click', e => {
@@ -2937,11 +2960,11 @@ document.getElementById('pdmode').addEventListener('click', e => {
       c2.beginPath(); c2.arc(x,y,4,0,2*Math.PI);
       c2.fillStyle=rgba(col.ink,1); c2.fill();
     } }
-  function text(pt){ return Math.round(100*pt.f)+'% solid  ·  Scheil '+Math.round(window.kToU(pt.Ts))+' '+window.tSym()
-    +(pt.Te!=null?'  ·  equilibrium '+Math.round(window.kToU(pt.Te))+' '+window.tSym():''); }
+  function text(pt){ return Math.round(100*pt.f)+'% solid  ·  Scheil '+window.tTok(pt.Ts)
+    +(pt.Te!=null?'  ·  equilibrium '+window.tTok(pt.Te):''); }
   cv.addEventListener('mousemove',ev=>{ const pt=at(ev);
     if(!pt||pt.Ts==null){ hoverEl.innerHTML='&nbsp;'; redraw(null); return; }
-    hoverEl.textContent=text(pt); redraw(pt); });
+    window.setT(hoverEl, text(pt)); redraw(pt); });
   cv.addEventListener('mouseleave',()=>{ hoverEl.innerHTML='&nbsp;'; redraw(null); });
   cv.addEventListener('click',ev=>{ const pt=at(ev); const P=window._scheilPlot;
     if(!pt||pt.Ts==null||!P) return;
@@ -2953,13 +2976,13 @@ document.getElementById('pdmode').addEventListener('click', e => {
 // tap-to-read + pin points on the binary diagram (the main salt tool; also serves slag binaries)
 (function(){ const cv=document.getElementById('pdcanvas'), read=document.getElementById('pdread');
   cv.addEventListener('mousemove', ev=>{ const r=pdReadAt(ev.clientX,ev.clientY);
-    if(r) read.textContent=r.txt; });
+    if(r) window.setT(read, r.txt); });
   cv.addEventListener('click', ev=>{ const r=pdReadAt(ev.clientX,ev.clientY); if(!r) return;
     // Hover reads the drawn grid; a click asks the engine which phases are present and how much.
     let txt=r.txt;
     try{ const ph=pdPhasesText(pdPhasesAt(r.xi,r.T), pdResult.endB); if(ph) txt=r.head+'   ·   '+ph+r.tail; }
     catch(e){ txt=r.txt+'   ·   phase amounts unavailable ('+e.message+')'; }
-    read.textContent=txt; pdPins.push({xi:r.xi,T:r.T,txt}); drawDiagram(); renderPdHist(); });
+    window.setT(read, txt); pdPins.push({xi:r.xi,T:r.T,txt}); drawDiagram(); renderPdHist(); });
 })();
 window.addEventListener('resize', ()=>{ if(pdResult) drawDiagram(); });
 // redraw the binary diagram when the light/dark theme flips
@@ -3175,7 +3198,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
   tsl.addEventListener('input',e=>{ si=+e.target.value; tval.textContent=window.tLabel(sec().degC+273.15); refresh(); });
 
   new MutationObserver(refresh).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
-  window.onTUnit(refresh);
+  window.onTUnit(()=>{ if(iso) tval.textContent=window.tLabel(sec().degC+273.15); refresh(); });
 
   fetch('./ternary_feo_mgo_sio2.json').then(r=>r.json()).then(j=>{ proj=j; if(mode==='proj') refresh(); })
     .catch(()=>{ read.textContent='Could not load ternary data.'; });
@@ -3249,16 +3272,16 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     const px=(ev.clientX-r.left)*W/r.width,py=(ev.clientY-r.top)*H/r.height,c=pxToComp(px,py);
     if(!c){ read.innerHTML='&nbsp;'; return; } const [xca,xsi,xmg]=c,f=x=>(95*x).toFixed(0);
     const [p,tl]=cellAt(xca,xsi);
-    read.textContent='CaO '+f(xca)+'  MgO '+f(xmg)+'  SiO₂ '+f(xsi)+'  FeO 5 mol%'
-      +(p?'   ·   primary: '+cap(p):'')+(tl?'   ·   liquidus '+window.tLabel(tl+273.15):''); });
+    window.setT(read, 'CaO '+f(xca)+'  MgO '+f(xmg)+'  SiO₂ '+f(xsi)+'  FeO 5 mol%'
+      +(p?'   ·   primary: '+cap(p):'')+(tl?'   ·   liquidus '+window.tTok(tl+273.15):'')); });
   cv.addEventListener('mouseleave',()=>{ read.innerHTML='&nbsp;'; });
   cv.addEventListener('click',ev=>{ if(!data) return; const r=cv.getBoundingClientRect();
     const px=(ev.clientX-r.left)*W/r.width,py=(ev.clientY-r.top)*H/r.height,c=pxToComp(px,py);
     if(!c) return; const [xca,xsi,xmg]=c,f=x=>(95*x).toFixed(0);
     const [p,tl]=cellAt(xca,xsi);
     const line='CaO '+f(xca)+'  MgO '+f(xmg)+'  SiO₂ '+f(xsi)+'  FeO 5 mol%'
-      +(p?'   ·   primary: '+cap(p):'')+(tl?'   ·   liquidus '+window.tLabel(tl+273.15):'');
-    read.textContent=line; pins.push({xca,xsi,txt:line}); pinMarker(xca,xsi,pins.length); renderCrystHist(); });
+      +(p?'   ·   primary: '+cap(p):'')+(tl?'   ·   liquidus '+window.tTok(tl+273.15):'');
+    window.setT(read, line); pins.push({xca,xsi,txt:line}); pinMarker(xca,xsi,pins.length); renderCrystHist(); });
   new MutationObserver(render).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
   fetch('./crystallization_cao_mgo_sio2.json').then(r=>r.json()).then(j=>{ data=j; render(); legend(); })
     .catch(()=>{ read.textContent='Could not load crystallization data.'; });
@@ -3302,11 +3325,12 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
   }
   // shared helper: render a numbered comparison list into a .calc-hist container
   window.renderCalcHist = window.renderCalcHist || function(el, rows, onClear){
+    el._hist = rows.length ? {rows, onClear} : null;
     if(!rows.length){ el.innerHTML=''; return; }
     el.innerHTML='<div class="chist-head"><b>Saved points</b> <span>('+rows.length+')</span>'
       +'<button class="chist-clear" type="button">clear</button></div>'
       +'<div class="chist-list">'+rows.map((t,i)=>
-        '<div class="chist-row"><span class="chist-n">'+(i+1)+'</span><span class="chist-txt">'+escHtml(t)+'</span></div>'
+        '<div class="chist-row"><span class="chist-n">'+(i+1)+'</span><span class="chist-txt">'+escHtml(window.tFmt(t))+'</span></div>'
       ).join('')+'</div>';
     el.querySelector('.chist-clear').onclick=onClear;
   };
@@ -3339,11 +3363,11 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
             : ph.map(p=>phaseNice(p.name)+' '+(100*p.f<0.5?'<1':(100*p.f).toFixed(0))+' '+r.unit).join(' + '); } }
       catch(e){ phases='phases not computed ('+e.message+')'; }
       if(!L && !phases){ out.textContent='the engine did not converge at this composition.'; return; }
-      const line='FeO '+w(mFe)+'  MgO '+w(mMg)+'  SiO₂ '+w(mSi)+' wt%  @ '+window.tLabel(t)
+      const line='FeO '+w(mFe)+'  MgO '+w(mMg)+'  SiO₂ '+w(mSi)+' wt%  @ '+window.tTok(t)
         +(phases?'   ·   '+phases:'')
         +(L?'   ·   liquid G = '+L.GM.toLocaleString(undefined,{maximumFractionDigits:0})+' J/mol-atom'
             +(L.top.length?', melt: '+L.top.join(', '):''):'');
-      out.textContent=line;
+      window.setT(out, line);
       hist.push({txt:line}); marker(px,py,hist.length); renderHist();
     }, 20);
   });
@@ -3702,7 +3726,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
   };
   go.addEventListener('click',()=>{
     if(!api||!api.M){ read.textContent='Engine still loading, try again in a moment.'; return; }
-    const T=+tsl.value; read.textContent='Solving the diagram at '+window.tLabel(T)+' (a few seconds)…';
+    const T=+tsl.value; window.setT(read, 'Solving the diagram at '+window.tTok(T)+' (a few seconds)…');
     go.disabled=true;
     setTimeout(async()=>{
       try{ await ensure(SYS); }catch(e){ read.textContent='Could not load the database: '+e.message; go.disabled=false; return; }
@@ -3712,11 +3736,11 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
         if(!h) throw new Error('too few solvable phase samples at this temperature');
         model={...h, T}; render();
         const s=((performance.now()-t0)/1000).toFixed(1);
-        read.textContent='Solved at '+window.tLabel(T)+' in '+s+' s. Click a composition to read the phases '
-          +'and how much of each, and pin it to the list (hover previews on desktop).';
+        window.setT(read, 'Solved at '+window.tTok(T)+' in '+s+' s. Click a composition to read the phases '
+          +'and how much of each, and pin it to the list (hover previews on desktop).');
       }catch(err){
         model=null; render();
-        read.textContent='Could not solve this system at '+window.tLabel(T)+' ('+err.message+'). Try another temperature, or email info@odinzen.io.';
+        window.setT(read, 'Could not solve this system at '+window.tTok(T)+' ('+err.message+'). Try another temperature, or email info@odinzen.io.');
       }
       go.disabled=false;
     }, 30);
@@ -3725,9 +3749,9 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     const c=pxToComp((ev.clientX-r.left)*W/r.width,(ev.clientY-r.top)*H/r.height); if(!c){ return; }
     const [xb,xc,xa]=c, a=assemblageAt(model.pts,model.facets,model.boxes,model.phName,[xb,xc]);
     const mA=xa*SYS.mass.A,mB=xb*SYS.mass.B,mC=xc*SYS.mass.C,tot=mA+mB+mC, w=x=>(100*x/tot).toFixed(0);
-    read.textContent=SYS.corners[0]+' '+w(mA)+'  '+SYS.corners[1]+' '+w(mB)+'  '+SYS.corners[2]+' '+w(mC)
-      +(SYS.molOnly?' mol%  @ ':' wt%  @ ')+window.tLabel(model.T)
-      +(a?'   ·   '+asmLabel(a):'   ·   outside the sampled field'); }
+    window.setT(read, SYS.corners[0]+' '+w(mA)+'  '+SYS.corners[1]+' '+w(mB)+'  '+SYS.corners[2]+' '+w(mC)
+      +(SYS.molOnly?' mol%  @ ':' wt%  @ ')+window.tTok(model.T)
+      +(a?'   ·   '+asmLabel(a):'   ·   outside the sampled field')); }
   function pin(ev){ if(!model){ read.textContent='Press Compute first, then tap to pin points.'; return; }
     const r=cv.getBoundingClientRect();
     const c=pxToComp((ev.clientX-r.left)*W/r.width,(ev.clientY-r.top)*H/r.height); if(!c){ return; }
@@ -3743,8 +3767,8 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
         : am.map((p,i)=>({n:phaseNice(p.name), f:m[i]/mt})).sort((x,y)=>y.f-x.f)
             .map(p=>p.n+' '+(100*p.f<0.5?'<1':(100*p.f).toFixed(0))+unit).join('  +  '); }
     const line=SYS.corners[0]+' '+w(mA)+'  '+SYS.corners[1]+' '+w(mB)+'  '+SYS.corners[2]+' '+w(mC)
-      +unit+'  @ '+window.tLabel(model.T)+'   ·   '+amounts;
-    read.textContent=line; pins.push({xb,xc,txt:line}); pinMarker(xb,xc,pins.length); renderLiveHist(); }
+      +unit+'  @ '+window.tTok(model.T)+'   ·   '+amounts;
+    window.setT(read, line); pins.push({xb,xc,txt:line}); pinMarker(xb,xc,pins.length); renderLiveHist(); }
   cv.addEventListener('mousemove',hover);
   cv.addEventListener('click',pin);
   new MutationObserver(render).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
@@ -3857,9 +3881,9 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
       ctx.textBaseline='top'; ctx.fillText(xb.toFixed(1), x, MT+PH+6); }
     ctx.textAlign='right'; ctx.textBaseline='middle';
     const tstep=Math.ceil((TmaxC-TminC)/6/50)*50;
-    for(let T=Math.ceil(TminC/tstep)*tstep;T<=TmaxC;T+=tstep){ const y=Y(T); if(y<MT-1||y>MT+PH+1)continue;
+    for(let u=Math.ceil(window.kToU(TminC)/tstep)*tstep;u<=window.kToU(TmaxC);u+=tstep){ const y=Y(window.uToK(u)); if(y<MT-1||y>MT+PH+1)continue;
       ctx.strokeStyle=line;ctx.beginPath();ctx.moveTo(ML-4,y);ctx.lineTo(ML,y);ctx.stroke();
-      ctx.fillStyle=muted;ctx.fillText(String(Math.round(window.kToU(T))),ML-7,y); }
+      ctx.fillStyle=muted;ctx.fillText(String(u),ML-7,y); }
     ctx.save(); ctx.translate(14,MT+PH/2); ctx.rotate(-Math.PI/2); ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillStyle=ink; ctx.font='12px '+css('--font-ui'); ctx.fillText('Temperature ('+window.tSym()+')',0,0); ctx.restore();
     ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillStyle=ink;
@@ -3885,10 +3909,10 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
       ctx.fillText(nB+' + Liquid', X(xeu+(1-xeu)*0.6), Y((TBc+eut.T)/2));
       ctx.fillText(nA+' + '+nB, ML+PW/2, Y(eut.T-(eut.T-TminC)*0.5));
     }
-    $('bldread').textContent = eut
-      ? 'Eutectic:  '+nB+' mole fraction '+xeu.toFixed(3)+',  '+window.tLabel(eut.T)
-        +'   ·   melting points '+nA+' '+window.tLabel(TAc)+', '+nB+' '+window.tLabel(TBc)
-      : 'No eutectic in range — the two liquidus branches do not meet (try a larger W or check the inputs).';
+    window.setT($('bldread'), eut
+      ? 'Eutectic:  '+nB+' mole fraction '+xeu.toFixed(3)+',  '+window.tTok(eut.T)
+        +'   ·   melting points '+nA+' '+window.tTok(TAc)+', '+nB+' '+window.tTok(TBc)
+      : 'No eutectic in range — the two liquidus branches do not meet (try a larger W or check the inputs).');
     setLegend([]);
   }
 
@@ -3927,11 +3951,11 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
       ctx.fillStyle=css('--ink'); ctx.font='600 12px '+css('--font-ui'); ctx.textAlign='left'; ctx.textBaseline='middle';
       ctx.fillText(window.tLabel(eut.T), ex+9, ey);
     }
-    $('bldread').textContent = eut
-      ? 'Ternary eutectic:  '+window.tLabel(eut.T)+'  at  '
+    window.setT($('bldread'), eut
+      ? 'Ternary eutectic:  '+window.tTok(eut.T)+'  at  '
         +C.map((c,k)=>c.name+' '+eut.x[k].toFixed(3)).join(',  ')
         +'   ·   fields coloured by the first solid to crystallize'
-      : 'No eutectic found — check the input data.';
+      : 'No eutectic found — check the input data.');
     setLegend(C);
   }
 
@@ -4006,7 +4030,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
   function renderEutHist(){ renderCalcHist($('bldhist'), eutHist.slice(),
     ()=>{ eutHist.length=0; renderEutHist(); }); }
   $('bld-save').addEventListener('click',()=>{
-    const t=$('bldread').textContent.trim();
+    const t=($('bldread')._tsrc!==undefined ? $('bldread')._tsrc : $('bldread').textContent).trim();
     if(!/eutectic/i.test(t)) return;            // nothing to save (no eutectic found)
     const {Wa,Wb}=Wvals();
     eutHist.push(t+'   ·   W='+Wa+' kJ/mol'+(Wb?' + '+Wb+'·T':''));
@@ -4223,7 +4247,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
                 O:+document.getElementById('gas-O').value||0, N:+document.getElementById('gas-N').value||0};
     if(feed.C+feed.H+feed.O+feed.N<=0){ msg.textContent='Enter at least one element amount.'; return; }
     const T=window.uToK(+document.getElementById('gas-T').value), P=(+document.getElementById('gas-P').value)*101325.0;
-    if(!isFinite(T)||T<300||T>6000){ msg.textContent='Temperature must be 300-6000 K.'; return; }
+    if(!isFinite(T)||T<300||T>6000){ window.setT(msg, 'Temperature must be between '+window.tTok(300)+' and '+window.tTok(6000)+'.'); return; }
     if(!isFinite(P)||P<=0){ msg.textContent='Pressure must be positive.'; return; }
     const b=gels.map(e=>feed[e]||0);
     const real=document.getElementById('gas-real').checked;
@@ -4233,7 +4257,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
 
     if(coupled){
       // couple the gas to the steelmaking condensate at a shared oxygen potential
-      if(!isFinite(T)||T<300||T>1650){ msg.textContent='Coupled mode covers 300-1650 K (the condensate range).'; return; }
+      if(!isFinite(T)||T<300||T>1650){ window.setT(msg, 'Coupled mode covers '+window.tTok(300)+' to '+window.tTok(1650)+' (the condensate range).'); return; }
       const feCoupled=+document.getElementById('gas-Fe').value||0;
       const els=gels.slice(); if(!els.includes('FE')) els.push('FE');   // gas elements first, then Fe
       const bc=els.map(e=> e==='FE' ? feCoupled : (feed[e]||0));
@@ -4245,7 +4269,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
       const grows=[]; for(let i=0;i<api.gasNsp(gdb);i++){ const nm=api.gasSp(gdb,i); if(res.x[i]>1e-6) grows.push([nm,res.x[i]]); }
       grows.sort((a,b)=>b[1]-a[1]);
       const crows=CONDENSATES.map((c,i)=>[c.label,res.cond[i]]).filter(r=>r[1]>1e-6);
-      out.innerHTML='<b>Coupled gas + condensate at '+window.tLabel(T)+', '+(P/101325).toFixed(2)+' atm</b><br>'
+      window.setT(out, '<b>Coupled gas + condensate at '+window.tTok(T)+', '+(P/101325).toFixed(2)+' atm</b><br>'
         + '<span class="muted" style="font-size:var(--fs-xs)">the furnace gas and the solid metal/oxide share one oxygen potential</span>'
         + '<div style="font-family:var(--font-mono);font-size:var(--fs-sm);margin-top:.5rem">'
         + '<u>gas</u> (mole fractions):<br>'
@@ -4253,7 +4277,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
         + '<br><u>condensate</u> (moles):<br>'
         + (crows.length ? crows.map(([n,v])=>'&nbsp;'+esc(n).padEnd(12)+'  '+v.toFixed(4)).join('<br>')
                         : '&nbsp;none (all in the gas)')
-        + '</div>';
+        + '</div>', true);
       out.hidden=false;
       return;
     }
@@ -4263,9 +4287,9 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     msg.textContent='';
     const rows=[]; for(let i=0;i<api.gasNsp(gdb);i++){ const nm=api.gasSp(gdb,i); if(x[i]>1e-6) rows.push([nm,x[i]]); }
     rows.sort((a,b)=>b[1]-a[1]);
-    out.innerHTML='<b>Equilibrium gas at '+window.tLabel(T)+', '+(P/101325).toFixed(2)+' atm</b> (mole fractions, species &gt; 1e-6):<br>'
+    window.setT(out, '<b>Equilibrium gas at '+window.tTok(T)+', '+(P/101325).toFixed(2)+' atm</b> (mole fractions, species &gt; 1e-6):<br>'
       + '<div style="font-family:var(--font-mono);font-size:var(--fs-sm);margin-top:.4rem;columns:2;max-width:26rem">'
-      + rows.map(([n,v])=>esc(n).padEnd(6)+'  '+v.toFixed(5)).join('<br>') + '</div>';
+      + rows.map(([n,v])=>esc(n).padEnd(6)+'  '+v.toFixed(5)).join('<br>') + '</div>', true);
     out.hidden=false;
   }
   document.getElementById('gas-go').addEventListener('click', compute);
@@ -4348,7 +4372,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     ctx.strokeStyle=css('--line')||'#ccc'; ctx.lineWidth=1; ctx.beginPath();
     ctx.moveTo(PADL,PADT); ctx.lineTo(PADL,H-PADB); ctx.lineTo(W-PADR,H-PADB); ctx.stroke();
     ctx.fillStyle=css('--muted')||'#666'; ctx.font='12px '+(css('--font-ui')||'system-ui');
-    ctx.textAlign='center'; ctx.fillText(window.tSym()==='K'?'Temperature (K)':'Temperature',(PADL+W-PADR)/2,H-8);
+    ctx.textAlign='center'; ctx.fillText('Temperature ('+window.tSym()+')',(PADL+W-PADR)/2,H-8);
     ctx.save(); ctx.translate(16,(PADT+H-PADB)/2); ctx.rotate(-Math.PI/2); ctx.fillText('vapour pressure (bar)',0,0); ctx.restore();
     ctx.textAlign='right';
     for(let e=Math.ceil(ymin);e<=Math.floor(ymax);e++){ const yv=Math.pow(10,e); ctx.fillText('1e'+e,PADL-6,Y(yv)+4); }
@@ -4536,10 +4560,10 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     msg.textContent = fname + ' loaded.';
     showRNote();
     info.hidden = false;
-    info.innerHTML = '<b>' + esc(fname) + '</b> &middot; elements ' + esc(elems.join(', '))
+    window.setT(info, '<b>' + esc(fname) + '</b> &middot; elements ' + esc(elems.join(', '))
       + ' &middot; ' + phases.length + ' phases: ' + esc(phases.join(', '))
       + '<br>Diagram: mole fraction x(' + esc(elemB) + ') vs temperature, '
-      + win[0] + '&ndash;' + win[1] + ' K, computed live from the third-generation Gibbs energies.';
+      + window.tTok(win[0]) + ' to ' + window.tTok(win[1]) + ', computed live from the third-generation Gibbs energies.', true);
     if (pin) pinUpload(fname, text);
     draw();
   }
@@ -4550,6 +4574,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
       api.xtdbDeclareR, showRNote);
   }
   window.addEventListener('hmqmqa-gasr', () => { if (handle) { showRNote(); if (elems.length >= 2) draw(); } });
+  window.onTUnit(() => { if (handle && elems.length >= 2) draw(); });
 
   // ---- diagram: stable-phase map by lower convex hull at each temperature ----
   function stableMap(W, H){
@@ -4666,14 +4691,17 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
       g.fillText((t/10).toFixed(1), x, mT+PH+6); }
     g.textAlign='right'; g.textBaseline='middle';
     const t0=win[0], t1=win[1]; const nTicks=6;
-    for (let t=0;t<=nTicks;t++){ const T=t0+(t1-t0)*t/nTicks; const y=mT+PH-PH*(T-t0)/(t1-t0);
+    // round tick values in the unit shown, about nTicks of them
+    const span=t1-t0, step=[1000,500,200,100,50,25,20,10,5].find(s=>span/s>=nTicks-2)||5;
+    for (let u=Math.ceil(window.kToU(t0)/step)*step; u<=window.kToU(t1)+1e-9; u+=step){
+      const T=window.uToK(u), y=mT+PH-PH*(T-t0)/(t1-t0);
       g.beginPath(); g.moveTo(mL-4,y); g.lineTo(mL,y); g.stroke();
-      g.fillText(Math.round(T), mL-6, y); }
+      g.fillText(String(u), mL-6, y); }
     g.fillStyle=ink; g.textAlign='center'; g.textBaseline='alphabetic';
     g.font='13px system-ui,sans-serif';
     g.fillText('x('+elemB+')', mL+PW/2, cssH-8);
     g.save(); g.translate(14, mT+PH/2); g.rotate(-Math.PI/2);
-    g.fillText('Temperature / K', 0, 0); g.restore();
+    g.fillText('Temperature / '+window.tSym(), 0, 0); g.restore();
     g.textAlign='left'; g.font='600 13px system-ui,sans-serif';
     g.fillText(elems.join('–')+'  (XTDB, third generation)', mL, mT-10);
 

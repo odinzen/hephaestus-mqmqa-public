@@ -77,9 +77,11 @@ excess terms, and the coordination-number recursion) is a translation into C of
 pycalphad's `ModelMQMQA` (`pycalphad/models/model_mqmqa.py`). It was written with that
 source open, method by method, and then checked against pycalphad on shared databases.
 It follows pycalphad's choices where the papers leave room, including the AB/XX
-coordination numbers, which pycalphad takes from Thermochimica. Because the code was
-derived from pycalphad, agreement with pycalphad confirms the translation; it is not an
-independent check of the model.
+coordination numbers, which pycalphad takes from Thermochimica. Following pycalphad was
+deliberate, so that its users meet the same model, conventions and numbers here, and a
+database moves between the two tools unchanged. Because the code was derived from
+pycalphad, agreement with pycalphad confirms the translation; it is not an independent
+check of the model.
 
 Other parts consulted third-party source as follows:
 

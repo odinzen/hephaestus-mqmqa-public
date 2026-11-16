@@ -504,6 +504,14 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
       <div id="pdout" class="hidden">
         <div class="pdwrap"><canvas id="pdcanvas"></canvas></div>
         <div class="legend" id="pdlegend"></div>
+        <div class="row" id="pdmeas-row">
+          <label class="filebtn ghost" title="A MOLTSA .exp file, or a CSV with one column per end member (mole fractions, headed by its formula), T or T_K or T_C, and optional type (liquidus, solidus, invariant) and reference columns. Read in this browser only.">Overlay measured points (MOLTSA .exp or .csv)
+            <input type="file" id="pdmeas" accept=".exp,.EXP,.json,.JSON,.csv,.CSV,application/json,text/csv,text/plain" multiple>
+          </label>
+          <button class="filebtn ghost" id="pdmeas-clear" type="button" hidden>Clear measured points</button>
+          <span id="pdmeas-msg" class="muted"></span>
+        </div>
+        <div class="legend" id="pdmeas-legend"></div>
         <div class="tern-read" id="pdread">Tap the diagram to read a composition and pin it.</div>
         <div id="pdhist" class="calc-hist"></div>
         <div class="tern-live" id="scheilbox">
@@ -566,8 +574,8 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
     <p class="tern-note">Which silicate crystallizes first from the calibrated CaO&ndash;FeO&ndash;MgO&ndash;SiO<sub>2</sub>
       slag melt, and at what temperature. The liquid, the olivine / orthopyroxene / clinopyroxene solid
       solutions and the oxide solids sit on one calibrated scale (diopside melts at <span data-k="1673">1673&nbsp;K</span>,
-      forsterite at <span data-k="2080">2080&nbsp;K</span>, <span data-dk="83">83&nbsp;K</span> below the measured value); the multi-phase equilibrium is precomputed and validated against
-      pycalphad. Mafic melts crystallize olivine, calcium-rich melts crystallize clinopyroxene. Move
+      forsterite at <span data-k="2080">2080&nbsp;K</span>, <span data-dk="83">83&nbsp;K</span> below the measured value); the map is precomputed with the engine's general equilibrium solver, and each edge
+      of the triangle (one oxide absent) shows the neighbouring interior composition. Mafic melts crystallize olivine, calcium-rich melts crystallize clinopyroxene. Move
       over the diagram to read a composition, its primary phase and the liquidus. Like the section
       above, this is a precomputed showcase of the built-in slag database only, not generated for
       other or uploaded systems &mdash; the live ternary below covers those.</p>
@@ -862,7 +870,7 @@ document.documentElement.dataset.theme = (_t==='light'||_t==='dark') ? _t : 'dar
 
 </div>
 
-<script src="./hephaestus.js?v=b96085caacdc"></script>
+<script src="./hephaestus.js?v=63ff081050ae"></script>
 <script>
 let api = null, db = 0, phase = 0, nPairs = 0, catNames = [], anNames = [];
 // Values of the labeled gas-constant choices, for the page's own text; calculations take
@@ -1129,6 +1137,9 @@ Hephaestus().then(M => {
   };
   api.M = M;
   if (window._bldRedraw) window._bldRedraw();   // drawn before the engine loaded
+  // the library window opens a shelf dataset in a fresh tab as index.html#orchid=<file>
+  const m = /^#orchid=(.+)$/.exec(location.hash);
+  if (m) loadOrchid(decodeURIComponent(m[1]));
 });
 
 // Session-only uploaded databases, each pinned as a reload button so you can flip between the
@@ -1197,6 +1208,39 @@ async function loadShipped(file) {
     document.getElementById('loadmsg').textContent = 'Database not found next to this page.';
   }
 }
+// A dataset from the ORCHID shelf (web/orchid/, the SGTE binary collection of Hallstedt 2025):
+// served from this site like the open databases, so no other host sees the visitor, and loaded
+// only when its SHA-256 is the one web/orchid/catalog.json records.
+async function loadOrchid(file) {
+  const msg = document.getElementById('loadmsg');
+  if (!api) { msg.textContent = 'Engine still loading, please try again in a moment.'; return; }
+  msg.textContent = 'Loading ' + file + '…';
+  try {
+    const cat = window._orchidCatalog ||
+      (window._orchidCatalog = await (await fetch('./orchid/catalog.json')).json());
+    const entry = cat.datasets.find(d => d.file === file);
+    if (!entry) { msg.textContent = file + ' is not on the ORCHID shelf.'; return; }
+    const buf = await (await fetch('./orchid/sgte-binary/' + encodeURIComponent(file))).arrayBuffer();
+    let checked = false;
+    if (window.crypto && crypto.subtle) {
+      const sha = [...new Uint8Array(await crypto.subtle.digest('SHA-256', buf))]
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+      if (sha !== entry.sha256) { msg.textContent = file + ' does not match its recorded fingerprint, so it was not loaded.'; return; }
+      checked = true;
+    }
+    loadDatabase(new TextDecoder('latin1').decode(buf), file);
+    window._pdPreset = null; applyPdPreset();
+    if (db) msg.textContent += ' From the SGTE binary collection (Hallstedt 2025, CC BY 4.0) via ORCHID'
+      + (entry.assessment.citation ? '; assessment: ' + entry.assessment.citation : '')
+      + (entry.assessment.doi ? ', doi:' + entry.assessment.doi : '') + '.'
+      + (entry.checked ? '' : ' Check before use: ' + entry.caution.join('; ') + '.')
+      + (checked ? '' : ' Its fingerprint could not be checked on this connection.');
+  } catch (err) {
+    msg.textContent = 'Could not load ' + file + ' from the ORCHID shelf.';
+  }
+}
+window.loadOrchid = loadOrchid;
+
 // Save the loaded database in another format. The C writers build the whole file or refuse
 // with the reason (a model the target cannot hold); nothing leaves the browser.
 function saveConverted(prefix, handle, srcName, fmt, errFn, msgEl) {
@@ -2856,6 +2900,11 @@ function drawDiagram(){
   if(xlo<1e-9){ ctx.textAlign='left';  ctx.fillText(endA.label, L, BP+20); }
   if(xhi>1-1e-9){ ctx.textAlign='right'; ctx.fillText(endB.label, R, BP+20); }
 
+  // measured points loaded by the user, over the calculated diagram
+  if(pdMeasured.length){ ctx.save(); ctx.beginPath(); ctx.rect(L-1,TP-1,PW+2,PH+2); ctx.clip();
+    drawMeasured(ctx, X, Y, col); ctx.restore(); }
+  renderMeasLegend();
+
   // pinned tap-to-read points, numbered to the saved-points list
   if(pdPins.length){ const pointer=getComputedStyle(document.documentElement).getPropertyValue('--pointer').trim();
     ctx.save(); ctx.beginPath(); ctx.rect(L-1,TP-1,PW+2,PH+2); ctx.clip();
@@ -2880,6 +2929,145 @@ function renderLegend(){
     '<span>'+line+' liquidus</span>'+
     '<span>&#9711; melting invariant</span>';
 }
+
+// Measured phase-diagram temperatures over the calculated binary: MOLTSA's .exp datasets (the
+// JSON its optimizer exports) or a plain CSV, read in this browser only. A point is placed on the
+// join by matching its components' formulas to the end members' element counts, and a liquidus
+// point is scored against the calculated liquidus at its composition.
+const pdMeasured = [];   // [{name, kind, ref, comps:[{els, formula, x:[...]}], T:[... K]}]
+const MEAS_COLORS = ['#e8590c', '#1c7ed6', '#2f9e44', '#ae3ec9', '#f08c00', '#0c8599', '#c2255c'];
+const MEAS_SHAPE = { liquidus: 'circle', solidus: 'triangle', invariant: 'diamond' };
+function pdFormulaEls(f){
+  const out = {};
+  String(f).replace(/\s+/g, '').replace(/([A-Z][a-z]?)(\d*\.?\d*)/g, (m, e, n) => {
+    const k = e.toUpperCase(); out[k] = (out[k] || 0) + (n ? parseFloat(n) : 1); return ''; });
+  return out;
+}
+function pdSameEls(a, b){
+  const up = o => Object.fromEntries(Object.entries(o || {}).map(([k, v]) => [k.toUpperCase(), v]));
+  const A = up(a), B = up(b), ka = Object.keys(A);
+  return ka.length > 0 && ka.length === Object.keys(B).length && ka.every(k => Math.abs(A[k] - (B[k] || 0)) < 1e-9);
+}
+function measKind(s){
+  s = String(s || '').toLowerCase();
+  return s.includes('liquidus') ? 'liquidus' : s.includes('solidus') ? 'solidus'
+       : (s.includes('invariant') || s.includes('eutectic') || s.includes('peritectic')) ? 'invariant' : null;
+}
+function measFromExp(text, file){
+  let j = JSON.parse(text); if (!Array.isArray(j)) j = [j];
+  const sets = [], skipped = [];
+  for (const d of j) {
+    const kind = measKind(d['class']);
+    const mv = (d.mv || []).find(m => m.condition === 'T');
+    const molar = Array.isArray(d.components) && d.components.every(c => /mole fraction/i.test(c.unit || 'mole fraction'));
+    if (!kind || !mv || !molar) { skipped.push(d.name || file); continue; }
+    const toK = /^c/i.test(String(mv.unit || 'K')) ? v => v + 273.15 : v => v;
+    sets.push({ name: d.name || file, kind, ref: (d.table && d.table.reference) || '',
+                comps: d.components.map(c => ({ formula: c.formula, els: pdFormulaEls(c.formula), x: c.value.map(Number) })),
+                T: mv.value.map(v => toK(Number(v))) });
+  }
+  return { sets, skipped };
+}
+function measFromCsv(text, file){
+  const rows = text.split(/\r?\n/).filter(l => l.trim()).map(l => l.split(',').map(s => s.trim()));
+  const head = rows.shift() || [], lower = head.map(h => h.toLowerCase());
+  const iT = lower.findIndex(h => h === 't' || h === 't_k' || h === 't_c');
+  if (iT < 0) throw new Error('no T, T_K or T_C column');
+  const iU = lower.indexOf('unit'), iK = lower.findIndex(h => h === 'type' || h === 'kind'),
+        iR = lower.findIndex(h => h === 'reference' || h === 'source');
+  const compCols = head.map((h, i) => i).filter(i => i !== iT && i !== iU && i !== iK && i !== iR);
+  const groups = new Map();
+  for (const r of rows) {
+    const kind = iK >= 0 ? measKind(r[iK]) : 'liquidus';
+    if (!kind) continue;
+    const ref = iR >= 0 ? r[iR] : '';
+    const key = kind + '|' + ref;
+    if (!groups.has(key)) groups.set(key, { name: file + (ref ? ' (' + ref + ')' : ''), kind, ref,
+      comps: compCols.map(i => ({ formula: head[i], els: pdFormulaEls(head[i]), x: [] })), T: [] });
+    const g = groups.get(key);
+    const celsius = lower[iT] === 't_c' || (iU >= 0 && /^c/i.test(r[iU] || ''));
+    g.T.push(Number(r[iT]) + (celsius ? 273.15 : 0));
+    compCols.forEach((i, k) => g.comps[k].x.push(Number(r[i])));
+  }
+  return { sets: [...groups.values()], skipped: [] };
+}
+// the points of one dataset that lie on the join, as {xi, T}; null when its components are not the join's
+function measOnJoin(set, endA, endB){
+  const ia = set.comps.findIndex(c => pdSameEls(c.els, endA.els)), ib = set.comps.findIndex(c => pdSameEls(c.els, endB.els));
+  if (ia < 0 || ib < 0) return null;
+  const pts = [];
+  for (let k = 0; k < set.T.length; k++) {
+    const rest = set.comps.reduce((s, c, i) => i === ia || i === ib ? s : s + (c.x[k] || 0), 0);
+    const a = set.comps[ia].x[k], b = set.comps[ib].x[k];
+    if (rest > 1e-6 || !(a + b > 0) || !isFinite(set.T[k])) continue;
+    pts.push({ xi: b / (a + b), T: set.T[k] });
+  }
+  return pts;
+}
+// calculated liquidus at a join fraction, from the drawn grid; null when it lies outside the range
+function pdLiquidusAt(xi){
+  const { cols, xiCells } = pdResult, nT = cols.length;
+  const c = Math.min(xiCells - 1, Math.max(0, Math.floor(xi * xiCells)));
+  if (cols[nT - 1].cls[c] !== 0) return null;
+  for (let j = nT - 1; j >= 0; j--) if (cols[j].cls[c] !== 0) return 0.5 * (cols[j].T + cols[j + 1].T);
+  return null;
+}
+function drawMeasured(ctx, X, Y, col){
+  pdMeasured.forEach((set, s) => {
+    const pts = measOnJoin(set, pdResult.endA, pdResult.endB);
+    if (!pts) return;
+    ctx.fillStyle = MEAS_COLORS[s % MEAS_COLORS.length]; ctx.strokeStyle = rgba(col.card, 1); ctx.lineWidth = 1.2;
+    for (const p of pts) {
+      const x = X(p.xi), y = Y(p.T), r = 4.5;
+      ctx.beginPath();
+      if (MEAS_SHAPE[set.kind] === 'triangle') { ctx.moveTo(x, y - r - 1); ctx.lineTo(x + r, y + r - 1); ctx.lineTo(x - r, y + r - 1); ctx.closePath(); }
+      else if (MEAS_SHAPE[set.kind] === 'diamond') { ctx.moveTo(x, y - r - 1); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r + 1); ctx.lineTo(x - r, y); ctx.closePath(); }
+      else ctx.arc(x, y, r, 0, 2 * Math.PI);
+      ctx.fill(); ctx.stroke();
+    }
+  });
+}
+function renderMeasLegend(){
+  const lg = document.getElementById('pdmeas-legend');
+  document.getElementById('pdmeas-clear').hidden = !pdMeasured.length;
+  if (!pdMeasured.length || !pdResult) { lg.textContent = ''; return; }
+  const glyph = { liquidus: '&#9679;', solidus: '&#9650;', invariant: '&#9670;' };
+  lg.innerHTML = pdMeasured.map((set, s) => {
+    const pts = measOnJoin(set, pdResult.endA, pdResult.endB);
+    const head = '<span style="color:' + MEAS_COLORS[s % MEAS_COLORS.length] + '">' + glyph[set.kind] + '</span> '
+      + escHtml(set.name) + (set.ref && !set.name.includes(set.ref) ? ' (' + escHtml(set.ref) + ')' : '') + ', ' + set.kind;
+    if (!pts) return '<span>' + head + ': not on this join (' + escHtml(set.comps.map(c => c.formula).join(', ')) + ')</span>';
+    let tail = ', ' + pts.length + ' point' + (pts.length === 1 ? '' : 's');
+    if (set.kind === 'liquidus') {
+      const d = pts.map(p => { const L = pdLiquidusAt(p.xi); return L == null ? null : L - p.T; }).filter(v => v != null);
+      if (d.length) {
+        const mean = d.reduce((a, b) => a + b, 0) / d.length, rms = Math.sqrt(d.reduce((a, b) => a + b * b, 0) / d.length);
+        tail += '; calculated minus measured liquidus ' + (mean >= 0 ? '+' : '') + mean.toFixed(0) + ' K mean, '
+              + rms.toFixed(0) + ' K RMS' + (d.length < pts.length ? ' (' + d.length + ' inside the temperature range)' : '');
+      }
+    }
+    return '<span>' + head + tail + '</span>';
+  }).join('');
+}
+document.getElementById('pdmeas').addEventListener('change', async e => {
+  const msg = document.getElementById('pdmeas-msg'); let added = 0, skipped = 0, errs = [];
+  for (const f of e.target.files) {
+    try {
+      const text = await f.text();
+      const r = /^\s*[\[{]/.test(text) ? measFromExp(text, f.name) : measFromCsv(text, f.name);
+      pdMeasured.push(...r.sets); added += r.sets.length; skipped += r.skipped.length;
+    } catch (err) { errs.push(f.name + ': ' + err.message); }
+  }
+  e.target.value = '';
+  msg.textContent = 'Read ' + added + ' dataset' + (added === 1 ? '' : 's')
+    + (skipped ? '; ' + skipped + ' skipped (not liquidus, solidus or invariant temperatures)' : '')
+    + (errs.length ? '; could not read ' + errs.join('; ') : '') + '. Nothing leaves this browser.';
+  if (pdResult) drawDiagram();
+});
+document.getElementById('pdmeas-clear').addEventListener('click', () => {
+  pdMeasured.length = 0; document.getElementById('pdmeas-msg').textContent = '';
+  if (pdResult) drawDiagram();
+});
 
 document.getElementById('pdgen').addEventListener('click', generateDiagram);
 // window change re-renders the already computed result (no recompute) and re-bounds Scheil
@@ -3209,8 +3397,8 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
 </script>
 <script>
 /* Steel-slag crystallization viewer: the precomputed CaO-MgO-SiO2 primary-phase field at fixed
-   FeO from the CALIBRATED combined liquid+solids model (diopside 1670 K / forsterite 2163 K),
-   validated vs pycalphad. Self-contained; own canvas. */
+   FeO from the combined liquid+solids model, computed by the engine's general solver
+   (data/cao-feo-mgo-sio2/crystallization_gem.py). Self-contained; own canvas. */
 (function(){
   const cv=document.getElementById('crystcanvas'); if(!cv) return;
   const ctx=cv.getContext('2d');
@@ -4033,7 +4221,7 @@ window.onTUnit(()=>{ if(pdResult) drawDiagram(); });
     const t=($('bldread')._tsrc!==undefined ? $('bldread')._tsrc : $('bldread').textContent).trim();
     if(!/eutectic/i.test(t)) return;            // nothing to save (no eutectic found)
     const {Wa,Wb}=Wvals();
-    eutHist.push(t+'   ·   W='+Wa+' kJ/mol'+(Wb?' + '+Wb+'·T':''));
+    eutHist.push(t+'   ·   W='+Wa/1000+' kJ/mol'+(Wb?' + '+Wb+'·T':''));   // Wvals() is in J/mol
     renderEutHist();
   });
   new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});

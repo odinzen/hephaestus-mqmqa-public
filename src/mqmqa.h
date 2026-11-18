@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /* Engine version, recorded in the header of every file the writers produce. */
-#define HEPHAESTUS_VERSION "0.8.0"
+#define HEPHAESTUS_VERSION "0.8.1"
 MQMQA_API const char *mqmqa_version(void);
 
 /* Gas constant R (J/mol/K). Three values are in use, each matching the data it came

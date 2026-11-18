@@ -60,19 +60,3 @@ International licence (https://creativecommons.org/licenses/by/4.0/), as distrib
 ORCHID (orchid-project.org; R. Arróyave, J. Saal, D. Shin), whose catalogue is MIT-licensed.
 Each dataset's header names the assessment its parameters were taken from; cite that
 assessment, Hallstedt (2025) and ORCHID when using a dataset.
-
-------------------------------------------------------------------------------
-
-The Hermes tab of web/index.html runs, unchanged, Hermes 0.3.0
-(https://github.com/odinzen/hermes, doi:10.5281/zenodo.23923573; MIT, copyright
-Nigel Lee En Hew and Odinzen LLC, licence text in web/hermes/LICENSE-hermes.txt). The
-wheel web/hermes/hermes-0.3.0-py3-none-any.whl is built from the v0.3.0 release commit, and
-web/hermes/fe3pt_demo.npz is every fourth volume of the Fe3Pt example data in that
-release's tests/test_data/Fe3Pt_three_configs.pkl. Hermes's configuration.py and system.py
-were read for its API; web/hermes_worker.js calls Hermes and copies no code from it.
-
-The tab runs on Pyodide 0.28.3 (MPL-2.0, https://pyodide.org) with its numpy (BSD-3-Clause),
-scipy (BSD-3-Clause) and OpenBLAS (BSD-3-Clause) builds, packaging (Apache-2.0 or
-BSD-2-Clause), plotly 7.1.0 (MIT) and narwhals 2.29.0 (MIT). scripts/build_hermes_web.py
-fetches these into web/vendor/pyodide/ with pinned checksums; they are not tracked in git,
-and each keeps its own licence.

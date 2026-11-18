@@ -349,19 +349,6 @@ locally:
 
     cd web && python -m http.server 8123
 
-A second tab runs [Hermes](https://github.com/odinzen/hermes) 0.3.0 (MIT,
-doi:10.5281/zenodo.23923573), which combines the free energies of competing
-configurations into the free energy of the whole system (zentropy) and gives volume,
-thermal expansion, entropy, heat capacity, bulk modulus, configuration probabilities and
-the pressure-temperature phase diagram. It runs Hermes unchanged in Python in a Web Worker
-(`web/hermes_worker.js`) on Pyodide, served from this site like everything else. The Python
-runtime (about 40 MB) is not tracked in git; fetch it, and rebuild the Hermes wheel and the
-Fe3Pt example in `web/hermes/`, with
-
-    python scripts/build_hermes_web.py --hermes-repo <clone of odinzen/hermes>
-
-Without it the rest of the page works and the Hermes tab says what is missing.
-
 The hosted site is the `gh-pages` branch: the tracked contents of `web/` at the branch
 root, no CI and no build step. GitHub Pages serves it once enabled (Settings -> Pages ->
 Deploy from a branch -> `gh-pages`, `/ (root)`). After changing `web/` on `main`,

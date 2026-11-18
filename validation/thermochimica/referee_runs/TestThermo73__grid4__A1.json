@@ -1,0 +1,603 @@
+ {
+ "1":
+ {
+   "solution phases": {
+     "GAS": {
+       "phase model": "IDMX",
+       "moles": 0.0,
+       "driving force":   1.3104602691768781E+001,
+       "species": {
+         "S": {
+           "mole fraction":   2.0332800093503789E-006 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "S2": {
+           "mole fraction":   2.5586789083469052E-009 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "S3": {
+           "mole fraction":   7.7658554737607861E-016 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "S4": {
+           "mole fraction":   3.0920124379741195E-023 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   4.0000000000000000      ]
+         },
+         "S5": {
+           "mole fraction":   2.9614831288877255E-028 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   5.0000000000000000      ]
+         },
+         "S6": {
+           "mole fraction":   9.8397516637634697E-036 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   6.0000000000000000      ]
+         },
+         "S7": {
+           "mole fraction":   5.9399322471937152E-042 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   7.0000000000000000      ]
+         },
+         "S8": {
+           "mole fraction":   3.0593250645625081E-048 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   8.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Ca": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Mn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "S": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "IONIC_LIQ": {
+       "phase model": "SUBI",
+       "moles":   9.2096469118124480E-001,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "Ca+2:S-2": {
+           "mole fraction":   8.0097007420834183E-010 ,
+           "moles":  7.3766515703870431E-010,
+           "chemical potential":  -1891057.2512057198      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "Ca+2:Va": {
+           "mole fraction":   3.8516094714322526E-006 ,
+           "moles":  3.5471963274083622E-006,
+           "chemical potential":  -449634.38359597098      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "": {
+           "mole fraction":   1.2835817934824892E-006 ,
+           "moles":  1.1821335100404690E-006,
+           "chemical potential":  -495894.21382597764      ,
+           "stoichiometry": [  -0.0000000000000000      ,  -0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "Mn+2:S-2": {
+           "mole fraction":   2.0791293466618466E-004 ,
+           "moles":  1.9148047166742908E-004,
+           "chemical potential":  -1419478.6282873016      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "Mn+2:Va": {
+           "mole fraction":  0.99978695107309878      ,
+           "moles":  9.2076848064207473E-001,
+           "chemical potential":  -213845.07213676182      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Ca": {
+           "moles of element in phase":  3.5486716577224399E-006,
+           "mole fraction of phase by element":   3.8508095030136837E-006 ,
+           "mole fraction of element by phase":   1.0000068401921516     
+         },
+         "Mn": {
+           "moles of element in phase":  9.2115144158540951E-001,
+           "mole fraction of phase by element":  0.99957929814460533      ,
+           "mole fraction of element by phase":  0.99999999999976230     
+         },
+         "S": {
+           "moles of element in phase":  3.8414455217521273E-004,
+           "mole fraction of phase by element":   4.1685104589153464E-004 ,
+           "mole fraction of element by phase":   1.0000001252465471     
+         }
+       }
+     },
+     "IONIC_LIQ#3": {
+       "phase model": "SUBI",
+       "moles": 0.0,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "Ca+2:S-2": {
+           "mole fraction":   2.8286931416630118E-006 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -1541615.1742326601      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "Ca+2:Va": {
+           "mole fraction":   1.8761554482468730E-003 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -316755.04447640647      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "": {
+           "mole fraction":   6.2743217055995530E-004 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -362380.42489143158      ,
+           "stoichiometry": [  -0.0000000000000000      ,  -0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "Mn+2:S-2": {
+           "mole fraction":   1.5016642221078755E-003 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -1336010.4581641480      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "Mn+2:Va": {
+           "mole fraction":  0.99599191946594356      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -213952.68644215039      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Ca": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.8733574753818742E-003 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Mn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.99450656367251622      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "S": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   3.6200788521021363E-003 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "ALABANDITE": {
+       "phase model": "SUBL",
+       "moles": 0.0,
+       "driving force":   2.4126051705473759E+000,
+       "species": {
+         "Ca:S": {
+           "mole fraction":   1.0000000000000028E-005 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -783085.31606313540      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "Mn:S": {
+           "mole fraction":  0.99999000000000027      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -605430.26802590559      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "Ca":    1.0000000000000026E-005 ,
+             "Mn":   0.99998999999999993     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "S":   0.99999999999999989     
+           }
+         }
+       },
+       "elements": {
+         "Ca": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   5.0000000000000131E-006 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Mn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.49999500000000002      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "S": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.50000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "BCC_A2": {
+       "phase model": "SUBLM",
+       "moles": 0.0,
+       "driving force":   3.1910016678338970E+000,
+       "Neel temperature":    563.27201488570904      ,
+       "Magnetic moment per atom":   0.26221283451576111      ,
+       "species": {
+         "Ca:Va": {
+           "mole fraction":   2.8795953134824186E-002 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -242813.98633007647      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "Mn:Va": {
+           "mole fraction":  0.97115864635467075      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -6895.7006934232541      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "S:Va": {
+           "mole fraction":   4.5400510505306450E-005 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -289004.36355082178      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "Ca":    2.8795953134824175E-002 ,
+             "Mn":   0.97115864635467042      ,
+             "S":    4.5400510505306443E-005
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    3.0000000000000000      ,
+           "constituents": {
+             "Va":   0.99999999999999989     
+           }
+         }
+       },
+       "elements": {
+         "Ca": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   2.8795953134824179E-002 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Mn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.97115864635467053      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "S": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   4.5400510505306443E-005 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "FCC_A1": {
+       "phase model": "SUBLM",
+       "moles": 0.0,
+       "driving force":   3.2261271114996042E+000,
+       "Neel temperature":    526.03012564214316      ,
+       "Magnetic moment per atom":   0.60396051462616440      ,
+       "species": {
+         "Ca:Va": {
+           "mole fraction":   2.5819084026091843E-002 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -240511.03775181805      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "Mn:Va": {
+           "mole fraction":  0.97413083643110154      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -4618.7706487556179      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "S:Va": {
+           "mole fraction":   5.0079542806681513E-005 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -286715.29558661307      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "Ca":    2.5819084026091819E-002 ,
+             "Mn":   0.97413083643110066      ,
+             "S":    5.0079542806681465E-005
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "Va":   0.99999999999999911     
+           }
+         }
+       },
+       "elements": {
+         "Ca": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   2.5819084026091843E-002 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Mn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.97413083643110154      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "S": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   5.0079542806681513E-005 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "HCP_A3": {
+       "phase model": "SUBLM",
+       "moles": 0.0,
+       "driving force":   3.1206847340230615E-001,
+       "Neel temperature":    539.99406000540012      ,
+       "Magnetic moment per atom":   0.61999318000620018      ,
+       "species": {
+         "Ca:Va": {
+           "mole fraction":   1.0000000000000028E-005 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -404965.36545227363      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "Mn:Va": {
+           "mole fraction":  0.99999000000000027      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -200353.02407383983      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "Ca":    1.0000000000000026E-005 ,
+             "Mn":   0.99998999999999993     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":   0.50000000000000000      ,
+           "constituents": {
+             "Va":   0.99999999999999989     
+           }
+         }
+       },
+       "elements": {
+         "Ca": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000026E-005 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Mn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.99999000000000005      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "S": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "PYRRHOTITE": {
+       "phase model": "SUBL",
+       "moles": 0.0,
+       "driving force":   1.3338115464027691E+001,
+       "species": {
+         "Mn:S": {
+           "mole fraction":   1.8756401119850753E-003 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -715880.85743340990      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "Va:S": {
+           "mole fraction":  0.99812435988801496      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   82390.522991421371      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "Mn":    2.7512802239701064E-003 ,
+             "Va":   0.99724871977603013     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "S":    1.0000000000000002     
+           }
+         }
+       },
+       "elements": {
+         "Ca": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Mn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.8721286723524138E-003 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "S": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.99812787132764758      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "CBCC_A12": {
+       "moles": 0.0,
+       "chemical potential":  -198180.31200014160      ,
+       "driving force":   7.2462902599568402E-001,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ],
+       "elements": {
+         "Ca": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Mn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "S": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "CUB_A13": {
+       "moles": 0.0,
+       "chemical potential":  -2082.8244135860991      ,
+       "driving force":   9.7958136556647286E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ],
+       "elements": {
+         "Ca": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Mn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "S": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "MONOCLINIC": {
+       "moles": 0.0,
+       "chemical potential":  -180585.65043759660      ,
+       "driving force":   1.4585715606157670E+001,
+       "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "Ca": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Mn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "S": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "ORTHORHOMBIC_S": {
+       "moles": 0.0,
+       "chemical potential":  -176149.91789021678      ,
+       "driving force":   1.4790906143784289E+001,
+       "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "Ca": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Mn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "S": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "PYRITE": {
+       "moles": 0.0,
+       "chemical potential":  -784035.16018057510      ,
+       "driving force":   6.5008420177170763E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   2.0000000000000000      ],
+       "elements": {
+         "Ca": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Mn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.33333333333333331      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "S": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.66666666666666663      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "elements": {
+     "Ca": {
+       "moles":    3.5486473842924535E-006 ,
+       "element potential":  -4.4963433280098042E+005
+     },
+     "Mn": {
+       "moles":   0.92115144158562845      ,
+       "element potential":  -2.1384507214241539E+005
+     },
+     "S": {
+       "moles":    3.8414450406244001E-004 ,
+       "element potential":  -4.9589421285673510E+005
+     }
+   },
+   "temperature":    2600.0000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -1.9717578711013292E+005,
+   "entropy":   0.0000000000000000E+000,
+   "enthalpy":   0.0000000000000000E+000,
+   "heat capacity":   0.0000000000000000E+000,
+   "functional norm":    5.8481065092077779E-008 ,
+   "GEM iterations":           47 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            0
+ }
+ }

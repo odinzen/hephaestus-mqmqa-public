@@ -1,0 +1,548 @@
+ {
+ "1":
+ {
+   "solution phases": {
+     "Liquid": {
+       "phase model": "SUBG",
+       "moles": 0.0,
+       "driving force":   6.9639671711793612E-003,
+       "cations": {
+         "C": {
+           "mole fraction":   0.15211368828183547      ,
+           "charge":    1.0000000000000000      ,
+           "chemical group":            1
+         },
+         "Fe": {
+           "mole fraction":   0.83272256356639462      ,
+           "charge":    1.0000000000000000      ,
+           "chemical group":            2
+         },
+         "Cu": {
+           "mole fraction":    1.5163748151769921E-002 ,
+           "charge":    1.0000000000000000      ,
+           "chemical group":            2
+         }
+       },
+       "anions": {
+         "Va": {
+           "mole fraction":    1.0000000000000000      ,
+           "charge":   -1.0000000000000000      ,
+           "chemical group":            1
+         }
+       },
+       "moles of endmembers":    0.0000000000000000      ,
+       "endmembers": {
+         "C": {
+           "mole fraction":   0.15211368828183547      ,
+           "constituents": [ "C", "Va" ],
+           "stoichiometric coefficients": [   1.0000000000000000      ,   1.0000000000000000      ]
+           },
+         "Fe": {
+           "mole fraction":   0.83272256356639462      ,
+           "constituents": [ "Fe", "Va" ],
+           "stoichiometric coefficients": [   1.0000000000000000      ,   1.0000000000000000      ]
+           },
+         "Cu": {
+           "mole fraction":    1.5163748151769922E-002 ,
+           "constituents": [ "Cu", "Va" ],
+           "stoichiometric coefficients": [   1.0000000000000000      ,   1.0000000000000000      ]
+           }
+       },
+       "quadruplets": {
+         "C-C-Va-Va": {
+           "mole fraction":   4.3981476813544206E-003 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -6562.5019235809277      ,
+           "constituents": [ "C", "C", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ],
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,  0.33333333333333331      ]
+         },
+         "Fe-Fe-Va-Va": {
+           "mole fraction":  0.61624915563878346      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -21435.825334321875      ,
+           "constituents": [ "Fe", "Fe", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ],
+           "stoichiometry": [   0.0000000000000000      ,  0.33333333333333331      ,   0.0000000000000000      ]
+         },
+         "Cu-Cu-Va-Va": {
+           "mole fraction":   1.2679298120452096E-003 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -22262.471842528088      ,
+           "constituents": [ "Cu", "Cu", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ],
+           "stoichiometry": [  0.33333333333333331      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "C-Fe-Va-Va": {
+           "mole fraction":  0.34506071638799074      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -24936.715473890501      ,
+           "constituents": [ "C", "Fe", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   3.0000000000000000      ,   4.0000000000000000      ,   4.0000000000000000      ],
+           "stoichiometry": [   0.0000000000000000      ,  0.33333333333333331      ,  0.16666666666666666      ]
+         },
+         "C-Cu-Va-Va": {
+           "mole fraction":   2.8588230639209821E-003 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -14408.699563811222      ,
+           "constituents": [ "C", "Cu", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ],
+           "stoichiometry": [  0.16666666666666666      ,   0.0000000000000000      ,  0.16666666666666666      ]
+         },
+         "Fe-Cu-Va-Va": {
+           "mole fraction":   3.0165227415905244E-002 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -21833.591727277373      ,
+           "constituents": [ "Fe", "Cu", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ],
+           "stoichiometry": [  0.16666666666666666      ,  0.16666666666666666      ,   0.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Cu": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.5163748151769926E-002 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.83272256356639474      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.15211368828183550      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "Liquid#2": {
+       "phase model": "SUBG",
+       "moles": 0.0,
+       "driving force":   0.0000000000000000E+000,
+       "cations": {
+         "C": {
+           "mole fraction":   0.14131893455351469      ,
+           "charge":    1.0000000000000000      ,
+           "chemical group":            1
+         },
+         "Fe": {
+           "mole fraction":   0.81796424816512747      ,
+           "charge":    1.0000000000000000      ,
+           "chemical group":            2
+         },
+         "Cu": {
+           "mole fraction":    4.0716817281357745E-002 ,
+           "charge":    1.0000000000000000      ,
+           "chemical group":            2
+         }
+       },
+       "anions": {
+         "Va": {
+           "mole fraction":    1.0000000000000000      ,
+           "charge":   -1.0000000000000000      ,
+           "chemical group":            1
+         }
+       },
+       "moles of endmembers":    0.0000000000000000      ,
+       "endmembers": {
+         "C": {
+           "mole fraction":   0.14131893455351477      ,
+           "constituents": [ "C", "Va" ],
+           "stoichiometric coefficients": [   1.0000000000000000      ,   1.0000000000000000      ]
+           },
+         "Fe": {
+           "mole fraction":   0.81796424816512747      ,
+           "constituents": [ "Fe", "Va" ],
+           "stoichiometric coefficients": [   1.0000000000000000      ,   1.0000000000000000      ]
+           },
+         "Cu": {
+           "mole fraction":    4.0716817281357752E-002 ,
+           "constituents": [ "Cu", "Va" ],
+           "stoichiometric coefficients": [   1.0000000000000000      ,   1.0000000000000000      ]
+           }
+       },
+       "quadruplets": {
+         "C-C-Va-Va": {
+           "mole fraction":   3.6935752666728966E-003 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -6835.6426975556415      ,
+           "constituents": [ "C", "C", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ],
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,  0.33333333333333331      ]
+         },
+         "Fe-Fe-Va-Va": {
+           "mole fraction":  0.59612181293384137      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -21446.702170646633      ,
+           "constituents": [ "Fe", "Fe", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ],
+           "stoichiometry": [   0.0000000000000000      ,  0.33333333333333331      ,   0.0000000000000000      ]
+         },
+         "Cu-Cu-Va-Va": {
+           "mole fraction":   7.3518918116700794E-003 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -20685.532862923232      ,
+           "constituents": [ "Cu", "Cu", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ],
+           "stoichiometry": [  0.33333333333333331      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "C-Fe-Va-Va": {
+           "mole fraction":  0.31334447914497232      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -25061.749138045561      ,
+           "constituents": [ "C", "Fe", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   3.0000000000000000      ,   4.0000000000000000      ,   4.0000000000000000      ],
+           "stoichiometry": [   0.0000000000000000      ,  0.33333333333333331      ,  0.16666666666666666      ]
+         },
+         "C-Cu-Va-Va": {
+           "mole fraction":   6.1877473697048322E-003 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -13711.112589946144      ,
+           "constituents": [ "C", "Cu", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ],
+           "stoichiometry": [  0.16666666666666666      ,   0.0000000000000000      ,  0.16666666666666666      ]
+         },
+         "Fe-Cu-Va-Va": {
+           "mole fraction":   7.3300493473138564E-002 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -20949.914887150662      ,
+           "constituents": [ "Fe", "Cu", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ],
+           "stoichiometry": [  0.16666666666666666      ,  0.16666666666666666      ,   0.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Cu": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   4.0716817281357745E-002 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.81796424816512747      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.14131893455351471      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "FCC_A1": {
+       "phase model": "SUBLM",
+       "moles":   9.7593610518572393E-001,
+       "driving force":   0.0000000000000000E+000,
+       "Neel temperature":    61.144676096083586      ,
+       "Magnetic moment per atom":   0.63882497413818684      ,
+       "species": {
+         "Fe": {
+           "mole fraction":  0.91260801851971396      ,
+           "moles":  8.9064711515539063E-001,
+           "chemical potential":  -65636.281694491729      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "Cu": {
+           "mole fraction":   1.7215799508498553E-002 ,
+           "moles":  1.6801520319982378E-002,
+           "chemical potential":  -70549.142157573762      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "FeC": {
+           "mole fraction":   6.8876861546053325E-002 ,
+           "moles":  6.7219415994671641E-002,
+           "chemical potential":  -86537.669711579118      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "CuC": {
+           "mole fraction":   1.2993204257341873E-003 ,
+           "moles":  1.2680537156792794E-003,
+           "chemical potential":  -91450.530174661180      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "Fe":   0.98148488006576740      ,
+             "Cu":    1.8515119934232743E-002
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "Va":   0.92982381802821257      ,
+             "C":    7.0176181971787516E-002
+           }
+         }
+       },
+       "elements": {
+         "Cu": {
+           "moles of element in phase":  1.8069574035661656E-002,
+           "mole fraction of phase by element":   1.7301001691253155E-002 ,
+           "mole fraction of element by phase":   1.0000000000000000     
+         },
+         "Fe": {
+           "moles of element in phase":  9.5786653115006226E-001,
+           "mole fraction of phase by element":  0.91712457873748654      ,
+           "mole fraction of element by phase":  0.99999999999999944     
+         },
+         "C": {
+           "moles of element in phase":  6.8487469710350926E-002,
+           "mole fraction of phase by element":   6.5574419571260409E-002 ,
+           "mole fraction of element by phase":  0.99598815668082574     
+         }
+       }
+     },
+     "FCC_A1#4": {
+       "phase model": "SUBLM",
+       "moles": 0.0,
+       "driving force":   0.0000000000000000E+000,
+       "Neel temperature":    61.162001819726754      ,
+       "Magnetic moment per atom":   0.63900598916132423      ,
+       "species": {
+         "Fe": {
+           "mole fraction":  0.91286661166850347      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -65599.728629201330      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "Cu": {
+           "mole fraction":   2.4789579114232487E-002 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -68018.459025595803      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "FeC": {
+           "mole fraction":   6.0695575241883459E-002 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -87886.524258292760      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "CuC": {
+           "mole fraction":   1.6482339753805175E-003 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -90305.254654687291      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "Fe":   0.97356218691038698      ,
+             "Cu":    2.6437813089613005E-002
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "Va":   0.93765619078273599      ,
+             "C":    6.2343809217263978E-002
+           }
+         }
+       },
+       "elements": {
+         "Cu": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   2.4886305977621703E-002 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.91642854080140845      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   5.8685153220969927E-002 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "BCC_A2": {
+       "phase model": "SUBLM",
+       "moles": 0.0,
+       "driving force":   1.0841507365724461E-001,
+       "Curie temperature":    68.115910952815625      ,
+       "Magnetic moment per atom":   0.15054530682071784      ,
+       "species": {
+         "Fe": {
+           "mole fraction":   6.7813201270593620E-002 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -61156.000248656695      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "FeC3": {
+           "mole fraction":   1.3625334830542825E-003 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -124392.67873261744      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "Cu": {
+           "mole fraction":  0.91249010178926382      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -65835.140434128145      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CuC3": {
+           "mole fraction":   1.8334163457088166E-002 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -129071.81891808892      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "Fe":    6.9175734753647924E-002 ,
+             "Cu":   0.93082426524635242     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    3.0000000000000000      ,
+           "constituents": {
+             "Va":   0.98030330305985780      ,
+             "C":    1.9696696940142457E-002
+           }
+         }
+       },
+       "elements": {
+         "Cu": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.87889054322591786      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   6.5316194866917046E-002 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   5.5793261907165083E-002 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "BCC_A2#6": {
+       "phase model": "SUBLM",
+       "moles": 0.0,
+       "driving force":   0.0000000000000000E+000,
+       "Curie temperature":    43.359047994538614      ,
+       "Magnetic moment per atom":    9.5926913175236897E-002 ,
+       "species": {
+         "Fe": {
+           "mole fraction":   4.3210321250106709E-002 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -63238.598158762339      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "FeC3": {
+           "mole fraction":   1.2806540187919253E-003 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -114295.96698762628      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "Cu": {
+           "mole fraction":  0.92800509915702567      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -66023.034476393848      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CuC3": {
+           "mole fraction":   2.7503925574075876E-002 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -117080.40330525780      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "Fe":    4.4490975268898607E-002 ,
+             "Cu":   0.95550902473110100     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    3.0000000000000000      ,
+           "constituents": {
+             "Va":   0.97121542040713182      ,
+             "C":    2.8784579592867784E-002
+           }
+         }
+       },
+       "elements": {
+         "Cu": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.87955606965129796      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   4.0954408937663521E-002 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   7.9489521411038350E-002 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "C_GRAPHITE(s)": {
+       "moles":   2.7586773593807996E-004,
+       "chemical potential":  -20901.402147259698      ,
+       "driving force":   0.0000000000000000E+000,
+       "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "Cu": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  2.7586773593807996E-004,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   4.0118433191751388E-003
+         }
+       }
+     }
+   },
+   "elements": {
+     "Cu": {
+       "moles":    1.8069574035661656E-002 ,
+       "element potential":  -7.0549150064008194E+004
+     },
+     "Fe": {
+       "moles":   0.95786653115006282      ,
+       "element potential":  -6.5636280535032667E+004
+     },
+     "C": {
+       "moles":    6.8763337446288944E-002 ,
+       "element potential":  -2.0901402147259698E+004
+     }
+   },
+   "temperature":    1300.0000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -6.5582839612871350E+004,
+   "entropy":   0.0000000000000000E+000,
+   "enthalpy":   0.0000000000000000E+000,
+   "heat capacity":   0.0000000000000000E+000,
+   "functional norm":    1.2876575431278188E-007 ,
+   "GEM iterations":           39 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            1
+ }
+ }

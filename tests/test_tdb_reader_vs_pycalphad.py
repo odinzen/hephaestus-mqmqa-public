@@ -86,7 +86,9 @@ def test_extrapolates_above_last_interval_like_pycalphad():
 
 @pytest.mark.parametrize("fname,needle", [
     ("al2o3_nd2o3_zro2.tdb", "ionic"),
-    ("FeNi_deep_branching.tdb", "order-disorder"),
+    # its NT (Neel temperature) parameters are refused before the ordered phase is reached;
+    # the order-disorder refusal itself is tested in test_tdb_sgte_dialect.py
+    ("FeNi_deep_branching.tdb", "changes the gibbs energy"),
     ("issue43.tdb", "three-constituent interaction"),
 ])
 def test_out_of_subset_models_fail_loudly(fname, needle):

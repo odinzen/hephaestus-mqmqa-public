@@ -1,0 +1,14 @@
+temperature       = 500.0
+pressure          = 100.0
+mass(1)           = 0.0007988286980271442
+mass(41)          = 0.45257644787885404
+mass(8)           = 0.0009016138201309578
+mass(40)          = 1.0187624162336125e-08
+temperature unit  = K
+pressure unit     = atm
+mass unit         = moles
+data file         = THERMOCHIMICA_DIR/data/ZIRC-test64.dat
+print mode        = 0
+heat capacity     = .FALSE.
+write json        = .TRUE.
+output            = REPO_DIR/validation/thermochimica/referee_runs/TestThermo64__grid2__A1.json

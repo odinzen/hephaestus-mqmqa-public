@@ -1,0 +1,90 @@
+ {
+ "1":
+ {
+   "solution phases": {
+     "Delete": {
+       "phase model": "RKMP",
+       "moles":   1.2706861057081491E+001,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "Au": {
+           "mole fraction":   5.3267270970232934E-002 ,
+           "moles":  6.7685981110866034E-001,
+           "chemical potential":   222595.12580070476      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "W": {
+           "mole fraction":  0.14405714375031714      ,
+           "moles":  1.8305141099152953E+000,
+           "chemical potential":   67710.584388936288      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O": {
+           "mole fraction":  0.66889632107971209      ,
+           "moles":  8.4995726135528713E+000,
+           "chemical potential":   4423.8909069046658      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "Ar": {
+           "mole fraction":  0.13377926419973787      ,
+           "moles":  1.6999145225046652E+000,
+           "chemical potential":  -274056.41423361812      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "W": {
+           "moles of element in phase":  1.8305141099152953E+000,
+           "mole fraction of phase by element":  0.14405714375031714      ,
+           "mole fraction of element by phase":  0.99999999999999967     
+         },
+         "Au": {
+           "moles of element in phase":  6.7685981110866034E-001,
+           "mole fraction of phase by element":   5.3267270970232934E-002 ,
+           "mole fraction of element by phase":   1.0000000000000013     
+         },
+         "Ar": {
+           "moles of element in phase":  1.6999145225046652E+000,
+           "mole fraction of phase by element":  0.13377926419973787      ,
+           "mole fraction of element by phase":   1.0000000000000002     
+         },
+         "O": {
+           "moles of element in phase":  8.4995726135528713E+000,
+           "mole fraction of phase by element":  0.66889632107971209      ,
+           "mole fraction of element by phase":   1.0000000000000000     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+   },
+   "elements": {
+     "W": {
+       "moles":    1.8305141099152960      ,
+       "element potential":   6.7710568317423036E+004
+     },
+     "Au": {
+       "moles":   0.67685981110865945      ,
+       "element potential":   2.2259504702209157E+005
+     },
+     "Ar": {
+       "moles":    1.6999145225046650      ,
+       "element potential":  -2.7405642873901007E+005
+     },
+     "O": {
+       "moles":    8.4995726135528713      ,
+       "element potential":   4.4239070316453026E+003
+     }
+   },
+   "temperature":    1355.0000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -1.5366039197160912E+005,
+   "entropy":   0.0000000000000000E+000,
+   "enthalpy":   0.0000000000000000E+000,
+   "heat capacity":   0.0000000000000000E+000,
+   "functional norm":    1.0616889387303057E-006 ,
+   "GEM iterations":           20 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            0
+ }
+ }

@@ -49,4 +49,40 @@ double rinfo_value(const RInfo *ri);         /* the R calculations use now */
 int rinfo_source(const RInfo *ri);           /* OVERRIDE while a mode is forced */
 const char *rinfo_note(const RInfo *ri);     /* one line for the user, static buffer */
 
+/* mqmqa_equilibrate and mqmqa_driving_force_minima with a composition per ion: ion_comp
+ * holds n_elem amounts for each cation, then each anion (a dimer such as Al2 counts two,
+ * a vacancy none). The public routines are these with one atom of one element per ion. */
+/* Turn the exact finish of the fixed-composition liquid solve on or off (off by default);
+ * returns the previous setting. */
+int mqmqa_exact_finish(int on);
+
+double mqmqa_equilibrate_comp(
+    double T, int n_cat, int n_an, int n_quads,
+    const int *quad_ca, const int *quad_cb, const int *quad_ax, const int *quad_ay,
+    const double *Za, const double *Zb, const double *Zx, const double *Zy,
+    const double *zeta, int soln_type,
+    int n_pairs, const int *pair_c, const int *pair_a,
+    const double *Gax, const double *stoich, const double *Zref,
+    int n_params, const int *par_mix, const int *par_code,
+    const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
+    const double *par_p, const double *par_q, const double *par_L,
+    const double *par_r, const int *par_addcat,
+    const int *cat_group, const int *an_group, double R_own,
+    int n_elem, const double *ion_comp, const double *target,
+    double *X_out, double *comp_err_out);
+int mqmqa_driving_force_minima_comp(
+    double T, int n_cat, int n_an, int n_quads,
+    const int *quad_ca, const int *quad_cb, const int *quad_ax, const int *quad_ay,
+    const double *Za, const double *Zb, const double *Zx, const double *Zy,
+    const double *zeta, int soln_type,
+    int n_pairs, const int *pair_c, const int *pair_a,
+    const double *Gax, const double *stoich, const double *Zref,
+    int n_params, const int *par_mix, const int *par_code,
+    const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
+    const double *par_p, const double *par_q, const double *par_L,
+    const double *par_r, const int *par_addcat,
+    const int *cat_group, const int *an_group, double R_own,
+    int n_elem, const double *ion_comp, const double *mu,
+    int max_out, double *X_out, double *df_out);
+
 #endif /* MQMQA_PRIV_H */

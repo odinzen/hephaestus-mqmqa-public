@@ -79,4 +79,4 @@ open MQMQA `.dat` files in pycalphad's test set (KF-NiF2, Ocadiz-Flores, tern-te
 Next, in order: (1) excess-model follow-ons the reader unlocks (nonzero-exponent G via
 Chi_mix, Bragg-Williams B/H, reciprocal R); (2) the equilibrium solver (minimise G over
 quadruplet fractions at fixed composition); (3) WASM build and the browser calculator.
-Databases containing non-MQMQA solution phases (QKTO, SUBL) are not yet read.
+Databases containing SUBM solution phases are not yet read.

@@ -1,0 +1,82 @@
+{
+ "wu1993_calculated": {
+  "T_K": 1583.15,
+  "liquid_wt": {
+   "MgO": 10.5,
+   "FeO": 45.0,
+   "SiO2": 44.5
+  },
+  "olivine_wt_Fe2SiO4": 61.0,
+  "pyroxene_wt_FeSiO3": 50.0
+ },
+ "bowen_schairer_measured": {
+  "T_K": 1579.15,
+  "liquid_wt": {
+   "MgO": 9.0,
+   "FeO": 46.0,
+   "SiO2": 45.0
+  },
+  "olivine_wt_Fe2SiO4": 68.0,
+  "pyroxene_wt_FeSiO3": 62.0
+ },
+ "this_database": {
+  "T_K": 1505.6197822760191,
+  "liquid_wt": {
+   "MgO": 3.817070629967686,
+   "FeO": 56.205168318744654,
+   "SiO2": 39.97776105128766
+  },
+  "olivine_wt_Fe2SiO4": 78.7666900014199,
+  "pyroxene_wt_FeSiO3": 65.16247014738904,
+  "residual_J": [
+   -5.586189217865467e-07,
+   -5.161273293197155e-07,
+   -4.6088825911283493e-07
+  ],
+  "converged": true
+ },
+ "olivine_solidus_wt_Fe2SiO4": [
+  {
+   "T_C": 1495,
+   "measured": 41,
+   "wu1993": 40.5,
+   "this_database": 37.4,
+   "this_database_solidus_T_minus_measured_K": -49.3
+  },
+  {
+   "T_C": 1465,
+   "measured": 45,
+   "wu1993": 45,
+   "this_database": 39.6,
+   "this_database_solidus_T_minus_measured_K": -75.4
+  },
+  {
+   "T_C": 1440,
+   "measured": 47.5,
+   "wu1993": 49,
+   "this_database": 41.4,
+   "this_database_solidus_T_minus_measured_K": -71.4
+  },
+  {
+   "T_C": 1410,
+   "measured": 54,
+   "wu1993": 54,
+   "this_database": 43.6,
+   "this_database_solidus_T_minus_measured_K": -71.8
+  },
+  {
+   "T_C": 1318,
+   "measured": 70,
+   "wu1993": 71.5,
+   "this_database": 59.0,
+   "this_database_solidus_T_minus_measured_K": -37.6
+  },
+  {
+   "T_C": 1276,
+   "measured": 80,
+   "wu1993": 81,
+   "this_database": 71.5,
+   "this_database_solidus_T_minus_measured_K": -23.6
+  }
+ ]
+}

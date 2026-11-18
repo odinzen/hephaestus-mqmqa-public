@@ -81,6 +81,7 @@
           font-size:var(--fs-xs); color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .book h3 { margin:0; font-size:var(--fs-md); font-weight:600; line-height:1.3; }
   .book p { margin:0; font-size:var(--fs-sm); color:var(--muted); flex:1; }
+  .book a { color:var(--brand); font-family:var(--font-mono); font-size:var(--fs-xs); overflow-wrap:anywhere; }
   sub { font-size:.72em; line-height:0; }
   .counts { font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--muted); }
 
@@ -88,6 +89,9 @@
   .ladder i { height:.45rem; background:var(--line); display:block; }
   .ladder i.on { background:var(--spine, var(--brand)); }
   .stage { font-size:var(--fs-xs); color:var(--ink); }
+  .verdict { font-size:var(--fs-xs); font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+  .verdict.ok { color:var(--brand); }
+  .verdict.warn { color:#c0504d; }
   .stage .hand { color:var(--muted); cursor:help; }
 
   .open { align-self:flex-start; margin-top:.2rem; padding:.3rem .75rem; font-size:var(--fs-sm);
@@ -133,8 +137,14 @@
     { key:'in_progress', title:'Being assessed', what:'Measured data is being extracted and fitted into a database.' },
     { key:'reference',   title:'Reference data', what:'Pure-compound data sets that the assessed databases are built from.' },
     { key:'planned',     title:'On the list',    what:'Accepted for the open collection; assessment starts after the current work.' },
+    { key:'orchid',      title:'From the SGTE collection',
+      what:'Binary datasets compiled by B. Hallstedt (Calphad 89 (2025) 102833) and distributed by ORCHID, '
+         + 'CC BY 4.0, every one the calculator reads. "Checked" means every phase agrees with pycalphad and '
+         + 'the assessment and every parameter trace to a verified publication or a stated rule; the rest are '
+         + 'marked "Check before use" with what could not be traced. Checked datasets come first.' },
   ];
-  let data = null, kind = 'all', query = '';
+  const ORCHID_SHOWN = 48;     // the shelf holds well over a thousand; a search narrows it
+  let data = null, orchid = [], kind = 'all', query = '';
 
   const el = (tag, cls, text) => { const n = document.createElement(tag);
     if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
@@ -159,6 +169,11 @@
     if (!btn) { window.location.href = 'index.html'; return; }
     btn.click(); btn.scrollIntoView({ block:'center' }); w.focus();
   }
+  function openOrchid(file){
+    const w = calculator();
+    if (w && w.loadOrchid) { w.loadOrchid(file); w.focus(); return; }
+    window.location.href = 'index.html#orchid=' + encodeURIComponent(file);
+  }
   function showRequestCard(){
     const w = calculator(), card = w && w.document.getElementById('litcard');
     if (!card) { window.location.href = 'index.html#litcard'; return; }
@@ -169,7 +184,9 @@
     if (kind !== 'all' && item.kind !== kind) return false;
     if (!query) return true;
     const hay = (item.title + ' ' + item.blurb + ' ' + (item.file || '') + ' ' + (item.id || '')).toLowerCase();
-    return query.split(/\s+/).every(w => hay.includes(w));
+    // on the SGTE shelf a one- or two-letter word is an element of the system, not any substring
+    const els = item.entry ? item.entry.system.toLowerCase().split('-') : null;
+    return query.split(/\s+/).every(w => els && w.length <= 2 ? els.includes(w) : hay.includes(w));
   }
 
   function book(item, shelf){
@@ -180,6 +197,36 @@
     b.appendChild(call);
     b.appendChild(chem('h3', null, item.title));
     b.appendChild(chem('p', null, item.blurb));
+    if (shelf === 'orchid') {
+      const e = item.entry;
+      if (e.assessment.doi) {
+        const a = el('a', null, 'doi:' + e.assessment.doi);
+        a.href = 'https://doi.org/' + e.assessment.doi; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        b.appendChild(a);
+      }
+      const k = e.parameters, n = Object.values(k).reduce((s, x) => s + x, 0);
+      if (e.checked) {
+        b.appendChild(el('div', 'verdict ok', 'Checked'));
+        const parts = [plural(n, 'binary parameter', 'binary parameters') + ' traced'];
+        if (k.convention) parts.push(k.convention + ' by a stated rule');
+        if (e.other_sources.length) parts.push(plural(e.other_sources.length, 'other paper', 'other papers'));
+        b.appendChild(el('div', 'counts', parts.join(' · ')));
+      } else {
+        b.appendChild(el('div', 'verdict warn', 'Check before use'));
+        e.caution.forEach(c => b.appendChild(el('div', 'counts', c)));
+      }
+      if (e.pycalphad_max_diff !== null && e.pycalphad_max_diff <= 0.1)
+        b.appendChild(el('div', 'counts', 'matches pycalphad within ' + Math.max(e.pycalphad_max_diff, 0.01).toFixed(2)
+          + ' J/mol up to ' + Math.round(e.valid_to_K) + ' K'));
+      if (e.notes.length) {
+        const nt = el('div', 'stage', e.notes.filter(s => !/^Dataset created|^\d{4}\.\d\d\.\d\d:/.test(s)).join(' ') || '');
+        if (nt.textContent) b.appendChild(nt);
+      }
+      const go = el('button', 'open', 'Open in calculator'); go.type = 'button';
+      go.addEventListener('click', () => openOrchid(e.file));
+      b.appendChild(go);
+      return b;
+    }
     if (shelf === 'available') {
       const go = el('button', 'open', 'Open in calculator'); go.type = 'button';
       go.addEventListener('click', () => openInCalculator(item.button));
@@ -223,7 +270,7 @@
 
   function renderKinds(){
     const box = document.getElementById('kinds'); box.textContent = '';
-    const all = data.available.concat(data.systems);
+    const all = data.available.concat(data.systems, orchid);
     const counts = all.reduce((m, x) => (m[x.kind] = (m[x.kind] || 0) + 1, m), {});
     [['all', 'All', all.length], ...Object.keys(KIND_LABEL).filter(k => counts[k]).map(k => [k, KIND_LABEL[k], counts[k]])]
       .forEach(([k, label, n]) => {
@@ -237,17 +284,23 @@
 
   function render(){
     const root = document.getElementById('shelves'); root.textContent = '';
-    const onShelf = key => key === 'available' ? data.available : data.systems.filter(x => x.shelf === key);
+    const onShelf = key => key === 'available' ? data.available : key === 'orchid' ? orchid
+                                : data.systems.filter(x => x.shelf === key);
     // a shelf with nothing on it at all is hidden; one emptied by a filter says so
     const shown = SHELVES.filter(s => onShelf(s.key).length);
-    const last = shown[shown.length - 1];
+    const own = shown.filter(s => s.key !== 'orchid');   // the request card closes our own shelves
+    const last = own[own.length - 1];
     shown.forEach(s => {
       const items = onShelf(s.key).filter(matches);
       const sec = el('section', 'shelf');
       const h = el('h2', null, s.title); h.appendChild(el('span', 'n', String(items.length)));
       sec.append(h, el('p', 'what', s.what));
       const books = el('div', 'books');
-      items.forEach(it => books.appendChild(book(it, s.key)));
+      const shown = s.key === 'orchid' ? items.slice(0, ORCHID_SHOWN) : items;
+      shown.forEach(it => books.appendChild(book(it, s.key)));
+      if (shown.length < items.length)
+        sec.appendChild(el('p', 'what', 'Showing ' + shown.length + ' of ' + items.length
+          + '. Search two elements, for example "Fe Ni", to find a system.'));
       if (s === last) books.appendChild(requestCard());
       if (books.children.length) sec.appendChild(books);
       else sec.appendChild(el('div', 'empty', 'Nothing on this shelf matches the filter.'));
@@ -268,8 +321,17 @@
   // follow the calculator when its theme changes while both windows are open
   window.addEventListener('storage', e => { if (e.key === 'hmqmqa-theme' && e.newValue) { root.dataset.theme = e.newValue; setIcon(); } });
 
-  fetch('./library.json').then(r => r.json()).then(j => {
+  // the ORCHID shelf is optional: without its catalogue the rest of the library still shows
+  const orchidCat = fetch('./orchid/catalog.json').then(r => r.ok ? r.json() : null).catch(() => null);
+  fetch('./library.json').then(r => r.json()).then(async j => {
     data = j;
+    const oc = await orchidCat;
+    // several datasets often cover one system; the title names the assessment too
+    const who = c => { const m = /^\s*(?:[A-Z][a-z]?\.\s*-?)*\s*([^,]+?)(?:,| et al)/.exec(c);
+                       const y = /\(((?:19|20)\d\d)\)/.exec(c); return (m ? m[1].trim() : '') + (y ? ' ' + y[1] : ''); };
+    if (oc) orchid = oc.datasets.map(e => ({ kind: e.kind,
+                                             title: e.system + ', ' + (who(e.assessment.citation) || e.file.replace(/\.tdb$/i, '')),
+                                             file: e.file, id: e.file, blurb: e.assessment.citation, entry: e }));
     document.getElementById('asof').textContent = 'Catalogue as of ' + j.as_of + '.';
     renderKinds(); render();
   }).catch(() => {

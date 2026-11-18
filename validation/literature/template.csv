@@ -1,0 +1,2 @@
+system,quantity,phase_or_species,composition,composition_basis,T_K,P_bar,value,unit,uncertainty,method,source_first_author,source_year,source_doi,table_or_figure,digitized,notes
+CaO-Al2O3-SiO2,liquidus_T,anorthite,CaO=0.25; Al2O3=0.15; SiO2=0.60,mass fraction,,1,1823,K,5,quenching,Example,1960,10.0000/example,Table 2,no,delete this example row

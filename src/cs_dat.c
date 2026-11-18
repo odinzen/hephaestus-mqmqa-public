@@ -208,6 +208,30 @@ static Interval parse_interval(Lexer *lx, int n_gibbs, int has_additional)
     return iv;
 }
 
+/* FactSage 8 files annotate some lines after their data ("GAS = MIXTURE PHASE = 1",
+ * "CSTE = COMPOUND PHASE = 1.0000", "0 = end of magnetic excess parameters"). From an '='
+ * that follows the last token on its line, the rest of the line is skipped. Returns the
+ * number the annotation ends with, NAN when there is none. */
+static double skip_annotation(Lexer *lx)
+{
+    if (lx->tok_end && lx->tok_end_ch == '\n') return NAN;     /* already on the next line */
+    char *p = lx->cur;
+    while (*p == ' ' || *p == '\t' || *p == '\r') p++;
+    if (*p != '=') return NAN;
+    char *eol = p;
+    while (*eol && *eol != '\n') eol++;
+    char *last = eol;
+    while (last > p && isspace((unsigned char)last[-1])) last--;
+    char *num = last;
+    while (num > p && !isspace((unsigned char)num[-1]) && num[-1] != '=') num--;
+    char *end;
+    double v = strtod(num, &end);
+    lx->cur = eol;
+    return (end == last && end > num) ? v : NAN;
+}
+
+static void parse_endmember_body(Lexer *lx, Endmember *em, int n_el, int n_gibbs);
+
 /* Parse one endmember into `em`. n_el pure-element stoichiometries are read.
  * `is_stoich` allows the trailing "#" dummy-species marker of stoichiometric
  * phases. The five quadruplet-stoichiometry values and zeta of SUBQ pairs are
@@ -216,8 +240,17 @@ static void parse_endmember(Lexer *lx, Endmember *em, int n_el, int n_gibbs)
 {
     memset(em, 0, sizeof *em);
     tok_name(lx, em->name);
+    const double note = skip_annotation(lx);
+    if (!isnan(note) && note != 1.0)
+        lex_fail(lx, "a compound annotated with a value other than 1 (= COMPOUND PHASE = x)");
     const char *pk = tok_peek(lx);
-    if (pk && strcmp(pk, "#") == 0) tok_req(lx);
+    if (pk && strcmp(pk, "#") == 0) { tok_req(lx); em->dummy = 1; }
+    parse_endmember_body(lx, em, n_el, n_gibbs);
+}
+
+/* An endmember record after its name: equation type, intervals, element amounts. */
+static void parse_endmember_body(Lexer *lx, Endmember *em, int n_el, int n_gibbs)
+{
 
     /* Gibbs equation type. A species line may carry two (usually zero) floats
      * before the type; tolerate and discard them when they are zero. */
@@ -253,22 +286,119 @@ static void parse_endmember(Lexer *lx, Endmember *em, int n_el, int n_gibbs)
     em->t_lo = NAN;
     em->t_top = NAN;
 
-    if (magnetic) {   /* Tc, moment: not modeled for ChemSage data */
-        (void)tok_dbl(lx); (void)tok_dbl(lx);
-        note_lossy(lx->lossy, sizeof lx->lossy,
-                   "the ChemSage magnetic record (Tc, moment) of %s", em->name);
+    if (magnetic) {   /* Tc, moment; modeled in SUBLM and RKMPM phases, noted elsewhere */
+        em->mag_tc = tok_dbl(lx);
+        em->mag_beta = tok_dbl(lx);
     }
+}
+
+/* the reader keeps a magnetic record only where the phase models it */
+static void note_unmodeled_magnetic(Lexer *lx, const Endmember *em, int n)
+{
+    for (int i = 0; i < n; ++i)
+        if (em[i].magnetic)
+            note_lossy(lx->lossy, sizeof lx->lossy,
+                       "the ChemSage magnetic record (Tc, moment) of %s", em[i].name);
+}
+
+/* Slot of the constant term in the excess basis, where a ChemSage magnetic constant goes.
+ * The magnetic arrays are six wide (the ChemSage basis). */
+static int magnetic_const_slot(Lexer *lx, const Db *db)
+{
+    if (db->n_excess > 6) lex_fail(lx, "magnetic phase with an excess basis wider than six terms");
+    for (int i = 0; i < db->n_excess; ++i) if (db->excess_idx[i] == 1) return i;
+    lex_fail(lx, "magnetic phase with no constant term in the excess basis");
+    return -1;
+}
+
+/* A magnetic interaction term holding the constant v in the constant slot */
+static void magnetic_term(Lexer *lx, const Db *db, CefExcess *xe, int subl, int i, int j,
+                          int order, int n_subl, const int *listed, double v)
+{
+    memset(xe, 0, sizeof *xe);
+    xe->t_lo = xe->t_hi = NAN;
+    xe->subl = subl;
+    xe->i = i;
+    xe->j = j;
+    xe->order = order;
+    xe->other = xalloc(lx, (size_t)n_subl * sizeof(int));
+    for (int s = 0; s < n_subl; ++s) xe->other[s] = (s == subl) ? 0 : (listed ? listed[s] : 0);
+    xe->coeff = xalloc(lx, 6 * sizeof(double));
+    xe->coeff[magnetic_const_slot(lx, db)] = v;
+}
+
+static void grow_excess(Lexer *lx, CefExcess **arr, int n, int *cap)
+{
+    if (n < *cap) return;
+    *cap = *cap ? 2 * *cap : 8;
+    CefExcess *g = xalloc(lx, (size_t)*cap * sizeof(CefExcess));
+    if (n) memcpy(g, *arr, (size_t)n * sizeof(CefExcess));
+    free(*arr);
+    *arr = g;
+}
+
+/* The magnetic part of a SUBLM or RKMPM phase: the factors read after the type
+ * (-1/AFM, as 1 for BCC and 1/3 for FCC, and the structure factor p) and each species'
+ * Curie or Neel temperature and moment, as constants. */
+static void set_magnetic(Lexer *lx, const Db *db, SublPhase *cf, const double *mag)
+{
+    if (!(mag[0] != 0.0)) lex_fail(lx, "magnetic phase with a zero antiferromagnetic factor");
+    cf->magnetic = 1;
+    cf->mag_afm = -1.0 / mag[0];
+    cf->mag_p = mag[1];
+    const int k = magnetic_const_slot(lx, db);
+    cf->tc_em = xalloc(lx, (size_t)cf->n_em * 6 * sizeof(double));
+    cf->bm_em = xalloc(lx, (size_t)cf->n_em * 6 * sizeof(double));
+    for (int e = 0; e < cf->n_em; ++e) {
+        cf->tc_em[e * 6 + k] = cf->em[e].mag_tc;
+        cf->bm_em[e * 6 + k] = cf->em[e].mag_beta;
+    }
+}
+
+/* Where a species' data end: the last upper limit as a TDB wrote it, else the ChemSage
+ * file's last range bound. */
+static double data_top(const Endmember *em)
+{
+    if (isfinite(em->t_top)) return em->t_top;
+    return em->n_intervals ? em->intervals[em->n_intervals - 1].t_max : INFINITY;
+}
+
+static void note_beyond(const Db *db, const Endmember *em, double T)
+{
+    Db *d = (Db *)db;           /* the log is bookkeeping kept beside the model */
+    BeyondLog *L = d->beyond;
+    if (!L && !(L = d->beyond = calloc(1, sizeof *L))) return;
+    for (int i = 0; i < L->n; ++i)
+        if (L->em[i] == em) { if (T > L->T[i]) L->T[i] = T; return; }
+    if (L->n == L->cap) {
+        const int cap = L->cap ? 2 * L->cap : 16;
+        const Endmember **e = realloc(L->em, (size_t)cap * sizeof *e);
+        if (!e) return;
+        L->em = e;
+        double *t = realloc(L->T, (size_t)cap * sizeof *t);
+        if (!t) return;
+        L->T = t;
+        L->cap = cap;
+    }
+    L->em[L->n] = em;
+    L->T[L->n++] = T;
 }
 
 static double endmember_gibbs(const Db *db, const Endmember *em, double T)
 {
-    /* Piecewise in T: the first interval whose upper bound exceeds T. Above the
-     * last bound the ChemApp convention gives zero. */
+    /* Piecewise in T: the first interval whose upper bound exceeds T. Above the last
+     * bound the last range is carried on, as Thermochimica does (pycalphad does in TDB and
+     * one-lattice ChemSage phases, takes zero in its MQMQA liquid), and the species is logged
+     * so the result can say so. */
     const Interval *iv = NULL;
     for (int i = 0; i < em->n_intervals; ++i) {
         if (T < em->intervals[i].t_max) { iv = &em->intervals[i]; break; }
     }
-    if (!iv) return 0.0;
+    if (!iv) {
+        if (!em->n_intervals) return 0.0;
+        iv = &em->intervals[em->n_intervals - 1];
+    }
+    if (T > data_top(em)) note_beyond(db, em, T);
 
     double g = 0.0;
     for (int i = 0; i < db->n_gibbs; ++i)
@@ -305,6 +435,7 @@ static void parse_subq_phase(Lexer *lx, Db *db, Phase *ph, const char *type)
     for (int k = 0; k < ph->n_pairs; ++k) {
         Endmember *em = &ph->pairs[k];
         parse_endmember(lx, em, db->n_el, db->n_gibbs);
+        note_unmodeled_magnetic(lx, em, 1);
         for (int i = 0; i < 5; ++i) em->stoich_quad[i] = tok_dbl(lx);
         em->zeta = (ph->soln_type == 1) ? tok_dbl(lx) : ph->subg_zeta;
     }
@@ -435,7 +566,150 @@ static void parse_subq_phase(Lexer *lx, Db *db, Phase *ph, const char *type)
  * The number of endmembers is not in the phase block; it is the phase's species
  * count from the header (num_const), exactly as for the SUBQ pair count semantics.
  * ------------------------------------------------------------------ */
-static void parse_subl_phase(Lexer *lx, Db *db, Phase *ph, int num_const)
+/* The 0-terminated interaction list of a SUBL phase: Redlich-Kister excess terms, or
+ * with magnetic set the Tc and beta interactions of a SUBLM phase (two numbers per
+ * order). */
+static void parse_subl_interactions(Lexer *lx, Db *db, SublPhase *cf, const int *cum, int magnetic)
+{
+    /* Redlich-Kister excess parameters, 0-terminated. Each entry lists the
+     * interacting constituents as linear 1-based indices across all sublattices
+     * (the mixing sublattice contributes two, every other sublattice one), then a
+     * count of RK orders and that many coefficient rows. */
+    int cap = 0, cap_tc = 0, cap_bm = 0, cap_h = cf->n_hx;
+    for (;;) {
+        int n_int = tok_int(lx);
+        if (n_int == 0) { skip_annotation(lx); break; }
+        if (n_int < 0) lex_fail(lx, "unsupported excess mixing type in SUBL phase");
+
+        /* decode linear indices into per-sublattice local constituent lists */
+        int listed[64];             /* local constituent listed on each sublattice, or -1 */
+        int mix_a[64], mix_b[64];   /* the (up to two) mixing constituents per sublattice */
+        int mix_c[64][4];           /* every constituent listed, per sublattice, in file order */
+        int listed_count[64];
+        for (int s = 0; s < cf->n_subl; ++s) { listed[s] = -1; listed_count[s] = 0; }
+        for (int t = 0; t < n_int; ++t) {
+            int lin = tok_int(lx);
+            int s = 0;
+            while (s < cf->n_subl && cum[s] < lin) s++;
+            if (s >= cf->n_subl) lex_fail(lx, "excess constituent index out of range");
+            int base = (s == 0) ? 0 : cum[s - 1];
+            int local = lin - base - 1;
+            if (local < 0 || local >= cf->subl_ncon[s])
+                lex_fail(lx, "excess constituent index out of range");
+            if (listed_count[s] == 0) { mix_a[s] = local; listed[s] = local; }
+            else if (listed_count[s] == 1) { mix_b[s] = local; }
+            else if (listed_count[s] >= 4) lex_fail(lx, "more than four constituents mixing on one sublattice");
+            mix_c[s][listed_count[s]] = local;
+            listed_count[s]++;
+        }
+        /* one sublattice mixes (two, three or four constituents), or two each mix a pair
+         * (a reciprocal term); every other sublattice is pinned */
+        int mix_s = -1, mix_s2 = -1;
+        for (int s = 0; s < cf->n_subl; ++s) {
+            if (listed_count[s] >= 2) {
+                if (mix_s < 0) mix_s = s;
+                else if (mix_s2 < 0) mix_s2 = s;
+                else lex_fail(lx, "excess term mixing on more than two sublattices");
+            } else if (listed_count[s] != 1) {
+                lex_fail(lx, "every sublattice must appear once in an excess parameter");
+            }
+        }
+        if (mix_s < 0) lex_fail(lx, "excess parameter with no mixing sublattice");
+        if (mix_s2 >= 0) {
+            const int cnt = tok_int(lx);
+            if (listed_count[mix_s] != 2 || listed_count[mix_s2] != 2)
+                lex_fail(lx, "reciprocal term with more than a pair on a sublattice");
+            if (magnetic) lex_fail(lx, "reciprocal magnetic interaction");
+            if (cnt != 1) lex_fail(lx, "reciprocal term with more than one parameter");
+            if (cf->n_hx == cap_h) {
+                cap_h = cap_h ? 2 * cap_h : 4;
+                CefHigher *g = xalloc(lx, (size_t)cap_h * sizeof(CefHigher));
+                if (cf->n_hx) memcpy(g, cf->hx, (size_t)cf->n_hx * sizeof(CefHigher));
+                free(cf->hx);
+                cf->hx = g;
+            }
+            CefHigher *h = &cf->hx[cf->n_hx++];
+            memset(h, 0, sizeof *h);
+            h->n = 2;
+            h->subl = mix_s;
+            h->c[0] = mix_c[mix_s][0];
+            h->c[1] = mix_c[mix_s][1];
+            h->subl2 = mix_s2;
+            h->c2[0] = mix_c[mix_s2][0];
+            h->c2[1] = mix_c[mix_s2][1];
+            h->weight = -1;
+            h->other = xalloc(lx, (size_t)cf->n_subl * sizeof(int));
+            for (int t = 0; t < cf->n_subl; ++t)
+                h->other[t] = (t == mix_s || t == mix_s2) ? 0 : listed[t];
+            h->coeff = xalloc(lx, (size_t)db->n_excess * sizeof(double));
+            for (int i = 0; i < db->n_excess; ++i) h->coeff[i] = tok_dbl(lx);
+            continue;
+        }
+        if (listed_count[mix_s] > 2) {
+            /* a ternary (one parameter, or three for Muggianu's v weights in file order) or a
+             * quaternary (one); the pinned constituents of the other sublattices multiply it */
+            const int n3 = listed_count[mix_s];
+            const int cnt = tok_int(lx);
+            if (magnetic) lex_fail(lx, "magnetic interaction of more than two constituents on a sublattice");
+            if (!(cnt == 1 || (n3 == 3 && cnt == 3)))
+                lex_fail(lx, "ternary with other than 1 or 3 parameters, or quaternary with more than 1");
+            for (int m = 0; m < cnt; ++m) {
+                if (cf->n_hx == cap_h) {
+                    cap_h = cap_h ? 2 * cap_h : 4;
+                    CefHigher *g = xalloc(lx, (size_t)cap_h * sizeof(CefHigher));
+                    if (cf->n_hx) memcpy(g, cf->hx, (size_t)cf->n_hx * sizeof(CefHigher));
+                    free(cf->hx);
+                    cf->hx = g;
+                }
+                CefHigher *h = &cf->hx[cf->n_hx++];
+                memset(h, 0, sizeof *h);
+                h->n = n3;
+                h->subl = mix_s;
+                h->subl2 = -1;
+                for (int k = 0; k < n3; ++k) h->c[k] = mix_c[mix_s][k];
+                h->weight = cnt == 1 ? -1 : m;
+                h->other = xalloc(lx, (size_t)cf->n_subl * sizeof(int));
+                for (int t = 0; t < cf->n_subl; ++t) h->other[t] = (t == mix_s) ? 0 : listed[t];
+                h->coeff = xalloc(lx, (size_t)db->n_excess * sizeof(double));
+                for (int i = 0; i < db->n_excess; ++i) h->coeff[i] = tok_dbl(lx);
+            }
+            continue;
+        }
+
+        /* the pair in the file's order: an odd-order term is (y_i - y_j)^order with i the
+         * constituent the file lists first. Sorting by name, as pycalphad does, flipped the
+         * sign whenever the file's order was not alphabetical (CuFeC-Kang fcc Fe,Cu, 103 J
+         * from Thermochimica at 3% Cu). */
+        const int ci = mix_a[mix_s], cj = mix_b[mix_s];
+
+        int n_terms = tok_int(lx);
+        if (n_terms < 0) lex_fail(lx, "negative RK order count");
+        for (int o = 0; o < n_terms; ++o) {
+            if (magnetic) {                 /* Tc, then beta, of this order */
+                const double tc = tok_dbl(lx), bm = tok_dbl(lx);
+                grow_excess(lx, &cf->tc_ex, cf->n_tcx, &cap_tc);
+                magnetic_term(lx, db, &cf->tc_ex[cf->n_tcx++], mix_s, ci, cj, o, cf->n_subl, listed, tc);
+                grow_excess(lx, &cf->bm_ex, cf->n_bmx, &cap_bm);
+                magnetic_term(lx, db, &cf->bm_ex[cf->n_bmx++], mix_s, ci, cj, o, cf->n_subl, listed, bm);
+                continue;
+            }
+            grow_excess(lx, &cf->ex, cf->n_ex, &cap);
+            CefExcess *xe = &cf->ex[cf->n_ex++];
+            memset(xe, 0, sizeof *xe);
+            xe->t_lo = xe->t_hi = NAN;
+            xe->subl = mix_s;
+            xe->i = ci;
+            xe->j = cj;
+            xe->order = o;
+            xe->other = xalloc(lx, (size_t)cf->n_subl * sizeof(int));
+            for (int s = 0; s < cf->n_subl; ++s) xe->other[s] = (s == mix_s) ? 0 : listed[s];
+            xe->coeff = xalloc(lx, (size_t)db->n_excess * sizeof(double));
+            for (int i = 0; i < db->n_excess; ++i) xe->coeff[i] = tok_dbl(lx);
+        }
+    }
+}
+
+static void parse_subl_phase(Lexer *lx, Db *db, Phase *ph, int num_const, const double *mag)
 {
     ph->kind = 1;
     ph->soln_type = -1;
@@ -493,78 +767,575 @@ static void parse_subl_phase(Lexer *lx, Db *db, Phase *ph, int num_const)
     int run = 0;
     for (int s = 0; s < cf->n_subl; ++s) { run += cf->subl_ncon[s]; cum[s] = run; }
 
-    /* Redlich-Kister excess parameters, 0-terminated. Each entry lists the
-     * interacting constituents as linear 1-based indices across all sublattices
-     * (the mixing sublattice contributes two, every other sublattice one), then a
-     * count of RK orders and that many coefficient rows. */
-    int cap = 8;
-    cf->n_ex = 0;
-    cf->ex = xalloc(lx, (size_t)cap * sizeof(CefExcess));
-    for (;;) {
-        int n_int = tok_int(lx);
-        if (n_int == 0) break;
-        if (n_int < 0) lex_fail(lx, "unsupported excess mixing type in SUBL phase");
+    if (mag) parse_subl_interactions(lx, db, cf, cum, 1);
+    parse_subl_interactions(lx, db, cf, cum, 0);
+    if (mag) {
+        set_magnetic(lx, db, cf, mag);
+        snprintf(cf->cs_type, sizeof cf->cs_type, "SUBLM");
+    } else {
+        note_unmodeled_magnetic(lx, cf->em, cf->n_em);
+    }
+}
 
-        /* decode linear indices into per-sublattice local constituent lists */
-        int listed[64];             /* local constituent listed on each sublattice, or -1 */
-        int mix_a[64], mix_b[64];   /* the (up to two) mixing constituents per sublattice */
-        int listed_count[64];
-        for (int s = 0; s < cf->n_subl; ++s) { listed[s] = -1; listed_count[s] = 0; }
-        for (int t = 0; t < n_int; ++t) {
-            int lin = tok_int(lx);
-            int s = 0;
-            while (s < cf->n_subl && cum[s] < lin) s++;
-            if (s >= cf->n_subl) lex_fail(lx, "excess constituent index out of range");
-            int base = (s == 0) ? 0 : cum[s - 1];
-            int local = lin - base - 1;
-            if (local < 0 || local >= cf->subl_ncon[s])
-                lex_fail(lx, "excess constituent index out of range");
-            if (listed_count[s] == 0) { mix_a[s] = local; listed[s] = local; }
-            else if (listed_count[s] == 1) { mix_b[s] = local; }
-            else lex_fail(lx, "more than binary mixing on one sublattice not supported");
-            listed_count[s]++;
+/* ------------------------------------------------------------------ *
+ * IDMX / RKMP phase: species mixing on one lattice
+ * ------------------------------------------------------------------ */
+/* Each species of such a phase is entered in the species table with the element amounts of
+ * its own record, so its composition is known wherever it is used. */
+static void register_species(Lexer *lx, Db *db, const Endmember *em)
+{
+    DbSpecies sp;
+    memset(&sp, 0, sizeof sp);
+    memcpy(sp.name, em->name, NAME_MAX);
+    for (int e = 0; e < db->n_el; ++e) {
+        if (em->stoich_el[e] == 0.0) continue;
+        if (sp.n_el == 8) lex_fail(lx, "species with more than 8 elements");
+        sp.el[sp.n_el] = e;
+        sp.n[sp.n_el++] = em->stoich_el[e];
+    }
+    for (int i = 0; i < db->n_sp; ++i) {
+        if (strcmp(db->sp[i].name, sp.name) != 0) continue;
+        if (db->sp[i].n_el != sp.n_el || memcmp(db->sp[i].el, sp.el, sizeof sp.el) != 0 ||
+            memcmp(db->sp[i].n, sp.n, sizeof sp.n) != 0) {
+            fmt_msg(lx->err, sizeof lx->err, "species %s is listed with two compositions", sp.name);
+            longjmp(lx->jb, 1);
         }
-        /* exactly one sublattice mixes (two constituents); the rest are pinned */
-        int mix_s = -1;
-        for (int s = 0; s < cf->n_subl; ++s) {
-            if (listed_count[s] == 2) {
-                if (mix_s >= 0) lex_fail(lx, "reciprocal excess (two mixing sublattices) not supported");
-                mix_s = s;
-            } else if (listed_count[s] != 1) {
-                lex_fail(lx, "every sublattice must appear once in an excess parameter");
-            }
-        }
-        if (mix_s < 0) lex_fail(lx, "excess parameter with no mixing sublattice");
+        return;
+    }
+    DbSpecies *grown = realloc(db->sp, (size_t)(db->n_sp + 1) * sizeof(DbSpecies));
+    if (!grown) lex_fail(lx, "out of memory");
+    db->sp = grown;
+    db->sp[db->n_sp++] = sp;
+}
 
-        /* order the mixing pair by constituent name, matching pycalphad's sorted
-         * constituent order so the (y_i - y_j)^order sign is consistent */
-        int ci = mix_a[mix_s], cj = mix_b[mix_s];
-        if (strcmp(cf->con_name[cf->subl_off[mix_s] + ci],
-                   cf->con_name[cf->subl_off[mix_s] + cj]) > 0) {
-            int t = ci; ci = cj; cj = t;
-        }
-
-        int n_terms = tok_int(lx);
-        if (n_terms < 0) lex_fail(lx, "negative RK order count");
-        for (int o = 0; o < n_terms; ++o) {
-            if (cf->n_ex == cap) {
+/* An ideal (IDMX) or Redlich-Kister-Muggianu (RKMP) solution of species on one lattice,
+ * held as a one-sublattice compound-energy phase: the species are its constituents and
+ * endmembers, binary terms its Redlich-Kister excess (orders 0, 1, ... in the order the
+ * file lists them, sign by the file's i, j), ternary and quaternary terms its
+ * higher-order list. IDMX has no excess block; RKMP's ends with a 0.
+ * A Kohler-Toop polynomial solution (QKTO; Pelton, Calphad 12 (1988) 127) is held the same
+ * way. Each of its species ends with two numbers, read as Pelton's equivalents per particle
+ * and the species' group; each term lists its two or three species, the power of each
+ * (eq. 7: g = sum phi_ij Y_A^i Y_B^j), and one coefficient row. With every species in one
+ * group the multicomponent form (eq. 12) is Kohler's, which is all this reads: a file whose
+ * species are in two groups, or count other than one equivalent, is refused, since no file
+ * at hand shows how those are written. The layout is read from the data files themselves. */
+static void parse_subst_phase(Lexer *lx, Db *db, Phase *ph, int n, const char *type,
+                              const double *mag)
+{
+    ph->kind = 1;
+    ph->soln_type = -1;
+    SublPhase *cf = xalloc(lx, sizeof(SublPhase));
+    ph->cef = cf;
+    snprintf(cf->cs_type, sizeof cf->cs_type, "%s", type);
+    cf->n_em = n;
+    cf->em = xalloc(lx, (size_t)n * sizeof(Endmember));
+    const int qkto = strcmp(type, "QKTO") == 0;
+    int group = 0;
+    for (int e = 0; e < n; ++e) {
+        parse_endmember(lx, &cf->em[e], db->n_el, db->n_gibbs);
+        if (!qkto) continue;
+        const double q = tok_dbl(lx);
+        const int g = tok_int(lx);
+        if (fabs(q - 1.0) > 1e-12) lex_fail(lx, "QKTO species with other than one equivalent per particle");
+        if (e > 0 && g != group) lex_fail(lx, "QKTO species in more than one group (the Toop form is not read)");
+        group = g;
+    }
+    cf->n_subl = 1;
+    cf->site_ratio = xalloc(lx, sizeof(double));
+    cf->subl_ncon = xalloc(lx, sizeof(int));
+    cf->subl_off = xalloc(lx, sizeof(int));
+    cf->site_ratio[0] = 1.0;
+    cf->subl_ncon[0] = n;
+    cf->n_con = n;
+    cf->con_name = xalloc(lx, (size_t)n * sizeof(*cf->con_name));
+    cf->con_atoms = xalloc(lx, (size_t)n * sizeof(double));
+    cf->em_con = xalloc(lx, (size_t)n * sizeof(int));
+    for (int e = 0; e < n; ++e) {
+        memcpy(cf->con_name[e], cf->em[e].name, NAME_MAX);
+        double atoms = 0.0;
+        for (int k = 0; k < db->n_el; ++k) atoms += cf->em[e].stoich_el[k];
+        if (!(atoms > 0.0)) lex_fail(lx, "species with no atoms in an IDMX/RKMP phase");
+        cf->con_atoms[e] = atoms;
+        cf->em_con[e] = e;
+        register_species(lx, db, &cf->em[e]);
+    }
+    if (!mag) note_unmodeled_magnetic(lx, cf->em, cf->n_em);
+    if (strcmp(type, "IDMX") == 0) return;
+    if (qkto) {
+        int cap = 8;
+        cf->qk = xalloc(lx, (size_t)cap * sizeof(QkTerm));
+        for (;;) {
+            const int m = tok_int(lx);
+            if (m == 0) { skip_annotation(lx); break; }
+            if (m < 2 || m > 3) lex_fail(lx, "QKTO term of other than 2 or 3 species");
+            if (cf->n_qk == cap) {
                 cap *= 2;
-                CefExcess *grown = xalloc(lx, (size_t)cap * sizeof(CefExcess));
-                memcpy(grown, cf->ex, (size_t)cf->n_ex * sizeof(CefExcess));
-                free(cf->ex);
-                cf->ex = grown;
+                QkTerm *g = xalloc(lx, (size_t)cap * sizeof(QkTerm));
+                memcpy(g, cf->qk, (size_t)cf->n_qk * sizeof(QkTerm));
+                free(cf->qk);
+                cf->qk = g;
             }
-            CefExcess *xe = &cf->ex[cf->n_ex++];
-            memset(xe, 0, sizeof *xe);
-            xe->t_lo = xe->t_hi = NAN;
-            xe->subl = mix_s;
-            xe->i = ci;
-            xe->j = cj;
-            xe->order = o;
-            xe->other = xalloc(lx, (size_t)cf->n_subl * sizeof(int));
-            for (int s = 0; s < cf->n_subl; ++s) xe->other[s] = (s == mix_s) ? 0 : listed[s];
-            xe->coeff = xalloc(lx, (size_t)db->n_excess * sizeof(double));
-            for (int i = 0; i < db->n_excess; ++i) xe->coeff[i] = tok_dbl(lx);
+            QkTerm *t = &cf->qk[cf->n_qk++];
+            t->n = m;
+            for (int k = 0; k < m; ++k) {
+                t->c[k] = tok_int(lx) - 1;
+                if (t->c[k] < 0 || t->c[k] >= n) lex_fail(lx, "QKTO term names a species out of range");
+                for (int j = 0; j < k; ++j) if (t->c[j] == t->c[k]) lex_fail(lx, "QKTO term names a species twice");
+            }
+            for (int k = 0; k < m; ++k) {
+                t->p[k] = tok_int(lx);
+                if (t->p[k] < 0 || t->p[k] > 20) lex_fail(lx, "QKTO term with a negative or implausible power");
+            }
+            t->coeff = xalloc(lx, (size_t)db->n_excess * sizeof(double));
+            for (int k = 0; k < db->n_excess; ++k) t->coeff[k] = tok_dbl(lx);
+        }
+        return;
+    }
+    if (mag) {
+        /* binary magnetic interactions, 0-terminated: i j count, then Tc and beta per order */
+        int cap_tc = 0, cap_bm = 0;
+        for (;;) {
+            const int n_in = tok_int(lx);
+            if (n_in == 0) { skip_annotation(lx); break; }
+            if (n_in != 2) lex_fail(lx, "RKMPM magnetic interaction of other than two species");
+            const int i = tok_int(lx) - 1, j = tok_int(lx) - 1, cnt = tok_int(lx);
+            if (i < 0 || i >= n || j < 0 || j >= n || cnt < 1)
+                lex_fail(lx, "RKMPM magnetic interaction out of range");
+            for (int o = 0; o < cnt; ++o) {
+                const double tc = tok_dbl(lx), bm = tok_dbl(lx);
+                grow_excess(lx, &cf->tc_ex, cf->n_tcx, &cap_tc);
+                magnetic_term(lx, db, &cf->tc_ex[cf->n_tcx++], 0, i, j, o, 1, NULL, tc);
+                grow_excess(lx, &cf->bm_ex, cf->n_bmx, &cap_bm);
+                magnetic_term(lx, db, &cf->bm_ex[cf->n_bmx++], 0, i, j, o, 1, NULL, bm);
+            }
+        }
+        set_magnetic(lx, db, cf, mag);
+    }
+
+    int cap_x = 8, cap_h = 4;
+    cf->ex = xalloc(lx, (size_t)cap_x * sizeof(CefExcess));
+    cf->hx = xalloc(lx, (size_t)cap_h * sizeof(CefHigher));
+    for (;;) {
+        const int n_in = tok_int(lx);
+        if (n_in == 0) { skip_annotation(lx); break; }
+        if (n_in < 2 || n_in > 4) lex_fail(lx, "RKMP interaction of other than 2, 3 or 4 species");
+        int idx[4];
+        for (int k = 0; k < n_in; ++k) {
+            idx[k] = tok_int(lx) - 1;
+            if (idx[k] < 0 || idx[k] >= n) lex_fail(lx, "RKMP interaction names a species out of range");
+        }
+        const int cnt = tok_int(lx);
+        if (cnt < 1) lex_fail(lx, "RKMP interaction with no parameters");
+        if (n_in == 2) {
+            for (int o = 0; o < cnt; ++o) {
+                if (cf->n_ex == cap_x) {
+                    cap_x *= 2;
+                    CefExcess *g = xalloc(lx, (size_t)cap_x * sizeof(CefExcess));
+                    memcpy(g, cf->ex, (size_t)cf->n_ex * sizeof(CefExcess));
+                    free(cf->ex);
+                    cf->ex = g;
+                }
+                CefExcess *xe = &cf->ex[cf->n_ex++];
+                memset(xe, 0, sizeof *xe);
+                xe->t_lo = xe->t_hi = NAN;
+                xe->i = idx[0];
+                xe->j = idx[1];
+                xe->order = o;
+                xe->other = xalloc(lx, sizeof(int));
+                xe->coeff = xalloc(lx, (size_t)db->n_excess * sizeof(double));
+                for (int k = 0; k < db->n_excess; ++k) xe->coeff[k] = tok_dbl(lx);
+            }
+            continue;
+        }
+        /* a ternary takes one parameter or three (Muggianu's v_i, v_j, v_k weights in
+         * that order); a quaternary one */
+        if (!(cnt == 1 || (n_in == 3 && cnt == 3)))
+            lex_fail(lx, "RKMP ternary with other than 1 or 3 parameters, or quaternary with more than 1");
+        for (int m = 0; m < cnt; ++m) {
+            if (cf->n_hx == cap_h) {
+                cap_h *= 2;
+                CefHigher *g = xalloc(lx, (size_t)cap_h * sizeof(CefHigher));
+                memcpy(g, cf->hx, (size_t)cf->n_hx * sizeof(CefHigher));
+                free(cf->hx);
+                cf->hx = g;
+            }
+            CefHigher *h = &cf->hx[cf->n_hx++];
+            memset(h, 0, sizeof *h);
+            h->n = n_in;
+            h->subl2 = -1;
+            for (int k = 0; k < n_in; ++k) h->c[k] = idx[k];
+            h->weight = cnt == 1 ? -1 : m;
+            h->coeff = xalloc(lx, (size_t)db->n_excess * sizeof(double));
+            for (int k = 0; k < db->n_excess; ++k) h->coeff[k] = tok_dbl(lx);
+        }
+    }
+}
+
+/* element index of a one-atom ion name, -1 when the name is not one */
+static int ion_atom_index(const Db *db, const char *name)
+{
+    char sym[NAME_MAX];
+    int j = 0;
+    const char *p = name;
+    for (; *p && j < NAME_MAX - 1 && isalpha((unsigned char)*p); ++p)
+        sym[j++] = (char)toupper((unsigned char)*p);
+    sym[j] = '\0';
+    if (*p && *p != '+' && *p != '-') return -1;
+    for (int e = 0; e < db->n_el; ++e) {
+        char up[NAME_MAX];
+        int k = 0;
+        for (; db->el_name[e][k] && k < NAME_MAX - 1; ++k)
+            up[k] = (char)toupper((unsigned char)db->el_name[e][k]);
+        up[k] = '\0';
+        if (!strcmp(up, sym)) return e;
+    }
+    return -1;
+}
+
+static int is_vacancy(const char *name)
+{
+    return (name[0] == 'V' || name[0] == 'v') && (name[1] == 'A' || name[1] == 'a') && !name[2];
+}
+
+static long charge_gcd(long a, long b)
+{
+    while (b) { long t = a % b; a = b; b = t; }
+    return a;
+}
+
+int mqmqa_ph_ion_comps(const Db *db, int p, double *comp)
+{
+    const Phase *ph = &db->phases[p];
+    const int nc = ph->n_cat, na = ph->n_an, ni = nc + na, ne = db->n_el;
+    int *known = calloc((size_t)ni, sizeof(int));
+    int rc = -1, from_pairs = 0;
+    if (!known) { mqmqa_db_set_error("out of memory"); return -1; }
+    memset(comp, 0, (size_t)ni * ne * sizeof(double));
+    for (int i = 0; i < ni; ++i) {
+        const char *nm = i < nc ? ph->cat_name[i] : ph->an_name[i - nc];
+        double *c = comp + (size_t)i * ne;
+        int e = ion_atom_index(db, nm);
+        if (e >= 0) { c[e] = 1.0; known[i] = 1; continue; }
+        if (is_vacancy(nm)) { known[i] = 1; continue; }
+        for (int s = 0; s < db->n_sp; ++s)
+            if (!strcmp(db->sp[s].name, nm)) {
+                for (int k = 0; k < db->sp[s].n_el; ++k) c[db->sp[s].el[k]] += db->sp[s].n[k];
+                known[i] = 1;
+                break;
+            }
+    }
+    /* the rest from the pair records, each the neutral unit of its two ions */
+    for (int sweep = 0; sweep < ni; ++sweep) {
+        int progress = 0;
+        for (int k = 0; k < ph->n_pairs; ++k) {
+            const Endmember *pr = &ph->pairs[k];
+            const int ic = pr->cat_idx, ia = nc + pr->an_idx;
+            if (!pr->stoich_el || known[ic] == known[ia]) continue;
+            const double qc = fabs(ph->cat_charge[pr->cat_idx]), qa = fabs(ph->an_charge[pr->an_idx]);
+            if (fabs(qc - round(qc)) > 1e-9 || fabs(qa - round(qa)) > 1e-9 || qc < 1 || qa < 1) {
+                mqmqa_db_set_error("phase %s: ion charges %g, %g are not whole numbers, so the "
+                                   "pair %s does not fix the ions' compositions", ph->name, qc, qa, pr->name);
+                goto out;
+            }
+            const long g = charge_gcd((long)round(qc), (long)round(qa));
+            const double nu_c = qa / (double)g, nu_a = qc / (double)g;
+            const int to = known[ic] ? ia : ic, from = known[ic] ? ic : ia;
+            const double nu_to = to == ic ? nu_c : nu_a, nu_from = to == ic ? nu_a : nu_c;
+            for (int e = 0; e < ne; ++e)
+                comp[(size_t)to * ne + e] = (pr->stoich_el[e] - nu_from * comp[(size_t)from * ne + e]) / nu_to;
+            known[to] = 1;
+            from_pairs = progress = 1;
+        }
+        if (!progress) break;
+    }
+    for (int i = 0; i < ni; ++i)
+        if (!known[i]) {
+            mqmqa_db_set_error("phase %s: the composition of ion %s is not known from its name or "
+                               "the pair records", ph->name, i < nc ? ph->cat_name[i] : ph->an_name[i - nc]);
+            goto out;
+        }
+    for (int i = 0; i < ni && from_pairs; ++i)
+        for (int e = 0; e < ne; ++e)
+            if (comp[(size_t)i * ne + e] < -1e-9) {
+                mqmqa_db_set_error("phase %s: the pair records give ion %s a negative amount of %s",
+                                   ph->name, i < nc ? ph->cat_name[i] : ph->an_name[i - nc], db->el_name[e]);
+                goto out;
+            }
+    /* every pair must agree with what was derived */
+    for (int k = 0; k < ph->n_pairs && from_pairs; ++k) {
+        const Endmember *pr = &ph->pairs[k];
+        if (!pr->stoich_el) continue;
+        const double qc = fabs(ph->cat_charge[pr->cat_idx]), qa = fabs(ph->an_charge[pr->an_idx]);
+        const long g = charge_gcd((long)round(qc), (long)round(qa));
+        for (int e = 0; e < ne; ++e) {
+            const double v = qa / g * comp[(size_t)pr->cat_idx * ne + e]
+                           + qc / g * comp[(size_t)(nc + pr->an_idx) * ne + e];
+            if (fabs(v - pr->stoich_el[e]) > 1e-6 * (1.0 + fabs(pr->stoich_el[e]))) {
+                mqmqa_db_set_error("phase %s: pair %s does not match the compositions its ions take "
+                                   "from the other pairs", ph->name, pr->name);
+                goto out;
+            }
+        }
+    }
+    rc = 0;
+out:
+    free(known);
+    return rc;
+}
+
+
+/* ------------------------------------------------------------------ *
+ * SUBI phase: the two-sublattice ionic liquid
+ * ------------------------------------------------------------------ */
+#define SUBI_MAX_RECORDS 1024
+
+/* Puts the cations of a term first, each group in file order; returns how many there are. */
+static int ion_term_order(const IonicPhase *io, int m, int *c)
+{
+    int out[4], n = 0, ncat = 0;
+    for (int k = 0; k < m; ++k) if (c[k] < io->nc) { out[n++] = c[k]; ncat++; }
+    for (int k = 0; k < m; ++k) if (c[k] >= io->nc) out[n++] = c[k];
+    memcpy(c, out, (size_t)m * sizeof(int));
+    return ncat;
+}
+
+static int ion_count(const IonicPhase *io, int m, const int *c, char type)
+{
+    int n = 0;
+    for (int k = 0; k < m; ++k) n += io->type[c[k]] == type;
+    return n;
+}
+
+/* Which of Sundman's sums an excess term belongs to (eqs. 24 and 27, Calphad 15 (1991) 109).
+ * cnt is the number of parameters the file gives; a ternary takes 1 or 3 (v weights). */
+static IonKind ion_term_kind(Lexer *lx, const IonicPhase *io, int m, const int *c, int ncat, int cnt)
+{
+    const int nA = ion_count(io, m, c, 'A'), nV = ion_count(io, m, c, 'V'), nB = ion_count(io, m, c, 'B');
+    /* a neutral alone with the cations would leave the cation sublattice with no sites
+     * (Sundman, p. 112), and two neutrals interact independently of the cation, which in
+     * these files is named anyway; with one cation of charge 1 that cation's y v_C is 1 */
+    const int one_unit_cation = io->nc == 1 && fabs(io->q[0] - 1.0) < 1e-12;
+    if (m == 3 && ncat == 2) {
+        if (nA) return ION_CC_A;
+        if (nV) return ION_CC_VA;
+        lex_fail(lx, "SUBI term of two cations with a neutral, which the model does not allow");
+    }
+    if (m == 3 && ncat == 1) {
+        if (nA) return ION_C_AD;
+        if (nV) return ION_C_VAB;
+        if (!one_unit_cation)
+            lex_fail(lx, "SUBI term between two neutrals in a phase whose cation is not a single "
+                         "one of charge 1: how the file scales it is not known");
+        return ION_C_BB;
+    }
+    if (m == 4 && ncat == 2) {
+        if (nA) return ION_CC_DD;
+        if (nV == 1 && nB == 1) {
+            if (cnt != 1)
+                lex_fail(lx, "SUBI reciprocal term of two cations with Va and a neutral with more "
+                             "than one parameter");
+            return ION_CC_VAB;
+        }
+        lex_fail(lx, "SUBI reciprocal term of two cations and two neutrals");
+    }
+    if (m == 4 && ncat == 3) {
+        if (nA) return ION_CCC_A;
+        if (nV) return ION_CCC_VA;
+        lex_fail(lx, "SUBI term of three cations with a neutral, which the model does not allow");
+    }
+    if (m == 4 && ncat == 1) {
+        if (nA) return ION_C_DDD;
+        if (nV == 1) return ION_C_VABB;
+        if (!one_unit_cation)
+            lex_fail(lx, "SUBI term among three neutrals in a phase whose cation is not a single "
+                         "one of charge 1: how the file scales it is not known");
+        return ION_C_BBB;
+    }
+    lex_fail(lx, "SUBI excess term with no cation, or with cations alone");
+    return ION_CC_A;
+}
+
+/* The records come first, one per cation C and second-sublattice constituent D, named "C:A",
+ * "C:VA", or by the neutral's own name, which FactSage 8 follows with "* v_C". A neutral's
+ * record holds v_C times its energy and element amounts, so summed over the cations with y_C
+ * it gives Sundman's Q y_B G_B (eq. 5); every cation's record of one neutral must say the
+ * same. Then: the number of cations and of second-sublattice constituents, their names, the
+ * number of sublattices (2), the charges (that of Va is ignored, its charge being Q), the two
+ * constituents of each record, and the excess terms, 0-terminated, each its constituents,
+ * a parameter count and that many coefficient rows. The model and the form of every term are
+ * Sundman's (Calphad 15, 1991, 109); the layout is read from the data files themselves. */
+static void parse_subi_phase(Lexer *lx, Db *db, Phase *ph, int n)
+{
+    ph->kind = 2;
+    ph->soln_type = -1;
+    IonicPhase *io = xalloc(lx, sizeof(IonicPhase));
+    ph->ion = io;
+    const int ne = db->n_el;
+    if (n < 1 || n > SUBI_MAX_RECORDS) lex_fail(lx, "SUBI phase with no records or too many");
+    double factor[SUBI_MAX_RECORDS];
+    int rc_c[SUBI_MAX_RECORDS], rc_d[SUBI_MAX_RECORDS];
+    io->n_em = n;
+    io->em = xalloc(lx, (size_t)n * sizeof(Endmember));
+    for (int e = 0; e < n; ++e) {
+        Endmember *em = &io->em[e];
+        tok_name(lx, em->name);
+        factor[e] = NAN;
+        const char *pk = tok_peek(lx);
+        if (pk && strcmp(pk, "*") == 0) { tok_req(lx); factor[e] = tok_dbl(lx); }
+        parse_endmember_body(lx, em, ne, db->n_gibbs);
+        if (em->magnetic) lex_fail(lx, "magnetic record in a SUBI phase");
+    }
+
+    io->nc = tok_int(lx);
+    io->na = tok_int(lx);
+    if (io->nc < 1 || io->na < 1 || io->nc > 64 || io->na > 64)
+        lex_fail(lx, "SUBI phase with an implausible number of constituents");
+    const int nc = io->nc, na = io->na, ni = nc + na;
+    io->name = xalloc(lx, (size_t)ni * sizeof(*io->name));
+    for (int i = 0; i < ni; ++i) tok_name(lx, io->name[i]);
+    if (tok_int(lx) != 2) lex_fail(lx, "SUBI phase with other than two sublattices");
+    io->q = xalloc(lx, (size_t)ni * sizeof(double));
+    io->type = xalloc(lx, (size_t)ni);
+    io->va = -1;
+    for (int c = 0; c < nc; ++c) {
+        io->q[c] = tok_dbl(lx);
+        io->type[c] = 'C';
+        if (!(io->q[c] > 0.0)) lex_fail(lx, "SUBI cation whose charge is not positive");
+    }
+    for (int i = nc; i < ni; ++i) {
+        const double v = tok_dbl(lx);
+        if (is_vacancy(io->name[i])) {
+            if (io->va >= 0) lex_fail(lx, "SUBI phase with two vacancies");
+            io->va = i;
+            io->type[i] = 'V';
+        } else if (v < 0.0) {
+            io->type[i] = 'A';
+            io->q[i] = -v;
+        } else if (v == 0.0) {
+            io->type[i] = 'B';
+        } else {
+            lex_fail(lx, "SUBI second-sublattice constituent with a positive charge");
+        }
+    }
+    for (int e = 0; e < n; ++e) rc_c[e] = tok_int(lx) - 1;
+    for (int e = 0; e < n; ++e) rc_d[e] = tok_int(lx) - 1;
+    io->em_of = xalloc(lx, (size_t)nc * na * sizeof(int));
+    for (int k = 0; k < nc * na; ++k) io->em_of[k] = -1;
+    for (int e = 0; e < n; ++e) {
+        const int c = rc_c[e], d = rc_d[e];
+        if (c < 0 || c >= nc || d < 0 || d >= na) lex_fail(lx, "SUBI record names a constituent out of range");
+        if (io->em_of[c * na + d] >= 0) lex_fail(lx, "SUBI phase with two records for one pair");
+        io->em_of[c * na + d] = e;
+        const int neutral = io->type[nc + d] == 'B';
+        if (!isnan(factor[e]) && (!neutral || fabs(factor[e] - io->q[c]) > 1e-9))
+            lex_fail(lx, "SUBI record whose '*' factor is not its cation's charge on a neutral");
+    }
+    for (int c = 0; c < nc; ++c)
+        for (int d = 0; d < na; ++d)
+            if (io->em_of[c * na + d] < 0) {
+                fmt_msg(lx->err, sizeof lx->err, "line %d: SUBI phase %s has no record for %s with %s",
+                        lx->line, ph->name, io->name[c], io->name[nc + d]);
+                longjmp(lx->jb, 1);
+            }
+
+    /* each constituent's element amounts: a cation from its Va record (else its name or
+     * declared species), the rest from the first cation's record; then every record must
+     * agree with them */
+    io->comp = xalloc(lx, (size_t)ni * ne * sizeof(double));
+    for (int c = 0; c < nc; ++c) {
+        double *k = io->comp + (size_t)c * ne;
+        if (io->va >= 0) {
+            const Endmember *em = &io->em[io->em_of[c * na + (io->va - nc)]];
+            memcpy(k, em->stoich_el, (size_t)ne * sizeof(double));
+            continue;
+        }
+        const int el = ion_atom_index(db, io->name[c]);
+        if (el < 0) lex_fail(lx, "SUBI phase without Va whose cation is not a one-atom ion");
+        k[el] = 1.0;
+    }
+    for (int i = nc; i < ni; ++i) {
+        if (io->type[i] == 'V') continue;
+        const Endmember *em = &io->em[io->em_of[i - nc]];      /* cation 0 */
+        double *k = io->comp + (size_t)i * ne;
+        for (int el = 0; el < ne; ++el)
+            k[el] = (em->stoich_el[el] - (io->type[i] == 'A' ? io->q[i] * io->comp[el] : 0.0)) / io->q[0];
+    }
+    for (int i = 0; i < ni * ne; ++i)
+        if (io->comp[i] < -1e-9) lex_fail(lx, "SUBI records give a constituent a negative amount of an element");
+    for (int c = 0; c < nc; ++c)
+        for (int d = 0; d < na; ++d) {
+            const Endmember *em = &io->em[io->em_of[c * na + d]];
+            const int i = nc + d;
+            for (int el = 0; el < ne; ++el) {
+                const double kc = io->comp[(size_t)c * ne + el], kd = io->comp[(size_t)i * ne + el];
+                const double want = io->type[i] == 'V' ? kc
+                                  : io->type[i] == 'B' ? io->q[c] * kd
+                                  : io->q[i] * kc + io->q[c] * kd;
+                if (fabs(want - em->stoich_el[el]) > 1e-6 * (1.0 + fabs(want))) {
+                    fmt_msg(lx->err, sizeof lx->err, "line %d: SUBI record %s (%s with %s) does not "
+                            "hold the element amounts the other records give", lx->line, em->name,
+                            io->name[c], io->name[i]);
+                    longjmp(lx->jb, 1);
+                }
+            }
+        }
+    /* a neutral's energy per formula, record / v_C, the same under every cation */
+    for (int i = nc; i < ni; ++i) {
+        if (io->type[i] != 'B') continue;
+        const Endmember *e0 = &io->em[io->em_of[i - nc]];
+        for (int c = 1; c < nc; ++c) {
+            const Endmember *ec = &io->em[io->em_of[c * na + (i - nc)]];
+            const double top = fmin(e0->intervals[e0->n_intervals - 1].t_max,
+                                    ec->intervals[ec->n_intervals - 1].t_max);
+            const double Ts[4] = { 300.0, 1000.0, 2000.0, 3000.0 };
+            for (int s = 0; s < 4; ++s) {
+                if (!(Ts[s] < top)) continue;
+                const double g0 = endmember_gibbs(db, e0, Ts[s]) / io->q[0];
+                const double gc = endmember_gibbs(db, ec, Ts[s]) / io->q[c];
+                if (fabs(g0 - gc) > 1e-6 * fabs(g0) + 1e-3) {
+                    fmt_msg(lx->err, sizeof lx->err, "line %d: SUBI neutral %s has a different "
+                            "energy under cation %s (%.6g against %.6g J at %g K)", lx->line,
+                            io->name[i], io->name[c], gc, g0, Ts[s]);
+                    longjmp(lx->jb, 1);
+                }
+            }
+        }
+    }
+
+    int cap = 8;
+    io->t = xalloc(lx, (size_t)cap * sizeof(IonTerm));
+    for (;;) {
+        const int m = tok_int(lx);
+        if (m == 0) { skip_annotation(lx); break; }
+        if (m < 3 || m > 4) lex_fail(lx, "SUBI excess term of other than 3 or 4 constituents");
+        int c[4] = { 0, 0, 0, 0 };
+        for (int k = 0; k < m; ++k) {
+            c[k] = tok_int(lx) - 1;
+            if (c[k] < 0 || c[k] >= ni) lex_fail(lx, "SUBI excess term names a constituent out of range");
+            for (int j = 0; j < k; ++j) if (c[j] == c[k]) lex_fail(lx, "SUBI excess term names a constituent twice");
+        }
+        const int cnt = tok_int(lx);
+        if (cnt < 1) lex_fail(lx, "SUBI excess term with no parameters");
+        const int ncat = ion_term_order(io, m, c);
+        const IonKind kind = ion_term_kind(lx, io, m, c, ncat, cnt);
+        const int ternary = kind >= ION_CCC_A;
+        if (ternary && cnt != 1 && cnt != 3) lex_fail(lx, "SUBI ternary term with other than 1 or 3 parameters");
+        for (int o = 0; o < cnt; ++o) {
+            if (io->n_t == cap) {
+                cap *= 2;
+                IonTerm *g = xalloc(lx, (size_t)cap * sizeof(IonTerm));
+                memcpy(g, io->t, (size_t)io->n_t * sizeof(IonTerm));
+                free(io->t);
+                io->t = g;
+            }
+            IonTerm *t = &io->t[io->n_t++];
+            t->kind = kind;
+            memcpy(t->c, c, sizeof c);
+            /* a ternary's v-weighted constituent: the three that mix, in file order */
+            t->order = !ternary ? o : cnt == 1 ? -1 : (kind == ION_CCC_A || kind == ION_CCC_VA) ? o : 1 + o;
+            t->coeff = xalloc(lx, (size_t)db->n_excess * sizeof(double));
+            for (int k = 0; k < db->n_excess; ++k) t->coeff[k] = tok_dbl(lx);
         }
     }
 }
@@ -613,21 +1384,37 @@ static Db *parse_db(Lexer *lx)
         Phase *ph = &db->phases[db->n_phases];
         memset(ph, 0, sizeof *ph);
         tok_name(lx, ph->name);
+        /* FactSage 8 marks the gas "= MIXTURE PHASE = 1", condensed phases "= 2" */
+        const double note = skip_annotation(lx);
         char type[NAME_MAX];
         tok_name(lx, type);
-        if (strcmp(type, "SUBQ") == 0 || strcmp(type, "SUBG") == 0) {
+        if (strcmp(type, "SUBI") == 0) {
+            parse_subi_phase(lx, db, ph, soln_counts[s]);
+        } else if (strcmp(type, "SUBQ") == 0 || strcmp(type, "SUBG") == 0) {
             parse_subq_phase(lx, db, ph, type);
-        } else if (strncmp(type, "SUBL", 4) == 0) {
-            /* SUBL (and the magnetic SUBLM, whose two magnetic factors we skip) */
-            if (strcmp(type, "SUBLM") == 0) {
-                (void)tok_dbl(lx); (void)tok_dbl(lx);
-                note_lossy(lx->lossy, sizeof lx->lossy,
-                           "the SUBLM magnetic factors of %s", ph->name);
-            }
-            parse_subl_phase(lx, db, ph, soln_counts[s]);
+        } else if (strcmp(type, "SUBL") == 0 || strcmp(type, "SUBLM") == 0) {
+            double mag[2];
+            const int m = strcmp(type, "SUBLM") == 0;
+            if (m) { mag[0] = tok_dbl(lx); mag[1] = tok_dbl(lx); }
+            parse_subl_phase(lx, db, ph, soln_counts[s], m ? mag : NULL);
+        } else if (strcmp(type, "IDMX") == 0 || strcmp(type, "RKMP") == 0 || strcmp(type, "RKMPM") == 0
+                   || strcmp(type, "QKTO") == 0) {
+            double mag[2];
+            const int m = strcmp(type, "RKMPM") == 0;
+            if (m) { mag[0] = tok_dbl(lx); mag[1] = tok_dbl(lx); }
+            parse_subst_phase(lx, db, ph, soln_counts[s], type, m ? mag : NULL);
+            /* ChemSage lists the gas first; an ideal first phase is the gas, unless the
+             * file's own annotation says otherwise */
+            if (strcmp(type, "IDMX") == 0 && (isnan(note) ? s == 0 : note == 1.0)) ph->cef->gas = 1;
+        } else if (strcmp(type, "SUBM") == 0) {
+            /* see validation/thermochimica/PROTOCOL.md: refused by decision, 14 November 2026 */
+            fmt_msg(lx->err, sizeof lx->err,
+                    "phase %s is SUBM, which is not read: how a ChemSage file records its excess "
+                    "terms is not documented in any source the engine was written from", ph->name);
+            longjmp(lx->jb, 1);
         } else {
             fmt_msg(lx->err, sizeof lx->err,
-                    "phase type %s is not supported (only SUBQ/SUBG/SUBL)", type);
+                    "phase type %s is not supported (only SUBQ/SUBG/SUBL(M)/IDMX/RKMP(M)/QKTO/SUBI)", type);
             longjmp(lx->jb, 1);
         }
         db->n_phases++;
@@ -638,7 +1425,10 @@ static Db *parse_db(Lexer *lx)
         parse_endmember(lx, &db->stoich[i], db->n_el, db->n_gibbs);
         /* magnetic stoichiometric phases carry the AFM and structure factors
          * after the endmember's Curie temperature and moment. */
-        if (db->stoich[i].magnetic) { (void)tok_dbl(lx); (void)tok_dbl(lx); }
+        if (db->stoich[i].magnetic) {
+            (void)tok_dbl(lx); (void)tok_dbl(lx);
+            note_unmodeled_magnetic(lx, &db->stoich[i], 1);
+        }
     }
 
     return db;
@@ -677,11 +1467,24 @@ static void free_db_contents(Db *db)
             free(cf->con_name); free(cf->con_atoms); free(cf->em_con);
             for (int k = 0; k < cf->n_ex; ++k) { free(cf->ex[k].coeff); free(cf->ex[k].other); }
             free(cf->ex);
+            for (int k = 0; k < cf->n_hx; ++k) { free(cf->hx[k].coeff); free(cf->hx[k].other); }
+            free(cf->hx);
+            for (int k = 0; k < cf->n_qk; ++k) free(cf->qk[k].coeff);
+            free(cf->qk);
             free(cf->tc_em); free(cf->bm_em);
             for (int k = 0; k < cf->n_tcx; ++k) { free(cf->tc_ex[k].coeff); free(cf->tc_ex[k].other); }
             for (int k = 0; k < cf->n_bmx; ++k) { free(cf->bm_ex[k].coeff); free(cf->bm_ex[k].other); }
             free(cf->tc_ex); free(cf->bm_ex);
             free(cf);
+        }
+        if (ph->ion) {
+            IonicPhase *io = ph->ion;
+            for (int e = 0; e < io->n_em; ++e) free_endmember(&io->em[e]);
+            free(io->em);
+            free(io->name); free(io->q); free(io->type); free(io->em_of); free(io->comp);
+            for (int k = 0; k < io->n_t; ++k) free(io->t[k].coeff);
+            free(io->t);
+            free(io);
         }
     }
     free(db->phases);
@@ -711,6 +1514,7 @@ static void free_db(Db *db)
     db_unregister(db);
     free_db_contents(db);
     free(db->src_text);
+    if (db->beyond) { free(db->beyond->em); free(db->beyond->T); free(db->beyond); }
     free(db);
 }
 
@@ -959,6 +1763,51 @@ const char *mqmqa_db_error(void) { return g_error; }
 
 double mqmqa_db_R_own(const mqmqa_db *db) { return ((const Db *)db)->R.own; }
 double mqmqa_db_R(const mqmqa_db *db) { return rinfo_value(&((const Db *)db)->R); }
+int mqmqa_db_set_pressure(mqmqa_db *db, double P)
+{
+    if (!db || !(P > 0.0) || !isfinite(P)) { mqmqa_db_set_error("pressure must be positive"); return -1; }
+    ((Db *)db)->P = P;
+    return 0;
+}
+void mqmqa_db_beyond_clear(mqmqa_db *db)
+{
+    if (db && ((Db *)db)->beyond) ((Db *)db)->beyond->n = 0;
+}
+int mqmqa_db_beyond_count(const mqmqa_db *db)
+{
+    return db && ((const Db *)db)->beyond ? ((const Db *)db)->beyond->n : 0;
+}
+const char *mqmqa_db_beyond_name(const mqmqa_db *db, int i)
+{
+    if (i < 0 || i >= mqmqa_db_beyond_count(db)) return NULL;
+    return ((const Db *)db)->beyond->em[i]->name;
+}
+/* where species i's data end, and the highest T it was evaluated at (K) */
+double mqmqa_db_beyond_top(const mqmqa_db *db, int i)
+{
+    if (i < 0 || i >= mqmqa_db_beyond_count(db)) return NAN;
+    return data_top(((const Db *)db)->beyond->em[i]);
+}
+double mqmqa_db_beyond_T(const mqmqa_db *db, int i)
+{
+    if (i < 0 || i >= mqmqa_db_beyond_count(db)) return NAN;
+    return ((const Db *)db)->beyond->T[i];
+}
+/* its amount of each element into out[n_el]; 1 when the source gives no stoichiometry */
+int mqmqa_db_beyond_elements(const mqmqa_db *db, int i, double *out)
+{
+    if (i < 0 || i >= mqmqa_db_beyond_count(db)) return -1;
+    const Db *d = (const Db *)db;
+    const Endmember *em = d->beyond->em[i];
+    if (!em->stoich_el) return 1;
+    for (int e = 0; e < d->n_el; ++e) out[e] = em->stoich_el[e];
+    return 0;
+}
+
+double mqmqa_db_pressure(const mqmqa_db *db)
+{
+    return ((const Db *)db)->P > 0.0 ? ((const Db *)db)->P : 101325.0;
+}
 int mqmqa_db_R_source(const mqmqa_db *db) { return rinfo_source(&((const Db *)db)->R); }
 int mqmqa_db_R_own_source(const mqmqa_db *db) { return ((const Db *)db)->R.src; }
 const char *mqmqa_db_R_note(const mqmqa_db *db) { return rinfo_note(&((const Db *)db)->R); }
@@ -1126,6 +1975,69 @@ const char *mqmqa_ph_excess_unsupported(const mqmqa_db *db, int p)
 }
 
 /* ------------------------------------------------------------------ *
+ * Excess coefficients as fit parameters
+ * ------------------------------------------------------------------ */
+static double *param_slot(const Db *d, int i, int *phase, int *kind, int *term,
+                          int *slot)
+{
+    if (!d || i < 0 || d->n_excess < 1) return NULL;
+    const int nc = d->n_excess;
+    for (int pass = 0; pass < 2; ++pass) {
+        for (int p = 0; p < d->n_phases; ++p) {
+            const Phase *ph = &d->phases[p];
+            const int n = pass == 0 ? (ph->kind == 0 ? ph->n_mqmx : 0)
+                                    : (ph->cef ? ph->cef->n_ex : 0);
+            if (i >= n * nc) { i -= n * nc; continue; }
+            if (phase) *phase = p;
+            if (kind) *kind = pass;
+            if (term) *term = i / nc;
+            if (slot) *slot = i % nc;
+            return pass == 0 ? &ph->mqmx[i / nc].coeff[i % nc]
+                             : &ph->cef->ex[i / nc].coeff[i % nc];
+        }
+    }
+    return NULL;
+}
+
+int mqmqa_db_num_params(const mqmqa_db *db)
+{
+    const Db *d = (const Db *)db;
+    if (!d || d->n_excess < 1) return 0;
+    int n = 0;
+    for (int p = 0; p < d->n_phases; ++p) {
+        const Phase *ph = &d->phases[p];
+        n += ph->kind == 0 ? ph->n_mqmx : 0;
+        n += ph->cef ? ph->cef->n_ex : 0;
+    }
+    return n * d->n_excess;
+}
+
+int mqmqa_db_param_info(const mqmqa_db *db, int i, int *phase, int *kind, int *term,
+                        int *slot, int *tfun)
+{
+    const Db *d = (const Db *)db;
+    int s = 0;
+    if (!param_slot(d, i, phase, kind, term, &s)) return -1;
+    if (slot) *slot = s;
+    if (tfun) *tfun = d->excess_idx[s];
+    return 0;
+}
+
+double mqmqa_db_param_get(const mqmqa_db *db, int i)
+{
+    const double *v = param_slot((const Db *)db, i, NULL, NULL, NULL, NULL);
+    return v ? *v : NAN;
+}
+
+int mqmqa_db_param_set(mqmqa_db *db, int i, double value)
+{
+    double *v = param_slot((const Db *)db, i, NULL, NULL, NULL, NULL);
+    if (!v || !isfinite(value)) return -1;
+    *v = value;
+    return 0;
+}
+
+/* ------------------------------------------------------------------ *
  * CEF (SUBL) phase accessors
  * ------------------------------------------------------------------ */
 int mqmqa_db_phase_kind(const mqmqa_db *db, int p)
@@ -1168,6 +2080,8 @@ const char *mqmqa_ph_cef_constituent(const mqmqa_db *db, int p, int s, int i)
  * in the reader's constituent order) and temperature T. Assembles the per-parameter
  * arrays the kernel needs (endmember Gibbs at T, excess L at T) and calls
  * mqmqa_cef_gibbs. Returns NaN if the phase is not CEF or on allocation failure. */
+static double ipow(double x, int k);
+
 double mqmqa_ph_cef_gibbs(const mqmqa_db *db, int p, const double *Y, double T,
                           int per_mole_atoms)
 {
@@ -1208,6 +2122,36 @@ double mqmqa_ph_cef_gibbs(const mqmqa_db *db, int p, const double *Y, double T,
         cf->n_em, cf->em_con, em_G,
         n_ex, ex_subl, ex_i, ex_j, ex_order, ex_L, ex_other,
         0, d->R.own);
+    if (cf->gas) {      /* ideal gas: Y holds the species */
+        /* ChemSage gas data, as FactSage and Thermochimica read them, refer to 1 bar, so
+         * the term is there at 1 atm too (RT ln 1.01325) */
+        const double P = d->P > 0.0 ? d->P : 101325.0;
+        double ny = 0.0;
+        for (int i = 0; i < cf->n_con; ++i) ny += Y[i];
+        g += ny * rinfo_value(&d->R) * T * log(P / CS_GAS_P_REF);
+    }
+    for (int k = 0; k < cf->n_hx; ++k) {
+        const CefHigher *h = &cf->hx[k];
+        const double *Ys = Y + cf->subl_off[h->subl];
+        double prod = 1.0, sum = 0.0;
+        for (int c = 0; c < h->n; ++c) { prod *= Ys[h->c[c]]; sum += Ys[h->c[c]]; }
+        const double w = h->weight < 0 ? 1.0 : Ys[h->c[h->weight]] + (1.0 - sum) / h->n;
+        if (h->subl2 >= 0)
+            prod *= Y[cf->subl_off[h->subl2] + h->c2[0]] * Y[cf->subl_off[h->subl2] + h->c2[1]];
+        for (int t = 0; h->other && t < cf->n_subl; ++t)
+            if (t != h->subl && t != h->subl2) prod *= Y[cf->subl_off[t] + h->other[t]];
+        g += prod * w * excess_coeff_gibbs(d, h->coeff, T);
+    }
+    /* QKTO: Kohler's form of Pelton's eq. 12, s^n L prod (Y_c / s)^p_c */
+    for (int k = 0; k < cf->n_qk; ++k) {
+        const QkTerm *t = &cf->qk[k];
+        double s = 0.0;
+        for (int c = 0; c < t->n; ++c) s += Y[t->c[c]];
+        if (!(s > 0.0)) continue;
+        double v = ipow(s, t->n);
+        for (int c = 0; c < t->n; ++c) v *= ipow(Y[t->c[c]] / s, t->p[c]);
+        g += v * excess_coeff_gibbs(d, t->coeff, T);
+    }
 
     /* Inden-Hillert-Jarl magnetic contribution, per mole of formula: TC(Y) and
      * beta(Y) mix exactly like the excess terms, then G_mag = R T ln(1+beta) f(tau). */
@@ -1301,6 +2245,133 @@ static void line_fill(const SublPhase *cf, const int *mixs, const int *bidx, int
  * B divides between them at fixed y: the phase is taken at internal equilibrium, as
  * pycalphad treats it. The minimizing site fractions go to Y_out when it is not NULL.
  * NaN, with the error set, for any other layout. */
+static double ipow(double x, int k)
+{
+    double r = 1.0;
+    for (int i = 0; i < k; ++i) r *= x;
+    return r;
+}
+
+int mqmqa_ph_ionic_size(const mqmqa_db *db, int p, int *nc, int *na)
+{
+    const Db *d = (const Db *)db;
+    if (!d || p < 0 || p >= d->n_phases || d->phases[p].kind != 2) return -1;
+    if (nc) *nc = d->phases[p].ion->nc;
+    if (na) *na = d->phases[p].ion->na;
+    return 0;
+}
+
+const char *mqmqa_ph_ionic_constituent(const mqmqa_db *db, int p, int i)
+{
+    const Db *d = (const Db *)db;
+    if (!d || p < 0 || p >= d->n_phases || d->phases[p].kind != 2) return NULL;
+    const IonicPhase *io = d->phases[p].ion;
+    return (i >= 0 && i < io->nc + io->na) ? io->name[i] : NULL;
+}
+
+/* Gibbs energy of SUBI phase p, one formula unit (P cation and Q anion sites), at site
+ * fractions y (the cations, then the second sublattice) and T: Sundman's eq. 5, its
+ * excess the sums of eqs. 24 and 27 (Calphad 15 (1991) 109). The formula's element
+ * amounts go to n_el when it is not NULL. NaN when p is not a SUBI phase. */
+double mqmqa_ph_ionic_gibbs(const mqmqa_db *db, int p, const double *y, double T, double *n_el)
+{
+    const Db *d = (const Db *)db;
+    if (!d || p < 0 || p >= d->n_phases || d->phases[p].kind != 2 || !y || !(T > 0.0)) return NAN;
+    const IonicPhase *io = d->phases[p].ion;
+    const int nc = io->nc, na = io->na, ni = nc + na, ne = d->n_el;
+    const double yva = io->va >= 0 ? y[io->va] : 0.0;
+    double Q = 0.0, P = 0.0;
+    for (int c = 0; c < nc; ++c) Q += io->q[c] * y[c];
+    for (int i = nc; i < ni; ++i) if (io->type[i] == 'A') P += io->q[i] * y[i];
+    P += Q * yva;
+    if (n_el) {
+        memset(n_el, 0, (size_t)ne * sizeof(double));
+        for (int i = 0; i < ni; ++i) {
+            if (io->type[i] == 'V') continue;
+            const double w = (i < nc ? P : Q) * y[i];
+            for (int e = 0; e < ne; ++e) n_el[e] += w * io->comp[(size_t)i * ne + e];
+        }
+    }
+    double g = 0.0;
+    for (int c = 0; c < nc; ++c)
+        for (int a = 0; a < na; ++a) {
+            const double ge = endmember_gibbs(d, &io->em[io->em_of[c * na + a]], T);
+            g += (nc + a == io->va ? Q * yva : y[nc + a]) * y[c] * ge;
+        }
+    double sc = 0.0, sa = 0.0;
+    for (int c = 0; c < nc; ++c) if (y[c] > 0.0) sc += y[c] * log(y[c]);
+    for (int i = nc; i < ni; ++i) if (y[i] > 0.0) sa += y[i] * log(y[i]);
+    g += mqmqa_db_R(db) * T * (P * sc + Q * sa);
+
+    for (int k = 0; k < io->n_t; ++k) {
+        const IonTerm *t = &io->t[k];
+        const double L = excess_coeff_gibbs(d, t->coeff, T);
+        const double y0 = y[t->c[0]], y1 = y[t->c[1]], y2 = y[t->c[2]];
+        const double y3 = (t->kind >= ION_CC_DD) ? y[t->c[3]] : 0.0;
+        double v = 0.0;
+        switch (t->kind) {
+        case ION_CC_A:
+            v = y0 * y1 * y2 * ipow(y0 - y1, t->order);
+            break;
+        case ION_CC_VA:
+            v = Q * yva * yva * y0 * y1 * ipow(yva * y0 - yva * y1, t->order);
+            break;
+        case ION_C_AD:
+            v = y0 * y1 * y2 * ipow(y1 - y2, t->order);
+            break;
+        case ION_C_VAB: {
+            const double w1 = t->c[1] == io->va ? yva * y0 : y1;
+            const double w2 = t->c[2] == io->va ? yva * y0 : y2;
+            const double yb = t->c[1] == io->va ? y2 : y1;
+            v = Q * yva * y0 * yb * ipow(w1 - w2, t->order);
+            break;
+        }
+        case ION_C_BB:
+            v = Q * y1 * y2 * ipow(y1 - y2, t->order);
+            break;
+        case ION_CC_DD:                 /* eq. 37: odd orders on the anions, even on the cations */
+            v = y0 * y1 * y2 * y3 * (t->order == 0 ? 1.0
+                                     : t->order % 2 ? ipow(y2 - y3, (t->order + 1) / 2)
+                                                    : ipow(y0 - y1, t->order / 2));
+            break;
+        case ION_CC_VAB: {
+            const double yb = t->c[2] == io->va ? y3 : y2;
+            v = Q * yva * yva * y0 * y1 * yb;
+            break;
+        }
+        case ION_CCC_A:
+        case ION_CCC_VA: {
+            const double s = t->kind == ION_CCC_VA ? yva : 1.0;
+            double w = 1.0;
+            if (t->order >= 0) w = s * y[t->c[t->order]] + (1.0 - s * (y0 + y1 + y2)) / 3.0;
+            v = (t->kind == ION_CCC_VA ? Q * yva * yva * yva : y3) * y0 * y1 * y2 * w;
+            break;
+        }
+        case ION_C_DDD:
+        case ION_C_VABB:
+        case ION_C_BBB: {
+            /* the v-weight base of each of the three that mix; Va pairs with its cation only
+             * where no anion multiplies the term (the rule of pairs, eq. 36) */
+            double u[4];
+            for (int j = 1; j < 4; ++j)
+                u[j] = (t->kind == ION_C_VABB && t->c[j] == io->va) ? yva * y0 : y[t->c[j]];
+            double w = 1.0;
+            if (t->order >= 0) w = u[t->order] + (1.0 - u[1] - u[2] - u[3]) / 3.0;
+            if (t->kind == ION_C_DDD) v = y0 * y1 * y2 * y3 * w;
+            else if (t->kind == ION_C_BBB) v = Q * y1 * y2 * y3 * w;
+            else {
+                double yb = 1.0;
+                for (int j = 1; j < 4; ++j) if (t->c[j] != io->va) yb *= y[t->c[j]];
+                v = Q * yva * y0 * yb * w;
+            }
+            break;
+        }
+        }
+        g += v * L;
+    }
+    return g;
+}
+
 double mqmqa_ph_cef_line_gibbs(const mqmqa_db *db, int p, double y, double T,
                                int per_mole_atoms, double *Y_out)
 {
@@ -1470,6 +2541,7 @@ typedef struct {
     int flags_magnetic, flags_order;
     double mag_afm, mag_p;    /* from the phase's MAGNETIC type definition */
     int is_q;                 /* :Q model suffix - the MQMQA quadruplet liquid */
+    char code[NAME_MAX];      /* type-definition characters, applied after the whole file */
 } TdbPhase;
 
 typedef struct {
@@ -1478,6 +2550,7 @@ typedef struct {
     int ncon[TDB_MAX_SUBL];
     int order;                /* Redlich-Kister order */
     int kind;                 /* 0 G/L, 1 TC, 2 BMAGN */
+    int wildcard;             /* written with "*", or expanded from such a parameter */
     TdbSeg *expr;             /* heap, TDB_MAX_SEG entries (WASM-friendly) */
     int n_seg;
 } TdbParam;
@@ -1492,6 +2565,7 @@ typedef struct {
     int  exp_p, exp_q, exp_r; /* MQX exponents (r = -1 when absent) */
     double vals[8];           /* MQZETA/MQSTOI/MQZ/MQGRP constant payloads */
     int  n_vals;
+    double c_lo, c_hi;        /* a constant row's limits as written, NAN when absent */
     TdbSeg *expr;             /* MQG / MQX piecewise payload */
     int  n_seg;
 } TdbMq;
@@ -1513,6 +2587,7 @@ typedef struct {
     char order_typedefs[16];    int n_ord_td;
     struct TdbPoly *poly;     int n_poly;   /* expression scratch, TDB_POLY_POOL entries */
     jmp_buf *subset_jb;       /* set while a FUNCTION body is read: subset errors land here */
+    double t_lo, t_hi;        /* TEMP_LIM defaults, for a limit written as an empty ",," */
 } Tdb;
 
 static void tdb_fail(Tdb *tb, const char *what)
@@ -1545,6 +2620,48 @@ static void tdb_name(Tdb *tb, char *dst, const char *src)
     if (fmt_to(dst, NAME_MAX, "%s", src)) tdb_fail_long(tb, "name", src, strlen(src), NAME_MAX - 1);
 }
 
+/* Thermo-Calc reads a keyword by its start and treats '-' as '_' (the SGTE binary collection
+ * writes PAR, CONST, TEMP-LIM, TYPE-DEF). kw matches full when it agrees with it over at least
+ * min characters and nowhere disagrees; a word running past full still matches, as before. */
+static int tdb_kw(const char *kw, const char *full, size_t min)
+{
+    size_t n;
+    for (n = 0; kw[n]; ++n) {
+        char c = (char)toupper((unsigned char)kw[n]);
+        if (c == '-') c = '_';
+        if (!full[n]) return 1;
+        if (c != full[n]) return 0;
+    }
+    return n >= min;
+}
+
+/* Same phase, type, order and constituents (an interaction's pair in either order). */
+static int tdb_same_param(const TdbParam *a, const TdbParam *b, int n_subl)
+{
+    int s;
+    if (a->kind != b->kind || a->order != b->order || strcmp(a->phase, b->phase) != 0) return 0;
+    for (s = 0; s < n_subl; ++s) {
+        if (a->ncon[s] != b->ncon[s]) return 0;
+        if (a->ncon[s] == 1 && a->con[s][0] != b->con[s][0]) return 0;
+        if (a->ncon[s] == 2 &&
+            !((a->con[s][0] == b->con[s][0] && a->con[s][1] == b->con[s][1]) ||
+              (a->con[s][0] == b->con[s][1] && a->con[s][1] == b->con[s][0]))) return 0;
+    }
+    return 1;
+}
+
+/* Parameter types that hold no Gibbs energy: molar volume and expansivity, mobility and
+ * diffusion, and transport properties. */
+static int tdb_type_without_energy(const char *type)
+{
+    static const char *skip[] = { "V0", "VA", "VB", "VC", "VK", "VS", "MQ", "MF", "DQ", "DF",
+                                  "QT", "RHO", "VISC", "ELRS", "THCD", "SIGM", "XI", NULL };
+    int k;
+    for (k = 0; skip[k]; ++k)
+        if (strcmp(type, skip[k]) == 0) return 1;
+    return 0;
+}
+
 static int tdb_detect(const char *text)
 {
     /* First non-comment, non-blank line starting with a TDB keyword. */
@@ -1554,16 +2671,19 @@ static int tdb_detect(const char *text)
         if (*p == '$') { while (*p && *p != '\n') p++; if (*p) p++; continue; }
         if (*p == '\n') { p++; continue; }
         {
-            static const char *kw[] = { "ELEM", "SPEC", "FUNC",
-                "TYPE_DEF", "PHAS", "DATABASE_INFO", "TEMP_LIM",
-                "TEMPERATURE_LIMITS", "VERSION_DATE", "REFERENCE_FILE",
-                "ASSESSED_SYSTEMS", NULL };
+            static const struct { const char *full; size_t min; } kw[] = {
+                { "ELEMENT", 4 }, { "SPECIES", 4 }, { "FUNCTION", 3 },
+                { "TYPE_DEFINITION", 8 }, { "PHASE", 4 }, { "DATABASE_INFO", 13 },
+                { "TEMP_LIM", 8 }, { "TEMPERATURE_LIMITS", 18 }, { "VERSION_DATE", 12 },
+                { "REFERENCE_FILE", 14 }, { "ASSESSED_SYSTEMS", 15 },
+                { "DEFINE_SYSTEM_DEFAULT", 10 }, { "DEFAULT_COMMAND", 9 }, { NULL, 0 } };
+            char word[NAME_MAX];
+            size_t n = 0;
             int k;
-            for (k = 0; kw[k]; ++k) {
-                size_t n = strlen(kw[k]);
-                if (strncmp(p, kw[k], n) == 0)
-                    return 1;
-            }
+            while (p[n] && !strchr(" \t\r\n!", p[n]) && n + 1 < sizeof word) { word[n] = p[n]; n++; }
+            word[n] = '\0';
+            for (k = 0; kw[k].full; ++k)
+                if (tdb_kw(word, kw[k].full, kw[k].min)) return 1;
         }
         return 0;   /* first real line is not a TDB statement */
     }
@@ -2027,8 +3147,13 @@ static int tdb_parse_piecewise(Tdb *tb, char **s, TdbSeg *seg, int max_seg)
     double lo;
     int n = 0;
     if (!tdb_word(tb, s, buf, sizeof buf)) tdb_fail(tb, "missing lower temperature limit");
-    lo = strtod(buf, &end);
-    if (end == buf) tdb_fail(tb, "bad lower temperature limit");
+    if (buf[0] == ',') {          /* ",," : the TEMP_LIM default */
+        if (tdb_peekc(*s) == ',') { tdb_ws(s); (*s)++; }
+        lo = tb->t_lo;
+    } else {
+        lo = strtod(buf, &end);
+        if (end == buf) tdb_fail(tb, "bad lower temperature limit");
+    }
     for (;;) {
         double hi;
         if (n >= max_seg) tdb_fail(tb, "too many temperature intervals");
@@ -2037,9 +3162,9 @@ static int tdb_parse_piecewise(Tdb *tb, char **s, TdbSeg *seg, int max_seg)
         while (**s == ' ' || **s == '\t' || **s == '\r' || **s == '\n') (*s)++;
         if (**s == ';') (*s)++;
         while (tdb_peekc(*s) == ',') { tdb_ws(s); (*s)++; }
-        if (!tdb_word(tb, s, buf, sizeof buf)) { seg[n].hi = 6000.0; n++; break; }
+        if (!tdb_word(tb, s, buf, sizeof buf)) { seg[n].hi = tb->t_hi; n++; break; }
         hi = strtod(buf, &end);
-        if (end == buf) { seg[n].hi = 6000.0; n++; break; }  /* no limit: N or a reference */
+        if (end == buf) { seg[n].hi = tb->t_hi; n++; break; }  /* no limit: N or a reference */
         if (*end) tdb_fail(tb, "bad upper temperature limit");
         seg[n].hi = hi; n++;
         if (!tdb_word(NULL, s, buf, sizeof buf)) break;
@@ -2332,8 +3457,8 @@ static void tdb_fill_endmember(Tdb *tb, Endmember *em, const TdbSeg *seg, int n_
             }
         }
     }
-    /* TDB convention (matching pycalphad): the last interval extrapolates above
-     * its upper bound instead of dropping to zero as ChemSage data do. */
+    /* the last interval is carried on above its upper bound, as for ChemSage data; t_top
+     * keeps the bound as written, so a use above it is logged (endmember_gibbs) */
     em->intervals[em->n_intervals - 1].t_max = 1e12;
 }
 
@@ -2581,10 +3706,18 @@ static Db *tdb_build_db(Tdb *tb)
     }
     db->n_sp = tb->n_sp;
     db->lim_lo = db->lim_hi = NAN;
-    if (tb->n_par > 0 && tb->par[0].n_seg > 0) {
+    /* the limits the constants were written with stand in for theirs; else the first
+     * parameter's (a parameter's last limit can be where its data end, not a range) */
+    for (i = 0; i < tb->n_mq && isnan(db->lim_hi); ++i)
+        if (tb->mq[i].kind != 0 && tb->mq[i].kind != 4 && isfinite(tb->mq[i].c_hi)) {
+            db->lim_lo = tb->mq[i].c_lo;
+            db->lim_hi = tb->mq[i].c_hi;
+        }
+    const int no_const_lim = isnan(db->lim_hi);
+    if (no_const_lim && tb->n_par > 0 && tb->par[0].n_seg > 0) {
         db->lim_lo = tb->par[0].expr[0].lo;
         db->lim_hi = tb->par[0].expr[tb->par[0].n_seg - 1].hi;
-    } else if (tb->n_mq > 0 && tb->mq[0].n_seg > 0) {
+    } else if (no_const_lim && tb->n_mq > 0 && tb->mq[0].n_seg > 0) {
         db->lim_lo = tb->mq[0].expr[0].lo;
         db->lim_hi = tb->mq[0].expr[tb->mq[0].n_seg - 1].hi;
     }
@@ -2616,6 +3749,10 @@ static Db *tdb_build_db(Tdb *tb)
             if (tp->ncon[s] == 0) tdb_fail(tb, "phase with an empty sublattice");
         for (s = 0; s < tp->n_subl; ++s)
             if (tp->ncon[s] != 1) { is_stoich = 0; break; }
+        /* A fixed-composition phase with a magnetic contribution (pure Fe as BCC_A2, Co17Er2)
+         * is built as a one-endmember solution phase, which carries the magnetic term. */
+        for (q = 0; is_stoich && q < tb->n_par; ++q)
+            if (strcmp(tb->par[q].phase, tp->name) == 0 && tb->par[q].kind != 0) is_stoich = 0;
 
         if (is_stoich) {
             Endmember *em = &db->stoich[db->n_stoich];
@@ -2869,6 +4006,8 @@ static Db *read_tdb(char *text_owned)
     tb.lx = &lx;
     tb.cur = text_owned;
     tb.line = 1;
+    tb.t_lo = 298.15;
+    tb.t_hi = 6000.0;
 
     if (setjmp(lx.jb) == 0) {
         char *st;
@@ -2912,7 +4051,13 @@ static Db *read_tdb(char *text_owned)
                     char *s = st;
                     char kw[NAME_MAX], name[NAME_MAX];
                     if (!tdb_word(NULL, &s, kw, sizeof kw)) continue;
-                    if (strncmp(kw, "FUN", 3) != 0) continue;
+                    if (tdb_kw(kw, "TEMP_LIM", 8) || tdb_kw(kw, "TEMPERATURE_LIMITS", 18)) {
+                        char w[NAME_MAX];
+                        if (tdb_word(&pre, &s, w, sizeof w)) pre.t_lo = atof(w);
+                        if (tdb_word(&pre, &s, w, sizeof w)) pre.t_hi = atof(w);
+                        continue;
+                    }
+                    if (!tdb_kw(kw, "FUNCTION", 3)) continue;
                     if (!tdb_word(&pre, &s, name, sizeof name)) continue;
                     {
                         int fi = tdb_func_index(&pre, name);
@@ -2928,6 +4073,8 @@ static Db *read_tdb(char *text_owned)
                     }
                 }
                 tb.n_func = pre.n_func;   /* the table itself is shared storage */
+                tb.t_lo = pre.t_lo;
+                tb.t_hi = pre.t_hi;
             }
             free(copy);
         }
@@ -2937,7 +4084,7 @@ static Db *read_tdb(char *text_owned)
             char kw[NAME_MAX];
             if (!tdb_word(NULL, &s, kw, sizeof kw)) continue;
 
-            if (strncmp(kw, "ELEM", 4) == 0) {
+            if (tdb_kw(kw, "ELEMENT", 4)) {
                 char name[NAME_MAX], ref[NAME_MAX], w[NAME_MAX];
                 double mass = 0.0, h298 = 0.0, s298 = 0.0;
                 TdbSpecies *sp;
@@ -2958,7 +4105,7 @@ static Db *read_tdb(char *text_owned)
                 snprintf(sp->name, NAME_MAX, "%s", name);
                 sp->n_el = 1; sp->el[0] = tb.n_el; sp->n[0] = 1.0; sp->atoms = 1.0;
                 tb.n_el++;
-            } else if (strncmp(kw, "SPEC", 4) == 0) {
+            } else if (tdb_kw(kw, "SPECIES", 4)) {
                 char name[NAME_MAX], comp[NAME_MAX];
                 TdbSpecies *sp;
                 if (!tdb_word(&tb, &s, name, sizeof name) || !tdb_word(&tb, &s, comp, sizeof comp))
@@ -2968,7 +4115,7 @@ static Db *read_tdb(char *text_owned)
                 sp = &tb.sp[tb.n_sp++];
                 snprintf(sp->name, NAME_MAX, "%s", name);
                 tdb_parse_composition(&tb, comp, sp);
-            } else if (strncmp(kw, "FUN", 3) == 0) {
+            } else if (tdb_kw(kw, "FUNCTION", 3)) {
                 char name[NAME_MAX];
                 int fi;
                 if (!tdb_word(&tb, &s, name, sizeof name)) tdb_fail(&tb, "FUNCTION without a name");
@@ -2984,7 +4131,7 @@ static Db *read_tdb(char *text_owned)
                     g_tdb_R_stated = tdb_segs_const(&tb.func[fi], &g_tdb_R_value) ? 1 : 2;
                     if (!isnan(g_parse_R_force)) tdb_func_set_const(&tb, fi, g_parse_R_force);
                 }
-            } else if (strncmp(kw, "TYPE_DEF", 8) == 0) {
+            } else if (tdb_kw(kw, "TYPE_DEFINITION", 8)) {
                 char ch[NAME_MAX];
                 if (!tdb_word(NULL, &s, ch, sizeof ch)) continue;
                 if (strstr(s, "MAGNETIC")) {
@@ -2996,14 +4143,13 @@ static Db *read_tdb(char *text_owned)
                         tb.mag_td_p[tb.n_mag_td] = pv;
                         tb.n_mag_td++;
                     }
-                } else if (strstr(s, "DISORD") || strstr(s, "DIS_PART")) {
+                } else if (strstr(s, "DISORD") || strstr(s, "DIS_PART") || strstr(s, "NEVER_DIS")) {
                     if (tb.n_ord_td < 15) tb.order_typedefs[tb.n_ord_td++] = ch[0];
                 }
-            } else if (strncmp(kw, "PHAS", 4) == 0) {
+            } else if (tdb_kw(kw, "PHASE", 4)) {
                 char name[NAME_MAX], code[NAME_MAX], w[NAME_MAX];
                 char *colon;
                 TdbPhase *ph;
-                char *c;
                 int m;
                 if (!tdb_word(&tb, &s, name, sizeof name)) tdb_fail(&tb, "PHASE without a name");
                 colon = strchr(name, ':');
@@ -3025,16 +4171,7 @@ static Db *read_tdb(char *text_owned)
                 ph = &tb.ph[tb.n_ph++];
                 snprintf(ph->name, NAME_MAX, "%s", name);
                 if (!tdb_word(&tb, &s, code, sizeof code)) tdb_fail(&tb, "PHASE without a model code");
-                for (c = code; *c; ++c) {
-                    for (m = 0; m < tb.n_mag_td; ++m)
-                        if (*c == tb.magnetic_typedefs[m]) {
-                            ph->flags_magnetic = 1;
-                            ph->mag_afm = tb.mag_td_afm[m];
-                            ph->mag_p = tb.mag_td_p[m];
-                        }
-                    for (m = 0; m < tb.n_ord_td; ++m)
-                        if (*c == tb.order_typedefs[m]) ph->flags_order = 1;
-                }
+                snprintf(ph->code, NAME_MAX, "%s", code);
                 if (!tdb_word(&tb, &s, w, sizeof w)) tdb_fail(&tb, "PHASE without sublattice count");
                 ph->n_subl = atoi(w);
                 if (ph->n_subl < 1 || ph->n_subl > TDB_MAX_SUBL)
@@ -3043,7 +4180,7 @@ static Db *read_tdb(char *text_owned)
                     if (!tdb_word(&tb, &s, w, sizeof w)) tdb_fail(&tb, "missing site ratio");
                     ph->ratio[m] = atof(w);
                 }
-            } else if (strncmp(kw, "CONS", 4) == 0) {
+            } else if (tdb_kw(kw, "CONSTITUENT", 4)) {
                 char name[NAME_MAX], w[NAME_MAX];
                 char *colon;
                 TdbPhase *ph = NULL;
@@ -3074,7 +4211,7 @@ static Db *read_tdb(char *text_owned)
                     if (ph->ncon[subl] >= TDB_MAX_CON) tdb_fail(&tb, "too many constituents");
                     snprintf(ph->con[subl][ph->ncon[subl]++], NAME_MAX, "%s", w);
                 }
-            } else if (strncmp(kw, "PARA", 4) == 0) {
+            } else if (tdb_kw(kw, "PARAMETER", 3)) {
                 char type[NAME_MAX]; size_t tn = 0;
                 char desc[TDB_DESC]; size_t dn = 0;
                 const char *dstart;
@@ -3084,6 +4221,7 @@ static Db *read_tdb(char *text_owned)
                 int pending_kind = 0;
                 TdbPhase *ph = NULL;
                 TdbParam *pa;
+                int wild[TDB_MAX_SUBL], absent, s2;
                 int i2;
                 while (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r') s++;
                 while (*s && *s != '(' && tn + 1 < sizeof type) type[tn++] = *s++;
@@ -3116,6 +4254,7 @@ static Db *read_tdb(char *text_owned)
                     mq = &tb.mq[tb.n_mq];
                     memset(mq, 0, sizeof *mq);
                     mq->exp_r = -1;
+                    mq->c_lo = mq->c_hi = NAN;
                     if      (strcmp(type, "MQG") == 0)    mq->kind = 0;
                     else if (strcmp(type, "MQZETA") == 0) mq->kind = 1;
                     else if (strcmp(type, "MQSTOI") == 0) mq->kind = 2;
@@ -3179,13 +4318,14 @@ static Db *read_tdb(char *text_owned)
                         char w2[NAME_MAX];
                         int after_semi = 0;
                         if (!tdb_word(&tb, &s, w2, sizeof w2)) tdb_fail(&tb, "MQ constants missing");
+                        mq->c_lo = strtod(w2, NULL);
                         while (tdb_word(&tb, &s, w2, sizeof w2)) {
                             char *e3 = NULL;
                             double v3;
                             if (w2[0] == ';') { after_semi = 1; continue; }
                             v3 = strtod(w2, &e3);
                             if (e3 == w2) break;        /* hit the trailing N / ref */
-                            if (after_semi) continue;   /* upper temperature limit */
+                            if (after_semi) { mq->c_hi = v3; continue; }   /* upper limit */
                             if (mq->n_vals < 8) mq->vals[mq->n_vals++] = v3;
                         }
                     }
@@ -3194,11 +4334,16 @@ static Db *read_tdb(char *text_owned)
                 }
                 if (strcmp(type, "G") == 0 || strcmp(type, "L") == 0) pending_kind = 0;
                 else if (strcmp(type, "TC") == 0) pending_kind = 1;
-                else if (strcmp(type, "BMAGN") == 0 || strcmp(type, "BM") == 0) pending_kind = 2;
-                else {           /* VS, diffusion etc.: ignored, energies unaffected */
+                else if (strcmp(type, "BMAGN") == 0 || strcmp(type, "BMAG") == 0 ||
+                         strcmp(type, "BM") == 0) pending_kind = 2;
+                else if (tdb_type_without_energy(type)) {   /* molar volume, mobility, ... */
                     note_lossy(lx.lossy, sizeof lx.lossy,
                                "PARAMETER type %s, which Hephaestus does not read", type);
                     continue;
+                } else {
+                    /* THETA, GD, NT and the like change the Gibbs energy, so skipping one would
+                     * compute a different model; the file is refused instead. */
+                    tdb_fail(&tb, "a PARAMETER type that changes the Gibbs energy is outside the v1 subset");
                 }
                 comma = strchr(desc, ',');
                 if (!comma) tdb_fail(&tb, "PARAMETER without a constituent array");
@@ -3222,7 +4367,9 @@ static Db *read_tdb(char *text_owned)
                 if (!pa->expr) tdb_fail(&tb, "out of memory");
                 subl = 0;
                 tokp = arr;
-                while (subl < ph->n_subl && tokp) {
+                memset(wild, 0, sizeof wild);
+                absent = 0;
+                while (subl < ph->n_subl && tokp && !absent) {
                     char *next = strchr(tokp, ':');
                     char *mem;
                     int m = 0;
@@ -3236,23 +4383,86 @@ static Db *read_tdb(char *text_owned)
                         while (*mem == ' ') mem++;
                         e = mem + strlen(mem);
                         while (e > mem && e[-1] == ' ') *--e = '\0';
-                        for (i3 = 0; i3 < ph->ncon[subl]; ++i3)
-                            if (strcmp(ph->con[subl][i3], mem) == 0) { li = i3; break; }
-                        if (li < 0) tdb_fail(&tb, "parameter constituent not in CONSTITUENT list");
+                        if (strcmp(mem, "*") == 0 && m == 0 && !mc) {
+                            wild[subl] = 1;
+                            li = 0;
+                        } else {
+                            for (i3 = 0; i3 < ph->ncon[subl]; ++i3)
+                                if (strcmp(ph->con[subl][i3], mem) == 0) { li = i3; break; }
+                        }
+                        /* A constituent the phase does not have contributes nothing; Thermo-Calc
+                         * and pycalphad skip such a parameter, and so does this reader. */
+                        if (li < 0) { absent = 1; break; }
                         if (m >= 2) tdb_fail(&tb, "three-constituent interaction is outside the v1 subset");
                         pa->con[subl][m++] = li;
                         mem = mc ? mc + 1 : NULL;
                     }
+                    if (absent) break;
                     if (m == 0) tdb_fail(&tb, "empty sublattice in parameter array");
                     pa->ncon[subl] = m;
                     subl++;
                     tokp = next ? next + 1 : NULL;
                 }
-                if (subl != ph->n_subl) tdb_fail(&tb, "parameter array does not match sublattice count");
+                if (absent) { free(pa->expr); pa->expr = NULL; continue; }
+                if (subl != ph->n_subl || (tokp && *tokp))
+                    tdb_fail(&tb, "parameter array does not match sublattice count");
+                /* The same parameter written out twice is read three ways (pycalphad adds them,
+                 * Thermo-Calc keeps the later one, a first-match reader the earlier), so the
+                 * file is refused rather than one reading picked silently. A "*" parameter adds
+                 * to the specific ones it covers, so it is not a repeat of them. */
+                for (s2 = 0; s2 < ph->n_subl; ++s2)
+                    if (wild[s2]) pa->wildcard = 1;
+                if (!pa->wildcard) {
+                    int q2;
+                    for (q2 = 0; q2 < tb.n_par; ++q2)
+                        if (!tb.par[q2].wildcard && tdb_same_param(&tb.par[q2], pa, ph->n_subl))
+                            tdb_fail(&tb, "a parameter is defined twice");
+                }
                 pa->n_seg = tdb_parse_piecewise(&tb, &s, pa->expr, TDB_MAX_SEG);
                 tb.n_par++;
+                /* "*" on a sublattice: the parameter holds whatever occupies it, which is the
+                 * same parameter written once for each constituent there (the site fractions
+                 * sum to one). */
+                {
+                    int first = tb.n_par - 1;
+                    for (subl = 0; subl < ph->n_subl; ++subl) {
+                        int last = tb.n_par, k, c;
+                        if (!wild[subl]) continue;
+                        for (k = first; k < last; ++k)
+                            for (c = 1; c < ph->ncon[subl]; ++c) {
+                                TdbParam *cp;
+                                if (tb.n_par >= tb.cap_par) tdb_fail(&tb, "too many parameters");
+                                cp = &tb.par[tb.n_par];
+                                *cp = tb.par[k];
+                                cp->expr = calloc(TDB_MAX_SEG, sizeof(TdbSeg));
+                                if (!cp->expr) tdb_fail(&tb, "out of memory");
+                                memcpy(cp->expr, tb.par[k].expr, TDB_MAX_SEG * sizeof(TdbSeg));
+                                cp->con[subl][0] = c;
+                                tb.n_par++;
+                            }
+                    }
+                }
             } else {
                 continue;   /* DATABASE_INFO, LIST_OF_REFERENCES, DEFAULT_COMMAND, ... */
+            }
+        }
+        /* A TYPE_DEFINITION may follow the phases that use it (the SGTE binary collection
+         * amends phases after declaring them), so the codes are resolved once all are read. */
+        {
+            int pi, m;
+            const char *c;
+            for (pi = 0; pi < tb.n_ph; ++pi) {
+                TdbPhase *ph = &tb.ph[pi];
+                for (c = ph->code; *c; ++c) {
+                    for (m = 0; m < tb.n_mag_td; ++m)
+                        if (*c == tb.magnetic_typedefs[m]) {
+                            ph->flags_magnetic = 1;
+                            ph->mag_afm = tb.mag_td_afm[m];
+                            ph->mag_p = tb.mag_td_p[m];
+                        }
+                    for (m = 0; m < tb.n_ord_td; ++m)
+                        if (*c == tb.order_typedefs[m]) ph->flags_order = 1;
+                }
             }
         }
         db = tdb_build_db(&tb);

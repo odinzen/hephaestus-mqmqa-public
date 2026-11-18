@@ -1,0 +1,4 @@
+29dd6a85a119ca6c3ac434622f099b2de5ab4d6422122d2a970e82361d4b781e  expected.json
+55aceeae91da90577c15efc4c6aa0c03ab71c549820594a826fb038f22707714  thermochimica_results.json
+sealed 2026-11-14T15:13:28Z UTC
+081b6282409be6727bf3227b610f72e3433844e48d62e74bbffe666f7b3d12cb  RAW_OUTPUT_MANIFEST.txt (per-file SHA-256 of sealed/thermochimica_raw, 655 files, hashed 2026-11-14)

@@ -1,0 +1,12 @@
+temperature       = 2300.0
+pressure          = 1.0
+mass(55)          = 1.0
+mass(52)          = 0.5
+temperature unit  = K
+pressure unit     = atm
+mass unit         = moles
+data file         = THERMOCHIMICA_DIR/data/CsTe-2.dat
+print mode        = 0
+heat capacity     = .FALSE.
+write json        = .TRUE.
+output            = REPO_DIR/validation/thermochimica/referee_runs/TestThermo76__grid1__A0.json

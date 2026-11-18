@@ -1,0 +1,1370 @@
+{
+ "purpose": "Published FactSage MQMQA results that another code can recompute from published inputs. This file holds the inputs and conditions only. The FactSage values are sealed separately (factsage_published.json, hash in SEALED_HASHES.txt).",
+ "created_utc": "2026-11-14",
+ "transcription": "Parameters for cases A and B were transcribed from page images of the publisher PDFs, not from text extraction (the text layer of both tables is scrambled). Check any parameter against the cited table before use.",
+ "sources_file": "SOURCES.md",
+ "cases": [
+  {
+   "case": "A",
+   "title": "ACl-ThCl4 (A = Li, Na, K) pseudo-binary invariant equilibria",
+   "sources": [
+    "ocadizflores2021thermo",
+    "ocadizflores2022correction"
+   ],
+   "canonical_source_note": "Use the corrected parameters and the corrected Table 4 (Correction, Thermo 2 (2022) 394-400). The TU Delft 'final published version' of the 2021 paper (marked 'Corrected: 8 November 2022') carries the same corrected Table 2 values and Equations (7)-(9). The pre-correction 2021 version must not be used.",
+   "software": "FactSage 7.2",
+   "pressure": "not stated; assume 1 bar (FactSage default 1 atm; difference negligible for condensed equilibria)",
+   "phases": {
+    "LIQUID": "MQMQA, common anion Cl-, cations Li+, Na+, K+, Th4+",
+    "stoichiometric": [
+     "LiCl(cr)",
+     "LiCl(l)",
+     "NaCl(cr)",
+     "NaCl(l)",
+     "KCl(cr)",
+     "KCl(l)",
+     "alpha-ThCl4(cr)",
+     "beta-ThCl4(cr)",
+     "ThCl4(l)",
+     "Li4ThCl8(cr)",
+     "Na2ThCl6(cr)",
+     "KThCl5(cr)",
+     "K2ThCl6(cr)"
+    ],
+    "note": "no solid solutions are modelled; every solid is a stoichiometric compound"
+   },
+   "parameters": {
+    "end_members_and_compounds": {
+     "table": "Correction Table 2 (identical in the corrected 2021 paper Table 2)",
+     "units": "dfH298 in kJ/mol, S298 in J/K/mol, Cp coefficients in J/K/mol with T in K",
+     "cp_form": "Cp = a + b*T + c*T^2 + d*T^-2 (J/K/mol), as stated in the caption of Table 2",
+     "reference_temperature_K": 298.15,
+     "data": {
+      "LiCl(cr)": {
+       "dfH298_kJ": -408.266,
+       "S298_J_K": 59.3,
+       "ref": "[27] SGPS",
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          883
+         ],
+         "a": 44.70478,
+         "b": 0.01792765,
+         "c": 1.863482e-06,
+         "d": -194457.7
+        },
+        {
+         "T_range_K": [
+          883,
+          2000
+         ],
+         "a": 73.30619,
+         "b": -0.009430108,
+         "d": 33070.5
+        }
+       ]
+      },
+      "LiCl(l)": {
+       "dfH298_kJ": -388.4342,
+       "S298_J_K": 81.76,
+       "ref": "[27] SGPS",
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          883
+         ],
+         "a": 44.70478,
+         "b": 0.01792765,
+         "c": 1.863482e-06,
+         "d": -194457.7
+        },
+        {
+         "T_range_K": [
+          883,
+          2000
+         ],
+         "a": 73.30619,
+         "b": -0.009430108,
+         "d": 33070.5
+        }
+       ]
+      },
+      "NaCl(cr)": {
+       "dfH298_kJ": -411.26,
+       "S298_J_K": 72.15,
+       "ref": "[28]",
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          1074
+         ],
+         "a": 47.72158,
+         "b": 0.0057,
+         "c": 1.21466e-05,
+         "d": -882.996
+        }
+       ]
+      },
+      "NaCl(l)": {
+       "dfH298_kJ": -390.853,
+       "S298_J_K": 83.302,
+       "ref": "[28,29]",
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          2500
+         ],
+         "a": 68.0
+        }
+       ]
+      },
+      "KCl(cr)": {
+       "dfH298_kJ": -436.6841,
+       "S298_J_K": 82.555,
+       "ref": "[27] SGPS",
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          700
+         ],
+         "a": 50.47661,
+         "b": 0.005924377,
+         "c": 7.496682e-06,
+         "d": -144173.9
+        },
+        {
+         "T_range_K": [
+          700,
+          1044
+         ],
+         "a": 143.5698,
+         "b": -0.1680399,
+         "c": 9.965702e-05,
+         "d": -8217836
+        },
+        {
+         "T_range_K": [
+          1044,
+          2000
+         ],
+         "a": 73.59656,
+         "d": -8217836
+        }
+       ]
+      },
+      "KCl(l)": {
+       "dfH298_kJ": -410.4002,
+       "S298_J_K": 107.7311,
+       "ref": "[27] SGPS",
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          700
+         ],
+         "a": 50.47661,
+         "b": 0.005924377,
+         "c": 7.496682e-06,
+         "d": -144173.9
+        },
+        {
+         "T_range_K": [
+          700,
+          1044
+         ],
+         "a": 143.5698,
+         "b": -0.1680399,
+         "c": 9.965702e-05,
+         "d": -8217836
+        },
+        {
+         "T_range_K": [
+          1044,
+          2000
+         ],
+         "a": 73.59656
+        }
+       ]
+      },
+      "alpha-ThCl4(cr)": {
+       "dfH298_kJ": -1191.3012,
+       "S298_J_K": 176.135,
+       "ref": "this work, [35]",
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          1042
+         ],
+         "a": 120.293,
+         "b": 0.0232672,
+         "d": -615050
+        }
+       ]
+      },
+      "beta-ThCl4(cr)": {
+       "dfH298_kJ": -1186.3,
+       "S298_J_K": 183.499,
+       "ref": "[5,34]",
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          1042
+         ],
+         "a": 120.293,
+         "b": 0.0232672,
+         "d": -615050
+        }
+       ]
+      },
+      "ThCl4(l)": {
+       "dfH298_kJ": -1149.74,
+       "S298_J_K": 197.626,
+       "ref": "[5,34]",
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          1500
+         ],
+         "a": 167.4
+        }
+       ]
+      },
+      "Li4ThCl8(cr)": {
+       "dfH298_kJ": -2834.966,
+       "S298_J_K": 413.34,
+       "ref": "this work",
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          883
+         ],
+         "a": 299.11212,
+         "b": 0.0949778,
+         "c": 7.453928e-06,
+         "d": -1392880.8
+        },
+        {
+         "T_range_K": [
+          883,
+          1042
+         ],
+         "a": 413.51776,
+         "b": -0.014453232,
+         "d": -482768
+        },
+        {
+         "T_range_K": [
+          1042,
+          2000
+         ],
+         "a": 437.1957,
+         "b": -0.037720432,
+         "d": 132282
+        }
+       ]
+      },
+      "Na2ThCl6(cr)": {
+       "dfH298_kJ": -2051.54,
+       "S298_J_K": 328.0,
+       "ref": "this work",
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          1042
+         ],
+         "a": 215.73616,
+         "b": 0.0346672,
+         "c": 2.42932e-05,
+         "d": -616815.992
+        },
+        {
+         "T_range_K": [
+          1042,
+          1074
+         ],
+         "a": 239.41,
+         "b": 0.0114,
+         "c": 2.42932e-05,
+         "d": -1765.992
+        }
+       ]
+      },
+      "KThCl5(cr)": {
+       "dfH298_kJ": -1685.0,
+       "S298_J_K": 258.69,
+       "ref": "this work",
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          700
+         ],
+         "a": 170.76961,
+         "b": 0.029191577,
+         "c": 7.496682e-06,
+         "d": -759223.9
+        },
+        {
+         "T_range_K": [
+          700,
+          1042
+         ],
+         "a": 263.8628,
+         "b": -0.1447727,
+         "c": 9.965702e-05,
+         "d": -8832886
+        },
+        {
+         "T_range_K": [
+          1042,
+          1044
+         ],
+         "a": 287.5408,
+         "b": -0.1680399,
+         "c": 9.965702e-05,
+         "d": -8217836
+        },
+        {
+         "T_range_K": [
+          1044,
+          2000
+         ],
+         "a": 217.568
+        }
+       ]
+      },
+      "K2ThCl6(cr)": {
+       "dfH298_kJ": -2139.85,
+       "S298_J_K": 380.5,
+       "ref": "this work",
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          700
+         ],
+         "a": 221.24622,
+         "b": 0.035115954,
+         "c": 1.4993364e-05,
+         "d": -903397.8
+        },
+        {
+         "T_range_K": [
+          700,
+          1042
+         ],
+         "a": 407.4326,
+         "b": -0.3128126,
+         "c": 0.00019931404,
+         "d": -17050722
+        },
+        {
+         "T_range_K": [
+          1042,
+          1044
+         ],
+         "a": 431.1106,
+         "b": -0.3360798,
+         "c": 0.00019931404,
+         "d": -16435672
+        },
+        {
+         "T_range_K": [
+          1042,
+          2000
+         ],
+         "a": 291.16408,
+         "note": "range printed as 1042-2000; follows the 1042-1044 segment, so 1044-2000 is evidently meant"
+        }
+       ]
+      }
+     },
+     "notes": [
+      "LiCl(l) and KCl(l) carry the same Cp segments as the crystal (SGPS convention of extending the liquid Cp below the melting point).",
+      "Intermediate-compound Cp segments are Neumann-Kopp sums, so their breakpoints follow the end-member transitions.",
+      "Na2ThCl6(cr) Cp is given only to 1074 K; KCl(cr) carries a d term in its 1044-2000 K segment, KCl(l) does not."
+     ]
+    },
+    "liquid_coordination_numbers": {
+     "table": "2021 paper Table 3 (cation-cation, SNN)",
+     "rows": [
+      {
+       "A": "Li+",
+       "B": "Li+",
+       "Z_A_AB/Cl": 6,
+       "Z_B_AB/Cl": 6
+      },
+      {
+       "A": "Na+",
+       "B": "Na+",
+       "Z_A_AB/Cl": 6,
+       "Z_B_AB/Cl": 6
+      },
+      {
+       "A": "K+",
+       "B": "K+",
+       "Z_A_AB/Cl": 6,
+       "Z_B_AB/Cl": 6
+      },
+      {
+       "A": "Th4+",
+       "B": "Th4+",
+       "Z_A_AB/Cl": 6,
+       "Z_B_AB/Cl": 6
+      },
+      {
+       "A": "Li+",
+       "B": "Th4+",
+       "Z_A_AB/Cl": 4,
+       "Z_B_AB/Cl": 6
+      },
+      {
+       "A": "Na+",
+       "B": "Th4+",
+       "Z_A_AB/Cl": 3,
+       "Z_B_AB/Cl": 6
+      },
+      {
+       "A": "K+",
+       "B": "Th4+",
+       "Z_A_AB/Cl": 4,
+       "Z_B_AB/Cl": 6
+      }
+     ],
+     "anion_coordination": "Z_Cl_AB/Cl from charge balance q_A/Z_A + q_B/Z_B = 2 q_Cl/Z_Cl (2021 paper Eq. 6)"
+    },
+    "liquid_excess": {
+     "source": "Correction Eqs. (7)-(9); identical Eqs. (7)-(9) in the corrected 2021 paper",
+     "composition_variable": "chi_AB/Cl = X_AA / (X_AA + X_AB + X_BB), cation-cation pair fractions (Correction Eq. 6)",
+     "units": "J/mol",
+     "terms": [
+      {
+       "pair": "Li-Th",
+       "dg0": -8000,
+       "g10 (times chi_LiTh/Cl)": -3600,
+       "g01 (times chi_ThLi/Cl)": -7300
+      },
+      {
+       "pair": "Na-Th",
+       "dg0": -27700,
+       "g10 (times chi_NaTh/Cl)": -7500,
+       "g01 (times chi_ThNa/Cl)": -14000
+      },
+      {
+       "pair": "K-Th",
+       "dg0": -40000,
+       "g01 (times chi_ThK/Cl)": -10000
+      }
+     ],
+     "do_not_use": "Correction Eqs. (3)-(5) (Y-based form) are an alternative fit; the correction states that the corrected Table 4 was computed with Eqs. (7)-(9).",
+     "unstated": "No Li-Na, Li-K or Na-K terms are needed (binaries only). No temperature dependence in any term."
+    }
+   },
+   "conditions": [
+    {
+     "id": "A01",
+     "system": "LiCl-ThCl4",
+     "equilibrium": "congruent melting",
+     "reaction": "LiCl = L",
+     "compute": "T",
+     "composition_axis": "X(ThCl4), mole fraction",
+     "source_table": "Correction Table 4, column 'This Study (calc.)'",
+     "digitized": false,
+     "note": "pure LiCl; tests unary data only"
+    },
+    {
+     "id": "A02",
+     "system": "LiCl-ThCl4",
+     "equilibrium": "peritectic",
+     "reaction": "Li4ThCl8 = LiCl + L",
+     "compute": "T",
+     "composition_axis": "X(ThCl4), mole fraction",
+     "source_table": "Correction Table 4, column 'This Study (calc.)'",
+     "digitized": false,
+     "note": "score T only: the printed composition column for this row is not clearly the liquid composition"
+    },
+    {
+     "id": "A03",
+     "system": "LiCl-ThCl4",
+     "equilibrium": "eutectic",
+     "reaction": "Li4ThCl8 + beta-ThCl4 = L",
+     "compute": "T and X(ThCl4) of the liquid",
+     "composition_axis": "X(ThCl4), mole fraction",
+     "source_table": "Correction Table 4, column 'This Study (calc.)'",
+     "digitized": false,
+     "note": ""
+    },
+    {
+     "id": "A04",
+     "system": "LiCl-ThCl4",
+     "equilibrium": "alpha-beta transition",
+     "reaction": "alpha-ThCl4 = beta-ThCl4",
+     "compute": "T",
+     "composition_axis": "X(ThCl4), mole fraction",
+     "source_table": "Correction Table 4, column 'This Study (calc.)'",
+     "digitized": false,
+     "note": "pure ThCl4; unary data only"
+    },
+    {
+     "id": "A05",
+     "system": "LiCl-ThCl4",
+     "equilibrium": "congruent melting",
+     "reaction": "beta-ThCl4 = L",
+     "compute": "T",
+     "composition_axis": "X(ThCl4), mole fraction",
+     "source_table": "Correction Table 4, column 'This Study (calc.)'",
+     "digitized": false,
+     "note": "pure ThCl4; unary data only"
+    },
+    {
+     "id": "A06",
+     "system": "NaCl-ThCl4",
+     "equilibrium": "congruent melting",
+     "reaction": "NaCl = L",
+     "compute": "T",
+     "composition_axis": "X(ThCl4), mole fraction",
+     "source_table": "Correction Table 4, column 'This Study (calc.)'",
+     "digitized": false,
+     "note": "pure NaCl; unary data only"
+    },
+    {
+     "id": "A07",
+     "system": "NaCl-ThCl4",
+     "equilibrium": "eutectic",
+     "reaction": "NaCl + Na2ThCl6 = L",
+     "compute": "T and X(ThCl4) of the liquid",
+     "composition_axis": "X(ThCl4), mole fraction",
+     "source_table": "Correction Table 4, column 'This Study (calc.)'",
+     "digitized": false,
+     "note": ""
+    },
+    {
+     "id": "A08",
+     "system": "NaCl-ThCl4",
+     "equilibrium": "congruent melting",
+     "reaction": "Na2ThCl6 = L",
+     "compute": "T",
+     "composition_axis": "X(ThCl4), mole fraction",
+     "source_table": "Correction Table 4, column 'This Study (calc.)'",
+     "digitized": false,
+     "note": "liquid composition equals the compound, X(ThCl4) = 1/3"
+    },
+    {
+     "id": "A09",
+     "system": "NaCl-ThCl4",
+     "equilibrium": "eutectic",
+     "reaction": "Na2ThCl6 + alpha-ThCl4 = L",
+     "compute": "T and X(ThCl4) of the liquid",
+     "composition_axis": "X(ThCl4), mole fraction",
+     "source_table": "Correction Table 4, column 'This Study (calc.)'",
+     "digitized": false,
+     "note": ""
+    },
+    {
+     "id": "A10",
+     "system": "KCl-ThCl4",
+     "equilibrium": "congruent melting",
+     "reaction": "KCl = L",
+     "compute": "T",
+     "composition_axis": "X(ThCl4), mole fraction",
+     "source_table": "Correction Table 4, column 'This Study (calc.)'",
+     "digitized": false,
+     "note": "pure KCl; unary data only"
+    },
+    {
+     "id": "A11",
+     "system": "KCl-ThCl4",
+     "equilibrium": "eutectic",
+     "reaction": "KCl + K2ThCl6 = L",
+     "compute": "T and X(ThCl4) of the liquid",
+     "composition_axis": "X(ThCl4), mole fraction",
+     "source_table": "Correction Table 4, column 'This Study (calc.)'",
+     "digitized": false,
+     "note": ""
+    },
+    {
+     "id": "A12",
+     "system": "KCl-ThCl4",
+     "equilibrium": "congruent melting",
+     "reaction": "K2ThCl6 = L",
+     "compute": "T",
+     "composition_axis": "X(ThCl4), mole fraction",
+     "source_table": "Correction Table 4, column 'This Study (calc.)'",
+     "digitized": false,
+     "note": "liquid composition equals the compound, X(ThCl4) = 1/3"
+    },
+    {
+     "id": "A13",
+     "system": "KCl-ThCl4",
+     "equilibrium": "eutectic",
+     "reaction": "K2ThCl6 + KThCl5 = L",
+     "compute": "T and X(ThCl4) of the liquid",
+     "composition_axis": "X(ThCl4), mole fraction",
+     "source_table": "Correction Table 4, column 'This Study (calc.)'",
+     "digitized": false,
+     "note": ""
+    },
+    {
+     "id": "A14",
+     "system": "KCl-ThCl4",
+     "equilibrium": "congruent melting",
+     "reaction": "KThCl5 = L",
+     "compute": "T",
+     "composition_axis": "X(ThCl4), mole fraction",
+     "source_table": "Correction Table 4, column 'This Study (calc.)'",
+     "digitized": false,
+     "note": "liquid composition equals the compound, X(ThCl4) = 1/2"
+    },
+    {
+     "id": "A15",
+     "system": "KCl-ThCl4",
+     "equilibrium": "eutectic",
+     "reaction": "KThCl5 + beta-ThCl4 = L",
+     "compute": "T and X(ThCl4) of the liquid",
+     "composition_axis": "X(ThCl4), mole fraction",
+     "source_table": "Correction Table 4, column 'This Study (calc.)'",
+     "digitized": false,
+     "note": ""
+    }
+   ]
+  },
+  {
+   "case": "B",
+   "title": "LiF-LaF3, LiF-CeF3, NaF-LaF3, NaF-CeF3 invariant equilibria",
+   "sources": [
+    "pazsoldanpalma2026jct"
+   ],
+   "software": "FactSage 8.3",
+   "pressure": "not stated; assume 1 bar",
+   "phases": {
+    "LIQUID": "MQMQA, common anion F-, cations Li+, Na+, La3+, Ce3+",
+    "CUBIC (Fm-3m)": "(LiF, NaF) solid solution; in these four binaries it reduces to pure LiF or pure NaF",
+    "HEXAGONAL (P-3c1)": "(NaF, LaF3) and (NaF, CeF3) solid solutions. The NaF end member is taken to be NaF(alpha), which Table 2 calls the 'metastable endmember used to describe the alpha-phase solution'; the paper never names the hexagonal phase alpha, so this pairing is an inference.",
+    "stoichiometric": [
+     "NaLaF4(s)",
+     "NaCeF4(s)"
+    ]
+   },
+   "parameters": {
+    "end_members_and_compounds": {
+     "table": "Table 2 (rows marked 'This work' in bold are used for NaLaF4 and NaCeF4; the other rows under those compounds are literature alternatives, not used)",
+     "units": "dfH298 in J/mol, S298 in J/K/mol, Cp in J/K/mol with T in K",
+     "cp_form": "NOT STATED in the paper. Coefficients a, b, c, d are read as Cp = a + b*T + c*T^-2 + d*T^2 (+ e*T^3 for LaF3(s)); the magnitudes of c (order -5e5 to -3e6) only fit a T^-2 term, and this reading reproduces Cp(298) of LiF, CeF3 and LaF3 within about 1 J/K/mol.",
+     "reference_temperature_K": 298.15,
+     "data": {
+      "LiF(s)": {
+       "dfH298_J": -616931,
+       "S298_J_K": 35.66,
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          2500
+         ],
+         "a": 43.309,
+         "b": 0.016312,
+         "c": -569124,
+         "d": 5.047e-07
+        }
+       ],
+       "ref": "[20]"
+      },
+      "LiF(l)": {
+       "dfH298_J": -598653.7,
+       "S298_J_K": 42.956,
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          1400
+         ],
+         "a": 64.183
+        }
+       ],
+       "ref": "[20]"
+      },
+      "NaF(s)": {
+       "dfH298_J": -576600,
+       "S298_J_K": 51.212,
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          2500
+         ],
+         "a": 47.63,
+         "b": 0.01479,
+         "c": -464300
+        }
+       ],
+       "ref": "dfH [21], S [20], Cp [22]"
+      },
+      "NaF(alpha)": {
+       "dfH298_J": -532216.9,
+       "S298_J_K": 51.212,
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          2500
+         ],
+         "a": 47.63,
+         "b": 0.01479,
+         "c": -464300
+        }
+       ],
+       "ref": "dfH this work; metastable end member used in the alpha (hexagonal) solution"
+      },
+      "NaF(l)": {
+       "dfH298_J": -557860,
+       "S298_J_K": 52.583,
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          2500
+         ],
+         "a": 73.036
+        }
+       ],
+       "ref": "[17]"
+      },
+      "LaF3(s)": {
+       "dfH298_J": -1699500,
+       "S298_J_K": 106.98,
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          1766
+         ],
+         "a": 122.1188,
+         "b": -0.0224674,
+         "c": -2171380,
+         "d": -1.63094e-05,
+         "e_T3": 2.81746e-08
+        },
+        {
+         "T_range_K": [
+          1766,
+          3000
+         ],
+         "a": 135
+        }
+       ],
+       "ref": "[23]; footnote: extra term 2.81746e-8 T^3"
+      },
+      "LaF3(l)": {
+       "dfH298_J": -1663971,
+       "S298_J_K": 97.628,
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          1703
+         ],
+         "a": 135
+        }
+       ],
+       "ref": "[23]",
+       "note": "range printed 298-1703 although LaF3 melts near 1766 K; irrelevant below 1703 K"
+      },
+      "CeF3(s)": {
+       "dfH298_J": -1689200,
+       "S298_J_K": 118.7,
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          2000
+         ],
+         "a": 103.2577,
+         "b": -0.0129896,
+         "c": -720870,
+         "d": 2.46881e-05
+        }
+       ],
+       "ref": "[23]"
+      },
+      "CeF3(l)": {
+       "dfH298_J": -1632680,
+       "S298_J_K": 151.888,
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          1703
+         ],
+         "a": 103.2577,
+         "b": -0.0129896,
+         "c": -720870,
+         "d": 2.46881e-05
+        },
+        {
+         "T_range_K": [
+          1703,
+          2000
+         ],
+         "a": 130.61
+        }
+       ],
+       "ref": "[23]"
+      },
+      "NaLaF4(s)": {
+       "dfH298_J": -2271624,
+       "S298_J_K": 165.9,
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          1058
+         ],
+         "a": 171.2,
+         "b": 0.00089,
+         "c": -3235000
+        }
+       ],
+       "ref": "dfH and S this work (bold row), Cp [10]"
+      },
+      "NaCeF4(s)": {
+       "dfH298_J": -2263848,
+       "S298_J_K": 179,
+       "cp": [
+        {
+         "T_range_K": [
+          298,
+          2000
+         ],
+         "a": 151.831,
+         "b": 0.0078501,
+         "c": -1046322
+        }
+       ],
+       "ref": "dfH and S this work (bold row), Cp [11]"
+      }
+     }
+    },
+    "liquid_coordination_numbers": {
+     "table": "Table 1",
+     "rows": [
+      {
+       "A": "Li+",
+       "B": "Li+",
+       "Z_A": 6,
+       "Z_B": 6,
+       "Z_F": 6
+      },
+      {
+       "A": "Na+",
+       "B": "Na+",
+       "Z_A": 6,
+       "Z_B": 6,
+       "Z_F": 6
+      },
+      {
+       "A": "La3+",
+       "B": "La3+",
+       "Z_A": 6,
+       "Z_B": 6,
+       "Z_F": 2
+      },
+      {
+       "A": "Ce3+",
+       "B": "Ce3+",
+       "Z_A": 6,
+       "Z_B": 6,
+       "Z_F": 2
+      },
+      {
+       "A": "Li+",
+       "B": "Na+",
+       "Z_A": 6,
+       "Z_B": 6,
+       "Z_F": 6
+      },
+      {
+       "A": "Li+",
+       "B": "La3+",
+       "Z_A": 2,
+       "Z_B": 6,
+       "Z_F": 2
+      },
+      {
+       "A": "Na+",
+       "B": "La3+",
+       "Z_A": 2,
+       "Z_B": 6,
+       "Z_F": 2
+      },
+      {
+       "A": "Li+",
+       "B": "Ce3+",
+       "Z_A": 2,
+       "Z_B": 6,
+       "Z_F": 2
+      },
+      {
+       "A": "Na+",
+       "B": "Ce3+",
+       "Z_A": 2,
+       "Z_B": 6,
+       "Z_F": 2
+      }
+     ]
+    },
+    "liquid_excess": {
+     "table": "Table 3, liquid solution phase",
+     "units": "J/mol, T in K",
+     "as_printed": [
+      "dG_LaLiFF = -3953.3 - 0.8172*T + chi_LaLaFF*(-3679.5)",
+      "dG_LaNaFF = -13049.4 - 0.599*T + chi_LaLaFF*(-14614.4)",
+      "dG_CeLiFF = -4370.3 + chi_CeCeFF*(-6293.2 + 2.6*T)",
+      "dG_CeNaFF = -17000 + 3.2*T + chi_CeCeFF*(-7500)",
+      "dG^100_LaLiNa = -11*T; chemical groups Li = 1, Na = 1, La = 2 (ternary, not needed for these binaries)",
+      "dG^010_CeLiNa = -9000; chemical groups Li = 1, Na = 1, Ce = 2 (ternary, not needed for these binaries)"
+     ],
+     "interpretation": "chi_LaLaFF read as the FactSage chi variable weighted toward the La-La pair in that binary, chi = X_LaLa/(X_LaLa + X_LaB + X_BB) for B = Li or Na (likewise for Ce), first power. The paper does not define the notation; record the reading used.",
+     "unstated": "CeF3-LaF3 liquid is ideal (no parameters). LiF-NaF liquid and cubic parameters come from Schorne-Pinto et al. [17] and are not printed, so no LiF-NaF-containing condition is included."
+    },
+    "solid_solution_excess": {
+     "table": "Table 3",
+     "cubic_Fm-3m": "G_ex = 22000*Y_NaF*Y_LiF + 10200*Y_NaF*Y_LiF^3 (zero in these four binaries)",
+     "hexagonal_P-3c1": [
+      "dG_ex = -29500*Y_NaF*Y_CeF3",
+      "G_ex = -10000*Y_NaF*Y_LaF3 + (-29500)*Y_NaF*Y_LaF3^3"
+     ],
+     "model_note": "single-sublattice polynomial (paper Eq. 4, G_ex = sum Y_A^i Y_B^j L_ij); end members NaF(alpha) (inferred, see phases) and LaF3(s) or CeF3(s); the paper also states CeF3-LaF3 solids are ideal."
+    }
+   },
+   "conditions": [
+    {
+     "id": "B01",
+     "system": "LiF-LaF3",
+     "equilibrium": "eutectic",
+     "reaction": "L = LiF + LaF3",
+     "compute": "T and x(LaF3) of the liquid",
+     "composition_axis": "mole fraction of the trifluoride",
+     "source_table": "Table 4, rows labelled 'Present work'",
+     "digitized": false,
+     "note": ""
+    },
+    {
+     "id": "B02",
+     "system": "NaF-LaF3",
+     "equilibrium": "eutectic",
+     "reaction": "L = NaF + NaLaF4",
+     "compute": "T and x(LaF3) of the liquid",
+     "composition_axis": "mole fraction of the trifluoride",
+     "source_table": "Table 4, rows labelled 'Present work'",
+     "digitized": false,
+     "note": ""
+    },
+    {
+     "id": "B03",
+     "system": "NaF-LaF3",
+     "equilibrium": "peritectic",
+     "reaction": "NaLaF4 = L + LaF3",
+     "compute": "T and x(LaF3) of the liquid",
+     "composition_axis": "mole fraction of the trifluoride",
+     "source_table": "Table 4, rows labelled 'Present work'",
+     "digitized": false,
+     "note": ""
+    },
+    {
+     "id": "B04",
+     "system": "NaF-LaF3",
+     "equilibrium": "eutectoid",
+     "reaction": "NaLaF4 = NaF + LaF3",
+     "compute": "T",
+     "composition_axis": "mole fraction of the trifluoride",
+     "source_table": "Table 4, rows labelled 'Present work'",
+     "digitized": false,
+     "note": "no composition printed"
+    },
+    {
+     "id": "B05",
+     "system": "LiF-CeF3",
+     "equilibrium": "eutectic",
+     "reaction": "L = LiF + CeF3",
+     "compute": "T and x(CeF3) of the liquid",
+     "composition_axis": "mole fraction of the trifluoride",
+     "source_table": "Table 4, rows labelled 'Present work'",
+     "digitized": false,
+     "note": ""
+    },
+    {
+     "id": "B06",
+     "system": "NaF-CeF3",
+     "equilibrium": "eutectic",
+     "reaction": "L = NaF + NaCeF4",
+     "compute": "T and x(CeF3) of the liquid",
+     "composition_axis": "mole fraction of the trifluoride",
+     "source_table": "Table 4, rows labelled 'Present work'",
+     "digitized": false,
+     "note": ""
+    },
+    {
+     "id": "B07",
+     "system": "NaF-CeF3",
+     "equilibrium": "peritectic",
+     "reaction": "NaCeF4 = L + CeF3",
+     "compute": "T and x(CeF3) of the liquid",
+     "composition_axis": "mole fraction of the trifluoride",
+     "source_table": "Table 4, rows labelled 'Present work'",
+     "digitized": false,
+     "note": ""
+    },
+    {
+     "id": "B08",
+     "system": "NaF-CeF3",
+     "equilibrium": "eutectoid",
+     "reaction": "NaCeF4 = NaF + CeF3",
+     "compute": "T",
+     "composition_axis": "mole fraction of the trifluoride",
+     "source_table": "Table 4, rows labelled 'Present work'",
+     "digitized": false,
+     "note": "no composition printed; score separately from B01-B07 (the sealed file carries a data-range caveat for this row)"
+    }
+   ],
+   "excluded": "Table 5 (liquidus in LiF-NaF-(Ce,La)F3) needs the unprinted LiF-NaF parameters; Figures 2 and 4 (mixing enthalpy curves) were not digitized."
+  },
+  {
+   "case": "C",
+   "title": "KF-NiF2 liquid: Gibbs energy, enthalpy and entropy at 1600 K",
+   "sources": [
+    "pazsoldanpalma2022arxiv",
+    "pazsoldanpalma2022zenodo",
+    "ocadizflores2018jct"
+   ],
+   "software": "FactSage (version not stated)",
+   "parameters": {
+    "database_file": "Ocadiz_combined.dat (ChemSage format) in Supplement_Materials.zip of Zenodo record 10.5281/zenodo.6471272 (CC BY 4.0), path Supplement_Materials/pycalphad/Ocadiz_combined.dat (identical copy under ESPEI/)",
+    "database_file_sha256": "920e8e5a44a23a4172ab450689f36d73ce9f5de78e2bdc1644c94aa6a7379df8",
+    "zip_sha256": "5d4b5a0e7c861cdd75c2c2221da7786ce11e31fc42766866d0c080de4256aeb3",
+    "download": "https://zenodo.org/api/records/6471272/files/Supplement_Materials.zip/content",
+    "file_header": "System Ni-K-Na-F-Li; liquid entered as 'Liquid' with model keyword SUBG (FactSage's fixed-coordination MQM two-sublattice quadruplet model, not SUBQ)",
+    "origin": "the assessment of Ocadiz-Flores et al. 2018 (J. Chem. Thermodyn. 121, 17-26) as packaged by Paz Soldan Palma et al.; the figure caption says the FactSage, Thermochimica and PyCalphad points are 'all based on Ocadiz-Flores' database'. Whether FactSage read this exact .dat or the original FactSage files is not stated."
+   },
+   "phase": "LIQUID only (single-phase property of the liquid, not an equilibrium assemblage)",
+   "pressure": "not stated; assume 1 bar",
+   "conditions": [
+    {
+     "id": "C-G-00",
+     "T_K": 1600,
+     "x_NiF2": 0.0,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "Gibbs energy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(a), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-G-01",
+     "T_K": 1600,
+     "x_NiF2": 0.1,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "Gibbs energy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(a), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-G-02",
+     "T_K": 1600,
+     "x_NiF2": 0.2,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "Gibbs energy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(a), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-G-03",
+     "T_K": 1600,
+     "x_NiF2": 0.3,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "Gibbs energy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(a), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-G-04",
+     "T_K": 1600,
+     "x_NiF2": 0.4,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "Gibbs energy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(a), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-G-05",
+     "T_K": 1600,
+     "x_NiF2": 0.5,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "Gibbs energy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(a), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-G-06",
+     "T_K": 1600,
+     "x_NiF2": 0.6,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "Gibbs energy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(a), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-G-07",
+     "T_K": 1600,
+     "x_NiF2": 0.7,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "Gibbs energy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(a), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-G-08",
+     "T_K": 1600,
+     "x_NiF2": 0.8,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "Gibbs energy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(a), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-G-09",
+     "T_K": 1600,
+     "x_NiF2": 0.9,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "Gibbs energy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(a), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-H-00",
+     "T_K": 1600,
+     "x_NiF2": 0.0,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "enthalpy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(b), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-H-01",
+     "T_K": 1600,
+     "x_NiF2": 0.1,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "enthalpy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(b), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-H-02",
+     "T_K": 1600,
+     "x_NiF2": 0.2,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "enthalpy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(b), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-H-03",
+     "T_K": 1600,
+     "x_NiF2": 0.3,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "enthalpy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(b), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-H-04",
+     "T_K": 1600,
+     "x_NiF2": 0.4,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "enthalpy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(b), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-H-05",
+     "T_K": 1600,
+     "x_NiF2": 0.5,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "enthalpy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(b), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-H-06",
+     "T_K": 1600,
+     "x_NiF2": 0.6,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "enthalpy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(b), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-H-07",
+     "T_K": 1600,
+     "x_NiF2": 0.7,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "enthalpy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(b), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-H-08",
+     "T_K": 1600,
+     "x_NiF2": 0.8,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "enthalpy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(b), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-H-09",
+     "T_K": 1600,
+     "x_NiF2": 0.9,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "enthalpy of the liquid, kJ per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(b), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-S-00",
+     "T_K": 1600,
+     "x_NiF2": 0.0,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "entropy of the liquid, J/K per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(c), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-S-01",
+     "T_K": 1600,
+     "x_NiF2": 0.1,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "entropy of the liquid, J/K per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(c), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-S-02",
+     "T_K": 1600,
+     "x_NiF2": 0.2,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "entropy of the liquid, J/K per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(c), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-S-03",
+     "T_K": 1600,
+     "x_NiF2": 0.3,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "entropy of the liquid, J/K per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(c), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-S-04",
+     "T_K": 1600,
+     "x_NiF2": 0.4,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "entropy of the liquid, J/K per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(c), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-S-05",
+     "T_K": 1600,
+     "x_NiF2": 0.5,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "entropy of the liquid, J/K per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(c), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-S-06",
+     "T_K": 1600,
+     "x_NiF2": 0.6,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "entropy of the liquid, J/K per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(c), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-S-07",
+     "T_K": 1600,
+     "x_NiF2": 0.7,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "entropy of the liquid, J/K per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(c), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-S-08",
+     "T_K": 1600,
+     "x_NiF2": 0.8,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "entropy of the liquid, J/K per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(c), green open triangles (FactSage)",
+     "digitized": true
+    },
+    {
+     "id": "C-S-09",
+     "T_K": 1600,
+     "x_NiF2": 0.9,
+     "composition_basis": "mole fraction NiF2 on the KF-NiF2 join",
+     "compute": "entropy of the liquid, J/K per mole of atoms",
+     "reference_state": "FactSage default: elements in their standard state at 298.15 K, enthalpy of elements zero, absolute entropy",
+     "source_figure": "arXiv:2204.09111v2 Figure 3(c), green open triangles (FactSage)",
+     "digitized": true
+    }
+   ],
+   "notes": [
+    "Figure 3 exists only in the arXiv preprint (v2). The LLNL accepted-manuscript copy on OSTI (2205714) has no FactSage comparison; the journal version was not checked.",
+    "The figure plots a FactSage point at each of x(NiF2) = 0.0 ... 0.9; x = 0.0 is pure KF liquid.",
+    "Digitized values are weak checks; the stated read uncertainty is in the sealed file."
+   ]
+  }
+ ]
+}

@@ -1,0 +1,16 @@
+At line 188 of file src/gem/CompExcessGibbsEnergyRKMP.f90
+Fortran runtime error: Index '0' of dimension 1 of array 'dmolfraction' below lower bound of 1
+
+Error termination. Backtrace:
+#0  0x5d4844808d5c in ???
+#1  0x5d48448053d8 in ???
+#2  0x5d4844804a8d in ???
+#3  0x5d484483ca90 in ???
+#4  0x5d4844839eca in ???
+#5  0x5d48447f8f09 in ???
+#6  0x5d48447f870d in ???
+#7  0x5d48447f83a8 in ???
+#8  0x7911a9a2a600 in ???
+#9  0x7911a9a2a717 in ???
+#10  0x5d48447f83d4 in ???
+#11  0xffffffffffffffff in ???

@@ -1,0 +1,5043 @@
+{
+ "TestThermo30": {
+  "T_K": 1455.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -462038.00729088794,
+  "G_thermochimica": -462037.3138733846,
+  "A_hephaestus_state_in_thermochimica": -462037.31387338444,
+  "B_thermochimica_state_in_hephaestus": -462038.0072908859,
+  "A_pieces": [
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "W": 1.9500000000000006,
+     "AU": 0.9999999999999999,
+     "AR": 1.9999999999999998,
+     "O": 10.0
+    },
+    "G": -462037.31387338444,
+    "returned": [
+     "Delete"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Delete",
+    "amounts": {
+     "W": 1.9500000000000002,
+     "Au": 0.9999999999999992,
+     "Ar": 1.9999999999999931,
+     "O": 10.0
+    },
+    "G": -462038.0072908859,
+    "returned": [
+     "DELETE"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by +0.693 J",
+   "readings differ on Thermochimica's state by -0.693 J"
+  ]
+ },
+ "TestThermo31": {
+  "T_K": 1000.0,
+  "P_atm": 1.0,
+  "G_hephaestus": 282358.1233954712,
+  "G_thermochimica": 676879.5485342559,
+  "A_hephaestus_state_in_thermochimica": 282358.5801569002,
+  "B_thermochimica_state_in_hephaestus": 282358.12339546473,
+  "A_pieces": [
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "AU": 2.999994147427274,
+     "AR": 3.749979461693799,
+     "O": 1.5000235161329991
+    },
+    "G": 333242.67177943856,
+    "returned": [
+     "Delete"
+    ]
+   },
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "W": 0.9999999999999999,
+     "AU": 5.852572726077093e-06,
+     "AR": 1.2500205383062029,
+     "O": 0.49997648386700105
+    },
+    "G": -50884.09162253837,
+    "returned": [
+     "Delete"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Delete",
+    "amounts": {
+     "W": 0.9999999999999986,
+     "Au": 2.999999999999979,
+     "Ar": 5.000000000000001,
+     "O": 2.0
+    },
+    "G": 282358.12339546473,
+    "returned": [
+     "DELETE",
+     "DELETE"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "readings differ on Hephaestus's state by +0.457 J",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo32": {
+  "T_K": 2452.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -8667681.920602249,
+  "G_thermochimica": 16716044.430822108,
+  "A_hephaestus_state_in_thermochimica": null,
+  "B_thermochimica_state_in_hephaestus": -8667681.920491517,
+  "A_pieces": [
+   {
+    "phase": "QUATERNARY",
+    "amounts": {
+     "AU": 0.5249863224084689,
+     "AR": 0.5252736869508292,
+     "NE": 2.121562735755758,
+     "O": 2.1215627382876026
+    },
+    "G": -1826368.3346268118,
+    "returned": [
+     "Quaternary"
+    ]
+   },
+   {
+    "phase": "QUATERNARY",
+    "amounts": {
+     "W": 0.47527368800345765,
+     "AU": 0.47501367759153124,
+     "NE": 1.919614428976115,
+     "O": 1.9196144278412317
+    },
+    "G": null,
+    "returned": []
+   },
+   {
+    "phase": "QUATERNARY",
+    "amounts": {
+     "W": 1.4747263119965421,
+     "AR": 1.474726313049171,
+     "NE": 5.958822835268129,
+     "O": 5.958822833871166
+    },
+    "G": -5334894.642530977,
+    "returned": [
+     "Quaternary"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Quaternary",
+    "amounts": {
+     "W": 1.950000000331724,
+     "Au": 1.0000000004353748,
+     "Ar": 2.000000000326259,
+     "Ne": 9.999999999453294,
+     "O": 9.999999999453353
+    },
+    "G": -8667681.920491517,
+    "returned": [
+     "QUATERNARY",
+     "QUATERNARY",
+     "QUATERNARY"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state not priced",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo55": {
+  "T_K": 300.0,
+  "P_atm": 1000.0,
+  "G_hephaestus": -44893.50774498211,
+  "G_thermochimica": -49667.374735197256,
+  "A_hephaestus_state_in_thermochimica": -51628.65066901568,
+  "B_thermochimica_state_in_hephaestus": -51720.80366733823,
+  "A_pieces": [
+   {
+    "phase": "FCC_A1",
+    "amounts": {
+     "CR": 0.16521468403717085,
+     "FE": 0.01638776547331351,
+     "NI": 0.9032399946961112,
+     "SN": 2.3587119236432914e-07,
+     "V": 0.00043224912984038183
+    },
+    "G": -10728.485299764014,
+    "returned": [
+     "FCC_A1",
+     "FESN_B35"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "CR": 0.08122499125026729,
+     "FE": 1.7405840361406755,
+     "H": 0.49318674198715007,
+     "NI": 0.0967561721463705,
+     "SN": 4.057308283956155e-08,
+     "V": 0.019282463988099487
+    },
+    "G": -21803.85056521588,
+    "returned": [
+     "GAS",
+     "BCC_A2",
+     "FCC_A1",
+     "FESN_B35"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "CR": 0.753560324712562,
+     "FE": 0.143029023347883,
+     "H": 0.50681325801285,
+     "NI": 3.833157518461507e-06,
+     "SN": 5.485175965013825e-07,
+     "V": 0.08028528688206016
+    },
+    "G": -13609.891853652764,
+    "returned": [
+     "GAS",
+     "BCC_A2",
+     "FCC_A1",
+     "FESN_B35"
+    ]
+   },
+   {
+    "phase": "FESN_B35",
+    "amounts": {
+     "FE": 0.09999917503812832,
+     "SN": 0.09999917503812832
+    },
+    "G": -5486.422950383028,
+    "returned": [
+     "FESN_B35"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "GAS",
+    "amounts": {
+     "H": 0.9698567336163444
+    },
+    "G": -10655.721760600754,
+    "returned": [
+     "GAS"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "Cr": 0.7623405371367538,
+     "Fe": 1.8805307244529939,
+     "H": 0.030143266383655172,
+     "Ni": 0.06609927679769319,
+     "Sn": 4.6114175179581485e-08,
+     "V": 0.09885699154998001
+    },
+    "G": -23943.515119843174,
+    "returned": [
+     "BCC_A2",
+     "BCC_A2",
+     "FCC_A1"
+    ]
+   },
+   {
+    "phase": "FCC_A1",
+    "amounts": {
+     "Cr": 0.23765946286324593,
+     "Fe": 0.019469529687915186,
+     "Ni": 0.9339007232023064,
+     "Sn": 2.0802673237993607e-07,
+     "V": 0.001143008450020002
+    },
+    "G": -11635.112518600532,
+    "returned": [
+     "BCC_A2",
+     "FCC_A1",
+     "FESN_B35"
+    ]
+   },
+   {
+    "phase": "FESN_B35",
+    "amounts": {
+     "Fe": 0.09999974585909242,
+     "Sn": 0.09999974585909242
+    },
+    "G": -5486.45426829377,
+    "returned": [
+     "FESN_B35"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "Hephaestus missed a lower state of its own model",
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo56": {
+  "T_K": 1400.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -173233.89645143208,
+  "G_thermochimica": -173325.18981374544,
+  "A_hephaestus_state_in_thermochimica": -173309.58388730985,
+  "B_thermochimica_state_in_hephaestus": -173233.06969548998,
+  "A_pieces": [
+   {
+    "phase": "LIQUID",
+    "amounts": {
+     "CU": 0.9763792259948919,
+     "FE": 0.024612811464537455,
+     "C": 2.4887876436213867e-05
+    },
+    "G": -75147.80603093986,
+    "returned": [
+     "Liquid",
+     "FCC_A1"
+    ]
+   },
+   {
+    "phase": "FCC_A1",
+    "amounts": {
+     "CU": 0.02362077400510799,
+     "FE": 0.9753871885354622,
+     "C": 0.08507830019195779
+    },
+    "G": -76185.21146044355,
+    "returned": [
+     "FCC_A1",
+     "C_GRAPHITE(s)"
+    ]
+   },
+   {
+    "phase": "C_GRAPHITE(S)",
+    "amounts": {
+     "C": 0.9148968119316059
+    },
+    "G": -21976.56639592644,
+    "returned": [
+     "C_GRAPHITE(s)"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Liquid",
+    "amounts": {
+     "Cu": 0.964844533842579,
+     "Fe": 0.02401136229773604,
+     "C": 2.3912868235565323e-05
+    },
+    "G": -74236.97503393811,
+    "returned": [
+     "LIQUID"
+    ]
+   },
+   {
+    "phase": "FCC_A1",
+    "amounts": {
+     "Cu": 0.035155466157421156,
+     "Fe": 0.9759886377022639,
+     "C": 0.08234758395973098
+    },
+    "G": -76953.91081769523,
+    "returned": [
+     "LIQUID",
+     "FCC_A1"
+    ]
+   },
+   {
+    "phase": "C_GRAPHITE(s)",
+    "amounts": {
+     "C": 0.9176285031720334
+    },
+    "G": -22042.183843856634,
+    "returned": [
+     "C_GRAPHITE(S)"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo62": {
+  "T_K": 2000.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -963746.1758337248,
+  "G_thermochimica": -964833.6879663588,
+  "A_hephaestus_state_in_thermochimica": -964638.457314593,
+  "B_thermochimica_state_in_hephaestus": -963746.1758337084,
+  "A_pieces": [
+   {
+    "phase": "GAS_IDEAL",
+    "amounts": {
+     "CL": 1.8890139148942195,
+     "AL": 0.6296713049647398
+    },
+    "G": -865874.9303994495,
+    "returned": [
+     "gas_ideal"
+    ]
+   },
+   {
+    "phase": "MSSOLN",
+    "amounts": {
+     "CL": 0.1109860851057804,
+     "AL": 0.3703286950352601
+    },
+    "G": -98763.52691514348,
+    "returned": [
+     "MSsoln"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "gas_ideal",
+    "amounts": {
+     "Cl": 1.8241941390046916,
+     "Al": 0.6080647130015638
+    },
+    "G": -836296.312647378,
+    "returned": [
+     "GAS_IDEAL"
+    ]
+   },
+   {
+    "phase": "MSsoln",
+    "amounts": {
+     "Cl": 0.17580586099526513,
+     "Al": 0.3919352869984454
+    },
+    "G": -127449.86318633037,
+    "returned": [
+     "GAS_IDEAL",
+     "MSSOLN"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by -892.281 J",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo63": {
+  "T_K": 1000.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -1175837.1667624116,
+  "G_thermochimica": -1176851.009633097,
+  "A_hephaestus_state_in_thermochimica": -1176796.76186345,
+  "B_thermochimica_state_in_hephaestus": -1175799.1221288291,
+  "A_pieces": [
+   {
+    "phase": "MSSOLN",
+    "amounts": {
+     "CL": 2.995003953774368,
+     "AL": 0.9578997952215162,
+     "NA": 0.9999995901655552
+    },
+    "G": -1173228.5965733144,
+    "returned": [
+     "MSsoln"
+    ]
+   },
+   {
+    "phase": "MSSOLN",
+    "amounts": {
+     "CL": 0.004996046225632363,
+     "AL": 0.04210020477848368,
+     "NA": 4.098344448162186e-07
+    },
+    "G": -3568.165290135733,
+    "returned": [
+     "MSsoln"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "MSsoln",
+    "amounts": {
+     "Cl": 2.9552529053351244,
+     "Al": 1.0000000000000042,
+     "Na": 0.9552529053351255
+    },
+    "G": -1152950.2368127306,
+    "returned": [
+     "MSSOLN",
+     "MSSOLN"
+    ]
+   },
+   {
+    "phase": "NaCl_S1(s)",
+    "amounts": {
+     "Cl": 0.04474709466487509,
+     "Na": 0.04474709466487509
+    },
+    "G": -22848.885316098615,
+    "returned": [
+     "NACL_S1(S)"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by -959.595 J",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo64": {
+  "T_K": 600.0,
+  "P_atm": 100.0,
+  "G_hephaestus": -529924.1599778824,
+  "G_thermochimica": -524838.4986848929,
+  "A_hephaestus_state_in_thermochimica": -529924.1093192388,
+  "B_thermochimica_state_in_hephaestus": -529924.1620207696,
+  "A_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 0.09884855180318289,
+     "NB": 0.044984160295488816,
+     "O": 0.6049861408191868,
+     "ZR": 0.9910201014787878
+    },
+    "G": -339804.63830444653,
+    "returned": [
+     "BCC_A2"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 0.0011513213554117175,
+     "NB": 0.448513142881178,
+     "O": 0.0018990747747476414,
+     "ZR": 1.285374924963496e-07
+    },
+    "G": -11987.098849520544,
+    "returned": [
+     "BCC_A2"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 1.2684140537453097e-07,
+     "NB": 0.5065026968233334,
+     "O": 0.3931147844060657,
+     "ZR": 0.008979769983719696
+    },
+    "G": -178132.37216527175,
+    "returned": [
+     "BCC_A2"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 0.10000000128594934,
+     "Nb": 1.000000001473073,
+     "O": 1.0000000048478266,
+     "Zr": 0.9999999985269252
+    },
+    "G": -529924.1620207696,
+    "returned": [
+     "BCC_A2",
+     "BCC_A2",
+     "BCC_A2"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "same reading on Hephaestus's state",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo71": {
+  "T_K": 2000.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -194029.80315794505,
+  "G_thermochimica": -194029.77213896482,
+  "A_hephaestus_state_in_thermochimica": -194029.7721000537,
+  "B_thermochimica_state_in_hephaestus": -194029.80277668967,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "CR": 0.19999997707277753,
+     "O": 1.5461200834845168e-06,
+     "ZR": 0.4058821517547359
+    },
+    "G": -86653.11317807186,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "HCP_A3",
+    "amounts": {
+     "CR": 2.292722242603582e-08,
+     "O": 0.09999845387991652,
+     "ZR": 0.2941178482452638
+    },
+    "G": -107376.65892198184,
+    "returned": [
+     "IONIC_LIQ",
+     "HCP_ORD"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Cr": 0.2000000000000072,
+     "O": 1.6327624521946459e-06,
+     "Zr": 0.4058828853942917
+    },
+    "G": -86653.30164295522,
+    "returned": [
+     "IONIC_LIQ",
+     "HCP_A3"
+    ]
+   },
+   {
+    "phase": "HCP_ORD",
+    "amounts": {
+     "O": 0.09999836723754861,
+     "Zr": 0.29411711460572404
+    },
+    "G": -107376.50113373445,
+    "returned": [
+     "HCP_A3"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo73": {
+  "T_K": 2500.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -901530.1668842675,
+  "G_thermochimica": -910618.8065723673,
+  "A_hephaestus_state_in_thermochimica": -901837.7564316663,
+  "B_thermochimica_state_in_hephaestus": -901530.1668842589,
+  "A_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "CA": 0.0680594772492605,
+     "MN": 2.363569884376203e-07,
+     "S": 4.028898983071883e-12
+    },
+    "G": -14629.706513270045,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "CA": 3.870220060404229e-06,
+     "MN": 0.932130277185331,
+     "S": 0.00024960050029904817
+    },
+    "G": -187757.07036712216,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "CA": 0.9319366525306794,
+     "MN": 0.06786948645768086,
+     "S": 0.9997503994956725
+    },
+    "G": -699450.9795512741,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Ca": 0.9846540554212612,
+     "Mn": 0.23613336867421666,
+     "S": 0.9987095552229223
+    },
+    "G": -743902.2564207407,
+    "returned": [
+     "BCC_A2",
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ#3",
+    "amounts": {
+     "Ca": 0.015345944578732588,
+     "Mn": 0.763866631325784,
+     "S": 0.00129044477706273
+    },
+    "G": -157627.91046351814,
+    "returned": [
+     "BCC_A2",
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo74": {
+  "T_K": 1900.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -1944884.7883563996,
+  "G_thermochimica": -1944947.767775167,
+  "A_hephaestus_state_in_thermochimica": -1797383.940357424,
+  "B_thermochimica_state_in_hephaestus": -1944884.786775872,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "FE": 0.10342996268924022,
+     "MN": 0.03044056020229166,
+     "S": 1.9351690897016838e-05
+    },
+    "G": -17287.398296126856,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ#3"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "FE": 1.89657003731076,
+     "MN": 3.9695594397977083,
+     "S": 2.9999806483091027
+    },
+    "G": -1780096.5420612972,
+    "returned": [
+     "IONIC_LIQ",
+     "CBCC_A12"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Fe": 0.10335245318677226,
+     "Mn": 0.030332653763973143,
+     "S": 1.9187194115583655e-05
+    },
+    "G": -17261.16182416047,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ#3",
+    "amounts": {
+     "Fe": 1.8966475468132282,
+     "Mn": 3.96966734623603,
+     "S": 2.999980812805873
+    },
+    "G": -1927623.6249517116,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo76": {
+  "T_K": 2500.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -559081.2997733537,
+  "G_thermochimica": -568904.724467058,
+  "A_hephaestus_state_in_thermochimica": -568904.7244670579,
+  "B_thermochimica_state_in_hephaestus": -559081.2997733542,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQUID",
+    "amounts": {
+     "CS": 0.9999999999999997,
+     "TE": 0.4999999999999999
+    },
+    "G": -568904.7244670579,
+    "returned": [
+     "IONIC_LIQUID"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQUID",
+    "amounts": {
+     "Cs": 1.0000000000000002,
+     "Te": 0.5000000000000014
+    },
+    "G": -559081.2997733542,
+    "returned": [
+     "IONIC_LIQUID"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by -9823.425 J",
+   "readings differ on Thermochimica's state by +9823.425 J"
+  ]
+ },
+ "TestThermo77": {
+  "T_K": 2500.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -535982.4171791424,
+  "G_thermochimica": -535985.0070724898,
+  "A_hephaestus_state_in_thermochimica": -535984.9092299055,
+  "B_thermochimica_state_in_hephaestus": -535982.4162166301,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "NB": 0.49697615996995764,
+     "O": 0.2996804459102795,
+     "SN": 0.0018390032570612697
+    },
+    "G": -269479.45875638525,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "NB": 0.5030238400300426,
+     "O": 0.0003195540897205649,
+     "SN": 0.6981609967429391
+    },
+    "G": -266505.4504735202,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ#3"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Nb": 0.4970569615522134,
+     "O": 0.2996864139309335,
+     "Sn": 0.001976647639502871
+    },
+    "G": -269529.4627676867,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ#3",
+    "amounts": {
+     "Nb": 0.5029430384794037,
+     "O": 0.00031358606908319097,
+     "Sn": 0.6980233526218418
+    },
+    "G": -266452.95344894344,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo30__grid1": {
+  "T_K": 1255.0,
+  "P_atm": 1.0,
+  "G_hephaestus": 160709.8003337488,
+  "G_thermochimica": 161008.84549153215,
+  "A_hephaestus_state_in_thermochimica": 160710.3280451747,
+  "B_thermochimica_state_in_hephaestus": 160709.8003337493,
+  "A_pieces": [
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "W": 0.13501540273853507,
+     "AU": 0.5703500072286409,
+     "AR": 0.47821383726496397,
+     "O": 2.39106918584911
+    },
+    "G": 90353.75171992068,
+    "returned": [
+     "Delete"
+    ]
+   },
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "W": 1.8149845972614653,
+     "AU": 0.4296499927713588,
+     "AR": 1.521786162735036,
+     "O": 7.608930814150891
+    },
+    "G": 70356.57632525405,
+    "returned": [
+     "Delete"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Delete",
+    "amounts": {
+     "W": 1.9499999999999997,
+     "Au": 0.9999999999999984,
+     "Ar": 1.9999999999999973,
+     "O": 10.0
+    },
+    "G": 160709.8003337493,
+    "returned": [
+     "DELETE",
+     "DELETE"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "readings differ on Hephaestus's state by +0.528 J",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo30__grid2": {
+  "T_K": 1355.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -149243.7138445329,
+  "G_thermochimica": -149202.38233431554,
+  "A_hephaestus_state_in_thermochimica": -149243.1248721035,
+  "B_thermochimica_state_in_hephaestus": -149243.71384453206,
+  "A_pieces": [
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "W": 1.830514109915296,
+     "AU": 0.6768598111086594,
+     "AR": 1.699914522504665,
+     "O": 8.499572613552871
+    },
+    "G": -153660.39197160912,
+    "returned": [
+     "Delete"
+    ]
+   },
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "W": 0.11948589008470414,
+     "AU": 0.32314018889134055,
+     "AR": 0.3000854774953352,
+     "O": 1.5004273864471274
+    },
+    "G": 4417.2670995056,
+    "returned": [
+     "Delete"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Delete",
+    "amounts": {
+     "W": 1.9499999999999995,
+     "Au": 0.9999999999999981,
+     "Ar": 1.9999999999999953,
+     "O": 9.999999999999996
+    },
+    "G": -149243.71384453206,
+    "returned": [
+     "DELETE",
+     "DELETE"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "readings differ on Hephaestus's state by +0.589 J",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo30__grid3": {
+  "T_K": 1455.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -462038.00729088794,
+  "G_thermochimica": -462037.3138733846,
+  "A_hephaestus_state_in_thermochimica": -462037.31387338444,
+  "B_thermochimica_state_in_hephaestus": -462038.0072908859,
+  "A_pieces": [
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "W": 1.9500000000000006,
+     "AU": 0.9999999999999999,
+     "AR": 1.9999999999999998,
+     "O": 10.0
+    },
+    "G": -462037.31387338444,
+    "returned": [
+     "Delete"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Delete",
+    "amounts": {
+     "W": 1.9500000000000002,
+     "Au": 0.9999999999999992,
+     "Ar": 1.9999999999999931,
+     "O": 10.0
+    },
+    "G": -462038.0072908859,
+    "returned": [
+     "DELETE"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by +0.693 J",
+   "readings differ on Thermochimica's state by -0.693 J"
+  ]
+ },
+ "TestThermo30__grid4": {
+  "T_K": 1555.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -777348.1941355286,
+  "G_thermochimica": -777347.238524382,
+  "A_hephaestus_state_in_thermochimica": -777347.2385243819,
+  "B_thermochimica_state_in_hephaestus": -777348.194135528,
+  "A_pieces": [
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "W": 1.95,
+     "AU": 0.9999999999999999,
+     "AR": 1.9999999999999998,
+     "O": 10.0
+    },
+    "G": -777347.2385243819,
+    "returned": [
+     "Delete"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Delete",
+    "amounts": {
+     "W": 1.9499999999999995,
+     "Au": 1.0000000000000002,
+     "Ar": 1.9999999999999978,
+     "O": 9.999999999999998
+    },
+    "G": -777348.194135528,
+    "returned": [
+     "DELETE"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by +0.956 J",
+   "readings differ on Thermochimica's state by -0.956 J"
+  ]
+ },
+ "TestThermo31__grid1": {
+  "T_K": 800.0,
+  "P_atm": 1.0,
+  "G_hephaestus": 743714.1586588604,
+  "G_thermochimica": 1141975.8937766887,
+  "A_hephaestus_state_in_thermochimica": 743714.5283827649,
+  "B_thermochimica_state_in_hephaestus": 743714.1586588564,
+  "A_pieces": [
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "W": 0.9999999999999999,
+     "AU": 2.879872518115417e-07,
+     "AR": 1.2500011734360499,
+     "O": 0.49999851754322155
+    },
+    "G": 61111.30854465911,
+    "returned": [
+     "Delete"
+    ]
+   },
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "AU": 2.999999712012748,
+     "AR": 3.7499988265639495,
+     "O": 1.5000014824567782
+    },
+    "G": 682603.2198381058,
+    "returned": [
+     "Delete"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Delete",
+    "amounts": {
+     "W": 0.9999999999999976,
+     "Au": 2.999999999999986,
+     "Ar": 4.999999999999989,
+     "O": 2.000000000000001
+    },
+    "G": 743714.1586588564,
+    "returned": [
+     "DELETE",
+     "DELETE"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "same reading on Hephaestus's state",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo31__grid2": {
+  "T_K": 900.0,
+  "P_atm": 1.0,
+  "G_hephaestus": 514414.5187709205,
+  "G_thermochimica": 910806.0604984355,
+  "A_hephaestus_state_in_thermochimica": 514414.92572386196,
+  "B_thermochimica_state_in_hephaestus": 514414.5187709176,
+  "A_pieces": [
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "AU": 2.9999984651183382,
+     "AR": 3.749994228286888,
+     "O": 1.5000069373689584
+    },
+    "G": 508926.66828858614,
+    "returned": [
+     "Delete"
+    ]
+   },
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "W": 1.0000000000000002,
+     "AU": 1.534881661652114e-06,
+     "AR": 1.2500057717131126,
+     "O": 0.4999930626310419
+    },
+    "G": 5488.257435275825,
+    "returned": [
+     "Delete"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Delete",
+    "amounts": {
+     "W": 1.0000000000000033,
+     "Au": 2.9999999999999813,
+     "Ar": 4.999999999999984,
+     "O": 2.0000000000000004
+    },
+    "G": 514414.5187709176,
+    "returned": [
+     "DELETE",
+     "DELETE"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "same reading on Hephaestus's state",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo31__grid3": {
+  "T_K": 1000.0,
+  "P_atm": 1.0,
+  "G_hephaestus": 282358.1233954712,
+  "G_thermochimica": 676879.5485342559,
+  "A_hephaestus_state_in_thermochimica": 282358.5801569002,
+  "B_thermochimica_state_in_hephaestus": 282358.12339546473,
+  "A_pieces": [
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "AU": 2.999994147427274,
+     "AR": 3.749979461693799,
+     "O": 1.5000235161329991
+    },
+    "G": 333242.67177943856,
+    "returned": [
+     "Delete"
+    ]
+   },
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "W": 0.9999999999999999,
+     "AU": 5.852572726077093e-06,
+     "AR": 1.2500205383062029,
+     "O": 0.49997648386700105
+    },
+    "G": -50884.09162253837,
+    "returned": [
+     "Delete"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Delete",
+    "amounts": {
+     "W": 0.9999999999999986,
+     "Au": 2.999999999999979,
+     "Ar": 5.000000000000001,
+     "O": 2.0
+    },
+    "G": 282358.12339546473,
+    "returned": [
+     "DELETE",
+     "DELETE"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "readings differ on Hephaestus's state by +0.457 J",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo31__grid4": {
+  "T_K": 1100.0,
+  "P_atm": 1.0,
+  "G_hephaestus": 47785.502163048564,
+  "G_thermochimica": 440436.8700210963,
+  "A_hephaestus_state_in_thermochimica": 47786.0704256014,
+  "B_thermochimica_state_in_hephaestus": 47785.502163049714,
+  "A_pieces": [
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "AU": 2.999982512727692,
+     "AR": 3.7499422129286426,
+     "O": 1.50006308181681
+    },
+    "G": 155739.3369927353,
+    "returned": [
+     "Delete"
+    ]
+   },
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "W": 0.9999999999999998,
+     "AU": 1.7487272307275226e-05,
+     "AR": 1.2500577870713574,
+     "O": 0.49993691818318975
+    },
+    "G": -107953.2665671339,
+    "returned": [
+     "Delete"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Delete",
+    "amounts": {
+     "W": 0.9999999999999956,
+     "Au": 3.000000000000006,
+     "Ar": 5.0,
+     "O": 1.9999999999999996
+    },
+    "G": 47785.502163049714,
+    "returned": [
+     "DELETE",
+     "DELETE"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "readings differ on Hephaestus's state by +0.568 J",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo31__grid5": {
+  "T_K": 1200.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -189112.79633004728,
+  "G_thermochimica": 201668.6707687779,
+  "A_hephaestus_state_in_thermochimica": -189112.24855504083,
+  "B_thermochimica_state_in_hephaestus": -189112.79633004768,
+  "A_pieces": [
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "AU": 2.9999565026820005,
+     "AR": 3.7498636579870146,
+     "O": 1.5001420073773544
+    },
+    "G": -23434.78668103103,
+    "returned": [
+     "Delete"
+    ]
+   },
+   {
+    "phase": "DELETE",
+    "amounts": {
+     "W": 0.9999999999999997,
+     "AU": 4.34973179998127e-05,
+     "AR": 1.2501363420129852,
+     "O": 0.4998579926226453
+    },
+    "G": -165677.4618740098,
+    "returned": [
+     "Delete"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Delete",
+    "amounts": {
+     "W": 1.000000000000003,
+     "Au": 2.9999999999999907,
+     "Ar": 4.999999999999992,
+     "O": 1.9999999999999984
+    },
+    "G": -189112.79633004768,
+    "returned": [
+     "DELETE",
+     "DELETE"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "readings differ on Hephaestus's state by +0.548 J",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo32__grid1": {
+  "T_K": 2252.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -7564591.850482681,
+  "G_thermochimica": 17822123.13035066,
+  "A_hephaestus_state_in_thermochimica": null,
+  "B_thermochimica_state_in_hephaestus": -7564591.850482757,
+  "A_pieces": [
+   {
+    "phase": "QUATERNARY",
+    "amounts": {
+     "W": 1.4747019940946184,
+     "AR": 1.4747019952421434,
+     "NE": 5.958754124417502,
+     "O": 5.958754129986888
+    },
+    "G": -4680632.30997384,
+    "returned": [
+     "Quaternary"
+    ]
+   },
+   {
+    "phase": "QUATERNARY",
+    "amounts": {
+     "W": 0.47529800590538085,
+     "AU": 0.475014891576833,
+     "NE": 1.9196519737759383,
+     "O": 1.9196519703467854
+    },
+    "G": null,
+    "returned": []
+   },
+   {
+    "phase": "QUATERNARY",
+    "amounts": {
+     "AU": 0.524985108423167,
+     "AR": 0.525298004757856,
+     "NE": 2.12159390180656,
+     "O": 2.1215938996663275
+    },
+    "G": -1592280.0789966753,
+    "returned": [
+     "Quaternary"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Quaternary",
+    "amounts": {
+     "W": 1.9500000000000242,
+     "Au": 1.000000000000011,
+     "Ar": 2.000000000000102,
+     "Ne": 9.999999999999982,
+     "O": 10.000000000000155
+    },
+    "G": -7564591.850482757,
+    "returned": [
+     "QUATERNARY",
+     "QUATERNARY",
+     "QUATERNARY"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state not priced",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo32__grid2": {
+  "T_K": 2352.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -8114859.044460623,
+  "G_thermochimica": 17270361.613202926,
+  "A_hephaestus_state_in_thermochimica": null,
+  "B_thermochimica_state_in_hephaestus": -8114859.044367857,
+  "A_pieces": [
+   {
+    "phase": "QUATERNARY",
+    "amounts": {
+     "W": 0.4752853302865851,
+     "AU": 0.4750142583422565,
+     "NE": 1.9196323980344818,
+     "O": 1.9196324000399427
+    },
+    "G": null,
+    "returned": []
+   },
+   {
+    "phase": "QUATERNARY",
+    "amounts": {
+     "AU": 0.5249857416577436,
+     "AR": 0.5252853291885289,
+     "NE": 2.1215776573938046,
+     "O": 2.1215776580316366
+    },
+    "G": -1709067.2641386087,
+    "returned": [
+     "Quaternary"
+    ]
+   },
+   {
+    "phase": "QUATERNARY",
+    "amounts": {
+     "W": 1.474714669713415,
+     "AR": 1.4747146708114711,
+     "NE": 5.9587899445717145,
+     "O": 5.958789941928422
+    },
+    "G": -5007006.594662006,
+    "returned": [
+     "Quaternary"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Quaternary",
+    "amounts": {
+     "W": 1.9500000002662294,
+     "Au": 1.0000000003493126,
+     "Ar": 2.0000000002618976,
+     "Ne": 9.999999999561245,
+     "O": 9.999999999561378
+    },
+    "G": -8114859.044367857,
+    "returned": [
+     "QUATERNARY",
+     "QUATERNARY",
+     "QUATERNARY"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state not priced",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo32__grid3": {
+  "T_K": 2452.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -8667681.920602249,
+  "G_thermochimica": 16716044.430822108,
+  "A_hephaestus_state_in_thermochimica": null,
+  "B_thermochimica_state_in_hephaestus": -8667681.920491517,
+  "A_pieces": [
+   {
+    "phase": "QUATERNARY",
+    "amounts": {
+     "AU": 0.5249863224084689,
+     "AR": 0.5252736869508292,
+     "NE": 2.121562735755758,
+     "O": 2.1215627382876026
+    },
+    "G": -1826368.3346268118,
+    "returned": [
+     "Quaternary"
+    ]
+   },
+   {
+    "phase": "QUATERNARY",
+    "amounts": {
+     "W": 0.47527368800345765,
+     "AU": 0.47501367759153124,
+     "NE": 1.919614428976115,
+     "O": 1.9196144278412317
+    },
+    "G": null,
+    "returned": []
+   },
+   {
+    "phase": "QUATERNARY",
+    "amounts": {
+     "W": 1.4747263119965421,
+     "AR": 1.474726313049171,
+     "NE": 5.958822835268129,
+     "O": 5.958822833871166
+    },
+    "G": -5334894.642530977,
+    "returned": [
+     "Quaternary"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Quaternary",
+    "amounts": {
+     "W": 1.950000000331724,
+     "Au": 1.0000000004353748,
+     "Ar": 2.000000000326259,
+     "Ne": 9.999999999453294,
+     "O": 9.999999999453353
+    },
+    "G": -8667681.920491517,
+    "returned": [
+     "QUATERNARY",
+     "QUATERNARY",
+     "QUATERNARY"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state not priced",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo32__grid4": {
+  "T_K": 2552.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -9222967.926302979,
+  "G_thermochimica": 16159264.11209067,
+  "A_hephaestus_state_in_thermochimica": null,
+  "B_thermochimica_state_in_hephaestus": -9222967.926151643,
+  "A_pieces": [
+   {
+    "phase": "QUATERNARY",
+    "amounts": {
+     "W": 1.4747370396446713,
+     "AR": 1.474737041668645,
+     "NE": 5.95885314022107,
+     "O": 5.958853140881878
+    },
+    "G": -5664239.017798224,
+    "returned": [
+     "Quaternary"
+    ]
+   },
+   {
+    "phase": "QUATERNARY",
+    "amounts": {
+     "W": 0.4752629603553281,
+     "AU": 0.4750131417254948,
+     "NE": 1.9195978674195602,
+     "O": 1.919597864341401
+    },
+    "G": null,
+    "returned": []
+   },
+   {
+    "phase": "QUATERNARY",
+    "amounts": {
+     "AU": 0.5249868582745051,
+     "AR": 0.5252629583313545,
+     "NE": 2.12154899235937,
+     "O": 2.1215489947767194
+    },
+    "G": -1944165.627549133,
+    "returned": [
+     "Quaternary"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Quaternary",
+    "amounts": {
+     "W": 1.9500000004749851,
+     "Au": 1.000000000623448,
+     "Ar": 2.000000000467236,
+     "Ne": 9.999999999217238,
+     "O": 9.999999999217215
+    },
+    "G": -9222967.926151643,
+    "returned": [
+     "QUATERNARY",
+     "QUATERNARY",
+     "QUATERNARY"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state not priced",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo32__grid5": {
+  "T_K": 2652.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -9780631.508318627,
+  "G_thermochimica": 15600106.240812419,
+  "A_hephaestus_state_in_thermochimica": null,
+  "B_thermochimica_state_in_hephaestus": -9780631.508213844,
+  "A_pieces": [
+   {
+    "phase": "QUATERNARY",
+    "amounts": {
+     "W": 0.47525304066399526,
+     "AU": 0.4750126453044702,
+     "NE": 1.9195825461846125,
+     "O": 1.9195825499018506
+    },
+    "G": null,
+    "returned": []
+   },
+   {
+    "phase": "QUATERNARY",
+    "amounts": {
+     "W": 1.4747469593360045,
+     "AR": 1.4747469593362206,
+     "NE": 5.958881168406912,
+     "O": 5.958881166181808
+    },
+    "G": -5994986.677491449,
+    "returned": [
+     "Quaternary"
+    ]
+   },
+   {
+    "phase": "QUATERNARY",
+    "amounts": {
+     "AU": 0.5249873546955297,
+     "AR": 0.5252530406637792,
+     "NE": 2.121536285408474,
+     "O": 2.1215362839163423
+    },
+    "G": -2062442.6712225052,
+    "returned": [
+     "Quaternary"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Quaternary",
+    "amounts": {
+     "W": 1.9500000003452573,
+     "Au": 1.0000000004531289,
+     "Ar": 2.0000000003395577,
+     "Ne": 9.999999999430988,
+     "O": 9.999999999430992
+    },
+    "G": -9780631.508213844,
+    "returned": [
+     "QUATERNARY",
+     "QUATERNARY",
+     "QUATERNARY"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state not priced",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo55__grid3": {
+  "T_K": 300.0,
+  "P_atm": 1000.0,
+  "G_hephaestus": -44893.50774498211,
+  "G_thermochimica": -49667.374735197256,
+  "A_hephaestus_state_in_thermochimica": -51628.65066901568,
+  "B_thermochimica_state_in_hephaestus": -51720.80366733823,
+  "A_pieces": [
+   {
+    "phase": "FCC_A1",
+    "amounts": {
+     "CR": 0.16521468403717085,
+     "FE": 0.01638776547331351,
+     "NI": 0.9032399946961112,
+     "SN": 2.3587119236432914e-07,
+     "V": 0.00043224912984038183
+    },
+    "G": -10728.485299764014,
+    "returned": [
+     "FCC_A1",
+     "FESN_B35"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "CR": 0.08122499125026729,
+     "FE": 1.7405840361406755,
+     "H": 0.49318674198715007,
+     "NI": 0.0967561721463705,
+     "SN": 4.057308283956155e-08,
+     "V": 0.019282463988099487
+    },
+    "G": -21803.85056521588,
+    "returned": [
+     "GAS",
+     "BCC_A2",
+     "FCC_A1",
+     "FESN_B35"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "CR": 0.753560324712562,
+     "FE": 0.143029023347883,
+     "H": 0.50681325801285,
+     "NI": 3.833157518461507e-06,
+     "SN": 5.485175965013825e-07,
+     "V": 0.08028528688206016
+    },
+    "G": -13609.891853652764,
+    "returned": [
+     "GAS",
+     "BCC_A2",
+     "FCC_A1",
+     "FESN_B35"
+    ]
+   },
+   {
+    "phase": "FESN_B35",
+    "amounts": {
+     "FE": 0.09999917503812832,
+     "SN": 0.09999917503812832
+    },
+    "G": -5486.422950383028,
+    "returned": [
+     "FESN_B35"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "GAS",
+    "amounts": {
+     "H": 0.9698567336163444
+    },
+    "G": -10655.721760600754,
+    "returned": [
+     "GAS"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "Cr": 0.7623405371367538,
+     "Fe": 1.8805307244529939,
+     "H": 0.030143266383655172,
+     "Ni": 0.06609927679769319,
+     "Sn": 4.6114175179581485e-08,
+     "V": 0.09885699154998001
+    },
+    "G": -23943.515119843174,
+    "returned": [
+     "BCC_A2",
+     "BCC_A2",
+     "FCC_A1"
+    ]
+   },
+   {
+    "phase": "FCC_A1",
+    "amounts": {
+     "Cr": 0.23765946286324593,
+     "Fe": 0.019469529687915186,
+     "Ni": 0.9339007232023064,
+     "Sn": 2.0802673237993607e-07,
+     "V": 0.001143008450020002
+    },
+    "G": -11635.112518600532,
+    "returned": [
+     "BCC_A2",
+     "FCC_A1",
+     "FESN_B35"
+    ]
+   },
+   {
+    "phase": "FESN_B35",
+    "amounts": {
+     "Fe": 0.09999974585909242,
+     "Sn": 0.09999974585909242
+    },
+    "G": -5486.45426829377,
+    "returned": [
+     "FESN_B35"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "Hephaestus missed a lower state of its own model",
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo55__grid4": {
+  "T_K": 400.0,
+  "P_atm": 1000.0,
+  "G_hephaestus": -62007.1980897,
+  "G_thermochimica": -69585.13708598106,
+  "A_hephaestus_state_in_thermochimica": -70768.61886984904,
+  "B_thermochimica_state_in_hephaestus": -70884.65347472427,
+  "A_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "CR": 0.2343932678722351,
+     "FE": 1.6221263254527678,
+     "H": 0.6058640161955973,
+     "NI": 0.26356807947342786,
+     "SN": 1.1050962547565512e-05,
+     "V": 0.03678370829593265
+    },
+    "G": -35175.071215189266,
+    "returned": [
+     "GAS",
+     "BCC_A2",
+     "FCC_A1",
+     "FESN_B35"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "CR": 0.6192658341364211,
+     "FE": 0.2259853470276565,
+     "H": 0.3941359838044029,
+     "NI": 0.0003047537773560979,
+     "SN": 2.9953173773312782e-05,
+     "V": 0.06193339452704329
+    },
+    "G": -16495.52760799577,
+    "returned": [
+     "GAS",
+     "BCC_A2",
+     "FCC_A1",
+     "FESN_B35"
+    ]
+   },
+   {
+    "phase": "FCC_A1",
+    "amounts": {
+     "CR": 0.1463408979913438,
+     "FE": 0.051956971767312565,
+     "NI": 0.7361271667492165,
+     "SN": 2.7640111415776226e-05,
+     "V": 0.0012828971770240736
+    },
+    "G": -13001.8868144953,
+    "returned": [
+     "FCC_A1",
+     "FESN_B35"
+    ]
+   },
+   {
+    "phase": "FESN_B35",
+    "amounts": {
+     "FE": 0.09993135575226336,
+     "SN": 0.09993135575226336
+    },
+    "G": -6096.133232168707,
+    "returned": [
+     "FESN_B35"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "GAS",
+    "amounts": {
+     "H": 0.971100624113631
+    },
+    "G": -14446.57366085236,
+    "returned": [
+     "GAS"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "Cr": 0.7651001281370245,
+     "Fe": 1.8241676566692482,
+     "H": 0.028899375886368612,
+     "Ni": 0.15457534472564194,
+     "Sn": 1.2487063798227092e-05,
+     "V": 0.09679181616686743
+    },
+    "G": -34437.84747731697,
+    "returned": [
+     "BCC_A2",
+     "BCC_A2",
+     "FCC_A1"
+    ]
+   },
+   {
+    "phase": "FCC_A1",
+    "amounts": {
+     "Cr": 0.2348998718629755,
+     "Fe": 0.0758728904435705,
+     "Ni": 0.8454246552743583,
+     "Sn": 2.806004902029881e-05,
+     "V": 0.003208183833132624
+    },
+    "G": -15902.385089034247,
+    "returned": [
+     "FCC_A1",
+     "BCC_A2"
+    ]
+   },
+   {
+    "phase": "FESN_B35",
+    "amounts": {
+     "Fe": 0.09995945288718149,
+     "Sn": 0.09995945288718149
+    },
+    "G": -6097.847247520683,
+    "returned": [
+     "FESN_B35"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "Hephaestus missed a lower state of its own model",
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo55__grid5": {
+  "T_K": 500.0,
+  "P_atm": 1000.0,
+  "G_hephaestus": -82579.48834172855,
+  "G_thermochimica": -92544.81431101916,
+  "A_hephaestus_state_in_thermochimica": -93915.09758279717,
+  "B_thermochimica_state_in_hephaestus": -93819.2884232242,
+  "A_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "CR": 0.4019421943983202,
+     "FE": 1.5407814631369556,
+     "H": 0.6993767759195824,
+     "NI": 0.4506551174140055,
+     "SN": 0.00039369998522154927,
+     "V": 0.05257238934591225
+    },
+    "G": -54393.60603061516,
+    "returned": [
+     "GAS",
+     "BCC_A2",
+     "FCC_A1",
+     "FESN_B35"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "CR": 0.48023889341515946,
+     "FE": 0.26902272195275395,
+     "H": 0.3006232240804179,
+     "NI": 0.003421975544066742,
+     "SN": 0.0003708074973122807,
+     "V": 0.045333908853932084
+    },
+    "G": -18601.026954402834,
+    "returned": [
+     "GAS",
+     "BCC_A2",
+     "FCC_A1",
+     "FESN_B35"
+    ]
+   },
+   {
+    "phase": "FCC_A1",
+    "amounts": {
+     "CR": 0.11781891218652027,
+     "FE": 0.0913764561409056,
+     "NI": 0.545922907041928,
+     "SN": 0.0004161337480806531,
+     "V": 0.002093701800155684
+    },
+    "G": -14148.780184354731,
+    "returned": [
+     "FCC_A1",
+     "FESN_B35"
+    ]
+   },
+   {
+    "phase": "FESN_B35",
+    "amounts": {
+     "FE": 0.09881935876938555,
+     "SN": 0.09881935876938555
+    },
+    "G": -6771.684413424436,
+    "returned": [
+     "FESN_B35"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "GAS",
+    "amounts": {
+     "H": 0.9821411435555483
+    },
+    "G": -18792.461108323318,
+    "returned": [
+     "GAS"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "Cr": 0.759517963843691,
+     "Fe": 0.7132269033815829,
+     "H": 0.01785885644445157,
+     "Ni": 0.004676007240045736,
+     "Sn": 0.0001852448210544008,
+     "V": 0.0851832646765502
+    },
+    "G": -25533.30019740852,
+    "returned": [
+     "BCC_A2",
+     "GAS",
+     "BCC_A2"
+    ]
+   },
+   {
+    "phase": "FCC_A1",
+    "amounts": {
+     "Cr": 0.24048203615630823,
+     "Fe": 1.1870934326965996,
+     "Ni": 0.9953239927599539,
+     "Sn": 0.0001350912571274056,
+     "V": 0.014816735323449926
+    },
+    "G": -42662.889528657106,
+    "returned": [
+     "FCC_A1",
+     "BCC_A2"
+    ]
+   },
+   {
+    "phase": "FESN_B35",
+    "amounts": {
+     "Fe": 0.09967966392181819,
+     "Sn": 0.09967966392181819
+    },
+    "G": -6830.63758883526,
+    "returned": [
+     "FESN_B35"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "Hephaestus missed a lower state of its own model",
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo56__grid1": {
+  "T_K": 1200.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -135585.15811667527,
+  "G_thermochimica": -135561.93831092794,
+  "A_hephaestus_state_in_thermochimica": -135543.91730892163,
+  "B_thermochimica_state_in_hephaestus": -135567.78699400596,
+  "A_pieces": [
+   {
+    "phase": "FCC_A1",
+    "amounts": {
+     "CU": 0.986443536614771,
+     "FE": 0.029305703523424972,
+     "C": 4.510789615247084e-06
+    },
+    "G": -60920.45829477102,
+    "returned": [
+     "FCC_A1",
+     "FCC_A1#4"
+    ]
+   },
+   {
+    "phase": "FCC_A1",
+    "amounts": {
+     "CU": 0.01355646338522887,
+     "FE": 0.9706942964765749,
+     "C": 0.05514308248658551
+    },
+    "G": -57653.63507029132,
+    "returned": [
+     "FCC_A1",
+     "C_GRAPHITE(s)"
+    ]
+   },
+   {
+    "phase": "C_GRAPHITE(S)",
+    "amounts": {
+     "C": 0.9448524067237991
+    },
+    "G": -16969.82394385931,
+    "returned": [
+     "C_GRAPHITE(s)"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "FCC_A1",
+    "amounts": {
+     "Cu": 0.9786623118757061,
+     "Fe": 0.017922769152224214,
+     "C": 3.829778856450376e-06
+    },
+    "G": -59868.53873203637,
+    "returned": [
+     "FCC_A1",
+     "C_GRAPHITE(S)"
+    ]
+   },
+   {
+    "phase": "FCC_A1#4",
+    "amounts": {
+     "Cu": 0.021337688124294037,
+     "Fe": 0.982077230847775,
+     "C": 0.05417884090596866
+    },
+    "G": -58712.09402781461,
+    "returned": [
+     "FCC_A1",
+     "FCC_A1"
+    ]
+   },
+   {
+    "phase": "C_GRAPHITE(s)",
+    "amounts": {
+     "C": 0.9458173293151746
+    },
+    "G": -16987.154234154987,
+    "returned": [
+     "C_GRAPHITE(S)"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo56__grid2": {
+  "T_K": 1300.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -153943.82427444085,
+  "G_thermochimica": -153905.7415812606,
+  "A_hephaestus_state_in_thermochimica": -153879.08171632115,
+  "B_thermochimica_state_in_hephaestus": -153919.92447298372,
+  "A_pieces": [
+   {
+    "phase": "FCC_A1",
+    "amounts": {
+     "CU": 0.9819304259643382,
+     "FE": 0.04213346884993736,
+     "C": 1.3814343392006452e-05
+    },
+    "G": -68832.37886428935,
+    "returned": [
+     "FCC_A1",
+     "FCC_A1#4"
+    ]
+   },
+   {
+    "phase": "FCC_A1",
+    "amounts": {
+     "CU": 0.018069574035661652,
+     "FE": 0.9578665311500627,
+     "C": 0.06876333744628894
+    },
+    "G": -65582.83961287135,
+    "returned": [
+     "FCC_A1",
+     "C_GRAPHITE(s)"
+    ]
+   },
+   {
+    "phase": "C_GRAPHITE(S)",
+    "amounts": {
+     "C": 0.9312228482103189
+    },
+    "G": -19463.863239160455,
+    "returned": [
+     "C_GRAPHITE(s)"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "FCC_A1",
+    "amounts": {
+     "Cu": 0.028229425168837335,
+     "Fe": 0.9744741691154505,
+     "C": 0.06770908853119921
+    },
+    "G": -67275.33799933996,
+    "returned": [
+     "FCC_A1",
+     "FCC_A1"
+    ]
+   },
+   {
+    "phase": "FCC_A1#4",
+    "amounts": {
+     "Cu": 0.9717705748311631,
+     "Fe": 0.025525830884548795,
+     "C": 1.110253352460298e-05
+    },
+    "G": -67158.63127331714,
+    "returned": [
+     "FCC_A1",
+     "C_GRAPHITE(S)"
+    ]
+   },
+   {
+    "phase": "C_GRAPHITE(s)",
+    "amounts": {
+     "C": 0.9322798089352761
+    },
+    "G": -19485.95520032664,
+    "returned": [
+     "C_GRAPHITE(S)"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo56__grid3": {
+  "T_K": 1400.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -173233.89645143208,
+  "G_thermochimica": -173325.18981374544,
+  "A_hephaestus_state_in_thermochimica": -173309.58388730985,
+  "B_thermochimica_state_in_hephaestus": -173233.06969548998,
+  "A_pieces": [
+   {
+    "phase": "LIQUID",
+    "amounts": {
+     "CU": 0.9763792259948919,
+     "FE": 0.024612811464537455,
+     "C": 2.4887876436213867e-05
+    },
+    "G": -75147.80603093986,
+    "returned": [
+     "Liquid",
+     "FCC_A1"
+    ]
+   },
+   {
+    "phase": "FCC_A1",
+    "amounts": {
+     "CU": 0.02362077400510799,
+     "FE": 0.9753871885354622,
+     "C": 0.08507830019195779
+    },
+    "G": -76185.21146044355,
+    "returned": [
+     "FCC_A1",
+     "C_GRAPHITE(s)"
+    ]
+   },
+   {
+    "phase": "C_GRAPHITE(S)",
+    "amounts": {
+     "C": 0.9148968119316059
+    },
+    "G": -21976.56639592644,
+    "returned": [
+     "C_GRAPHITE(s)"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "Liquid",
+    "amounts": {
+     "Cu": 0.964844533842579,
+     "Fe": 0.02401136229773604,
+     "C": 2.3912868235565323e-05
+    },
+    "G": -74236.97503393811,
+    "returned": [
+     "LIQUID"
+    ]
+   },
+   {
+    "phase": "FCC_A1",
+    "amounts": {
+     "Cu": 0.035155466157421156,
+     "Fe": 0.9759886377022639,
+     "C": 0.08234758395973098
+    },
+    "G": -76953.91081769523,
+    "returned": [
+     "LIQUID",
+     "FCC_A1"
+    ]
+   },
+   {
+    "phase": "C_GRAPHITE(s)",
+    "amounts": {
+     "C": 0.9176285031720334
+    },
+    "G": -22042.183843856634,
+    "returned": [
+     "C_GRAPHITE(S)"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo62__grid1": {
+  "T_K": 1800.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -895861.6698356024,
+  "G_thermochimica": -896868.3501457515,
+  "A_hephaestus_state_in_thermochimica": -896700.2457836191,
+  "B_thermochimica_state_in_hephaestus": -895861.6698355901,
+  "A_pieces": [
+   {
+    "phase": "GAS_IDEAL",
+    "amounts": {
+     "CL": 1.8826458237115702,
+     "AL": 0.6275486079038567
+    },
+    "G": -805292.2766369315,
+    "returned": [
+     "gas_ideal"
+    ]
+   },
+   {
+    "phase": "MSSOLN",
+    "amounts": {
+     "CL": 0.11735417628843006,
+     "AL": 0.3724513920961437
+    },
+    "G": -91407.9691466876,
+    "returned": [
+     "MSsoln"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "gas_ideal",
+    "amounts": {
+     "Cl": 1.8175703914216663,
+     "Al": 0.6058567971405554
+    },
+    "G": -777575.910980725,
+    "returned": [
+     "GAS_IDEAL"
+    ]
+   },
+   {
+    "phase": "MSsoln",
+    "amounts": {
+     "Cl": 0.18242960857830584,
+     "Al": 0.3941432028594319
+    },
+    "G": -118285.75885486511,
+    "returned": [
+     "GAS_IDEAL",
+     "MSSOLN"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by -838.576 J",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo62__grid2": {
+  "T_K": 1900.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -929625.6692384561,
+  "G_thermochimica": -930670.4967250287,
+  "A_hephaestus_state_in_thermochimica": -930488.4578239266,
+  "B_thermochimica_state_in_hephaestus": -929625.6692384423,
+  "A_pieces": [
+   {
+    "phase": "GAS_IDEAL",
+    "amounts": {
+     "CL": 1.8865121870036718,
+     "AL": 0.6288373956678907
+    },
+    "G": -835699.9879220142,
+    "returned": [
+     "gas_ideal"
+    ]
+   },
+   {
+    "phase": "MSSOLN",
+    "amounts": {
+     "CL": 0.11348781299632814,
+     "AL": 0.3711626043321093
+    },
+    "G": -94788.46990191235,
+    "returned": [
+     "MSsoln"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "gas_ideal",
+    "amounts": {
+     "Cl": 1.8216241517187433,
+     "Al": 0.6072080505729144
+    },
+    "G": -807081.6898439019,
+    "returned": [
+     "GAS_IDEAL"
+    ]
+   },
+   {
+    "phase": "MSsoln",
+    "amounts": {
+     "Cl": 0.1783758482812187,
+     "Al": 0.3927919494270982
+    },
+    "G": -122543.97939454038,
+    "returned": [
+     "GAS_IDEAL",
+     "MSSOLN"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by -862.789 J",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo62__grid3": {
+  "T_K": 2000.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -963746.1758337248,
+  "G_thermochimica": -964833.6879663588,
+  "A_hephaestus_state_in_thermochimica": -964638.457314593,
+  "B_thermochimica_state_in_hephaestus": -963746.1758337084,
+  "A_pieces": [
+   {
+    "phase": "GAS_IDEAL",
+    "amounts": {
+     "CL": 1.8890139148942195,
+     "AL": 0.6296713049647398
+    },
+    "G": -865874.9303994495,
+    "returned": [
+     "gas_ideal"
+    ]
+   },
+   {
+    "phase": "MSSOLN",
+    "amounts": {
+     "CL": 0.1109860851057804,
+     "AL": 0.3703286950352601
+    },
+    "G": -98763.52691514348,
+    "returned": [
+     "MSsoln"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "gas_ideal",
+    "amounts": {
+     "Cl": 1.8241941390046916,
+     "Al": 0.6080647130015638
+    },
+    "G": -836296.312647378,
+    "returned": [
+     "GAS_IDEAL"
+    ]
+   },
+   {
+    "phase": "MSsoln",
+    "amounts": {
+     "Cl": 0.17580586099526513,
+     "Al": 0.3919352869984454
+    },
+    "G": -127449.86318633037,
+    "returned": [
+     "GAS_IDEAL",
+     "MSSOLN"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by -892.281 J",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo62__grid4": {
+  "T_K": 2100.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -998204.6534387886,
+  "G_thermochimica": -999339.2129416881,
+  "A_hephaestus_state_in_thermochimica": -999131.2842005936,
+  "B_thermochimica_state_in_hephaestus": -998204.6534387912,
+  "A_pieces": [
+   {
+    "phase": "GAS_IDEAL",
+    "amounts": {
+     "CL": 1.8904857746888692,
+     "AL": 0.6301619248962897
+    },
+    "G": -895900.1171317822,
+    "returned": [
+     "gas_ideal"
+    ]
+   },
+   {
+    "phase": "MSSOLN",
+    "amounts": {
+     "CL": 0.10951422531113018,
+     "AL": 0.3698380751037101
+    },
+    "G": -103231.16706881135,
+    "returned": [
+     "MSsoln"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "gas_ideal",
+    "amounts": {
+     "Cl": 1.8256043932261308,
+     "Al": 0.6085347977420437
+    },
+    "G": -865292.7200457248,
+    "returned": [
+     "GAS_IDEAL"
+    ]
+   },
+   {
+    "phase": "MSsoln",
+    "amounts": {
+     "Cl": 0.1743956067738833,
+     "Al": 0.39146520225793047
+    },
+    "G": -132911.93339306637,
+    "returned": [
+     "GAS_IDEAL",
+     "MSSOLN"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by -926.631 J",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo62__grid5": {
+  "T_K": 2200.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -1032984.6362130621,
+  "G_thermochimica": -1034170.4568214214,
+  "A_hephaestus_state_in_thermochimica": -1033950.1507908192,
+  "B_thermochimica_state_in_hephaestus": -1032984.6362130387,
+  "A_pieces": [
+   {
+    "phase": "GAS_IDEAL",
+    "amounts": {
+     "CL": 1.8911562982538697,
+     "AL": 0.6303854327512899
+    },
+    "G": -925827.6641048212,
+    "returned": [
+     "gas_ideal"
+    ]
+   },
+   {
+    "phase": "MSSOLN",
+    "amounts": {
+     "CL": 0.10884370174613016,
+     "AL": 0.3696145672487101
+    },
+    "G": -108122.48668599798,
+    "returned": [
+     "MSsoln"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "gas_ideal",
+    "amounts": {
+     "Cl": 1.826085235744364,
+     "Al": 0.6086950785814546
+    },
+    "G": -894118.2633886609,
+    "returned": [
+     "GAS_IDEAL"
+    ]
+   },
+   {
+    "phase": "MSsoln",
+    "amounts": {
+     "Cl": 0.17391476425559757,
+     "Al": 0.3913049214185558
+    },
+    "G": -138866.37282437785,
+    "returned": [
+     "GAS_IDEAL",
+     "MSSOLN"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by -965.515 J",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo63__grid1": {
+  "T_K": 800.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -1098690.7305934185,
+  "G_thermochimica": -1099280.8186950723,
+  "A_hephaestus_state_in_thermochimica": -1099280.818695072,
+  "B_thermochimica_state_in_hephaestus": -1098675.0525431884,
+  "A_pieces": [
+   {
+    "phase": "MSSOLN",
+    "amounts": {
+     "CL": 2.73678525455278,
+     "AL": 1.0000000000000004,
+     "NA": 0.7367852545527803
+    },
+    "G": -971858.4919315815,
+    "returned": [
+     "MSsoln",
+     "NaCl_S1(s)"
+    ]
+   },
+   {
+    "phase": "NACL_S1(S)",
+    "amounts": {
+     "CL": 0.26321474544722007,
+     "NA": 0.26321474544722007
+    },
+    "G": -127422.32676349045,
+    "returned": [
+     "NaCl_S1(s)"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "MSsoln",
+    "amounts": {
+     "Cl": 2.719806624965257,
+     "Al": 1.0000000000000078,
+     "Na": 0.7198066249652557
+    },
+    "G": -963033.3667782787,
+    "returned": [
+     "MSSOLN"
+    ]
+   },
+   {
+    "phase": "NaCl_S1(s)",
+    "amounts": {
+     "Cl": 0.2801933750347451,
+     "Na": 0.2801933750347451
+    },
+    "G": -135641.6857649097,
+    "returned": [
+     "NACL_S1(S)"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "readings differ on Thermochimica's state by +605.766 J"
+  ]
+ },
+ "TestThermo63__grid2": {
+  "T_K": 900.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -1136084.0568734065,
+  "G_thermochimica": -1136933.5132903934,
+  "A_hephaestus_state_in_thermochimica": -1136933.5132903939,
+  "B_thermochimica_state_in_hephaestus": -1136066.1312855913,
+  "A_pieces": [
+   {
+    "phase": "MSSOLN",
+    "amounts": {
+     "CL": 2.8046918094103215,
+     "AL": 1.0,
+     "NA": 0.8046918094103216
+    },
+    "G": -1039860.6212097006,
+    "returned": [
+     "MSsoln",
+     "NaCl_S1(s)"
+    ]
+   },
+   {
+    "phase": "NACL_S1(S)",
+    "amounts": {
+     "CL": 0.19530819058967847,
+     "NA": 0.19530819058967847
+    },
+    "G": -97072.89208069321,
+    "returned": [
+     "NaCl_S1(s)"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "MSsoln",
+    "amounts": {
+     "Cl": 2.7758704432904775,
+     "Al": 1.000000000000001,
+     "Na": 0.7758704432904857
+    },
+    "G": -1024668.3235189636,
+    "returned": [
+     "MSSOLN"
+    ]
+   },
+   {
+    "phase": "NaCl_S1(s)",
+    "amounts": {
+     "Cl": 0.2241295567095201,
+     "Na": 0.2241295567095201
+    },
+    "G": -111397.80776662753,
+    "returned": [
+     "NACL_S1(S)"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "readings differ on Thermochimica's state by +867.382 J"
+  ]
+ },
+ "TestThermo63__grid3": {
+  "T_K": 1000.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -1175837.1667624116,
+  "G_thermochimica": -1176851.009633097,
+  "A_hephaestus_state_in_thermochimica": -1176796.76186345,
+  "B_thermochimica_state_in_hephaestus": -1175799.1221288291,
+  "A_pieces": [
+   {
+    "phase": "MSSOLN",
+    "amounts": {
+     "CL": 2.995003953774368,
+     "AL": 0.9578997952215162,
+     "NA": 0.9999995901655552
+    },
+    "G": -1173228.5965733144,
+    "returned": [
+     "MSsoln"
+    ]
+   },
+   {
+    "phase": "MSSOLN",
+    "amounts": {
+     "CL": 0.004996046225632363,
+     "AL": 0.04210020477848368,
+     "NA": 4.098344448162186e-07
+    },
+    "G": -3568.165290135733,
+    "returned": [
+     "MSsoln"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "MSsoln",
+    "amounts": {
+     "Cl": 2.9552529053351244,
+     "Al": 1.0000000000000042,
+     "Na": 0.9552529053351255
+    },
+    "G": -1152950.2368127306,
+    "returned": [
+     "MSSOLN",
+     "MSSOLN"
+    ]
+   },
+   {
+    "phase": "NaCl_S1(s)",
+    "amounts": {
+     "Cl": 0.04474709466487509,
+     "Na": 0.04474709466487509
+    },
+    "G": -22848.885316098615,
+    "returned": [
+     "NACL_S1(S)"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by -959.595 J",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo63__grid4": {
+  "T_K": 1100.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -1217664.902000723,
+  "G_thermochimica": -1219036.138137674,
+  "A_hephaestus_state_in_thermochimica": -1219027.0921311807,
+  "B_thermochimica_state_in_hephaestus": -1217664.9020007227,
+  "A_pieces": [
+   {
+    "phase": "MSSOLN",
+    "amounts": {
+     "CL": 2.9990452538565733,
+     "AL": 0.9942469534793769,
+     "NA": 0.9999998354962673
+    },
+    "G": -1218398.2158258874,
+    "returned": [
+     "MSsoln"
+    ]
+   },
+   {
+    "phase": "MSSOLN",
+    "amounts": {
+     "CL": 0.000954746143426952,
+     "AL": 0.005753046520623124,
+     "NA": 1.6450373293889752e-07
+    },
+    "G": -628.8763052934022,
+    "returned": [
+     "MSsoln"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "MSsoln",
+    "amounts": {
+     "Cl": 2.9999999999999982,
+     "Al": 0.999999999999999,
+     "Na": 1.0000000000000009
+    },
+    "G": -1217664.9020007227,
+    "returned": [
+     "MSSOLN",
+     "MSSOLN"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by -1362.190 J",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo63__grid5": {
+  "T_K": 1200.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -1261095.9423991847,
+  "G_thermochimica": -1262822.9723435089,
+  "A_hephaestus_state_in_thermochimica": -1262822.9723435089,
+  "B_thermochimica_state_in_hephaestus": -1261095.9423991935,
+  "A_pieces": [
+   {
+    "phase": "MSSOLN",
+    "amounts": {
+     "CL": 2.9999999999999996,
+     "AL": 1.0000000000000002,
+     "NA": 1.0
+    },
+    "G": -1262822.9723435089,
+    "returned": [
+     "MSsoln"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "MSsoln",
+    "amounts": {
+     "Cl": 3.000000000000026,
+     "Al": 1.0,
+     "Na": 1.0000000000000027
+    },
+    "G": -1261095.9423991935,
+    "returned": [
+     "MSSOLN"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by -1727.030 J",
+   "readings differ on Thermochimica's state by +1727.030 J"
+  ]
+ },
+ "TestThermo64__grid1": {
+  "T_K": 400.0,
+  "P_atm": 100.0,
+  "G_hephaestus": -497975.32471027266,
+  "G_thermochimica": -491242.22214196244,
+  "A_hephaestus_state_in_thermochimica": -497975.2924133206,
+  "B_thermochimica_state_in_hephaestus": -497975.32471027155,
+  "A_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 0.09951013755876828,
+     "NB": 0.006826590070086655,
+     "O": 0.562180613508111,
+     "ZR": 0.9996035285923772
+    },
+    "G": -301645.8076999483,
+    "returned": [
+     "BCC_A2"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 0.0004898624398186696,
+     "NB": 0.44869602060998603,
+     "O": 0.0002934826316967293,
+     "ZR": 2.3042437836674642e-10
+    },
+    "G": -6838.744198328787,
+    "returned": [
+     "BCC_A2"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 1.4129926132448492e-12,
+     "NB": 0.5444773893199274,
+     "O": 0.4375259038601919,
+     "ZR": 0.00039647117719822004
+    },
+    "G": -189490.7405150435,
+    "returned": [
+     "BCC_A2"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 0.0999999999999999,
+     "Nb": 1.0000000000000009,
+     "O": 0.999999999999998,
+     "Zr": 0.9999999999999933
+    },
+    "G": -497975.32471027155,
+    "returned": [
+     "BCC_A2",
+     "BCC_A2",
+     "BCC_A2"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "same reading on Hephaestus's state",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo64__grid2": {
+  "T_K": 500.0,
+  "P_atm": 100.0,
+  "G_hephaestus": -513167.1343615299,
+  "G_thermochimica": -507324.7226904075,
+  "A_hephaestus_state_in_thermochimica": -513167.0938631817,
+  "B_thermochimica_state_in_hephaestus": -513167.1361774913,
+  "A_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 0.0992011702254078,
+     "NB": 0.020580044800418414,
+     "O": 0.5816068579239588,
+     "ZR": 0.997578599935821
+    },
+    "G": -319417.96085359034,
+    "returned": [
+     "BCC_A2"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 0.0007988286980271442,
+     "NB": 0.45257644787885404,
+     "O": 0.0009016138201309578,
+     "ZR": 1.0187624162336125e-08
+    },
+    "G": -9285.646350055953,
+    "returned": [
+     "BCC_A2"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 1.0765650335778352e-09,
+     "NB": 0.5268435073207276,
+     "O": 0.41749152825591024,
+     "ZR": 0.002421389876554859
+    },
+    "G": -184463.4866595354,
+    "returned": [
+     "BCC_A2"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 0.10000000019098748,
+     "Nb": 1.000000001481542,
+     "O": 1.0000000045082436,
+     "Zr": 0.9999999985184741
+    },
+    "G": -513167.1361774913,
+    "returned": [
+     "BCC_A2",
+     "BCC_A2",
+     "BCC_A2"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "same reading on Hephaestus's state",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo64__grid3": {
+  "T_K": 600.0,
+  "P_atm": 100.0,
+  "G_hephaestus": -529924.1599778824,
+  "G_thermochimica": -524838.4986848929,
+  "A_hephaestus_state_in_thermochimica": -529924.1093192388,
+  "B_thermochimica_state_in_hephaestus": -529924.1620207696,
+  "A_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 0.09884855180318289,
+     "NB": 0.044984160295488816,
+     "O": 0.6049861408191868,
+     "ZR": 0.9910201014787878
+    },
+    "G": -339804.63830444653,
+    "returned": [
+     "BCC_A2"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 0.0011513213554117175,
+     "NB": 0.448513142881178,
+     "O": 0.0018990747747476414,
+     "ZR": 1.285374924963496e-07
+    },
+    "G": -11987.098849520544,
+    "returned": [
+     "BCC_A2"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 1.2684140537453097e-07,
+     "NB": 0.5065026968233334,
+     "O": 0.3931147844060657,
+     "ZR": 0.008979769983719696
+    },
+    "G": -178132.37216527175,
+    "returned": [
+     "BCC_A2"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 0.10000000128594934,
+     "Nb": 1.000000001473073,
+     "O": 1.0000000048478266,
+     "Zr": 0.9999999985269252
+    },
+    "G": -529924.1620207696,
+    "returned": [
+     "BCC_A2",
+     "BCC_A2",
+     "BCC_A2"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "same reading on Hephaestus's state",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo64__grid4": {
+  "T_K": 700.0,
+  "P_atm": 100.0,
+  "G_hephaestus": -548065.8084213613,
+  "G_thermochimica": -543564.9409048904,
+  "A_hephaestus_state_in_thermochimica": -548065.7466306885,
+  "B_thermochimica_state_in_hephaestus": -548065.8103221715,
+  "A_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 0.09845357732698454,
+     "NB": 0.08165010389520536,
+     "O": 0.6309036637070016,
+     "ZR": 0.9758628531076494
+    },
+    "G": -361936.96220732084,
+    "returned": [
+     "BCC_A2"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 0.001541331911252003,
+     "NB": 0.4383688283315966,
+     "O": 0.0031810576824448608,
+     "ZR": 7.88541289701115e-07
+    },
+    "G": -14794.9170263716,
+    "returned": [
+     "BCC_A2"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 5.090761763456502e-06,
+     "NB": 0.479981067773198,
+     "O": 0.36591527861055345,
+     "ZR": 0.024136358351060858
+    },
+    "G": -171333.86739699607,
+    "returned": [
+     "BCC_A2"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 0.10000000420222775,
+     "Nb": 1.0000000008259844,
+     "O": 1.000000003878724,
+     "Zr": 0.9999999991740162
+    },
+    "G": -548065.8103221715,
+    "returned": [
+     "BCC_A2",
+     "BCC_A2",
+     "BCC_A2"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "same reading on Hephaestus's state",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo64__grid5": {
+  "T_K": 800.0,
+  "P_atm": 100.0,
+  "G_hephaestus": -567454.2366129316,
+  "G_thermochimica": -563344.0882118803,
+  "A_hephaestus_state_in_thermochimica": -567454.161851594,
+  "B_thermochimica_state_in_hephaestus": -567454.239012925,
+  "A_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 0.09793850831494719,
+     "NB": 0.1331025668243252,
+     "O": 0.6627353317139887,
+     "ZR": 0.9547598330163151
+    },
+    "G": -387580.03072261653,
+    "returned": [
+     "BCC_A2"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 0.0019881303184997663,
+     "NB": 0.43511604996520536,
+     "O": 0.004693150607247359,
+     "ZR": 3.1420414605827568e-06
+    },
+    "G": -18023.94261629593,
+    "returned": [
+     "BCC_A2"
+    ]
+   },
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 7.336136655305033e-05,
+     "NB": 0.43178138321046927,
+     "O": 0.33257151767876375,
+     "ZR": 0.04523702494222411
+    },
+    "G": -161850.1885126815,
+    "returned": [
+     "BCC_A2"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "H": 0.10000001043081283,
+     "Nb": 1.0000000000000013,
+     "O": 1.000000003725326,
+     "Zr": 1.000000000000005
+    },
+    "G": -567454.239012925,
+    "returned": [
+     "BCC_A2",
+     "BCC_A2",
+     "BCC_A2"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "same reading on Hephaestus's state",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo65__grid5": {
+  "T_K": 600.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -84097.98822527243,
+  "G_thermochimica": -84093.20659799196,
+  "A_hephaestus_state_in_thermochimica": -84097.93977301584,
+  "B_thermochimica_state_in_hephaestus": -84093.25575469299,
+  "A_pieces": [
+   {
+    "phase": "BCCN",
+    "amounts": {
+     "PD": 0.9773243108076715,
+     "RU": 0.04010959271665412,
+     "TC": 0.1630231288136981
+    },
+    "G": -25042.310656661168,
+    "returned": [
+     "BCCN"
+    ]
+   },
+   {
+    "phase": "BCCN",
+    "amounts": {
+     "PD": 0.016640627285339393,
+     "RU": 0.09341835056092324,
+     "TC": 0.6144092741231411,
+     "MO": 0.9674545044417229
+    },
+    "G": -39672.2735269488,
+    "returned": [
+     "BCCN"
+    ]
+   },
+   {
+    "phase": "BCCN",
+    "amounts": {
+     "PD": 0.006035061906989187,
+     "RU": 0.8664720567224227,
+     "TC": 0.2225675970631609,
+     "MO": 0.03254549555827705
+    },
+    "G": -19383.355589405877,
+    "returned": [
+     "BCCN"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "BCCN",
+    "amounts": {
+     "Pd": 0.04485681430992121,
+     "Ru": 0.8639946145832456,
+     "Tc": 0.2050345224801156,
+     "Mo": 3.378262041801491e-06
+    },
+    "G": -18944.544312209564,
+    "returned": [
+     "BCCN",
+     "BCCN"
+    ]
+   },
+   {
+    "phase": "BCCN#2",
+    "amounts": {
+     "Pd": 0.017224639680798282,
+     "Ru": 0.0973891770326659,
+     "Tc": 0.6380530375746185,
+     "Mo": 0.9999966217379581
+    },
+    "G": -41101.52285696698,
+    "returned": [
+     "BCCN",
+     "BCCN"
+    ]
+   },
+   {
+    "phase": "BCCN#3",
+    "amounts": {
+     "Pd": 0.9379185460092805,
+     "Ru": 0.03861620838408869,
+     "Tc": 0.15691243994526527
+    },
+    "G": -24047.18858551645,
+    "returned": [
+     "BCCN"
+    ]
+   }
+  ],
+  "verdict": [
+   "Thermochimica missed a lower state of its own model",
+   "same reading on Hephaestus's state",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo71__grid1": {
+  "T_K": 1800.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -174246.6485984797,
+  "G_thermochimica": -174246.61934409125,
+  "A_hephaestus_state_in_thermochimica": -174246.6193408714,
+  "B_thermochimica_state_in_hephaestus": -174246.64826518373,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "CR": 0.1999999650425809,
+     "O": 1.2915944000792678e-07,
+     "ZR": 0.37699456761813477
+    },
+    "G": -69977.44300903597,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "HCP_A3",
+    "amounts": {
+     "CR": 3.4957419100409024e-08,
+     "O": 0.09999987084056002,
+     "ZR": 0.32300543238186524
+    },
+    "G": -104269.17633183542,
+    "returned": [
+     "IONIC_LIQ",
+     "HCP_ORD"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Cr": 0.1999999999999993,
+     "O": 1.3642206419694926e-07,
+     "Zr": 0.37699488472709786
+    },
+    "G": -69977.51105125732,
+    "returned": [
+     "IONIC_LIQ",
+     "HCP_A3"
+    ]
+   },
+   {
+    "phase": "HCP_ORD",
+    "amounts": {
+     "O": 0.09999986357793611,
+     "Zr": 0.3230051152729054
+    },
+    "G": -104269.13721392643,
+    "returned": [
+     "HCP_ORD",
+     "HCP_A3"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo71__grid2": {
+  "T_K": 1900.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -184024.17923168436,
+  "G_thermochimica": -184024.14875476487,
+  "A_hephaestus_state_in_thermochimica": -184024.14874286295,
+  "B_thermochimica_state_in_hephaestus": -184024.17879028805,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "CR": 0.19999997205914796,
+     "O": 4.897044945077909e-07,
+     "ZR": 0.3924394944541705
+    },
+    "G": -78232.89806390864,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "HCP_A3",
+    "amounts": {
+     "CR": 2.7940851997143674e-08,
+     "O": 0.09999951029550545,
+     "ZR": 0.30756050554582937
+    },
+    "G": -105791.25067895431,
+    "returned": [
+     "IONIC_LIQ",
+     "HCP_ORD"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Cr": 0.19999999999999762,
+     "O": 5.173726940012805e-07,
+     "Zr": 0.39243990429167036
+    },
+    "G": -78232.99589614483,
+    "returned": [
+     "IONIC_LIQ",
+     "HCP_A3"
+    ]
+   },
+   {
+    "phase": "HCP_ORD",
+    "amounts": {
+     "O": 0.09999948262730499,
+     "Zr": 0.30756009570832193
+    },
+    "G": -105791.1828941432,
+    "returned": [
+     "HCP_A3"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo71__grid3": {
+  "T_K": 2000.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -194029.80315794505,
+  "G_thermochimica": -194029.77213896482,
+  "A_hephaestus_state_in_thermochimica": -194029.7721000537,
+  "B_thermochimica_state_in_hephaestus": -194029.80277668967,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "CR": 0.19999997707277753,
+     "O": 1.5461200834845168e-06,
+     "ZR": 0.4058821517547359
+    },
+    "G": -86653.11317807186,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "HCP_A3",
+    "amounts": {
+     "CR": 2.292722242603582e-08,
+     "O": 0.09999845387991652,
+     "ZR": 0.2941178482452638
+    },
+    "G": -107376.65892198184,
+    "returned": [
+     "IONIC_LIQ",
+     "HCP_ORD"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Cr": 0.2000000000000072,
+     "O": 1.6327624521946459e-06,
+     "Zr": 0.4058828853942917
+    },
+    "G": -86653.30164295522,
+    "returned": [
+     "IONIC_LIQ",
+     "HCP_A3"
+    ]
+   },
+   {
+    "phase": "HCP_ORD",
+    "amounts": {
+     "O": 0.09999836723754861,
+     "Zr": 0.29411711460572404
+    },
+    "G": -107376.50113373445,
+    "returned": [
+     "HCP_A3"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo71__grid4": {
+  "T_K": 2100.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -204254.90559979435,
+  "G_thermochimica": -204254.87564748598,
+  "A_hephaestus_state_in_thermochimica": -204254.87553999264,
+  "B_thermochimica_state_in_hephaestus": -204254.9052633866,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "CR": 0.1999999807353172,
+     "O": 4.208322864892396e-06,
+     "ZR": 0.4176397501551649
+    },
+    "G": -95229.68187299532,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "HCP_A3",
+    "amounts": {
+     "CR": 1.926468283726125e-08,
+     "O": 0.09999579167713513,
+     "ZR": 0.2823602498448351
+    },
+    "G": -109025.19366699734,
+    "returned": [
+     "IONIC_LIQ",
+     "HCP_ORD"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Cr": 0.19999999999998147,
+     "O": 4.440155867976242e-06,
+     "Zr": 0.4176412491787975
+    },
+    "G": -95230.09324822962,
+    "returned": [
+     "IONIC_LIQ",
+     "HCP_A3"
+    ]
+   },
+   {
+    "phase": "HCP_ORD",
+    "amounts": {
+     "O": 0.0999955598441306,
+     "Zr": 0.2823587508211613
+    },
+    "G": -109024.81201515697,
+    "returned": [
+     "HCP_A3"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo71__grid5": {
+  "T_K": 2200.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -214691.28932053328,
+  "G_thermochimica": -214691.2637675792,
+  "A_hephaestus_state_in_thermochimica": -214691.2635082084,
+  "B_thermochimica_state_in_hephaestus": -214691.28901814195,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "CR": 0.1999999834748103,
+     "O": 1.0141669587055158e-05,
+     "ZR": 0.42798723171621084
+    },
+    "G": -103958.64490082685,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "HCP_A3",
+    "amounts": {
+     "CR": 1.652518981867953e-08,
+     "O": 0.09998985833041296,
+     "ZR": 0.27201276828378956
+    },
+    "G": -110732.61860738153,
+    "returned": [
+     "IONIC_LIQ",
+     "HCP_ORD"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Cr": 0.2000000000000472,
+     "O": 1.068783802439594e-05,
+     "Zr": 0.4279902678099686
+    },
+    "G": -103959.53574530952,
+    "returned": [
+     "IONIC_LIQ",
+     "HCP_A3"
+    ]
+   },
+   {
+    "phase": "HCP_ORD",
+    "amounts": {
+     "O": 0.09998931216197535,
+     "Zr": 0.27200973219013247
+    },
+    "G": -110731.75327283243,
+    "returned": [
+     "HCP_ORD"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo73__grid1": {
+  "T_K": 2300.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -841377.789785767,
+  "G_thermochimica": -848117.6490444477,
+  "A_hephaestus_state_in_thermochimica": -841585.2269302295,
+  "B_thermochimica_state_in_hephaestus": -841377.7897857619,
+  "A_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "CA": 0.047428678147653926,
+     "MN": 1.9892362307978529e-07
+    },
+    "G": -9071.149695604912,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "CA": 4.592029811070912e-06,
+     "MN": 0.952598925708926,
+     "S": 9.246898664952796e-05
+    },
+    "G": -168448.60885462526,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "CA": 0.9525667298225353,
+     "MN": 0.0474008753674508,
+     "S": 0.9999075310126687
+    },
+    "G": -664065.4683799993,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Ca": 0.9883451987828618,
+     "Mn": 0.18280462092106706,
+     "S": 0.9994266684857807
+    },
+    "G": -694456.9108474924,
+    "returned": [
+     "BCC_A2",
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ#3",
+    "amounts": {
+     "Ca": 0.01165480121713413,
+     "Mn": 0.8171953790789346,
+     "S": 0.0005733315142092951
+    },
+    "G": -146920.87893826942,
+    "returned": [
+     "BCC_A2",
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo73__grid2": {
+  "T_K": 2400.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -871186.5545170165,
+  "G_thermochimica": -879059.5395311955,
+  "A_hephaestus_state_in_thermochimica": -871441.5803478069,
+  "B_thermochimica_state_in_hephaestus": -871186.5545170197,
+  "A_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "CA": 0.05744402822095478,
+     "MN": 2.1947543980814162e-07,
+     "S": 1.733358814772533e-12
+    },
+    "G": -11663.079624713962,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "CA": 4.218776166158641e-06,
+     "MN": 0.9426496264799002,
+     "S": 0.00015555722644415316
+    },
+    "G": -178179.49965561443,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "CA": 0.942551753002879,
+     "MN": 0.05735015404465978,
+     "S": 0.9998444427718225
+    },
+    "G": -681599.0010674786,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Ca": 0.9865156227191995,
+     "Mn": 0.20863982538064235,
+     "S": 0.9991217054584476
+    },
+    "G": -718562.226140138,
+    "returned": [
+     "BCC_A2",
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ#3",
+    "amounts": {
+     "Ca": 0.013484377280798612,
+     "Mn": 0.7913601746193577,
+     "S": 0.0008782945415589837
+    },
+    "G": -152624.32837688163,
+    "returned": [
+     "BCC_A2",
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo73__grid3": {
+  "T_K": 2500.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -901530.1668842675,
+  "G_thermochimica": -910618.8065723673,
+  "A_hephaestus_state_in_thermochimica": -901837.7564316663,
+  "B_thermochimica_state_in_hephaestus": -901530.1668842589,
+  "A_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "CA": 0.0680594772492605,
+     "MN": 2.363569884376203e-07,
+     "S": 4.028898983071883e-12
+    },
+    "G": -14629.706513270045,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "CA": 3.870220060404229e-06,
+     "MN": 0.932130277185331,
+     "S": 0.00024960050029904817
+    },
+    "G": -187757.07036712216,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "CA": 0.9319366525306794,
+     "MN": 0.06786948645768086,
+     "S": 0.9997503994956725
+    },
+    "G": -699450.9795512741,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Ca": 0.9846540554212612,
+     "Mn": 0.23613336867421666,
+     "S": 0.9987095552229223
+    },
+    "G": -743902.2564207407,
+    "returned": [
+     "BCC_A2",
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ#3",
+    "amounts": {
+     "Ca": 0.015345944578732588,
+     "Mn": 0.763866631325784,
+     "S": 0.00129044477706273
+    },
+    "G": -157627.91046351814,
+    "returned": [
+     "BCC_A2",
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo73__grid4": {
+  "T_K": 2600.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -932390.3642933872,
+  "G_thermochimica": -942777.5848368367,
+  "A_hephaestus_state_in_thermochimica": -932755.7410514117,
+  "B_thermochimica_state_in_hephaestus": -932390.3642933883,
+  "A_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "CA": 0.07917414548214688,
+     "MN": 2.495224381098431e-07,
+     "S": 8.659609179846502e-12
+    },
+    "G": -17973.77301679476,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "CA": 3.548647384292453e-06,
+     "MN": 0.9211514415856284,
+     "S": 0.00038414450406244
+    },
+    "G": -197175.78711013292,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "CA": 0.9208223058704686,
+     "MN": 0.07884830889193327,
+     "S": 0.9996158554872777
+    },
+    "G": -717606.180924484,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Ca": 0.9827893183452224,
+     "Mn": 0.2654045423880194,
+     "S": 0.9981737689134866
+    },
+    "G": -770562.1506024487,
+    "returned": [
+     "BCC_A2",
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ#3",
+    "amounts": {
+     "Ca": 0.017210681654775288,
+     "Mn": 0.7345954576119814,
+     "S": 0.001826231086516207
+    },
+    "G": -161828.2136909396,
+    "returned": [
+     "BCC_A2",
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo73__grid5": {
+  "T_K": 2700.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -963749.9461805342,
+  "G_thermochimica": -975519.694947397,
+  "A_hephaestus_state_in_thermochimica": -964178.8685784952,
+  "B_thermochimica_state_in_hephaestus": -963749.9461805323,
+  "A_pieces": [
+   {
+    "phase": "BCC_A2",
+    "amounts": {
+     "CA": 0.09070465044738446,
+     "MN": 2.591323374989763e-07,
+     "S": 1.7380189985551444e-11
+    },
+    "G": -21697.57646730899,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "CA": 3.254782653967368e-06,
+     "MN": 0.9098072226279462,
+     "S": 0.000569811010798824
+    },
+    "G": -206433.14259576856,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "CA": 0.9092920947699624,
+     "MN": 0.09019251823971727,
+     "S": 0.9994301889718217
+    },
+    "G": -736048.1495154176,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Ca": 0.9809460704622387,
+     "Mn": 0.29667816105675976,
+     "S": 0.9975264699862799
+    },
+    "G": -798672.9302695466,
+    "returned": [
+     "BCC_A2",
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ#3",
+    "amounts": {
+     "Ca": 0.01905392953775889,
+     "Mn": 0.7033218389432391,
+     "S": 0.0024735300137173353
+    },
+    "G": -165077.01591098573,
+    "returned": [
+     "BCC_A2",
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo74__grid1": {
+  "T_K": 1700.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -1751047.7600441447,
+  "G_thermochimica": -1751110.4439599307,
+  "A_hephaestus_state_in_thermochimica": -1632005.8021822057,
+  "B_thermochimica_state_in_hephaestus": -1751047.7572886536,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "FE": 0.19049269962508847,
+     "MN": 0.0523725442060602,
+     "S": 9.770718793080947e-06
+    },
+    "G": -26258.97411513773,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ#3"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "FE": 1.8095073003749107,
+     "MN": 3.947627455793939,
+     "S": 2.999990229281206
+    },
+    "G": -1605746.828067068,
+    "returned": [
+     "ALABANDITE",
+     "HCP_A3"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Fe": 0.19037114811212622,
+     "Mn": 0.052187197882194974,
+     "S": 9.67744900004782e-06
+    },
+    "G": -26222.121896855177,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ#3",
+    "amounts": {
+     "Fe": 1.8096288518878703,
+     "Mn": 3.947812802117801,
+     "S": 2.999990322550993
+    },
+    "G": -1724825.6353917986,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo74__grid2": {
+  "T_K": 1800.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -1846579.758002369,
+  "G_thermochimica": -1846642.6155828438,
+  "A_hephaestus_state_in_thermochimica": -1714191.2751164483,
+  "B_thermochimica_state_in_hephaestus": -1846579.75580768,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "FE": 0.1456082033309194,
+     "MN": 0.041604724842022954,
+     "S": 1.4962526461347132e-05
+    },
+    "G": -22133.565127152306,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ#3"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "FE": 1.8543917966690888,
+     "MN": 3.95839527515798,
+     "S": 2.99998503747354
+    },
+    "G": -1692057.709989296,
+    "returned": [
+     "ALABANDITE",
+     "HCP_A3"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Fe": 0.14550761013305166,
+     "Mn": 0.041457384784032054,
+     "S": 1.4827927597716639e-05
+    },
+    "G": -22101.200244536947,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ#3",
+    "amounts": {
+     "Fe": 1.8544923898669445,
+     "Mn": 3.9585426152159533,
+     "S": 2.99998517207238
+    },
+    "G": -1824478.5555631432,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo74__grid3": {
+  "T_K": 1900.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -1944884.7883563996,
+  "G_thermochimica": -1944947.767775167,
+  "A_hephaestus_state_in_thermochimica": -1797383.940357424,
+  "B_thermochimica_state_in_hephaestus": -1944884.786775872,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "FE": 0.10342996268924022,
+     "MN": 0.03044056020229166,
+     "S": 1.9351690897016838e-05
+    },
+    "G": -17287.398296126856,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ#3"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "FE": 1.89657003731076,
+     "MN": 3.9695594397977083,
+     "S": 2.9999806483091027
+    },
+    "G": -1780096.5420612972,
+    "returned": [
+     "IONIC_LIQ",
+     "CBCC_A12"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Fe": 0.10335245318677226,
+     "Mn": 0.030332653763973143,
+     "S": 1.9187194115583655e-05
+    },
+    "G": -17261.16182416047,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ#3",
+    "amounts": {
+     "Fe": 1.8966475468132282,
+     "Mn": 3.96966734623603,
+     "S": 2.999980812805873
+    },
+    "G": -1927623.6249517116,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo74__grid4": {
+  "T_K": 2000.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -1901893.4493919862,
+  "G_thermochimica": -2045190.7502058635,
+  "A_hephaestus_state_in_thermochimica": -1901895.2294807013,
+  "B_thermochimica_state_in_hephaestus": -1901862.3248849823,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "FE": 1.9999999999981932,
+     "MN": 0.9782902213409924,
+     "S": 1.0434678167964003e-08
+    },
+    "G": -426618.79366239114,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "FE": 1.8061535528283803e-12,
+     "MN": 3.021709778659006,
+     "S": 2.9999999895653215
+    },
+    "G": -1475276.4358183101,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Fe": 0.05996162945569829,
+     "Mn": 0.018114431043629697,
+     "S": 1.9051787497087327e-05
+    },
+    "G": -10953.59256140569,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ#3",
+    "amounts": {
+     "Fe": 1.9400383705442987,
+     "Mn": 3.981885568956349,
+     "S": 2.999980948212498
+    },
+    "G": -1890908.7323235767,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "verdict": [
+   "same reading on Hephaestus's state",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo74__grid5": {
+  "T_K": 2100.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -1996423.3502659965,
+  "G_thermochimica": -2147281.505917172,
+  "A_hephaestus_state_in_thermochimica": -1996426.8621035647,
+  "B_thermochimica_state_in_hephaestus": -1996416.1620495114,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "FE": 1.9999999999950149,
+     "MN": 0.9737399442098281,
+     "S": 1.661959616204029e-08
+    },
+    "G": -459705.7037312988,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "FE": 4.985051491099396e-12,
+     "MN": 3.0262600557901704,
+     "S": 2.9999999833804027
+    },
+    "G": -1536721.158372266,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Fe": 0.015251917608741486,
+     "Mn": 0.00474001185574032,
+     "S": 7.862384435019273e-06
+    },
+    "G": -3033.6673672881643,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ#3",
+    "amounts": {
+     "Fe": 1.984748082391257,
+     "Mn": 3.995259988144259,
+     "S": 2.9999921376155747
+    },
+    "G": -1993382.4946822233,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by -3.512 J",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo76__grid1": {
+  "T_K": 2300.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -520067.60253343923,
+  "G_thermochimica": -526502.4412376317,
+  "A_hephaestus_state_in_thermochimica": -526502.4412376317,
+  "B_thermochimica_state_in_hephaestus": -520067.602533439,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQUID",
+    "amounts": {
+     "CS": 1.0,
+     "TE": 0.5
+    },
+    "G": -526502.4412376317,
+    "returned": [
+     "IONIC_LIQUID"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQUID",
+    "amounts": {
+     "Cs": 0.9999999999999997,
+     "Te": 0.5
+    },
+    "G": -520067.602533439,
+    "returned": [
+     "IONIC_LIQUID"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by -6434.839 J",
+   "readings differ on Thermochimica's state by +6434.839 J"
+  ]
+ },
+ "TestThermo76__grid2": {
+  "T_K": 2400.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -539478.8474799767,
+  "G_thermochimica": -547537.5790438694,
+  "A_hephaestus_state_in_thermochimica": -547537.5790438694,
+  "B_thermochimica_state_in_hephaestus": -539478.8474799783,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQUID",
+    "amounts": {
+     "CS": 1.0,
+     "TE": 0.5
+    },
+    "G": -547537.5790438694,
+    "returned": [
+     "IONIC_LIQUID"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQUID",
+    "amounts": {
+     "Cs": 1.0000000000000029,
+     "Te": 0.5000000000000011
+    },
+    "G": -539478.8474799783,
+    "returned": [
+     "IONIC_LIQUID"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by -8058.732 J",
+   "readings differ on Thermochimica's state by +8058.732 J"
+  ]
+ },
+ "TestThermo76__grid3": {
+  "T_K": 2500.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -559081.2997733537,
+  "G_thermochimica": -568904.724467058,
+  "A_hephaestus_state_in_thermochimica": -568904.7244670579,
+  "B_thermochimica_state_in_hephaestus": -559081.2997733542,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQUID",
+    "amounts": {
+     "CS": 0.9999999999999997,
+     "TE": 0.4999999999999999
+    },
+    "G": -568904.7244670579,
+    "returned": [
+     "IONIC_LIQUID"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQUID",
+    "amounts": {
+     "Cs": 1.0000000000000002,
+     "Te": 0.5000000000000014
+    },
+    "G": -559081.2997733542,
+    "returned": [
+     "IONIC_LIQUID"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by -9823.425 J",
+   "readings differ on Thermochimica's state by +9823.425 J"
+  ]
+ },
+ "TestThermo76__grid4": {
+  "T_K": 2600.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -578866.8012452576,
+  "G_thermochimica": -590609.1898783998,
+  "A_hephaestus_state_in_thermochimica": -590609.1898783998,
+  "B_thermochimica_state_in_hephaestus": -578866.8012452585,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQUID",
+    "amounts": {
+     "CS": 1.0,
+     "TE": 0.5
+    },
+    "G": -590609.1898783998,
+    "returned": [
+     "IONIC_LIQUID"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQUID",
+    "amounts": {
+     "Cs": 1.0000000000000024,
+     "Te": 0.4999999999999995
+    },
+    "G": -578866.8012452585,
+    "returned": [
+     "IONIC_LIQUID"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by -11742.389 J",
+   "readings differ on Thermochimica's state by +11742.389 J"
+  ]
+ },
+ "TestThermo76__grid5": {
+  "T_K": 2700.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -598827.6935462381,
+  "G_thermochimica": -612658.9854733534,
+  "A_hephaestus_state_in_thermochimica": -612658.9854733538,
+  "B_thermochimica_state_in_hephaestus": -598827.6935462343,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQUID",
+    "amounts": {
+     "CS": 1.0000000000000004,
+     "TE": 0.5000000000000002
+    },
+    "G": -612658.9854733538,
+    "returned": [
+     "IONIC_LIQUID"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQUID",
+    "amounts": {
+     "Cs": 0.9999999999999938,
+     "Te": 0.4999999999999975
+    },
+    "G": -598827.6935462343,
+    "returned": [
+     "IONIC_LIQUID"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by -13831.292 J",
+   "readings differ on Thermochimica's state by +13831.292 J"
+  ]
+ },
+ "TestThermo77__grid1": {
+  "T_K": 2300.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -489556.62158743106,
+  "G_thermochimica": -489558.560546013,
+  "A_hephaestus_state_in_thermochimica": -489558.4752165184,
+  "B_thermochimica_state_in_hephaestus": -489556.62101006566,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "NB": 0.5017577828917849,
+     "O": 0.0001695564633579251,
+     "SN": 0.6986562574772227
+    },
+    "G": -236837.23209341706,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ#3"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "NB": 0.4982422171082153,
+     "O": 0.2998304435366421,
+     "SN": 0.0013437425227772657
+    },
+    "G": -252721.2431231013,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Nb": 0.49830307347973496,
+     "O": 0.29983391531594805,
+     "Sn": 0.0014552792841807814
+    },
+    "G": -252755.97202313086,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ#3",
+    "amounts": {
+     "Nb": 0.5016969265202657,
+     "O": 0.0001660846840525407,
+     "Sn": 0.698544720715819
+    },
+    "G": -236800.64898693477,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo77__grid2": {
+  "T_K": 2400.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -512625.535163793,
+  "G_thermochimica": -512627.8059858802,
+  "A_hephaestus_state_in_thermochimica": -512627.71397890005,
+  "B_thermochimica_state_in_hephaestus": -512625.53438419907,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "NB": 0.4975876602932192,
+     "O": 0.29976554632652525,
+     "SN": 0.0015808163840636438
+    },
+    "G": -261042.01525864776,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "NB": 0.5024123397067809,
+     "O": 0.00023445367347472269,
+     "SN": 0.6984191836159366
+    },
+    "G": -251585.6987202523,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ#3"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Nb": 0.49765804583210105,
+     "O": 0.29977012637090217,
+     "Sn": 0.0017052897627839632
+    },
+    "G": -261083.89074565243,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ#3",
+    "amounts": {
+     "Nb": 0.5023419541678986,
+     "O": 0.0002298736290991655,
+     "Sn": 0.6982947102372163
+    },
+    "G": -251541.6436385466,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo77__grid3": {
+  "T_K": 2500.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -535982.4171791424,
+  "G_thermochimica": -535985.0070724898,
+  "A_hephaestus_state_in_thermochimica": -535984.9092299055,
+  "B_thermochimica_state_in_hephaestus": -535982.4162166301,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "NB": 0.49697615996995764,
+     "O": 0.2996804459102795,
+     "SN": 0.0018390032570612697
+    },
+    "G": -269479.45875638525,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "NB": 0.5030238400300426,
+     "O": 0.0003195540897205649,
+     "SN": 0.6981609967429391
+    },
+    "G": -266505.4504735202,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ#3"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Nb": 0.4970569615522134,
+     "O": 0.2996864139309335,
+     "Sn": 0.001976647639502871
+    },
+    "G": -269529.4627676867,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ#3",
+    "amounts": {
+     "Nb": 0.5029430384794037,
+     "O": 0.00031358606908319097,
+     "Sn": 0.6980233526218418
+    },
+    "G": -266452.95344894344,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo77__grid4": {
+  "T_K": 2600.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -559619.2909675941,
+  "G_thermochimica": -559622.226570916,
+  "A_hephaestus_state_in_thermochimica": -559622.1253890205,
+  "B_thermochimica_state_in_hephaestus": -559619.2896843682,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "NB": 0.5036068761851515,
+     "O": 0.0004289068551960696,
+     "SN": 0.6978816847377265
+    },
+    "G": -281596.08497528615,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ#3"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "NB": 0.4963931238148483,
+     "O": 0.2995710931448039,
+     "SN": 0.0021183152622734113
+    },
+    "G": -278026.0404137344,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Nb": 0.49648524083513595,
+     "O": 0.2995787664449589,
+     "Sn": 0.0022693140740583802
+    },
+    "G": -278085.2061749887,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ#3",
+    "amounts": {
+     "Nb": 0.503514759194559,
+     "O": 0.000421233555056543,
+     "Sn": 0.697730686138475
+    },
+    "G": -281534.0835093795,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo77__grid5": {
+  "T_K": 2700.0,
+  "P_atm": 1.0,
+  "G_hephaestus": -583528.9712580875,
+  "G_thermochimica": -583532.256951541,
+  "A_hephaestus_state_in_thermochimica": -583532.1514256952,
+  "B_thermochimica_state_in_hephaestus": -583528.9695395979,
+  "A_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "NB": 0.49582432727549924,
+     "O": 0.29943322557219715,
+     "SN": 0.002418755540903069
+    },
+    "G": -286673.67999098275,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "NB": 0.5041756727245007,
+     "O": 0.0005667744278028771,
+     "SN": 0.6975812444590966
+    },
+    "G": -296858.4714347124,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ#3"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "IONIC_LIQ",
+    "amounts": {
+     "Nb": 0.4959286890119915,
+     "O": 0.29944295679630034,
+     "Sn": 0.0025832515719832806
+    },
+    "G": -286743.1138905287,
+    "returned": [
+     "IONIC_LIQ",
+     "IONIC_LIQ"
+    ]
+   },
+   {
+    "phase": "IONIC_LIQ#3",
+    "amounts": {
+     "Nb": 0.5040713109880085,
+     "O": 0.000557043203699631,
+     "Sn": 0.6974167484280154
+    },
+    "G": -296785.8556490692,
+    "returned": [
+     "IONIC_LIQ"
+    ]
+   }
+  ],
+  "verdict": [
+   "Hephaestus's state priced only as a bound (a piece came back as other phases)",
+   "Thermochimica's state priced only as a bound (a piece came back as other phases)"
+  ]
+ },
+ "TestThermo90__grid5": {
+  "T_K": 873.15,
+  "P_atm": 1e-05,
+  "G_hephaestus": -490029.426479313,
+  "G_thermochimica": -489934.2640100026,
+  "A_hephaestus_state_in_thermochimica": -489934.2640100032,
+  "B_thermochimica_state_in_hephaestus": -490029.4264793169,
+  "A_pieces": [
+   {
+    "phase": "GAS_IDEAL",
+    "amounts": {
+     "CS": 1.0000000000000013,
+     "I": 1.0000000000000013
+    },
+    "G": -489934.2640100032,
+    "returned": [
+     "gas_ideal"
+    ]
+   }
+  ],
+  "B_pieces": [
+   {
+    "phase": "gas_ideal",
+    "amounts": {
+     "Cs": 1.000000000000006,
+     "I": 1.0000000000000135
+    },
+    "G": -490029.4264793169,
+    "returned": [
+     "GAS_IDEAL"
+    ]
+   }
+  ],
+  "verdict": [
+   "readings differ on Hephaestus's state by +95.162 J",
+   "readings differ on Thermochimica's state by -95.162 J"
+  ]
+ }
+}

@@ -1,0 +1,992 @@
+ {
+ "1":
+ {
+   "solution phases": {
+     "GAS": {
+       "phase model": "IDMX",
+       "moles": 0.0,
+       "driving force":   1.0190937493573735E+001,
+       "species": {
+         "CR": {
+           "mole fraction":   3.7508484106644428E-005 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CR2": {
+           "mole fraction":   1.1245607138183022E-010 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O": {
+           "mole fraction":   1.4266781506019315E-016 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O2": {
+           "mole fraction":   1.4116021431208436E-024 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O3": {
+           "mole fraction":   3.3081264174674838E-044 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   3.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "ZR": {
+           "mole fraction":   4.5773364534476650E-011 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "ZR2": {
+           "mole fraction":   7.4413340581709704E-019 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "ZRO": {
+           "mole fraction":   6.3597558609591791E-011 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "ZRO2": {
+           "mole fraction":   4.6710217288179657E-015 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Cr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.99999538822194245      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.6957861692185024E-006 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Zr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   2.9159918882654346E-006 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "IONIC_LIQ": {
+       "phase model": "SUBI",
+       "moles":   1.0085137926330294E-007,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "CR+3:O-2": {
+           "mole fraction":   2.2432705124778341E-008 ,
+           "moles":  2.2623692524408597E-015,
+           "chemical potential":  -2079874.1435587897      ,
+           "stoichiometry": [   2.0000000000000000      ,   3.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CR+3:VA": {
+           "mole fraction":  0.34662306882688776      ,
+           "moles":  3.4957414575670418E-008,
+           "chemical potential":  -105097.60517066234      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "ZR+4:O-2": {
+           "mole fraction":   4.2285156121165146E-008 ,
+           "moles":  4.2645163171836017E-015,
+           "chemical potential":  -2752632.3033074187      ,
+           "stoichiometry": [   0.0000000000000000      ,   4.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "ZR+4:VA": {
+           "mole fraction":  0.65337686645525095      ,
+           "moles":  6.5893958160746949E-008,
+           "chemical potential":  -129863.52950873249      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Cr": {
+           "moles of element in phase":  3.4957419100408925E-008,
+           "mole fraction of phase by element":  0.34662300930449075      ,
+           "mole fraction of element by phase":  0.99999999999999711     
+         },
+         "O": {
+           "moles of element in phase":  2.3845173026056986E-014,
+           "mole fraction of phase by element":   2.3643866865392979E-007 ,
+           "mole fraction of element by phase":   2.3845203824388712E-013
+         },
+         "Zr": {
+           "moles of element in phase":  6.5893966689779577E-008,
+           "mole fraction of phase by element":  0.65337675425684072      ,
+           "mole fraction of element by phase":   2.0400265780012660E-007
+         }
+       }
+     },
+     "IONIC_LIQ#3": {
+       "phase model": "SUBI",
+       "moles": 0.0,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "CR+3:O-2": {
+           "mole fraction":   3.0100272250474623E-007 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -1924865.6655783535      ,
+           "stoichiometry": [   2.0000000000000000      ,   3.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CR+3:VA": {
+           "mole fraction":  0.36911909283164851      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -103801.84207814545      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "ZR+4:O-2": {
+           "mole fraction":   5.1445896152643818E-007 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -2550853.3914053608      ,
+           "stoichiometry": [   0.0000000000000000      ,   4.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "ZR+4:VA": {
+           "mole fraction":  0.63088009170666737      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -130585.37475463843      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Cr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.36911830093355064      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   2.9608328326100964E-006 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Zr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.63087873823361684      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "BCC_A2": {
+       "phase model": "SUBLM",
+       "moles": 0.0,
+       "driving force":   4.7834830757048079E-002,
+       "Neel temperature":   0.11325581415485426      ,
+       "Magnetic moment per atom":    2.9086565433028386E-006 ,
+       "species": {
+         "CR:O": {
+           "mole fraction":   2.0160551551491640E-005 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -1971803.2834966921      ,
+           "stoichiometry": [   1.0000000000000000      ,   3.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CR:VA": {
+           "mole fraction":   3.6358206791285480E-004 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -101447.24081545923      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "ZR:O": {
+           "mole fraction":   5.2516489090422294E-002 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -1997320.6882606805      ,
+           "stoichiometry": [   0.0000000000000000      ,   3.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "ZR:VA": {
+           "mole fraction":  0.94709976829011344      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -126964.64557944755      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "CR":    3.8374261946434642E-004 ,
+             "ZR":   0.99961625738053561     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    3.0000000000000000      ,
+           "constituents": {
+             "O":    5.2536649641973777E-002 ,
+             "VA":   0.94746335035802609     
+           }
+         }
+       },
+       "elements": {
+         "Cr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   3.3149561285336111E-004 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.13615116997928223      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Zr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.86351733440786438      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "FCC_A1": {
+       "phase model": "RKMPM",
+       "moles": 0.0,
+       "driving force":   3.5154592662871215E-001,
+       "Neel temperature":    97.979000663814631      ,
+       "Magnetic moment per atom":   0.21733845052568440      ,
+       "species": {
+         "CR": {
+           "mole fraction":  0.26504715593213690      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -94595.821797194571      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "ZR": {
+           "mole fraction":  0.73495284406786288      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -119333.54816874576      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Cr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.26504715593213696      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Zr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.73495284406786299      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "FCC_C1": {
+       "phase model": "SUBL",
+       "moles": 0.0,
+       "driving force":   4.6866773574910375E-001,
+       "species": {
+         "ZR:O": {
+           "mole fraction":   1.0000000000000028E-005 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -1392527.9727696450      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "ZR:VA": {
+           "mole fraction":  0.99999000000000016      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -115835.01794661477      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "ZR":   0.99999999999999989     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    2.0000000000000000      ,
+           "constituents": {
+             "O":    1.0000000000000026E-005 ,
+             "VA":   0.99998999999999993     
+           }
+         }
+       },
+       "elements": {
+         "Cr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.9999600007999895E-005 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Zr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.99998000039999213      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "HCP_A3": {
+       "phase model": "SUBLM",
+       "moles": 0.0,
+       "driving force":   2.2228776942913439E-008,
+       "Neel temperature":    2.6133770271230705E-005 ,
+       "Magnetic moment per atom":    5.7970310971350340E-008 ,
+       "species": {
+         "CR:O:VA": {
+           "mole fraction":   3.1676069820024532E-008 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -729294.93889033853      ,
+           "stoichiometry": [   1.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CR:VA:VA": {
+           "mole fraction":   7.0695571880145469E-008 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -106033.84705602477      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "ZR:O:VA": {
+           "mole fraction":  0.30942227799830885      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -753113.84728614206      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "ZR:VA:VA": {
+           "mole fraction":  0.69057761963004960      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -129852.75545182823      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "CR":    1.0237164170016999E-007 ,
+             "ZR":   0.99999989762835839     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "O":   0.30942230967437861      ,
+             "VA":   0.69057769032562144     
+           }
+         },
+         "sublattice 3": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "VA":    1.0000000000000000     
+           }
+         }
+       },
+       "elements": {
+         "Cr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   7.8180767918661262E-008 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.23630444310309975      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Zr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.76369547871613241      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "HCP_ORD": {
+       "phase model": "SUBLM",
+       "moles":   1.0766845549596553E-001,
+       "driving force":   0.0000000000000000E+000,
+       "Curie temperature":    0.0000000000000000      ,
+       "Magnetic moment per atom":    0.0000000000000000      ,
+       "species": {
+         "ZR:O:O:O:VA": {
+           "mole fraction":   2.9673522484986850E-002 ,
+           "moles":  3.1949023350833390E-003,
+           "chemical potential":  -2259269.4181404253      ,
+           "stoichiometry": [   0.0000000000000000      ,   3.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "ZR:O:O:VA:VA": {
+           "mole fraction":   6.6173671363235570E-002 ,
+           "moles":  7.1248169901771772E-003,
+           "chemical potential":  -1636043.1416025301      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "ZR:O:VA:O:VA": {
+           "mole fraction":   6.6173671363233988E-002 ,
+           "moles":  7.1248169901770072E-003,
+           "chemical potential":  -1636043.1416025306      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "ZR:O:VA:VA:VA": {
+           "mole fraction":  0.14757111441369680      ,
+           "moles":  1.5888753964741150E-002,
+           "chemical potential":  -1012816.8650646362      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "ZR:VA:O:O:VA": {
+           "mole fraction":   6.6173671363235140E-002 ,
+           "moles":  7.1248169901771312E-003,
+           "chemical potential":  -1636043.1416025304      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "ZR:VA:O:VA:VA": {
+           "mole fraction":  0.14757111441369936      ,
+           "moles":  1.5888753964741428E-002,
+           "chemical potential":  -1012816.8650646362      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "ZR:VA:VA:O:VA": {
+           "mole fraction":  0.14757111441369586      ,
+           "moles":  1.5888753964741049E-002,
+           "chemical potential":  -1012816.8650646362      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "ZR:VA:VA:VA:VA": {
+           "mole fraction":  0.32909212018421657      ,
+           "moles":  3.5432840296127262E-002,
+           "chemical potential":  -389590.58852674195      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    3.0000000000000000      ,
+           "constituents": {
+             "ZR":    1.0000000000000000     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "O":   0.30959197962515317      ,
+             "VA":   0.69040802037484683     
+           }
+         },
+         "sublattice 3": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "O":   0.30959197962515683      ,
+             "VA":   0.69040802037484306     
+           }
+         },
+         "sublattice 4": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "O":   0.30959197962515178      ,
+             "VA":   0.69040802037484816     
+           }
+         },
+         "sublattice 5": {
+           "stoichiometric coefficient":    3.0000000000000000      ,
+           "constituents": {
+             "VA":    1.0000000000000000     
+           }
+         }
+       },
+       "elements": {
+         "Cr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "O": {
+           "moles of element in phase":  9.9999870840536284E-002,
+           "mole fraction of phase by element":  0.23640338704103001      ,
+           "mole fraction of element by phase":  0.99999999999976286     
+         },
+         "Zr": {
+           "moles of element in phase":  3.2300536648789668E-001,
+           "mole fraction of phase by element":  0.76359661295897008      ,
+           "mole fraction of element by phase":  0.99999979599733657     
+         }
+       }
+     },
+     "LAVES_C14": {
+       "phase model": "SUBL",
+       "moles": 0.0,
+       "driving force":   9.0582166609558076E-002,
+       "species": {
+         "CR:CR": {
+           "mole fraction":   5.7289752405912820E-003 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -309875.27968143875      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CR:ZR": {
+           "mole fraction":  0.92180549773459164      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -334641.17697789869      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "ZR:CR": {
+           "mole fraction":   4.4758790343384119E-004 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -359337.21803087409      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "ZR:ZR": {
+           "mole fraction":   7.2017939121383157E-002 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -384103.11532733392      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    2.0000000000000000      ,
+           "constituents": {
+             "CR":   0.92753447297518299      ,
+             "ZR":    7.2465527024816997E-002
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "CR":    6.1765631440251229E-003 ,
+             "ZR":   0.99382343685597485     
+           }
+         }
+       },
+       "elements": {
+         "Cr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.62041516969813038      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Zr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.37958483030186968      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "LAVES_C15": {
+       "phase model": "SUBL",
+       "moles": 0.0,
+       "driving force":   3.7316417737323138E-002,
+       "species": {
+         "CR:CR": {
+           "mole fraction":   3.7649758007448736E-004 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -313067.70213885879      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CR:ZR": {
+           "mole fraction":  0.96701309203859742      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -337833.62647742912      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "ZR:CR": {
+           "mole fraction":   1.2691619514580172E-005 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -362329.57375254633      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "ZR:ZR": {
+           "mole fraction":   3.2597718761813707E-002 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -387095.49809111666      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    2.0000000000000000      ,
+           "constituents": {
+             "CR":   0.96738958961867161      ,
+             "ZR":    3.2610410381328281E-002
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "CR":    3.8918919958906735E-004 ,
+             "ZR":   0.99961081080041081     
+           }
+         }
+       },
+       "elements": {
+         "Cr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.64505612281231084      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Zr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.35494387718768911      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "LAVES_C36": {
+       "phase model": "SUBL",
+       "moles": 0.0,
+       "driving force":   3.9791172747026725E-002,
+       "species": {
+         "CR:CR": {
+           "mole fraction":   3.6962118873613788E-003 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -312918.34187789308      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CR:ZR": {
+           "mole fraction":  0.93339700520852786      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -337684.26621539670      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "ZR:CR": {
+           "mole fraction":   2.4812558081086135E-004 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -362329.48774134164      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "ZR:ZR": {
+           "mole fraction":   6.2658657323299990E-002 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -387095.41207884537      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    2.0000000000000000      ,
+           "constituents": {
+             "CR":   0.93709321709588922      ,
+             "ZR":    6.2906782904110850E-002
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "CR":    3.9443374681722397E-003 ,
+             "ZR":   0.99605566253182776     
+           }
+         }
+       },
+       "elements": {
+         "Cr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.62604359055331682      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Zr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.37395640944668312      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "ZRH2_EPSILON": {
+       "phase model": "SUBL",
+       "moles": 0.0,
+       "driving force":   4.7201132847580657E-001,
+       "species": {
+         "ZR:O": {
+           "mole fraction":   1.0000000000000026E-005 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -1384353.0547696447      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "ZR:VA": {
+           "mole fraction":  0.99999000000000005      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -115735.01794661468      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "ZR":    1.0000000000000000     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    2.0000000000000000      ,
+           "constituents": {
+             "O":    1.0000000000000026E-005 ,
+             "VA":   0.99999000000000005     
+           }
+         }
+       },
+       "elements": {
+         "Cr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.9999600007999892E-005 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Zr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.99998000039999191      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "ZROX": {
+       "phase model": "SUBL",
+       "moles": 0.0,
+       "driving force":   3.6663746590544277E+000,
+       "species": {
+         "ZR:O:O": {
+           "mole fraction":  0.99624304997424129      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -1915890.0772946186      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ,   6.0000000000000000      ]
+         },
+         "ZR:O:VA": {
+           "mole fraction":   3.7569500257587330E-003 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -1293026.5512485879      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   6.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    6.0000000000000000      ,
+           "constituents": {
+             "ZR":   0.99999999999999956     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "O":   0.99999999999999956     
+           }
+         },
+         "sublattice 3": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "O":   0.99624304997424085      ,
+             "VA":    3.7569500257587313E-003
+           }
+         }
+       },
+       "elements": {
+         "Cr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.24964762045104069      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Zr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.75035237954895928      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "ZROZ": {
+       "phase model": "SUBL",
+       "moles": 0.0,
+       "driving force":   3.8362239686218946E+000,
+       "species": {
+         "ZR:O:O": {
+           "mole fraction":  0.13518990978385326      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -2534033.7702888870      ,
+           "stoichiometry": [   0.0000000000000000      ,   3.0000000000000000      ,   6.0000000000000000      ]
+         },
+         "ZR:O:VA": {
+           "mole fraction":  0.86481009021614674      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -1910807.4937464495      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ,   6.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    6.0000000000000000      ,
+           "constituents": {
+             "ZR":    1.0000000000000000     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    2.0000000000000000      ,
+           "constituents": {
+             "O":    1.0000000000000000     
+           }
+         },
+         "sublattice 3": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "O":   0.13518990978385326      ,
+             "VA":   0.86481009021614674     
+           }
+         }
+       },
+       "elements": {
+         "Cr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.26246343766553615      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Zr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.73753656233446374      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "ZR6O1": {
+       "moles": 0.0,
+       "chemical potential":  -1216653.9180888333      ,
+       "driving force":   1.7730944415356131E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   6.0000000000000000      ],
+       "elements": {
+         "Cr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.14285714285714285      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Zr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.85714285714285710      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "ZR6O2": {
+       "moles": 0.0,
+       "chemical potential":  -1917633.7447084461      ,
+       "driving force":   9.0204152320885100E-001,
+       "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ,   6.0000000000000000      ],
+       "elements": {
+         "Cr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.25000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Zr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.75000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "ZRO2_MONO": {
+       "moles": 0.0,
+       "chemical potential":  -1313252.9837121249      ,
+       "driving force":   1.4045812702321949E+000,
+       "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "Cr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.66666666666666663      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Zr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.33333333333333331      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "ZRO2_TETR": {
+       "moles": 0.0,
+       "chemical potential":  -1314299.0342305922      ,
+       "driving force":   1.3812829707159484E+000,
+       "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "Cr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.66666666666666663      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Zr": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.33333333333333331      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "elements": {
+     "Cr": {
+       "moles":    3.4957419100409024E-008 ,
+       "element potential":  -1.0509760517034346E+005
+     },
+     "O": {
+       "moles":    9.9999870840560001E-002 ,
+       "element potential":  -6.2322627653789450E+005
+     },
+     "Zr": {
+       "moles":   0.32300543238186519      ,
+       "element potential":  -1.2986352950891379E+005
+     }
+   },
+   "temperature":    1800.0000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -1.0426917633183542E+005,
+   "entropy":   0.0000000000000000E+000,
+   "enthalpy":   0.0000000000000000E+000,
+   "heat capacity":   0.0000000000000000E+000,
+   "functional norm":    1.1666998816118709E-011 ,
+   "GEM iterations":          128 ,
+   "# solution phases":            2 ,
+   "# pure condensed phases":            0
+ }
+ }

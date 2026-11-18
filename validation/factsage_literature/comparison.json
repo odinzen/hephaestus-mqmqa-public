@@ -1,0 +1,573 @@
+{
+ "engine_by_case": {
+  "C": {
+   "engine_commit": "3f38162",
+   "engine_dirty": false
+  },
+  "A": {
+   "engine_commit": "754177c",
+   "engine_dirty": false
+  },
+  "B": {
+   "engine_commit": "754177c",
+   "engine_dirty": false
+  }
+ },
+ "rows": [
+  {
+   "id": "A01",
+   "reaction": "LiCl = L",
+   "ref_T_K": 883,
+   "pred_T_K": 882.983,
+   "dT_K": -0.01700000000005275,
+   "class": "agree"
+  },
+  {
+   "id": "A02",
+   "reaction": "Li4ThCl8 = LiCl + L",
+   "ref_T_K": 723,
+   "pred_T_K": 724.904,
+   "dT_K": 1.9039999999999964,
+   "class": "disagree"
+  },
+  {
+   "id": "A03",
+   "reaction": "Li4ThCl8 + beta-ThCl4 = L",
+   "ref_T_K": 695,
+   "pred_T_K": 696.746,
+   "dT_K": 1.745999999999981,
+   "ref_x": 0.343,
+   "pred_x": 0.34287,
+   "dx": -0.000130000000000019,
+   "class": "disagree"
+  },
+  {
+   "id": "A04",
+   "reaction": "alpha-ThCl4 = beta-ThCl4",
+   "ref_T_K": 679,
+   "pred_T_K": 679.142,
+   "dT_K": 0.14200000000005275,
+   "class": "agree"
+  },
+  {
+   "id": "A05",
+   "reaction": "beta-ThCl4 = L",
+   "ref_T_K": 1042,
+   "pred_T_K": 1043.01,
+   "dT_K": 1.009999999999991,
+   "class": "disagree"
+  },
+  {
+   "id": "A06",
+   "reaction": "NaCl = L",
+   "ref_T_K": 1074,
+   "pred_T_K": 1074.003,
+   "dT_K": 0.0029999999999290594,
+   "class": "agree"
+  },
+  {
+   "id": "A07",
+   "reaction": "NaCl + Na2ThCl6 = L",
+   "ref_T_K": 657,
+   "pred_T_K": 659.178,
+   "dT_K": 2.1779999999999973,
+   "ref_x": 0.251,
+   "pred_x": 0.24969,
+   "dx": -0.0013100000000000056,
+   "class": "disagree"
+  },
+  {
+   "id": "A08",
+   "reaction": "Na2ThCl6 = L",
+   "ref_T_K": 703,
+   "pred_T_K": 705.233,
+   "dT_K": 2.2329999999999472,
+   "class": "disagree"
+  },
+  {
+   "id": "A09",
+   "reaction": "Na2ThCl6 + alpha-ThCl4 = L",
+   "ref_T_K": 654,
+   "pred_T_K": 655.668,
+   "dT_K": 1.6680000000000064,
+   "ref_x": 0.457,
+   "pred_x": 0.45594,
+   "dx": -0.0010600000000000054,
+   "class": "disagree"
+  },
+  {
+   "id": "A10",
+   "reaction": "KCl = L",
+   "ref_T_K": 1044,
+   "pred_T_K": 1044.002,
+   "dT_K": 0.0019999999999527063,
+   "class": "agree"
+  },
+  {
+   "id": "A11",
+   "reaction": "KCl + K2ThCl6 = L",
+   "ref_T_K": 894,
+   "pred_T_K": 894.706,
+   "dT_K": 0.7060000000000173,
+   "ref_x": 0.206,
+   "pred_x": 0.20594,
+   "dx": -5.999999999997674e-05,
+   "class": "disagree"
+  },
+  {
+   "id": "A12",
+   "reaction": "K2ThCl6 = L",
+   "ref_T_K": 977,
+   "pred_T_K": 977.966,
+   "dT_K": 0.9660000000000082,
+   "class": "disagree"
+  },
+  {
+   "id": "A13",
+   "reaction": "K2ThCl6 + KThCl5 = L",
+   "ref_T_K": 697,
+   "pred_T_K": 697.989,
+   "dT_K": 0.9890000000000327,
+   "ref_x": 0.467,
+   "pred_x": 0.4655,
+   "dx": -0.0015000000000000013,
+   "class": "disagree"
+  },
+  {
+   "id": "A14",
+   "reaction": "KThCl5 = L",
+   "ref_T_K": 702,
+   "pred_T_K": 703.672,
+   "dT_K": 1.6720000000000255,
+   "class": "disagree"
+  },
+  {
+   "id": "A15",
+   "reaction": "KThCl5 + beta-ThCl4 = L",
+   "ref_T_K": 699,
+   "pred_T_K": 699.486,
+   "dT_K": 0.48599999999999,
+   "ref_x": 0.536,
+   "pred_x": 0.53531,
+   "dx": -0.0006900000000000794,
+   "class": "disagree"
+  },
+  {
+   "id": "B01",
+   "reaction": "L = LiF + LaF3",
+   "ref_T_K": 1039,
+   "pred_T_K": 1038.799,
+   "dT_K": -0.20100000000002183,
+   "ref_x": 0.159,
+   "pred_x": 0.15934,
+   "dx": 0.00034000000000000696,
+   "class": "agree"
+  },
+  {
+   "id": "B02",
+   "reaction": "L = NaF + NaLaF4",
+   "ref_T_K": 1006,
+   "pred_T_K": 1005.781,
+   "dT_K": -0.21900000000005093,
+   "ref_x": 0.282,
+   "pred_x": 0.28146,
+   "dx": -0.0005399999999999849,
+   "class": "disagree"
+  },
+  {
+   "id": "B03",
+   "reaction": "NaLaF4 = L + LaF3",
+   "ref_T_K": 1055,
+   "pred_T_K": 1056.103,
+   "dT_K": 1.1030000000000655,
+   "ref_x": 0.331,
+   "pred_x": 0.33231,
+   "dx": 0.0013099999999999778,
+   "class": "disagree"
+  },
+  {
+   "id": "B04",
+   "reaction": "NaLaF4 = NaF + LaF3",
+   "ref_T_K": 686,
+   "pred_T_K": 634.481,
+   "dT_K": -51.519000000000005,
+   "class": "disagree"
+  },
+  {
+   "id": "B05",
+   "reaction": "L = LiF + CeF3",
+   "ref_T_K": 1024,
+   "pred_T_K": 1024.409,
+   "dT_K": 0.4090000000001055,
+   "ref_x": 0.185,
+   "pred_x": 0.18472,
+   "dx": -0.00028000000000000247,
+   "class": "agree"
+  },
+  {
+   "id": "B06",
+   "reaction": "L = NaF + NaCeF4",
+   "ref_T_K": 1005,
+   "pred_T_K": 1005.213,
+   "dT_K": 0.21299999999996544,
+   "ref_x": 0.25,
+   "pred_x": 0.2538,
+   "dx": 0.0038000000000000256,
+   "x_class_as_stored": "agree",
+   "class": "disagree"
+  },
+  {
+   "id": "B07",
+   "reaction": "NaCeF4 = L + CeF3",
+   "ref_T_K": 1080,
+   "pred_T_K": 1088.445,
+   "dT_K": 8.444999999999936,
+   "ref_x": 0.32,
+   "pred_x": 0.33342,
+   "dx": 0.013419999999999987,
+   "x_class_as_stored": "disagree",
+   "class": "disagree"
+  },
+  {
+   "id": "B08",
+   "reaction": "NaCeF4 = NaF + CeF3",
+   "ref_T_K": 226,
+   "class": "disagree",
+   "reason": "NACEF4 is already present at 298.15 K, the bottom of the data"
+  },
+  {
+   "id": "C-G-00",
+   "quantity": "G_kJ_per_mol_atom",
+   "ref": -381.328,
+   "read_uncertainty": 1.0,
+   "x_read_offset": 0.0019,
+   "pred": -381.2889137667022,
+   "class": "agree",
+   "diff": 0.03908623329778038,
+   "diff_over_uncertainty": 0.03908623329778038
+  },
+  {
+   "id": "C-G-01",
+   "quantity": "G_kJ_per_mol_atom",
+   "ref": -372.891,
+   "read_uncertainty": 1.0,
+   "x_read_offset": 0.0022999999999999965,
+   "pred": -372.8527938423148,
+   "class": "agree",
+   "diff": 0.03820615768523794,
+   "diff_over_uncertainty": 0.03820615768523794
+  },
+  {
+   "id": "C-G-02",
+   "quantity": "G_kJ_per_mol_atom",
+   "ref": -364.315,
+   "read_uncertainty": 1.0,
+   "x_read_offset": 0.00269999999999998,
+   "pred": -363.89811415742065,
+   "class": "agree",
+   "diff": 0.41688584257934735,
+   "diff_over_uncertainty": 0.41688584257934735
+  },
+  {
+   "id": "C-G-03",
+   "quantity": "G_kJ_per_mol_atom",
+   "ref": -355.325,
+   "read_uncertainty": 1.0,
+   "x_read_offset": 0.0020000000000000018,
+   "pred": -354.8943787201265,
+   "class": "agree",
+   "diff": 0.43062127987349186,
+   "diff_over_uncertainty": 0.43062127987349186
+  },
+  {
+   "id": "C-G-04",
+   "quantity": "G_kJ_per_mol_atom",
+   "ref": -346.473,
+   "read_uncertainty": 1.0,
+   "x_read_offset": 0.0013999999999999568,
+   "pred": -345.8803275253893,
+   "class": "agree",
+   "diff": 0.5926724746107084,
+   "diff_over_uncertainty": 0.5926724746107084
+  },
+  {
+   "id": "C-G-05",
+   "quantity": "G_kJ_per_mol_atom",
+   "ref": -337.206,
+   "read_uncertainty": 1.0,
+   "x_read_offset": 0.0007000000000000339,
+   "pred": -336.8339040279005,
+   "class": "agree",
+   "diff": 0.3720959720995438,
+   "diff_over_uncertainty": 0.3720959720995438
+  },
+  {
+   "id": "C-G-06",
+   "quantity": "G_kJ_per_mol_atom",
+   "ref": -328.078,
+   "read_uncertainty": 1.0,
+   "x_read_offset": 0.0,
+   "pred": -327.7582860149611,
+   "class": "agree",
+   "diff": 0.31971398503890214,
+   "diff_over_uncertainty": 0.31971398503890214
+  },
+  {
+   "id": "C-G-07",
+   "quantity": "G_kJ_per_mol_atom",
+   "ref": -318.949,
+   "read_uncertainty": 1.0,
+   "x_read_offset": 0.00040000000000006697,
+   "pred": -318.6934287398536,
+   "class": "agree",
+   "diff": 0.25557126014643927,
+   "diff_over_uncertainty": 0.25557126014643927
+  },
+  {
+   "id": "C-G-08",
+   "quantity": "G_kJ_per_mol_atom",
+   "ref": -309.82,
+   "read_uncertainty": 1.0,
+   "x_read_offset": -0.0023000000000000798,
+   "pred": -309.6713190539633,
+   "class": "agree",
+   "diff": 0.14868094603667714,
+   "diff_over_uncertainty": 0.14868094603667714
+  },
+  {
+   "id": "C-G-09",
+   "quantity": "G_kJ_per_mol_atom",
+   "ref": -300.968,
+   "read_uncertainty": 1.0,
+   "x_read_offset": -0.0019000000000000128,
+   "pred": -300.66995906543485,
+   "class": "agree",
+   "diff": 0.2980409345651651,
+   "diff_over_uncertainty": 0.2980409345651651
+  },
+  {
+   "id": "C-H-00",
+   "quantity": "H_kJ_per_mol_atom",
+   "ref": -230.617,
+   "read_uncertainty": 0.8,
+   "x_read_offset": 0.0019,
+   "pred": -230.34338013691595,
+   "class": "agree",
+   "diff": 0.2736198630840363,
+   "diff_over_uncertainty": 0.34202482885504537
+  },
+  {
+   "id": "C-H-01",
+   "quantity": "H_kJ_per_mol_atom",
+   "ref": -222.998,
+   "read_uncertainty": 0.8,
+   "x_read_offset": 0.0022999999999999965,
+   "pred": -222.99751365617203,
+   "class": "agree",
+   "diff": 0.00048634382795853526,
+   "diff_over_uncertainty": 0.0006079297849481691
+  },
+  {
+   "id": "C-H-02",
+   "quantity": "H_kJ_per_mol_atom",
+   "ref": -216.437,
+   "read_uncertainty": 0.8,
+   "x_read_offset": 0.00269999999999998,
+   "pred": -216.02638772255654,
+   "class": "agree",
+   "diff": 0.4106122774434766,
+   "diff_over_uncertainty": 0.5132653468043458
+  },
+  {
+   "id": "C-H-03",
+   "quantity": "H_kJ_per_mol_atom",
+   "ref": -209.453,
+   "read_uncertainty": 0.8,
+   "x_read_offset": 0.0020000000000000018,
+   "pred": -209.19020695630036,
+   "class": "agree",
+   "diff": 0.26279304369964507,
+   "diff_over_uncertainty": 0.32849130462455634
+  },
+  {
+   "id": "C-H-04",
+   "quantity": "H_kJ_per_mol_atom",
+   "ref": -202.892,
+   "read_uncertainty": 0.8,
+   "x_read_offset": 0.0013999999999999568,
+   "pred": -202.35639774829983,
+   "class": "agree",
+   "diff": 0.5356022517001691,
+   "diff_over_uncertainty": 0.6695028146252113
+  },
+  {
+   "id": "C-H-05",
+   "quantity": "H_kJ_per_mol_atom",
+   "ref": -195.803,
+   "read_uncertainty": 0.8,
+   "x_read_offset": 0.0007000000000000339,
+   "pred": -195.45845697453134,
+   "class": "agree",
+   "diff": 0.3445430254686528,
+   "diff_over_uncertainty": 0.430678781835816
+  },
+  {
+   "id": "C-H-06",
+   "quantity": "H_kJ_per_mol_atom",
+   "ref": -188.818,
+   "read_uncertainty": 0.8,
+   "x_read_offset": 0.0,
+   "pred": -188.52236105931738,
+   "class": "agree",
+   "diff": 0.2956389406826361,
+   "diff_over_uncertainty": 0.3695486758532951
+  },
+  {
+   "id": "C-H-07",
+   "quantity": "H_kJ_per_mol_atom",
+   "ref": -181.729,
+   "read_uncertainty": 0.8,
+   "x_read_offset": 0.00040000000000006697,
+   "pred": -181.63870125472954,
+   "class": "agree",
+   "diff": 0.09029874527047355,
+   "diff_over_uncertainty": 0.11287343158809193
+  },
+  {
+   "id": "C-H-08",
+   "quantity": "H_kJ_per_mol_atom",
+   "ref": -175.274,
+   "read_uncertainty": 0.8,
+   "x_read_offset": -0.0023000000000000798,
+   "pred": -174.88867685980023,
+   "class": "agree",
+   "diff": 0.3853231401997732,
+   "diff_over_uncertainty": 0.4816539252497165
+  },
+  {
+   "id": "C-H-09",
+   "quantity": "H_kJ_per_mol_atom",
+   "ref": -168.395,
+   "read_uncertainty": 0.8,
+   "x_read_offset": -0.0019000000000000128,
+   "pred": -168.32577650940547,
+   "class": "agree",
+   "diff": 0.06922349059453836,
+   "diff_over_uncertainty": 0.08652936324317295
+  },
+  {
+   "id": "C-S-00",
+   "quantity": "S_J_per_mol_atom_K",
+   "ref": 94.256,
+   "read_uncertainty": 0.15,
+   "x_read_offset": 0.0008,
+   "pred": 94.34095851861639,
+   "class": "agree",
+   "diff": 0.08495851861638926,
+   "diff_over_uncertainty": 0.5663901241092617
+  },
+  {
+   "id": "C-S-01",
+   "quantity": "S_J_per_mol_atom_K",
+   "ref": 93.565,
+   "read_uncertainty": 0.15,
+   "x_read_offset": 0.0011999999999999927,
+   "pred": 93.65955011633923,
+   "class": "agree",
+   "diff": 0.09455011633923505,
+   "diff_over_uncertainty": 0.6303341089282337
+  },
+  {
+   "id": "C-S-02",
+   "quantity": "S_J_per_mol_atom_K",
+   "ref": 92.406,
+   "read_uncertainty": 0.15,
+   "x_read_offset": 0.0015999999999999903,
+   "pred": 92.41982902179006,
+   "class": "agree",
+   "diff": 0.01382902179005896,
+   "diff_over_uncertainty": 0.09219347860039306
+  },
+  {
+   "id": "C-S-03",
+   "quantity": "S_J_per_mol_atom_K",
+   "ref": 91.024,
+   "read_uncertainty": 0.15,
+   "x_read_offset": 0.0010000000000000009,
+   "pred": 91.06510735239135,
+   "class": "agree",
+   "diff": 0.041107352391350105,
+   "diff_over_uncertainty": 0.27404901594233405
+  },
+  {
+   "id": "C-S-04",
+   "quantity": "S_J_per_mol_atom_K",
+   "ref": 89.663,
+   "read_uncertainty": 0.15,
+   "x_read_offset": 0.00029999999999996696,
+   "pred": 89.70245611068094,
+   "class": "agree",
+   "diff": 0.03945611068094479,
+   "diff_over_uncertainty": 0.2630407378729653
+  },
+  {
+   "id": "C-S-05",
+   "quantity": "S_J_per_mol_atom_K",
+   "ref": 88.28,
+   "read_uncertainty": 0.15,
+   "x_read_offset": 0.0007000000000000339,
+   "pred": 88.35965440835571,
+   "class": "agree",
+   "diff": 0.07965440835570803,
+   "diff_over_uncertainty": 0.5310293890380535
+  },
+  {
+   "id": "C-S-06",
+   "quantity": "S_J_per_mol_atom_K",
+   "ref": 86.98,
+   "read_uncertainty": 0.15,
+   "x_read_offset": 0.0,
+   "pred": 87.02245309727732,
+   "class": "agree",
+   "diff": 0.04245309727731694,
+   "diff_over_uncertainty": 0.2830206485154463
+  },
+  {
+   "id": "C-S-07",
+   "quantity": "S_J_per_mol_atom_K",
+   "ref": 85.598,
+   "read_uncertainty": 0.15,
+   "x_read_offset": 0.0015000000000000568,
+   "pred": 85.65920467820251,
+   "class": "agree",
+   "diff": 0.06120467820251463,
+   "diff_over_uncertainty": 0.4080311880167642
+  },
+  {
+   "id": "C-S-08",
+   "quantity": "S_J_per_mol_atom_K",
+   "ref": 84.195,
+   "read_uncertainty": 0.15,
+   "x_read_offset": 0.0007999999999999119,
+   "pred": 84.23915137135191,
+   "class": "agree",
+   "diff": 0.044151371351915714,
+   "diff_over_uncertainty": 0.2943424756794381
+  },
+  {
+   "id": "C-S-09",
+   "quantity": "S_J_per_mol_atom_K",
+   "ref": 82.711,
+   "read_uncertainty": 0.15,
+   "x_read_offset": -0.0009000000000000119,
+   "pred": 82.71511409751838,
+   "class": "agree",
+   "diff": 0.004114097518382209,
+   "diff_over_uncertainty": 0.02742731678921473
+  }
+ ],
+ "counts": {
+  "agree": 36,
+  "disagree": 17
+ }
+}

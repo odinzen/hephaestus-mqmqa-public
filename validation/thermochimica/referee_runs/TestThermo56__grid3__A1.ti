@@ -1,0 +1,13 @@
+temperature       = 1400.0
+pressure          = 1.0
+mass(29)          = 0.02362077400510799
+mass(26)          = 0.9753871885354622
+mass(6)           = 0.08507830019195779
+temperature unit  = K
+pressure unit     = atm
+mass unit         = moles
+data file         = THERMOCHIMICA_DIR/data/CuFeC-Kang.dat
+print mode        = 0
+heat capacity     = .FALSE.
+write json        = .TRUE.
+output            = REPO_DIR/validation/thermochimica/referee_runs/TestThermo56__grid3__A1.json

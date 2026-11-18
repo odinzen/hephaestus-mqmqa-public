@@ -78,3 +78,7 @@ paper/uq_alzn/output/
 # Bo Sundman's XTDB example is GPL-3.0 - keep it as a LOCAL validation reference only,
 # never redistribute it from this repo. We ship our own transcription (data/xtdb/).
 data/xtdb-alc/AlC-database.XTDB
+
+# Pyodide runtime for the Hermes tab, fetched with pinned checksums by
+# scripts/build_hermes_web.py (about 40 MB, kept out of git until hosting is decided)
+web/vendor/pyodide/

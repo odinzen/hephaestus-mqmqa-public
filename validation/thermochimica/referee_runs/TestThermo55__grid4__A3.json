@@ -1,0 +1,556 @@
+ {
+ "1":
+ {
+   "solution phases": {
+     "GAS": {
+       "phase model": "IDMX",
+       "moles": 0.0,
+       "driving force":   9.2059777964970635E+001,
+       "species": {
+         "FE": {
+           "mole fraction":   5.7517009440854031E-050 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "SN": {
+           "mole fraction":   1.0445913478443841E-040 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "SN2": {
+           "mole fraction":   3.3296308787615234E-058 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   5.5061732540553893E-010 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Sn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.99999999944938267      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "BCC_A2": {
+       "phase model": "SUBLM",
+       "moles": 0.0,
+       "driving force":   4.6282720610191408E+000,
+       "Curie temperature":    1.9609908200000050E-002 ,
+       "Magnetic moment per atom":    3.4679431200000061E-005 ,
+       "species": {
+         "FE:VA": {
+           "mole fraction":   1.0000000000000028E-005 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   9662.2699382912797      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "SN:VA": {
+           "mole fraction":  0.99999000000000005      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -18904.125814327737      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "FE":    1.0000000000000026E-005 ,
+             "SN":   0.99998999999999982     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    3.0000000000000000      ,
+           "constituents": {
+             "VA":   0.99999999999999978     
+           }
+         }
+       },
+       "elements": {
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000028E-005 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Sn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.99999000000000005      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "BCT_A5": {
+       "phase model": "SUBL",
+       "moles": 0.0,
+       "driving force":   8.6552225175011550E+000,
+       "species": {
+         "SN:VA": {
+           "mole fraction":   1.0000000000000000      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -20904.092566556199      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "SN":    1.0000000000000000     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "VA":    1.0000000000000000     
+           }
+         }
+       },
+       "elements": {
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Sn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "FCC_A1": {
+       "phase model": "RKMPM",
+       "moles": 0.0,
+       "driving force":   6.7978962366689855E-001,
+       "Neel temperature":    66.999923521133070      ,
+       "Magnetic moment per atom":   0.69999920096706192      ,
+       "species": {
+         "FE": {
+           "mole fraction":  0.99999985852423268      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -6791.9990433036264      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "SN": {
+           "mole fraction":   1.4147576756689979E-007 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -47719.623199142370      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.99999985852423245      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Sn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.4147576756689977E-007 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "FEZR2_C16": {
+       "phase model": "SUBL",
+       "moles": 0.0,
+       "driving force":   9.3135419992275263E+000,
+       "species": {
+         "FE:FE": {
+           "mole fraction":   1.0000000000000000      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -2966.1448440734707      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "FE":    1.0000000000000000     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    2.0000000000000000      ,
+           "constituents": {
+             "FE":    1.0000000000000000     
+           }
+         }
+       },
+       "elements": {
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Sn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "FEZR3_E1A": {
+       "phase model": "SUBL",
+       "moles": 0.0,
+       "driving force":   1.2418055998970045E+001,
+       "species": {
+         "FE:FE": {
+           "mole fraction":   1.0000000000000000      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -3954.8597920979328      ,
+           "stoichiometry": [   4.0000000000000000      ,   0.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "FE":    1.0000000000000000     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    3.0000000000000000      ,
+           "constituents": {
+             "FE":    1.0000000000000000     
+           }
+         }
+       },
+       "elements": {
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Sn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "HCP_A3": {
+       "phase model": "SUBLM",
+       "moles": 0.0,
+       "driving force":   6.4647120742009834E-001,
+       "Curie temperature":    0.0000000000000000      ,
+       "Magnetic moment per atom":    0.0000000000000000      ,
+       "species": {
+         "FE:VA:VA": {
+           "mole fraction":  0.99999985955165771      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -7013.6191067952423      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "SN:VA:VA": {
+           "mole fraction":   1.4044834221454387E-007 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -47729.811931713826      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "FE":   0.99999985955165793      ,
+             "SN":    1.4044834221454390E-007
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "VA":    1.0000000000000002     
+           }
+         },
+         "sublattice 3": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "VA":    1.0000000000000002     
+           }
+         }
+       },
+       "elements": {
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.99999985955165782      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Sn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.4044834221454390E-007 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "LAVES_C14": {
+       "phase model": "SUBL",
+       "moles": 0.0,
+       "driving force":   9.3135419992275263E+000,
+       "species": {
+         "FE:FE": {
+           "mole fraction":   1.0000000000000000      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -2966.1448440734707      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    2.0000000000000000      ,
+           "constituents": {
+             "FE":    1.0000000000000000     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "FE":    1.0000000000000000     
+           }
+         }
+       },
+       "elements": {
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Sn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "LAVES_C15": {
+       "phase model": "SUBL",
+       "moles": 0.0,
+       "driving force":   9.3135419992275263E+000,
+       "species": {
+         "FE:FE": {
+           "mole fraction":   1.0000000000000000      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -2966.1448440734707      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    2.0000000000000000      ,
+           "constituents": {
+             "FE":    1.0000000000000000     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "FE":    1.0000000000000000     
+           }
+         }
+       },
+       "elements": {
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Sn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "LIQUID": {
+       "phase model": "RKMP",
+       "moles": 0.0,
+       "driving force":   2.2161629714715696E+000,
+       "species": {
+         "FE": {
+           "mole fraction":  0.99991754439995251      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   3427.8024618609961      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "SN": {
+           "mole fraction":   8.2455600048120671E-005 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -40955.179358212772      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.99991754439995184      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Sn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   8.2455600048120616E-005 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "NB3SN_A15": {
+       "phase model": "SUBL",
+       "moles": 0.0,
+       "driving force":   3.9974683576074526E+001,
+       "species": {
+         "SN:SN": {
+           "mole fraction":   1.0000000000000000      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -65810.783786224783      ,
+           "stoichiometry": [   0.0000000000000000      ,   4.0000000000000000      ]
+         }
+       },
+       "sublattices": {
+         "sublattice 1": {
+           "stoichiometric coefficient":    3.0000000000000000      ,
+           "constituents": {
+             "SN":    1.0000000000000000     
+           }
+         },
+         "sublattice 2": {
+           "stoichiometric coefficient":    1.0000000000000000      ,
+           "constituents": {
+             "SN":    1.0000000000000000     
+           }
+         }
+       },
+       "elements": {
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Sn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "DIAMOND_A4": {
+       "moles": 0.0,
+       "chemical potential":  -20095.109330308507      ,
+       "driving force":   8.8984680405625376E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Sn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "FE3SN2": {
+       "moles": 0.0,
+       "chemical potential":  -120616.12997718582      ,
+       "driving force":   7.6396660484194712E-001,
+       "stoichiometry": [   3.0000000000000000      ,   2.0000000000000000      ],
+       "elements": {
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.59999999999999998      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Sn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.40000000000000002      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "FE5SN3_B82": {
+       "moles": 0.0,
+       "chemical potential":  -168109.65243979095      ,
+       "driving force":   1.4104667357249854E+000,
+       "stoichiometry": [   5.0000000000000000      ,   3.0000000000000000      ],
+       "elements": {
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.62500000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Sn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.37500000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "FESN2_C16": {
+       "moles": 0.0,
+       "chemical potential":  -98493.860081136881      ,
+       "driving force":   1.2226555206204648E+000,
+       "stoichiometry": [   1.0000000000000000      ,   2.0000000000000000      ],
+       "elements": {
+         "Fe": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.33333333333333331      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Sn": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.66666666666666663      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "FESN_B35": {
+       "moles":   9.9931355752263029E-002,
+       "chemical potential":  -61003.207514580674      ,
+       "driving force":   0.0000000000000000E+000,
+       "stoichiometry": [   1.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "Fe": {
+           "moles of element in phase":  9.9931355752263029E-002,
+           "mole fraction of phase by element":  0.50000000000000000      ,
+           "mole fraction of element by phase":  0.99999999999999667     
+         },
+         "Sn": {
+           "moles of element in phase":  9.9931355752263029E-002,
+           "mole fraction of phase by element":  0.50000000000000000      ,
+           "mole fraction of element by phase":  0.99999999999999667     
+         }
+       }
+     }
+   },
+   "elements": {
+     "Fe": {
+       "moles":    9.9931355752263362E-002 ,
+       "element potential":  -1.1313672837811331E+004
+     },
+     "Sn": {
+       "moles":    9.9931355752263362E-002 ,
+       "element potential":  -4.9689534676769348E+004
+     }
+   },
+   "temperature":    400.00000000000000      ,
+   "pressure":    1000.0000000000000      ,
+   "integral Gibbs energy":  -6.0961332321687069E+003,
+   "entropy":   0.0000000000000000E+000,
+   "enthalpy":   0.0000000000000000E+000,
+   "heat capacity":   0.0000000000000000E+000,
+   "functional norm":    2.3312732826536691E-012 ,
+   "GEM iterations":            6 ,
+   "# solution phases":            0 ,
+   "# pure condensed phases":            1
+ }
+ }

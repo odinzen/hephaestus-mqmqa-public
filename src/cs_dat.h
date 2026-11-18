@@ -44,6 +44,19 @@ MQMQA_API double mqmqa_db_R_own(const mqmqa_db *db);
  * (MQMQA_R_SRC_*, OVERRIDE while a mode is forced); the source of the own value; and a
  * one-line note for the user (a static buffer, overwritten by the next note). */
 MQMQA_API double mqmqa_db_R(const mqmqa_db *db);
+/* Pressure (Pa) seen by the database's ideal gas phase, the first solution phase of a
+ * ChemSage file when it is IDMX: each gas species gains R T ln(P / 1 atm). Condensed
+ * phases carry no volume data and do not change. Default 101325 Pa; -1 if P <= 0. */
+MQMQA_API int mqmqa_db_set_pressure(mqmqa_db *db, double P);
+MQMQA_API double mqmqa_db_pressure(const mqmqa_db *db);
+/* Species whose energy was taken above the end of their data (the last range carried on),
+ * as logged since the last clear: name, where the data end, the highest T used, elements. */
+MQMQA_API void mqmqa_db_beyond_clear(mqmqa_db *db);
+MQMQA_API int mqmqa_db_beyond_count(const mqmqa_db *db);
+MQMQA_API const char *mqmqa_db_beyond_name(const mqmqa_db *db, int i);
+MQMQA_API double mqmqa_db_beyond_top(const mqmqa_db *db, int i);
+MQMQA_API double mqmqa_db_beyond_T(const mqmqa_db *db, int i);
+MQMQA_API int mqmqa_db_beyond_elements(const mqmqa_db *db, int i, double *out);
 MQMQA_API int mqmqa_db_R_source(const mqmqa_db *db);
 MQMQA_API int mqmqa_db_R_own_source(const mqmqa_db *db);
 MQMQA_API const char *mqmqa_db_R_note(const mqmqa_db *db);
@@ -134,6 +147,15 @@ MQMQA_API double mqmqa_ph_cef_gibbs(const mqmqa_db *db, int p, const double *Y,
 MQMQA_API double mqmqa_ph_cef_line_gibbs(const mqmqa_db *db, int p, double y, double T,
                                          int per_mole_atoms, double *Y_out);
 
+/* --- Two-sublattice ionic liquid (ChemSage SUBI, phase kind 2) ---
+ * Site fractions run over the cations, then the second sublattice (anions, Va, neutrals),
+ * in the file's order. mqmqa_ph_ionic_gibbs gives the energy of one formula unit (P cation
+ * and Q anion sites) and, when n_el is not NULL, its element amounts. */
+MQMQA_API int mqmqa_ph_ionic_size(const mqmqa_db *db, int p, int *nc, int *na);
+MQMQA_API const char *mqmqa_ph_ionic_constituent(const mqmqa_db *db, int p, int i);
+MQMQA_API double mqmqa_ph_ionic_gibbs(const mqmqa_db *db, int p, const double *y, double T,
+                                      double *n_el);
+
 /* --- Stoichiometric compounds (solid oxides etc., for later equilibrium) --- */
 MQMQA_API int mqmqa_db_num_stoich(const mqmqa_db *db);
 MQMQA_API const char *mqmqa_db_stoich_name(const mqmqa_db *db, int i);
@@ -141,6 +163,20 @@ MQMQA_API double mqmqa_db_stoich_gibbs(const mqmqa_db *db, int i, double T);
 /* Element stoichiometry of stoichiometric phase i, in database element order
  * (length mqmqa_db_num_elements). */
 MQMQA_API void mqmqa_db_stoich_elems(const mqmqa_db *db, int i, double *out);
+
+/* --- Excess coefficients as fit parameters ---
+ * Every excess coefficient of every solution phase, numbered 0..n-1: MQMX terms of
+ * MQMQA phases first, then the Redlich-Kister terms of CEF phases, each phase in order.
+ * info gives the phase, kind (0 MQMX, 1 CEF Redlich-Kister), term index within that
+ * phase's list, coefficient slot, and the slot's temperature function (the ChemSage
+ * excess basis code: 1 constant, 2 T, ...). set changes the value in memory only; the
+ * next energy evaluation uses it, and a writer then records it. Both return -1 for an
+ * index out of range. */
+MQMQA_API int mqmqa_db_num_params(const mqmqa_db *db);
+MQMQA_API int mqmqa_db_param_info(const mqmqa_db *db, int i, int *phase, int *kind,
+                                  int *term, int *slot, int *tfun);
+MQMQA_API double mqmqa_db_param_get(const mqmqa_db *db, int i);
+MQMQA_API int mqmqa_db_param_set(mqmqa_db *db, int i, double value);
 
 /* --- Writers (src/db_write.c) ---
  * Serialize a loaded database in another format. Each returns the whole file as a
@@ -174,6 +210,36 @@ MQMQA_API void mqmqa_enumerate_quadruplets(int n_cat, int n_an,
 MQMQA_API double mqmqa_equilibrate_db(const mqmqa_db *db, int phase, double T,
                                       const double *target_elem,
                                       double *X_out, double *err_out);
+
+/* The calls below take el_keep, a flag per database element (NULL: all present). An ion
+ * whose element is not flagged is taken out of the phase, with every quadruplet, pair and
+ * excess term naming it; its weight is zero then, so the energy of what remains is the
+ * same. A subsystem of a larger database can so use its liquid. They fail (NaN or -1) if
+ * a sublattice would be left empty. */
+
+/* mqmqa_equilibrate_db restricted to the elements el_keep flags; returns GM per mole of
+ * atoms, or NaN. */
+MQMQA_API double mqmqa_equilibrate_sub_db(const mqmqa_db *db, int phase, double T,
+                                          const double *target_elem, const int *el_keep);
+
+/* Convenience over mqmqa_driving_force_minima (src/equil.c): the lowest points of
+ * G - mu.n for MQMQA phase `phase` at T, the composition free, with mu over the database
+ * elements. For each of up to max_out minima, lowest first, writes the ion fractions on
+ * each sublattice to y_out (all ions of the phase, cations then anions, max_out rows; a
+ * removed ion at 0), G per mole of atoms to g_out and the driving force G - mu.x per mole
+ * of atoms to df_out. Returns how many, or -1 with the reason in mqmqa_db_error(). */
+MQMQA_API int mqmqa_driving_force_db(const mqmqa_db *db, int phase, double T,
+                                     const double *mu_elem, const int *el_keep, int max_out,
+                                     double *y_out, double *g_out, double *df_out);
+
+/* Tangent conditions of MQMQA phase `phase` at T and a composition over the database
+ * elements. At its internal equilibrium every quadruplet present satisfies
+ * dG/dX_q - dG/dX_q0 = sum_e mu_e (n_e(q) - n_e(q0)), q0 the most abundant. Writes up to
+ * max_rows rows, the element amount differences to A_out (rows of mqmqa_db_num_elements)
+ * and the gradient differences to b_out. Returns the row count, or -1 on failure. */
+MQMQA_API int mqmqa_tangent_rows_db(const mqmqa_db *db, int phase, double T,
+                                    const double *target_elem, const int *el_keep, int max_rows,
+                                    double *A_out, double *b_out);
 
 /* Self-contained multiphase equilibrium (src/equilibrium.c) for a 3-cation MQMQA
  * system: generates candidates from the liquid (`liq_phase`), the CEF solid solutions

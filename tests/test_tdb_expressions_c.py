@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCES = ["mqmqa.c", "cs_dat.c", "cef.c", "gas.c", "equil.c", "hull.c", "equilibrium.c",
+SOURCES = ["mqmqa.c", "cs_dat.c", "cef.c", "gas.c", "equil.c", "hull.c", "equilibrium.c", "gem.c",
            "tq.c", "db_write.c", "xtdb.c", "vis3d.c"]
 
 

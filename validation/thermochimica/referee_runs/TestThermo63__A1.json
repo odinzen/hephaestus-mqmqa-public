@@ -1,0 +1,415 @@
+ {
+ "1":
+ {
+   "solution phases": {
+     "gas_ideal": {
+       "phase model": "IDMX",
+       "moles": 0.0,
+       "driving force":   5.9887689678280944E+000,
+       "species": {
+         "Na": {
+           "mole fraction":   1.0443848882652436E-009 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "NaCl": {
+           "mole fraction":   1.4160323464462963E-006 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "AlCl3": {
+           "mole fraction":   2.3660295684724401E-003 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   3.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "Al2Cl6": {
+           "mole fraction":   6.5004921098156922E-007 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   6.0000000000000000      ,   2.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "NaAlCl4": {
+           "mole fraction":   1.3864765940153537E-004 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   4.0000000000000000      ,   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "Na2Al2Cl8": {
+           "mole fraction":   3.6852345303157744E-009 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   8.0000000000000000      ,   2.0000000000000000      ,   2.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Cl": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.74320305149967991      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Al": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.24320310217789132      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Na": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.3593846322428826E-002 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "MSsoln": {
+       "phase model": "SUBQ",
+       "moles":   8.9127186962371652E-002,
+       "driving force":   0.0000000000000000E+000,
+       "cations": {
+         "Na": {
+           "mole fraction":    1.3738950769217076E-005 ,
+           "charge":    1.0000000000000000      ,
+           "chemical group":            1
+         },
+         "Al": {
+           "mole fraction":   0.58864009716057863      ,
+           "charge":    3.0000000000000000      ,
+           "chemical group":            2
+         },
+         "Al2": {
+           "mole fraction":   0.41134616388865225      ,
+           "charge":    6.0000000000000000      ,
+           "chemical group":            2
+         }
+       },
+       "anions": {
+         "Cl": {
+           "mole fraction":    3.9556656713669050E-002 ,
+           "charge":   -1.0000000000000000      ,
+           "chemical group":            1
+         },
+         "Va": {
+           "mole fraction":   0.96044334328633085      ,
+           "charge":   -1.0000000000000000      ,
+           "chemical group":            1
+         }
+       },
+       "moles of endmembers":    2.9830112335395894E-002 ,
+       "endmembers": {
+         "NaCl": {
+           "mole fraction":    1.1156018793985587E-005 ,
+           "constituents": [ "Na", "Cl" ],
+           "stoichiometric coefficients": [   1.0000000000000000      ,   1.0000000000000000      ]
+           },
+         "Na": {
+           "mole fraction":    2.5829319752314872E-006 ,
+           "constituents": [ "Na", "Va" ],
+           "stoichiometric coefficients": [   1.0000000000000000      ,   1.0000000000000000      ]
+           },
+         "AlCl3": {
+           "mole fraction":    1.8390181384274843E-002 ,
+           "constituents": [ "Al", "Cl" ],
+           "stoichiometric coefficients": [   1.0000000000000000      ,   3.0000000000000000      ]
+           },
+         "Al": {
+           "mole fraction":   0.57024991577630380      ,
+           "constituents": [ "Al", "Va" ],
+           "stoichiometric coefficients": [   1.0000000000000000      ,   3.0000000000000000      ]
+           },
+         "Al2Cl6": {
+           "mole fraction":    1.7527438617036983E-002 ,
+           "constituents": [ "Al2", "Cl" ],
+           "stoichiometric coefficients": [   1.0000000000000000      ,   6.0000000000000000      ]
+           },
+         "Al2": {
+           "mole fraction":   0.39381872527161510      ,
+           "constituents": [ "Al2", "Va" ],
+           "stoichiometric coefficients": [   1.0000000000000000      ,   6.0000000000000000      ]
+           }
+       },
+       "quadruplets": {
+         "Na-Na-Cl-Cl": {
+           "mole fraction":   2.4734735988368911E-010 ,
+           "moles":  2.2045374389002585E-011,
+           "chemical potential":  -180634.82086121262      ,
+           "constituents": [ "Na", "Na", "Cl", "Cl" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ],
+           "stoichiometry": [  0.33333333333333331      ,   0.0000000000000000      ,  0.33333333333333331      ]
+         },
+         "Al-Al-Cl-Cl": {
+           "mole fraction":   1.7822272812625725E-004 ,
+           "moles":  1.5884490410652862E-005,
+           "chemical potential":  -411252.88372571737      ,
+           "constituents": [ "Al", "Al", "Cl", "Cl" ],
+           "coordination numbers": [   4.7999999999999998      ,   4.7999999999999998      ,   1.6000000000000001      ,   1.6000000000000001      ],
+           "stoichiometry": [   1.2500000000000000      ,  0.41666666666666669      ,   0.0000000000000000      ]
+         },
+         "Al2-Al2-Cl-Cl": {
+           "mole fraction":   4.7881654887083980E-004 ,
+           "moles":  4.2675572071888904E-005,
+           "chemical potential":  -658004.47374551906      ,
+           "constituents": [ "Al2", "Al2", "Cl", "Cl" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   1.0000000000000000      ,   1.0000000000000000      ],
+           "stoichiometry": [   2.0000000000000000      ,  0.66666666666666663      ,   0.0000000000000000      ]
+         },
+         "Na-Al-Cl-Cl": {
+           "mole fraction":   1.2748641271605886E-005 ,
+           "moles":  1.1362505341306253E-006,
+           "chemical potential":  -382227.84630907624      ,
+           "constituents": [ "Na", "Al", "Cl", "Cl" ],
+           "coordination numbers": [   4.0000000000000000      ,   4.0000000000000000      ,   2.0000000000000000      ,   2.0000000000000000      ],
+           "stoichiometry": [   1.0000000000000000      ,  0.25000000000000000      ,  0.25000000000000000      ]
+         },
+         "Na-Al2-Cl-Cl": {
+           "mole fraction":   1.3607344369598571E-007 ,
+           "moles":  1.2127843256905871E-008,
+           "chemical potential":  -419319.64725973480      ,
+           "constituents": [ "Na", "Al2", "Cl", "Cl" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   1.7142857142857142      ,   1.7142857142857142      ],
+           "stoichiometry": [   1.1666666666666667      ,  0.33333333333333337      ,  0.16666666666666669      ]
+         },
+         "Al-Al2-Cl-Cl": {
+           "mole fraction":   5.8424657127679092E-004 ,
+           "moles":  5.2072253390311140E-005,
+           "chemical potential":  -534628.67873537971      ,
+           "constituents": [ "Al", "Al2", "Cl", "Cl" ],
+           "coordination numbers": [   4.7999999999999998      ,   6.0000000000000000      ,   1.2307691999999999      ,   1.2307691999999999      ],
+           "stoichiometry": [   1.6250000000000000      ,  0.54166666666666674      ,   0.0000000000000000      ]
+         },
+         "Na-Na-Va-Va": {
+           "mole fraction":   1.1185732558074202E-012 ,
+           "moles":  9.9695287701456711E-014,
+           "chemical potential":  -76255.324870023891      ,
+           "constituents": [ "Na", "Na", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ],
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,  0.33333333333333331      ]
+         },
+         "Al-Al-Va-Va": {
+           "mole fraction":  0.32968793625812948      ,
+           "moles":  2.9384158334116773E-002,
+           "chemical potential":  -15863.930402982609      ,
+           "constituents": [ "Al", "Al", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   2.0000000000000000      ,   2.0000000000000000      ],
+           "stoichiometry": [   0.0000000000000000      ,  0.33333333333333331      ,   0.0000000000000000      ]
+         },
+         "Al2-Al2-Va-Va": {
+           "mole fraction":  0.15357783895160826      ,
+           "moles":  1.3687960765516993E-002,
+           "chemical potential":  -31727.684680442660      ,
+           "constituents": [ "Al2", "Al2", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   1.0000000000000000      ,   1.0000000000000000      ],
+           "stoichiometry": [   0.0000000000000000      ,  0.66666666666666663      ,   0.0000000000000000      ]
+         },
+         "Na-Al-Va-Va": {
+           "mole fraction":   1.2145453606986918E-006 ,
+           "moles":  1.0824901143727342E-007,
+           "chemical potential":  -46059.627636074947      ,
+           "constituents": [ "Na", "Al", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   3.0000000000000000      ,   3.0000000000000000      ],
+           "stoichiometry": [   0.0000000000000000      ,  0.16666666666666666      ,  0.16666666666666666      ]
+         },
+         "Na-Al2-Va-Va": {
+           "mole fraction":   8.2894647194178314E-007 ,
+           "moles":  7.3881667186553669E-008,
+           "chemical potential":  -53991.504775228095      ,
+           "constituents": [ "Na", "Al2", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   1.7142857142857142      ,   1.7142857142857142      ],
+           "stoichiometry": [   0.0000000000000000      ,  0.33333333333333337      ,  0.16666666666666669      ]
+         },
+         "Al-Al2-Va-Va": {
+           "mole fraction":  0.45003449104739018      ,
+           "moles":  4.0110308223096518E-002,
+           "chemical potential":  -23795.807541373397      ,
+           "constituents": [ "Al", "Al2", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   1.3333333333333333      ,   1.3333333333333333      ],
+           "stoichiometry": [   0.0000000000000000      ,  0.50000000000000000      ,   0.0000000000000000      ]
+         },
+         "Na-Na-Cl-Va": {
+           "mole fraction":   3.3267169501616527E-011 ,
+           "moles":  2.9650092358794842E-012,
+           "chemical potential":  -128445.07286559042      ,
+           "constituents": [ "Na", "Na", "Cl", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ],
+           "stoichiometry": [  0.16666666666666666      ,   0.0000000000000000      ,  0.33333333333333331      ]
+         },
+         "Al-Al-Cl-Va": {
+           "mole fraction":   1.5330738198829101E-002 ,
+           "moles":  1.3663855697182141E-003,
+           "chemical potential":  -213558.40706434860      ,
+           "constituents": [ "Al", "Al", "Cl", "Va" ],
+           "coordination numbers": [   5.3333333333333330      ,   5.3333333333333330      ,   1.6000000000000001      ,   2.0000000000000000      ],
+           "stoichiometry": [  0.62500000000000000      ,  0.37500000000000000      ,   0.0000000000000000      ]
+         },
+         "Al2-Al2-Cl-Va": {
+           "mole fraction":   1.7150581428063232E-002 ,
+           "moles":  1.5285830774523707E-003,
+           "chemical potential":  -344866.07921296370      ,
+           "constituents": [ "Al2", "Al2", "Cl", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   1.0000000000000000      ,   1.0000000000000000      ],
+           "stoichiometry": [   1.0000000000000000      ,  0.66666666666666663      ,   0.0000000000000000      ]
+         },
+         "Na-Al-Cl-Va": {
+           "mole fraction":   4.7915203611306085E-006 ,
+           "moles":  4.2705473106049828E-007,
+           "chemical potential":  -183091.35514173977      ,
+           "constituents": [ "Na", "Al", "Cl", "Va" ],
+           "coordination numbers": [   5.1200000000000010      ,   5.1200000000000010      ,   2.4252631578947379      ,   2.7105882352941180      ],
+           "stoichiometry": [  0.41232638888888878      ,  0.19531249999999997      ,  0.19531249999999997      ]
+         },
+         "Na-Al2-Cl-Va": {
+           "mole fraction":   6.7170708222365759E-007 ,
+           "moles":  5.9867362701297083E-008,
+           "chemical potential":  -236655.57601745939      ,
+           "constituents": [ "Na", "Al2", "Cl", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   1.7142857142857142      ,   1.7142857142857142      ],
+           "stoichiometry": [  0.58333333333333337      ,  0.33333333333333337      ,  0.16666666666666669      ]
+         },
+         "Al-Al2-Cl-Va": {
+           "mole fraction":   3.2956736551981336E-002 ,
+           "moles":  2.9373412203380681E-003,
+           "chemical potential":  -283017.74276138924      ,
+           "constituents": [ "Al", "Al2", "Cl", "Va" ],
+           "coordination numbers": [   5.3485714654383676      ,   5.9904000329472007      ,   1.2126315710652633      ,   1.3552941088376469      ],
+           "stoichiometry": [  0.82465277282986094      ,  0.52083333020833322      ,   0.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Cl": {
+           "moles of element in phase":  4.9960462256324212E-003,
+           "mole fraction of phase by element":  0.10608068887851699      ,
+           "mole fraction of element by phase":   1.0000000000000115     
+         },
+         "Al": {
+           "moles of element in phase":  4.2100204778483738E-002,
+           "mole fraction of phase by element":  0.89391060913629938      ,
+           "mole fraction of element by phase":   1.0000000000000013     
+         },
+         "Na": {
+           "moles of element in phase":  4.0983444481621904E-007,
+           "mole fraction of phase by element":   8.7019851836430412E-006 ,
+           "mole fraction of element by phase":   1.0000000000000009     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "Na_solid(s)": {
+       "moles": 0.0,
+       "chemical potential":  -67758.533208766967      ,
+       "driving force":   1.9364741260839349E+001,
+       "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "Cl": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Al": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Na": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "NaCl_S1(s)": {
+       "moles": 0.0,
+       "chemical potential":  -510622.76751643943      ,
+       "driving force":   1.8811631577028116E+000,
+       "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "Cl": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.50000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Al": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Na": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.50000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "AlCl3_S1(s)": {
+       "moles": 0.0,
+       "chemical potential":  -869965.76542467915      ,
+       "driving force":   3.5191966379598263E+000,
+       "stoichiometry": [   3.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ],
+       "elements": {
+         "Cl": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.75000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Al": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.25000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Na": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "NaAlCl4_S1(s)": {
+       "moles": 0.0,
+       "chemical potential":  -1445577.6192071328      ,
+       "driving force":   1.6704552049633747E+000,
+       "stoichiometry": [   4.0000000000000000      ,   1.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "Cl": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.66666666666666663      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Al": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.16666666666666666      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Na": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.16666666666666666      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "elements": {
+     "Cl": {
+       "moles":    4.9960462256323631E-003 ,
+       "element potential":  -3.1313839211148216E+005
+     },
+     "Al": {
+       "moles":    4.2100204778483682E-002 ,
+       "element potential":  -4.7591636725477067E+004
+     },
+     "Na": {
+       "moles":    4.0983444481621867E-007 ,
+       "element potential":  -2.2876613220926042E+005
+     }
+   },
+   "temperature":    1000.0000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -3.5681652901357329E+003,
+   "entropy":   0.0000000000000000E+000,
+   "enthalpy":   0.0000000000000000E+000,
+   "heat capacity":   0.0000000000000000E+000,
+   "functional norm":    2.5235843053903882E-006 ,
+   "GEM iterations":           71 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            0
+ }
+ }

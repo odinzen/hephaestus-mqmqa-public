@@ -79,6 +79,31 @@ class Database(_GasConstantInfo):
         return [_s(_lib.mqmqa_db_phase_name(self._db, p))
                 for p in range(_lib.mqmqa_db_num_phases(self._db))]
 
+    @property
+    def R(self):
+        """The gas constant this database's calculations use, J/(mol K)."""
+        return _lib.mqmqa_db_R(self._db)
+
+    def beyond_data(self, elements=None, clear=False):
+        """Species whose energy was taken above the end of their data since the last clear,
+        the last range carried on: a list of (name, K where the data end, highest K used).
+        With `elements`, only species made of those elements (a TDB species, whose source
+        gives no stoichiometry, is always kept)."""
+        keep = None if elements is None else {e.upper() for e in elements}
+        els = [e.upper() for e, _ in self.elements]
+        out, buf = [], _ffi.new("double[]", max(len(els), 1))
+        for i in range(_lib.mqmqa_db_beyond_count(self._db)):
+            if keep is not None and _lib.mqmqa_db_beyond_elements(self._db, i, buf) == 0:
+                if any(buf[k] != 0.0 and els[k] not in keep for k in range(len(els))):
+                    continue
+            item = (_s(_lib.mqmqa_db_beyond_name(self._db, i)),
+                    _lib.mqmqa_db_beyond_top(self._db, i), _lib.mqmqa_db_beyond_T(self._db, i))
+            if item not in out:
+                out.append(item)
+        if clear:
+            _lib.mqmqa_db_beyond_clear(self._db)
+        return out
+
     def phase_index(self, name):
         return _lib.mqmqa_db_phase_index(self._db, name.encode())
 
@@ -164,6 +189,25 @@ class Database(_GasConstantInfo):
         p = self._phase(p)
         return _s(_lib.mqmqa_ph_excess_unsupported(self._db, p))
 
+    # --- excess coefficients as fit parameters ---
+    def params(self):
+        """Every excess coefficient, as dicts with index, phase name, kind ("mqmx" or
+        "cef"), term index, coefficient slot and its temperature-function code, and value."""
+        out = []
+        ph, kind, term, slot, tfun = (_ffi.new("int *") for _ in range(5))
+        for i in range(_lib.mqmqa_db_num_params(self._db)):
+            _lib.mqmqa_db_param_info(self._db, i, ph, kind, term, slot, tfun)
+            out.append({"index": i, "phase": self.phase_names[ph[0]],
+                        "kind": ("mqmx", "cef")[kind[0]], "term": term[0],
+                        "slot": slot[0], "tfun": tfun[0],
+                        "value": _lib.mqmqa_db_param_get(self._db, i)})
+        return out
+
+    def set_param(self, i, value):
+        """Set excess coefficient i in memory; later evaluations and writers use it."""
+        if _lib.mqmqa_db_param_set(self._db, int(i), float(value)) != 0:
+            raise IndexError(f"no excess parameter {i}, or a non-finite value")
+
     # --- CEF (SUBL) solution phases ---
     def phase_kind(self, p):
         """0 for MQMQA (SUBQ/SUBG), 1 for CEF (SUBL)."""
@@ -195,6 +239,27 @@ class Database(_GasConstantInfo):
             raise ValueError(f"phase {p} takes {n} site fractions, got {len(flat)}")
         Yc = _ffi.new("double[]", flat)
         return _lib.mqmqa_ph_cef_gibbs(self._db, p, Yc, float(T), 1 if per_mole_atoms else 0)
+
+    def ionic_constituents(self, p):
+        """(cations, second-sublattice constituents) of a SUBI ionic liquid, in file order."""
+        p = self._phase(p)
+        nc, na = _ffi.new("int *"), _ffi.new("int *")
+        if _lib.mqmqa_ph_ionic_size(self._db, p, nc, na):
+            raise ValueError(f"phase {p} of {self.source or 'database'} is not a SUBI phase")
+        names = [_s(_lib.mqmqa_ph_ionic_constituent(self._db, p, i)) for i in range(nc[0] + na[0])]
+        return names[:nc[0]], names[nc[0]:]
+
+    def ionic_gibbs(self, p, y, T):
+        """(G, element amounts) of one formula unit of a SUBI ionic liquid (P cation and Q
+        anion sites) at site fractions y, cations then the second sublattice. G per mole of
+        atoms is G / sum of the amounts."""
+        cats, rest = self.ionic_constituents(p)
+        flat = [float(v) for v in y]
+        if len(flat) != len(cats) + len(rest):
+            raise ValueError(f"phase {p} takes {len(cats) + len(rest)} site fractions, got {len(flat)}")
+        n_el = _ffi.new("double[]", len(self.elements))
+        g = _lib.mqmqa_ph_ionic_gibbs(self._db, int(p), _ffi.new("double[]", flat), float(T), n_el)
+        return g, {e: n_el[k] for k, (e, _) in enumerate(self.elements)}
 
     def cef_line_gibbs(self, p, y, T, per_mole_atoms=True):
         """(G, site fractions) of a CEF phase along its composition line: y is the

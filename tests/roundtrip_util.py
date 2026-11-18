@@ -50,6 +50,8 @@ def shipped_databases():
         out += [os.path.relpath(p, ROOT) for p in glob.glob(os.path.join(ROOT, "web", "*"))]
     files = sorted(p.replace("\\", "/") for p in out if p.lower().endswith(DB_EXT))
     files = [p for p in files if not p.startswith(NOT_THERMO_DIRS)]
+    # web/orchid holds third-party SGTE datasets, checked in validation/orchid, not our databases
+    files = [p for p in files if not p.startswith("web/orchid/")]
     return [os.path.join(ROOT, p) for p in files]
 
 

@@ -88,3 +88,54 @@ def test_self_contained_c_equilibrium_matches_pycalphad():
             assert abs(cgm - float(eq.GM.values.squeeze())) < 10.0
     finally:
         _lib.mqmqa_db_free(cdb)
+
+
+# On the edges of the triangle one cation is absent. The liquid there was solved with that
+# element at zero amount and came out 1.0-2.6 kJ/mol high; at 1473 K on the FeO-SiO2 edge the
+# calculator then reported cristobalite + olivine where the liquid is stable.
+EDGES = [
+    (1473.0, 0.62, 0.38),      # FeO-SiO2 edge: liquid
+    (1673.0, 0.60, 0.40),      # FeO-SiO2 edge: liquid
+    (2073.0, 0.00, 0.55),      # MgO-SiO2 edge: liquid
+    (1900.0, 0.00, 0.62),      # MgO-SiO2 edge: liquid + cristobalite
+]
+
+
+@pytest.mark.skipif(not (DDIR / "build_combined_dat.py").exists(), reason="combined driver missing")
+def test_ternary_calculator_on_the_edges_matches_pycalphad():
+    from pycalphad import Database, equilibrium, variables as v
+    dbf = Database(str(DDIR / "FeO-MgO-SiO2-combined.dat"))
+    text = open(DDIR / "FeO-MgO-SiO2-combined.dat", encoding="utf-8").read()
+    cdb = _lib.mqmqa_db_read_string(text.encode())
+    try:
+        els = [_ffi.string(_lib.mqmqa_db_element(cdb, e)).decode()
+               for e in range(_lib.mqmqa_db_num_elements(cdb))]
+        iFE, iSI = els.index("FE"), els.index("SI")
+        liq = _lib.mqmqa_db_phase_index(cdb, b"FEO-MGO-SIO2-LIQUID")
+        cefs = _ffi.new("int[]", [_lib.mqmqa_db_phase_index(cdb, n)
+                                  for n in (b"OLIVINE", b"ORTHOPYROXENE", b"MAGNESIOWUSTITE")])
+
+        def tagname(t):
+            if t >= 0:
+                return _key(_ffi.string(_lib.mqmqa_db_phase_name(cdb, t)).decode())
+            return _ffi.string(_lib.mqmqa_db_stoich_name(cdb, -t - 1)).decode()
+
+        for T, x_fe, x_si in EDGES:
+            po = _ffi.new("int[]", 8); am = _ffi.new("double[]", 8); gm = _ffi.new("double[]", 1)
+            m = _lib.mqmqa_equilibrium_ternary(cdb, liq, cefs, 3, T, 120, 60,
+                                               iFE, iSI, x_fe, x_si, po, am, 8, gm)
+            assert m > 0
+            cset = {tagname(po[k]) for k in range(m) if am[k] > 1e-3}
+            x_mg = 1 - x_fe - x_si
+            O = x_fe + x_mg + 2 * x_si
+            tot = 1 + O
+            comps = [e for e, x in (("FE", x_fe), ("MG", x_mg), ("SI", x_si)) if x > 0] + ["O"]
+            conds = {v.T: T, v.P: 1e5, v.N: 1}
+            conds.update({v.X(e): x / tot for e, x in (("FE", x_fe), ("MG", x_mg), ("SI", x_si)) if x > 0})
+            eq = equilibrium(dbf, comps, ["FEO-MGO-SIO2-LIQUID", "OLIVINE", "ORTHOPYROXENE",
+                                          "MAGNESIOWUSTITE", "CRISTOBALITE"], conds)
+            pset = {_key(str(p)) for p in np.ravel(eq.Phase.values.squeeze()) if str(p) and str(p) != "nan"}
+            assert cset == pset, (T, x_fe, x_si, cset, pset)
+            assert abs(gm[0] / tot - float(eq.GM.values.squeeze())) < 10.0
+    finally:
+        _lib.mqmqa_db_free(cdb)

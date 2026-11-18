@@ -278,3 +278,27 @@ def test_group_override_strings_refused():
     override = "     0.00000000     0.00000000\n  -1\n 1 2 3 4 5 6 7 8 9 10\n"
     patched = head + " TERN_XS_111" + body[:-len(marker)] + override + " TERN_XS_121" + rest
     _refused(Database.read_string(patched), "TERN_XS_111", r"override strings", raw=False)
+
+
+def test_reciprocal_term_refused(tmp_path):
+    """A term mixing two cations and two anions at once has no form here; refused."""
+    src = tmp_path / "recip_term.utdb"
+    src.write_text(_utdb(["NA", "K"], ["F", "CL"], [1, 1], [1, 1],
+                         [("Q", "NA", "K", "F", "CL", 1, 1, 0, None, -5000)]))
+    _refused(Database.read(str(src)), "L", r"two cations and two anions")
+
+
+def test_additional_constituent_on_anion_mixing_term_refused(tmp_path):
+    """An additional constituent on an anion-mixing term is not modelled. Both readers refuse
+    the file before the engine sees the term: the uTDB reader and, in ChemSage form, the
+    .dat reader (an additional constituent must be a cation)."""
+    terms = [("Q", "K", "K", "F", "CL", 1, 1, 1, "BR", -3000)]
+    with pytest.raises(OSError, match="ternary cation not in the phase"):
+        Database.read_string(_utdb(["K"], ["F", "CL", "BR"], [1], [1, 1, 1], terms))
+    dat = _as_dat(tmp_path, "an_bin", ["K"], ["F", "CL", "BR"], [1], [1, 1, 1],
+                  [("Q", "K", "K", "F", "CL", 1, 1, 0, None, -3000)]).read_text()
+    head, data = " Q   1   1   2   3   1   1   0   0\n", "   0   0   -3000"
+    assert head in dat and data in dat
+    dat = dat.replace(head, " Q   1   1   2   3   1   1   1   0\n").replace(data, "   4   0   -3000")
+    with pytest.raises(OSError, match="additional cation mixing constituent out of range"):
+        Database.read_string(dat)

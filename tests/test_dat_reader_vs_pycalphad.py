@@ -29,7 +29,9 @@ import mqmqa
 
 DBDIR = Path(pycalphad.__file__).parent / "tests" / "databases"
 SHISHIN = DBDIR / "Shishin_Fe-Sb-O-S_slag.dat"
-T = 1873.0
+# inside every case's data: Shishin's Sb2O3 ends at 1729 K, above which pycalphad's MQMQA
+# takes zero while Hephaestus carries the last range on (and flags it)
+T = 1700.0
 
 # (file, phase, components). Chosen to span: SUBQ reciprocal slag; SUBG binary
 # salt with Q and G excess; SUBG salt with two cation charges.

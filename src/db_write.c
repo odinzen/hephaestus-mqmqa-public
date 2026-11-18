@@ -42,7 +42,7 @@ typedef struct {
     TextBuf head, body;
     int bad;
     /* conventions the header has to explain, found while writing the body */
-    int used_unknown_lo, used_zero_tail, renamed_ion;
+    int used_unknown_lo, used_data_end, renamed_ion;
 } W;
 
 static void wfail(W *w, const char *fmt, ...) FMT_PRINTF(2, 3);
@@ -314,8 +314,8 @@ static double lo_of(W *w, double t_lo)
 }
 
 /* The piecewise tail of a G-type statement: " lo expr; t1 Y expr; ... tn N !".
- * A ChemSage endmember is zero above its last t_max, while the TDB reader extends
- * the last interval; an explicit zero interval keeps the source's value there. */
+ * The last limit is where the source's data end; every reader carries the last range on
+ * above it and flags the use, so no interval is added there. */
 static void tdb_piecewise(W *w, const Endmember *em, const char *who)
 {
     char num[40];
@@ -340,9 +340,8 @@ static void tdb_piecewise(W *w, const Endmember *em, const char *who)
             double top = (!isnan(em->t_top) && em->t_top < OPEN_T) ? em->t_top : iv->t_max;
             OUT(";  %s N !\n", tb_num(num, top));
         } else {
-            char top[40];
-            OUT(";  %s Y\n    0;  %s N !\n", tb_num(num, iv->t_max), tb_num(top, OPEN_T));
-            w->used_zero_tail = 1;
+            OUT(";  %s N !\n", tb_num(num, iv->t_max));
+            w->used_data_end = 1;
         }
     }
 }
@@ -486,6 +485,12 @@ static int any_nonzero(const double *v, int n)
 static void tdb_cef_phase(W *w, const Phase *ph, char magc)
 {
     const SublPhase *cf = ph->cef;
+    if (cf->cs_type[0])
+        wfail(w, "phase %s is a ChemSage %s phase, which the writers do not carry yet",
+              ph->name, cf->cs_type);
+    if (cf->n_hx)
+        wfail(w, "phase %s has ternary or quaternary mixing on a sublattice, which the "
+              "writers do not carry yet", ph->name);
     char num[40], arr[1024], who[256];
     int pick[64];
     OUT("\n PHASE %s %%%s  %d ", ph->name, magc ? (char[]){magc, 0} : "", cf->n_subl);
@@ -635,6 +640,12 @@ static int check_lossy(W *w, const char *fmt_name)
                  "modeling, so a converted file would silently drop it", fmt_name, w->db->lossy);
         return 0;
     }
+    for (int p = 0; p < w->db->n_phases; ++p)
+        if (w->db->phases[p].kind == 2) {
+            wfail(w, "cannot write %s: phase %s is a SUBI ionic liquid, which the writers do "
+                     "not hold", fmt_name, w->db->phases[p].name);
+            return 0;
+        }
     return 1;
 }
 
@@ -781,8 +792,9 @@ static char *write_tdb(const Db *db, const char *source, int unified)
     if (w->used_unknown_lo)
         tb_putf(&w->head, "$ A lower limit of %s K marks one the source did not give.\n",
                 tb_num(num, UNKNOWN_LO));
-    if (w->used_zero_tail)
-        tb_putf(&w->head, "$ A final zero interval keeps ChemSage data zero above their last limit.\n");
+    if (w->used_data_end)
+        tb_putf(&w->head, "$ A last limit below 1E+12 is where the source's data end; above it the last\n"
+                          "$ range is carried on, and Hephaestus flags the use.\n");
     if (w->renamed_ion)
         tb_putf(&w->head, "$ Ions named by element alone carry their charge here (O -> O-2).\n");
     tb_putf(&w->head, "$\n ELEMENT /-   ELECTRON_GAS  0  0  0 !\n ELEMENT VA   VACUUM  0  0  0 !\n");
@@ -889,7 +901,10 @@ static void dat_endmember(W *w, const Endmember *em, const char *name, const dou
     OUT("\n");
     for (int k = 0; k < em->n_intervals; ++k) {
         const Interval *iv = &em->intervals[k];
-        OUT("   %s", tb_num(num, iv->t_max));
+        /* a TDB source's last range is open here; its stated end becomes the ChemSage limit */
+        const int open_end = k == em->n_intervals - 1 && iv->t_max >= OPEN_T
+                             && !isnan(em->t_top) && em->t_top < OPEN_T;
+        OUT("   %s", tb_num(num, open_end ? em->t_top : iv->t_max));
         for (int i = 0; i < db->n_gibbs; ++i) OUT("   %s", tb_num(num, iv->coeff[i]));
         OUT("\n");
         if (has_add) {
@@ -917,6 +932,12 @@ static int dat_cef_phase(W *w, const Phase *ph)
 {
     const Db *db = w->db;
     const SublPhase *cf = ph->cef;
+    if (cf->cs_type[0])
+        wfail(w, "phase %s is a ChemSage %s phase, which the writers do not carry yet",
+              ph->name, cf->cs_type);
+    if (cf->n_hx)
+        wfail(w, "phase %s has ternary or quaternary mixing on a sublattice, which the "
+              "writers do not carry yet", ph->name);
     char num[40], nm[NAME_MAX * 4];
     double num_atoms = 1.0, *stoich = NULL;
     int total = 1, *pick = NULL, *listed = NULL, n_list = 0;
@@ -1266,10 +1287,7 @@ static void xtdb_gibbs(XW *x, const Endmember *em, const char *id, const char *p
             tb_putf(&x->tp, " HighT=\"%s\"", tb_num(num, em->t_top));
         tb_putf(&x->tp, k == 0 ? " >\n" : " />\n");
     }
-    if (!last_open) {   /* ChemSage data are zero above their last limit */
-        tb_putf(&x->tp, "  <Trange Expr=\"0;\" HighT=\"%s\" />\n", tb_num(num, OPEN_T));
-        w->used_zero_tail = 1;
-    }
+    if (!last_open) w->used_data_end = 1;   /* the last HighT is where the data end */
     tb_putf(&x->tp, "</TPfun>\n");
     snprintf(e, sizeof e, "+%s;", fid);
     xtdb_param(x, id, e);
@@ -1279,6 +1297,12 @@ static void xtdb_cef_phase(XW *x, const Phase *ph)
 {
     W *w = x->w;
     const SublPhase *cf = ph->cef;
+    if (cf->cs_type[0])
+        wfail(w, "phase %s is a ChemSage %s phase, which the writers do not carry yet",
+              ph->name, cf->cs_type);
+    if (cf->n_hx)
+        wfail(w, "phase %s has ternary or quaternary mixing on a sublattice, which the "
+              "writers do not carry yet", ph->name);
     char num[40], arr[512], id[640], who[640], e[XTDB_EXPR + 8];
     int pick[8], mixing = 0;
     if (cf->magnetic) {
@@ -1458,8 +1482,9 @@ static char *write_xtdb(const Db *db, const char *source_name, int unused)
     if (w->used_unknown_lo)
         tb_putf(&w->head, "     A LowT of %s K marks a limit the source did not give.\n",
                 tb_num(num, UNKNOWN_LO));
-    if (w->used_zero_tail)
-        tb_putf(&w->head, "     A final zero range keeps ChemSage data zero above their last limit.\n");
+    if (w->used_data_end)
+        tb_putf(&w->head, "     A last HighT is where the source's data end; above it the last range is\n"
+                          "     carried on, and Hephaestus flags the use.\n");
     tb_putf(&w->head, "-->\n<Defaults LowT=\"%s\"",
             tb_num(num, isnan(db->lim_lo) ? UNKNOWN_LO : db->lim_lo));
     if (!isnan(db->lim_hi)) tb_putf(&w->head, " HighT=\"%s\"", tb_num(a, db->lim_hi));

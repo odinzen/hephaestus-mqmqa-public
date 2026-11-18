@@ -48,6 +48,13 @@ Then `pip install -e python` and `import mqmqa`. The browser build is
 `bash scripts/build_wasm.sh` (emscripten), which writes `web/hephaestus.js`. Run the tests
 with `pytest` from the repository root in an environment that also has pycalphad and Cantera.
 
+## Learning the model
+
+[notebooks/LearnMQMQA](notebooks/LearnMQMQA/LearnMQMQA.ipynb) works through the MQMQA with the
+shipped databases: what a slag database holds, how the short-range order forms along the
+FeO-SiO2 join, what one excess parameter does, which solids crystallize as a slag cools, and the
+same model written in TDB notation. The test suite runs it, so it always matches the engine.
+
 ## What is where
 
 | Path | Contents |
@@ -61,6 +68,8 @@ with `pytest` from the repository root in an environment that also has pycalphad
 | `docs/` | design notes and the unified `.utdb` format specification |
 | `cef/` | the Python prototype of the compound-energy-formalism kernel |
 | `paper/` | the JORS manuscript, its figures and the S1 primer |
+| `notebooks/` | teaching notebooks, run by the test suite so they stay current |
+| `validation/` | the sealed cross-checks against Thermochimica, published FactSage results and measured data, and the checks behind the ORCHID shelf (`validation/orchid/`) |
 | `LICENSE`, `NOTICE` | the licence, and the third-party notices (pycalphad) |
 
 ## Scope and honest positioning
@@ -90,9 +99,30 @@ check of the model.
 Other parts consulted third-party source as follows:
 
 - `src/cs_dat.c`, ChemSage .dat reader: the SUBQ/SUBG/SUBL block grammar follows
-  pycalphad's `pycalphad/io/cs_dat.py`, which was read while writing it.
+  pycalphad's `pycalphad/io/cs_dat.py`, which was read while writing it. The IDMX and RKMP(M)
+  blocks (ideal and Redlich-Kister-Muggianu solutions) and the magnetic records of SUBLM and
+  RKMPM were written from the data files themselves and the standard form of those models
+  (the Inden-Hillert-Jarl magnetic term the TDB reader already used); no other program's
+  source was read for them. The SUBI block (the two-sublattice ionic liquid) was written from
+  Sundman, Calphad 15 (1991) 109-119 for the model and every excess term, and from the data
+  files for the layout, as were FactSage 8's "= ... =" line annotations; no other program's
+  source was read for it. pycalphad's ionic liquid was run as a program to compare against.
+  The QKTO block (Kohler polynomial solutions) was written from Pelton, Calphad 12 (1988)
+  127-142, eqs. 7 and 12, with the term layout confirmed against Kaye, Lewis and Thompson,
+  J. Nucl. Mater. 366 (2007) 8-27; no other program's source was read for it. pycalphad's
+  ChemSage reader was run as a program to compare against.
 - `src/cs_dat.c`, TDB reader: pycalphad's `pycalphad/io/tdb.py` was read to match its
-  handling of expressions.
+  handling of expressions. The Thermo-Calc dialect of the SGTE binary collection (abbreviated
+  keywords, empty ",," temperature limits, the "*" constituent, BM/BMAG, type definitions
+  declared after their phases, energy-bearing parameter types refused) was added on
+  16 November 2026 from the files themselves and the Thermo-Calc conventions they rely on, and
+  checked by running pycalphad as a program; no other program's source was read for it.
+- `src/gem.c`, the general equilibrium solver: written from published methods, the
+  hull-and-refinement scheme of Lukas, Fries and Sundman (Computational Thermodynamics, 2007),
+  column generation (Dantzig and Wolfe, 1960), quasi-Newton steps (Nocedal and Wright, 2006),
+  and linear-programming duality for a bulk on a face of the phases' compositions; no other
+  equilibrium program's source was read for it. Thermochimica (BSD-3) was run as a program,
+  its source unopened, for the blind comparison in `validation/thermochimica/`.
 - `src/tq.c`: function signatures follow OpenCalphad's OCASI C binding (`octqc.h`,
   `liboctqisoc.F90`), which were read; no OpenCalphad model code was translated.
 - `src/xtdb.c`: written from the published XTDB specification (Sundman's XTDB repository
@@ -101,6 +131,10 @@ Other parts consulted third-party source as follows:
   Sundman's XTDB repository (GPL-3.0, documents only); the magnetic model Ids follow the
   writer of pycalphad-xtdb (Odinzen, MIT). The MQMQA form it writes is our proposal
   (`docs/XTDB_MQMQA_PROPOSAL.md`).
+- `validation/fig4_comparison/`: pycalphad is run as a program on the shipped FeO-MgO-SiO2
+  file. Two pycalphad files, `pycalphad/core/calculate.py` and `pycalphad/core/workspace.py`,
+  were opened on 16 November 2026 only to read the default sampling density of `equilibrium`
+  (pdens 60); no code was taken from them.
 
 The equations themselves are published in:
 
@@ -315,6 +349,19 @@ locally:
 
     cd web && python -m http.server 8123
 
+A second tab runs [Hermes](https://github.com/odinzen/hermes) 0.3.0 (MIT,
+doi:10.5281/zenodo.23923573), which combines the free energies of competing
+configurations into the free energy of the whole system (zentropy) and gives volume,
+thermal expansion, entropy, heat capacity, bulk modulus, configuration probabilities and
+the pressure-temperature phase diagram. It runs Hermes unchanged in Python in a Web Worker
+(`web/hermes_worker.js`) on Pyodide, served from this site like everything else. The Python
+runtime (about 40 MB) is not tracked in git; fetch it, and rebuild the Hermes wheel and the
+Fe3Pt example in `web/hermes/`, with
+
+    python scripts/build_hermes_web.py --hermes-repo <clone of odinzen/hermes>
+
+Without it the rest of the page works and the Hermes tab says what is missing.
+
 The hosted site is the `gh-pages` branch: the tracked contents of `web/` at the branch
 root, no CI and no build step. GitHub Pages serves it once enabled (Settings -> Pages ->
 Deploy from a branch -> `gh-pages`, `/ (root)`). After changing `web/` on `main`,
@@ -346,3 +393,12 @@ Two pieces of third-party data keep their own terms. `data/gas/nasa_gas.dat` (an
 `web/nasa_gas.dat`) reproduces GRI-Mech 3.0 gas thermochemistry; see `data/gas/PROVENANCE.md`.
 `data/wet-slag/aqueous/phreeqc_slag.dat` is built on the USGS PHREEQC databases `phreeqc.dat`
 and `wateq4f`; only the slag phases appended to it are ours (see that folder's README).
+
+`web/orchid/sgte-binary/` holds binary datasets of the SGTE collection, B. Hallstedt, "The SGTE
+collection of binary datasets", Calphad 89 (2025) 102833, doi:10.1016/j.calphad.2025.102833,
+published under CC BY 4.0 and redistributed unchanged as ORCHID distributes them
+(orchid-project.org; R. Arróyave, J. Saal, D. Shin). They keep that licence; each file's header
+names the original assessment, which work that uses it should cite. Every dataset the engine reads is included;
+those that agree with pycalphad and whose parameters all trace to checked publications are marked
+checked, and the rest carry "check before use" with what could not be traced.
+`scripts/import_orchid.py` builds the shelf and `validation/orchid/` records the checks.

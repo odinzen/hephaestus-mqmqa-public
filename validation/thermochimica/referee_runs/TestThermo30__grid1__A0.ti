@@ -1,0 +1,14 @@
+temperature       = 1255.0
+pressure          = 1.0
+mass(74)          = 0.13501540273853507
+mass(79)          = 0.5703500072286409
+mass(18)          = 0.47821383726496397
+mass(8)           = 2.39106918584911
+temperature unit  = K
+pressure unit     = atm
+mass unit         = moles
+data file         = THERMOCHIMICA_DIR/data/WAuArO-1.dat
+print mode        = 0
+heat capacity     = .FALSE.
+write json        = .TRUE.
+output            = REPO_DIR/validation/thermochimica/referee_runs/TestThermo30__grid1__A0.json

@@ -1,0 +1,8298 @@
+{
+ "engine": {
+  "commit": "66560d7022ba1d6c0ec2972df01f82d98b7a2025",
+  "src_tree": "6df30aed831380b832ba50d824ad82db74d3bb7a",
+  "python_tree": "c69d321477899a35cfeb3481595c3a98d75aea0e",
+  "uncommitted_engine_changes": false,
+  "library": "mqmqa.dll",
+  "library_sha256": "7f288fecaa215fb12b30fd795a608828d9360a98e3aefbc4d724f80157a62a41",
+  "conditions_sha256": "7636ec13b46e08a92a3a55aa19980f71c87d5843c90fc1d490a479d72d97a116",
+  "python": "3.13.13"
+ },
+ "points": {
+  "TestSUBQNonuniformZeta": {
+   "class": "refused",
+   "reason": "the test changes the database in memory after reading it"
+  },
+  "TestThermo03": {
+   "class": "computed",
+   "T_K": 300.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "O": 1.0,
+    "C": 1.0
+   },
+   "G_total_J": -229707.7955484994,
+   "G_per_atom_J": -114853.8977742497,
+   "phases": [
+    {
+     "phase": "GAS_IDEAL",
+     "moles_of_atoms": 1.5000000000093614,
+     "x": {
+      "O": 0.6666666666625061,
+      "C": 0.3333333333374939
+     }
+    },
+    {
+     "phase": "C_GRAPHITE(S)",
+     "moles_of_atoms": 0.4999999999906387,
+     "x": {
+      "C": 1.0
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "O": -227985.74707471416,
+    "C": -1722.0484737852314
+   },
+   "certificate_J": 0.0,
+   "passes": 2,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo04": {
+   "class": "refused",
+   "reason": "input not accepted: T=None K, P=1.0 atm, unit moles"
+  },
+  "TestThermo05": {
+   "class": "refused",
+   "reason": "input not accepted: T=300.0 K, P=None atm, unit moles"
+  },
+  "TestThermo06": {
+   "class": "refused",
+   "reason": "input not accepted: T=2000.0 K, P=1.0 atm, amounts {}"
+  },
+  "TestThermo07": {
+   "class": "refused",
+   "reason": "input not accepted: T=-300.0 K, P=1.0 atm, amounts {'O': 1.0, 'C': 1.0}"
+  },
+  "TestThermo08": {
+   "class": "refused",
+   "reason": "input not accepted: T=300.0 K, P=-1.0 atm, amounts {'O': 1.0, 'C': 1.0}"
+  },
+  "TestThermo09": {
+   "class": "refused",
+   "reason": "input not accepted: T=300.0 K, P=1.0 atm, amounts {'O': -1.0, 'C': -1.0}"
+  },
+  "TestThermo10": {
+   "class": "refused",
+   "reason": "input not accepted: T=300.0 K, P=nan atm, amounts {'O': 1.0, 'C': 1.0}"
+  },
+  "TestThermo11": {
+   "class": "refused",
+   "reason": "input not accepted: T=1e+37 K, P=0.0 atm, amounts {'O': 1.0, 'C': 1.0}"
+  },
+  "TestThermo12": {
+   "class": "refused",
+   "reason": "input not accepted: T=300.0 K, P=1.0 atm, amounts {}"
+  },
+  "TestThermo13": {
+   "class": "refused",
+   "reason": "input not accepted: T=300.0 K, P=1.0 atm, unit elephants"
+  },
+  "TestThermo14": {
+   "class": "read",
+   "phases": [
+    "GAS_IDEAL",
+    "FCCN",
+    "FCCN",
+    "BCCN",
+    "BCCN",
+    "HCPN",
+    "HCPN",
+    "LIQN",
+    "SIGMA",
+    "FCCN",
+    "FCCN",
+    "BCCN",
+    "BCCN",
+    "HCPN",
+    "HCPN",
+    "LIQN",
+    "SIGMA",
+    "FCCN",
+    "FCCN",
+    "BCCN",
+    "BCCN",
+    "HCPN",
+    "HCPN",
+    "LIQN",
+    "SIGMA",
+    "FCCN",
+    "FCCN",
+    "BCCN",
+    "BCCN",
+    "HCPN",
+    "HCPN",
+    "LIQN",
+    "SIGMA",
+    "FCCN",
+    "FCCN",
+    "BCCN",
+    "BCCN",
+    "HCPN",
+    "HCPN",
+    "LIQN",
+    "SIGMA",
+    "LIQN"
+   ]
+  },
+  "TestThermo30": {
+   "class": "computed",
+   "T_K": 1455.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "W": 1.95,
+    "AU": 1.0,
+    "AR": 2.0,
+    "O": 10.0
+   },
+   "G_total_J": -462038.00729088794,
+   "G_per_atom_J": -30905.552327149697,
+   "phases": [
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 14.95,
+     "x": {
+      "W": 0.1304347826086957,
+      "AU": 0.06688963210702341,
+      "AR": 0.13377926421404682,
+      "O": 0.6688963210702341
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": 44526.839613978394,
+    "AU": 197387.18429613372,
+    "AR": -296038.03679377516,
+    "O": -15417.645524672937
+   },
+   "certificate_J": -9.094947017729282e-12,
+   "passes": 13,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo31": {
+   "class": "computed",
+   "T_K": 1000.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "W": 1.0,
+    "AU": 3.0,
+    "AR": 5.0,
+    "O": 2.0
+   },
+   "G_total_J": 282358.1233954712,
+   "G_per_atom_J": 25668.9203086792,
+   "phases": [
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 8.249997125254072,
+     "x": {
+      "W": 8.578459186407692e-38,
+      "AU": 0.3636357809439702,
+      "AR": 0.4545431234411869,
+      "O": 0.18182109561484283
+     }
+    },
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 2.75000287474593,
+     "x": {
+      "W": 0.3636359835050677,
+      "AU": 2.128206039281979e-06,
+      "AR": 0.45455244784851034,
+      "O": 0.18180944044038258
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": 150898.20444592813,
+    "AU": 312858.4787259182,
+    "AR": -186695.92949020935,
+    "O": 63182.0651114179
+   },
+   "certificate_J": -2.9103830456733704e-11,
+   "passes": 29,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo32": {
+   "class": "computed",
+   "T_K": 2452.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "W": 1.95,
+    "AU": 1.0,
+    "AR": 2.0,
+    "O": 10.0,
+    "NE": 10.0
+   },
+   "G_total_J": -8667681.920602249,
+   "G_per_atom_J": -347402.08098606206,
+   "phases": [
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 5.293385483402659,
+     "x": {
+      "AU": 0.09917779917116497,
+      "AR": 0.09923208664810414,
+      "NE": 0.4007950568512137,
+      "O": 0.40079505732951715
+     }
+    },
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 4.7895162224123355,
+     "x": {
+      "W": 0.09923208648494285,
+      "AU": 0.0991777990788976,
+      "NE": 0.40079505733655557,
+      "O": 0.400795057099604
+     }
+    },
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 14.867098294185007,
+     "x": {
+      "W": 0.09919395720773261,
+      "AR": 0.0991939572785352,
+      "NE": 0.4008060428038478,
+      "O": 0.40080604270988446
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": -218111.87318154078,
+    "AU": -78773.28139471982,
+    "AR": -525518.4345083884,
+    "NE": -483326.99582719174,
+    "O": -227928.36592148285
+   },
+   "certificate_J": 0.0,
+   "passes": 70,
+   "exact_finish": true,
+   "seconds": 0.12
+  },
+  "TestThermo33": {
+   "class": "computed",
+   "T_K": 900.0,
+   "P_atm": 2.0,
+   "amounts": {
+    "W": 20.0,
+    "AU": 2.0,
+    "AR": 7.0,
+    "O": 5.0,
+    "NE": 1.0
+   },
+   "G_total_J": 3064797.5051560234,
+   "G_per_atom_J": 87565.64300445782,
+   "phases": [
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 32.344200240829245,
+     "x": {
+      "W": 0.6183488802036543,
+      "AR": 0.21642210703800413,
+      "NE": 0.030917444010183447,
+      "O": 0.13431156874815803
+     }
+    },
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 2.655799759170755,
+     "x": {
+      "W": 1.766403665874264e-13,
+      "AU": 0.7530688234659974,
+      "AR": 1.2584011328150411e-08,
+      "O": 0.24693116394981462
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": 176225.78196861787,
+    "AU": 261569.60947913214,
+    "AR": -172227.30713477795,
+    "NE": -181737.8655370308,
+    "O": 80894.33246117589
+   },
+   "certificate_J": -2.7284841053187847e-11,
+   "passes": 120,
+   "exact_finish": true,
+   "seconds": 0.39
+  },
+  "TestThermo40": {
+   "class": "computed",
+   "T_K": 2250.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.8,
+    "RU": 0.2
+   },
+   "G_total_J": -144372.58557330133,
+   "G_per_atom_J": -144372.58557330133,
+   "phases": [
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "RU": 0.2,
+      "MO": 0.8
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -164722.49809518727,
+    "MO": -139285.10744282987
+   },
+   "certificate_J": -5.820766091346741e-11,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo41": {
+   "class": "computed",
+   "T_K": 2250.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 4.3,
+    "RU": 4.5
+   },
+   "G_total_J": -1306236.5665479945,
+   "G_per_atom_J": -148435.973471363,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 8.799999999999999,
+     "x": {
+      "RU": 0.5113636363636365,
+      "MO": 0.4886363636363636
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -151187.58971523034,
+    "MO": -145556.37507661807
+   },
+   "certificate_J": -2.9103830456733704e-11,
+   "passes": 4,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo42": {
+   "class": "computed",
+   "T_K": 2310.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.22,
+    "TC": 0.78
+   },
+   "G_total_J": -155880.47209130804,
+   "G_per_atom_J": -155880.47209130804,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.6758264759276182,
+     "x": {
+      "TC": 0.8349913973030708,
+      "MO": 0.16500860269692919
+     }
+    },
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 0.32417352407238176,
+     "x": {
+      "TC": 0.665355713881891,
+      "MO": 0.33464428611810915
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "TC": -157065.7986230907,
+    "MO": -151677.95075135125
+   },
+   "certificate_J": -6.184563972055912e-11,
+   "passes": 105,
+   "exact_finish": true,
+   "seconds": 0.14
+  },
+  "TestThermo43": {
+   "class": "computed",
+   "T_K": 400.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "PD": 0.4,
+    "RU": 0.6
+   },
+   "G_total_J": -13377.028006363596,
+   "G_per_atom_J": -13377.028006363596,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.37658601967223504,
+     "x": {
+      "PD": 0.9945304314444536,
+      "RU": 0.005469568555546301
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.6234139803277651,
+     "x": {
+      "PD": 0.040861681295677035,
+      "RU": 0.9591383187043229
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -15557.515254972986,
+    "RU": -11923.369840624007
+   },
+   "certificate_J": 0.0,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo44": {
+   "class": "computed",
+   "T_K": 1000.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "PD": 40.0,
+    "TC": 60.0
+   },
+   "G_total_J": -5043088.448398217,
+   "G_per_atom_J": -50430.88448398217,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 100.0,
+     "x": {
+      "PD": 0.4,
+      "TC": 0.6
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -53808.59792404239,
+    "TC": -48179.07552394202
+   },
+   "certificate_J": -1.0913936421275139e-11,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo45": {
+   "class": "computed",
+   "T_K": 1234.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 1.0,
+    "RU": 99.0
+   },
+   "G_total_J": -5642820.397952218,
+   "G_per_atom_J": -56428.20397952218,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 100.0,
+     "x": {
+      "RU": 0.99,
+      "TC": 0.010000000000000012
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -55881.876150221375,
+    "TC": -110514.65908030169
+   },
+   "certificate_J": -9.549694368615746e-12,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo46": {
+   "class": "computed",
+   "T_K": 2250.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.55,
+    "RU": 0.45
+   },
+   "G_total_J": -154452.05966093065,
+   "G_per_atom_J": -154452.05966093065,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "RU": 0.44999999999999996,
+      "TC": 0.55
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -148025.3403485307,
+    "TC": -159710.28455289424
+   },
+   "certificate_J": -4.3655745685100555e-11,
+   "passes": 53,
+   "exact_finish": true,
+   "seconds": 0.06
+  },
+  "TestThermo47": {
+   "class": "computed",
+   "T_K": 1973.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.3,
+    "PD": 0.4,
+    "RU": 0.3
+   },
+   "G_total_J": -138528.53467941415,
+   "G_per_atom_J": -138528.53467941415,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.023270887424894637,
+     "x": {
+      "PD": 0.620506855055389,
+      "RU": 0.13193154756278802,
+      "MO": 0.24756159738182293
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.9767291125751054,
+     "x": {
+      "PD": 0.39474635276624154,
+      "RU": 0.3040042853089852,
+      "MO": 0.30124936192477325
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -147220.53281171978,
+    "RU": -119682.32088648231,
+    "MO": -145785.41762927172
+   },
+   "certificate_J": -1.0186340659856796e-10,
+   "passes": 18,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo48": {
+   "class": "computed",
+   "T_K": 1973.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.1,
+    "PD": 0.3,
+    "RU": 0.6
+   },
+   "G_total_J": -127255.52158400184,
+   "G_per_atom_J": -127255.52158400184,
+   "phases": [
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 0.30752801080188735,
+     "x": {
+      "PD": 0.7360751824715333,
+      "RU": 0.1376823204931739,
+      "MO": 0.1262424970352929
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.6924719891981128,
+     "x": {
+      "PD": 0.10633825552881133,
+      "RU": 0.8053160828958857,
+      "MO": 0.08834566157530287
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -141753.72311099275,
+    "RU": -112627.6163974178,
+    "MO": -171528.348122533
+   },
+   "certificate_J": -6.912159733474255e-11,
+   "passes": 18,
+   "exact_finish": true,
+   "seconds": 0.03
+  },
+  "TestThermo49": {
+   "class": "computed",
+   "T_K": 1900.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "PD": 0.874,
+    "TC": 0.125
+   },
+   "G_total_J": -128092.34441453002,
+   "G_per_atom_J": -128220.56497950952,
+   "phases": [
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 0.6767618155082648,
+     "x": {
+      "PD": 0.9035798148831357,
+      "TC": 0.09642018511686437
+     }
+    },
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.3222381844917351,
+     "x": {
+      "PD": 0.8145890110357162,
+      "TC": 0.18541098896428368
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -128776.23906904219,
+    "TC": -124335.29174549725
+   },
+   "certificate_J": -1.8189894035458565e-11,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo50": {
+   "class": "computed",
+   "T_K": 1234.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 1.0,
+    "RU": 99.0
+   },
+   "G_total_J": -5642820.397952218,
+   "G_per_atom_J": -56428.20397952218,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 100.0,
+     "x": {
+      "RU": 0.99,
+      "TC": 0.010000000000000012
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -55881.876150221375,
+    "TC": -110514.65908030169
+   },
+   "certificate_J": -9.549694368615746e-12,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo51": {
+   "class": "computed",
+   "T_K": 2250.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.55,
+    "RU": 0.45
+   },
+   "G_total_J": -154452.05966093065,
+   "G_per_atom_J": -154452.05966093065,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "RU": 0.44999999999999996,
+      "TC": 0.55
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -148025.3403485307,
+    "TC": -159710.28455289424
+   },
+   "certificate_J": -4.3655745685100555e-11,
+   "passes": 53,
+   "exact_finish": true,
+   "seconds": 0.06
+  },
+  "TestThermo52": {
+   "class": "computed",
+   "T_K": 1973.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.3,
+    "PD": 0.4,
+    "RU": 0.3
+   },
+   "G_total_J": -138528.53467941415,
+   "G_per_atom_J": -138528.53467941415,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.023270887424894637,
+     "x": {
+      "PD": 0.620506855055389,
+      "RU": 0.13193154756278802,
+      "MO": 0.24756159738182293
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.9767291125751054,
+     "x": {
+      "PD": 0.39474635276624154,
+      "RU": 0.3040042853089852,
+      "MO": 0.30124936192477325
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -147220.53281171978,
+    "RU": -119682.32088648231,
+    "MO": -145785.41762927172
+   },
+   "certificate_J": -1.0186340659856796e-10,
+   "passes": 18,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo53": {
+   "class": "computed",
+   "T_K": 973.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.1,
+    "PD": 0.3,
+    "RU": 0.6
+   },
+   "G_total_J": -49092.25575125146,
+   "G_per_atom_J": -49092.25575125146,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.2736854021133698,
+     "x": {
+      "PD": 0.8581144345588773,
+      "RU": 0.06198144504510277,
+      "MO": 0.07990412039601995
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.7263145978866304,
+     "x": {
+      "PD": 0.08969474950389951,
+      "RU": 0.8027328446732788,
+      "MO": 0.10757240582282176
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -51570.30204896526,
+    "RU": -42691.132599584,
+    "MO": -80064.85576811476
+   },
+   "certificate_J": -5.4569682106375694e-12,
+   "passes": 12,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo54": {
+   "class": "computed",
+   "T_K": 1800.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.01,
+    "PD": 0.09,
+    "MO": 0.9
+   },
+   "G_total_J": -105594.9947852898,
+   "G_per_atom_J": -105594.9947852898,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.08091834925276051,
+     "x": {
+      "PD": 0.4953687231933794,
+      "TC": 0.013208681093486201,
+      "MO": 0.49142259571313457
+     }
+    },
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 0.9190816507472396,
+     "x": {
+      "PD": 0.054310278751796726,
+      "TC": 0.009717499335176204,
+      "MO": 0.935972221913027
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -141550.03153771057,
+    "TC": -157976.00704550988,
+    "MO": -101417.47986271196
+   },
+   "certificate_J": -5.820766091346741e-11,
+   "passes": 17,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo55": {
+   "class": "computed",
+   "T_K": 300.0,
+   "P_atm": 1000.0,
+   "amounts": {
+    "V": 0.1,
+    "CR": 1.0,
+    "FE": 2.0,
+    "NI": 1.0,
+    "SN": 0.1,
+    "H": 1.0
+   },
+   "G_total_J": -44893.50774498211,
+   "G_per_atom_J": -8633.36687403502,
+   "phases": [
+    {
+     "phase": "FCC_A1",
+     "moles_of_atoms": 1.0852749292076282,
+     "x": {
+      "CR": 0.15223302371666872,
+      "FE": 0.015100105081463923,
+      "NI": 0.8322683684912698,
+      "SN": 2.1733773260250416e-07,
+      "V": 0.00039828537286489414
+     }
+    },
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 2.4310344460856452,
+     "x": {
+      "CR": 0.033411699032505494,
+      "FE": 0.7159849334686699,
+      "H": 0.20287114515438467,
+      "NI": 0.03980041183791675,
+      "SN": 1.6689637164496253e-08,
+      "V": 0.007931793816886199
+     }
+    },
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 1.4836922746304702,
+     "x": {
+      "CR": 0.5078952944607361,
+      "FE": 0.09640073335524103,
+      "H": 0.34158920059018133,
+      "NI": 2.5835259669436488e-06,
+      "SN": 3.69697683192424e-07,
+      "V": 0.05411181837019141
+     }
+    },
+    {
+     "phase": "FESN_B35",
+     "moles_of_atoms": 0.19999835007625663,
+     "x": {
+      "FE": 0.5,
+      "SN": 0.5
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CR": -9030.90492265954,
+    "FE": -8913.188708670601,
+    "H": -1740.7327111319726,
+    "NI": -10056.316691916498,
+    "SN": -45951.49340786816,
+    "V": -16440.266611460713
+   },
+   "certificate_J": -3.637978807091713e-12,
+   "passes": 30,
+   "exact_finish": true,
+   "seconds": 0.45
+  },
+  "TestThermo56": {
+   "class": "computed",
+   "T_K": 1400.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CU": 1.0,
+    "FE": 1.0,
+    "C": 1.0
+   },
+   "G_total_J": -173233.89645143208,
+   "G_per_atom_J": -57744.632150477366,
+   "phases": [
+    {
+     "phase": "LIQUID",
+     "moles_of_atoms": 1.0010169253358656,
+     "x": {
+      "CU": 0.9753873299068273,
+      "FE": 0.024587807500137178,
+      "C": 2.4862593035440813e-05
+     }
+    },
+    {
+     "phase": "FCC_A1",
+     "moles_of_atoms": 1.084086262732528,
+     "x": {
+      "CU": 0.02178864802287034,
+      "FE": 0.8997320804314216,
+      "C": 0.07847927154570798
+     }
+    },
+    {
+     "phase": "C_GRAPHITE(S)",
+     "moles_of_atoms": 0.9148968119316059,
+     "x": {
+      "C": 1.0
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CU": -75096.84811461522,
+    "FE": -74116.2340664866,
+    "C": -24020.814270330324
+   },
+   "certificate_J": -3.2741464155106446e-11,
+   "passes": 6,
+   "exact_finish": true,
+   "seconds": 0.43
+  },
+  "TestThermo57": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo58": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo59": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo60": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo61": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo62": {
+   "class": "computed",
+   "T_K": 2000.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CL": 2.0,
+    "AL": 1.0
+   },
+   "G_total_J": -963746.1758337248,
+   "G_per_atom_J": -321248.72527790826,
+   "phases": [
+    {
+     "phase": "GAS_IDEAL",
+     "moles_of_atoms": 2.518685219858959,
+     "x": {
+      "CL": 0.7500000000000001,
+      "AL": 0.25
+     }
+    },
+    {
+     "phase": "MSSOLN",
+     "moles_of_atoms": 0.4813147801410405,
+     "x": {
+      "CL": 0.23058939738617198,
+      "AL": 0.769410602613828
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CL": -411594.7948981635,
+    "AL": -140556.5860373978
+   },
+   "certificate_J": -8.985357867747832e-11,
+   "passes": 4,
+   "exact_finish": true,
+   "seconds": 5.86
+  },
+  "TestThermo63": {
+   "class": "computed",
+   "T_K": 1000.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CL": 3.0,
+    "AL": 1.0,
+    "NA": 1.0
+   },
+   "G_total_J": -1175837.1667624116,
+   "G_per_atom_J": -235167.43335248233,
+   "phases": [
+    {
+     "phase": "MSSOLN",
+     "moles_of_atoms": 4.952903339161439,
+     "x": {
+      "CL": 0.604696629165681,
+      "AL": 0.193401673650206,
+      "NA": 0.20190169718411302
+     }
+    },
+    {
+     "phase": "MSSOLN",
+     "moles_of_atoms": 0.04709666083856086,
+     "x": {
+      "CL": 0.106080688878516,
+      "AL": 0.8939106091363004,
+      "NA": 8.701985183643053e-06
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CL": -308498.4577597693,
+    "AL": -47468.71264650442,
+    "NA": -202873.08083659943
+   },
+   "certificate_J": -6.625688813735901e-11,
+   "passes": 19,
+   "exact_finish": true,
+   "seconds": 38.61
+  },
+  "TestThermo64": {
+   "class": "computed",
+   "T_K": 600.0,
+   "P_atm": 100.0,
+   "amounts": {
+    "NB": 1.0,
+    "ZR": 1.0,
+    "O": 1.0,
+    "H": 0.1
+   },
+   "G_total_J": -529924.1599778824,
+   "G_per_atom_J": -170943.27741222014,
+   "phases": [
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 1.7398389543966464,
+     "x": {
+      "H": 0.05681477101854079,
+      "NB": 0.025855358728353532,
+      "O": 0.3477253680809717,
+      "ZR": 0.569604502172134
+     }
+    },
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 0.45156366754882976,
+     "x": {
+      "H": 0.002549632395496521,
+      "NB": 0.993244530313498,
+      "O": 0.004205552641239201,
+      "ZR": 2.8464976643066665e-07
+     }
+    },
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 0.9085973780545241,
+     "x": {
+      "H": 1.39601333261738e-07,
+      "NB": 0.5574556003098422,
+      "O": 0.4326611477217747,
+      "ZR": 0.009883112367049807
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "H": -69389.1005696108,
+    "NB": -24772.301712159016,
+    "O": -419413.22061883914,
+    "ZR": -78799.72758992322
+   },
+   "certificate_J": -1.5279510989785194e-10,
+   "passes": 18,
+   "exact_finish": true,
+   "seconds": 0.16
+  },
+  "TestThermo65": {
+   "class": "computed",
+   "T_K": 400.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 1.0,
+    "TC": 1.0,
+    "RU": 1.0,
+    "PD": 1.0
+   },
+   "G_total_J": -44892.80578941038,
+   "G_per_atom_J": -11223.201447352594,
+   "phases": [
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.0624631540580498,
+     "x": {
+      "PD": 0.9299172882864611,
+      "RU": 0.003492971552535758,
+      "TC": 0.06658974016100311,
+      "MO": 1.6107586220558478e-142
+     }
+    },
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.8230558588445773,
+     "x": {
+      "PD": 0.004086006264662207,
+      "RU": 0.006595049317858816,
+      "TC": 0.44092178741418026,
+      "MO": 0.5483971570032987
+     }
+    },
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.1144809870973729,
+     "x": {
+      "PD": 0.0040809374647432384,
+      "RU": 0.8831606052719235,
+      "TC": 0.11254189910377665,
+      "MO": 0.00021655815955664876
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -10246.756270259999,
+    "RU": -4943.566985212288,
+    "TC": -16407.25141547173,
+    "MO": -13295.231118466361
+   },
+   "certificate_J": -3.637978807091713e-12,
+   "passes": 13,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo70": {
+   "class": "computed",
+   "T_K": 1500.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "O": 0.3,
+    "SN": 0.7
+   },
+   "G_total_J": -181211.872258373,
+   "G_per_atom_J": -181211.872258373,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.5700503648077997,
+     "x": {
+      "O": 0.5145758805710532,
+      "SN": 0.485424119428947
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.4299496351922002,
+     "x": {
+      "O": 0.015503749773381134,
+      "SN": 0.9844962502266188
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "O": -310505.14380369184,
+    "SN": -125800.47016752213
+   },
+   "certificate_J": -2.1827872842550278e-11,
+   "passes": 4,
+   "exact_finish": true,
+   "seconds": 0.06
+  },
+  "TestThermo71": {
+   "class": "computed",
+   "T_K": 2000.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "O": 0.1,
+    "CR": 0.2,
+    "ZR": 0.7
+   },
+   "G_total_J": -194029.80315794505,
+   "G_per_atom_J": -194029.80315794505,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.6058836749475969,
+     "x": {
+      "CR": 0.3300963292831344,
+      "O": 2.551843113479236e-06,
+      "ZR": 0.6699011188737521
+     }
+    },
+    {
+     "phase": "HCP_A3",
+     "moles_of_atoms": 0.3941163250524028,
+     "x": {
+      "CR": 5.817374457398423e-08,
+      "O": 0.2537282713843951,
+      "ZR": 0.7462716704418603
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CR": -126330.93480433439,
+    "O": -628949.9503653075,
+    "ZR": -151240.88737221065
+   },
+   "certificate_J": 0.0,
+   "passes": 19,
+   "exact_finish": true,
+   "seconds": 0.28
+  },
+  "TestThermo72": {
+   "class": "computed",
+   "T_K": 700.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TE": 0.8,
+    "CS": 0.2
+   },
+   "G_total_J": -90213.33506352067,
+   "G_per_atom_J": -90213.33506352067,
+   "phases": [
+    {
+     "phase": "IONIC_LIQUID",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "CS": 0.20000000000000007,
+      "TE": 0.8
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CS": -275754.2937534185,
+    "TE": -43828.09539103982
+   },
+   "certificate_J": -5.122274160385132e-09,
+   "passes": 13,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo73": {
+   "class": "computed",
+   "T_K": 2500.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CA": 1.0,
+    "MN": 1.0,
+    "S": 1.0
+   },
+   "G_total_J": -901530.1668842675,
+   "G_per_atom_J": -300510.0556280892,
+   "phases": [
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 0.06805971361027784,
+     "x": {
+      "CA": 0.9999965271523372,
+      "MN": 3.4727884661848996e-06,
+      "S": 5.919653153614608e-11
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.9323837479056905,
+     "x": {
+      "CA": 4.150887517181067e-06,
+      "MN": 0.9997281476420746,
+      "S": 0.0002677014704081854
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 1.9995565384840326,
+     "x": {
+      "CA": 0.466071668689713,
+      "MN": 0.03394226927393423,
+      "S": 0.4999860620363528
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CA": -210715.4156771918,
+    "MN": -201295.06768335335,
+    "S": -489519.6835237221
+   },
+   "certificate_J": 0.0,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo74": {
+   "class": "computed",
+   "T_K": 1900.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "FE": 2.0,
+    "MN": 4.0,
+    "S": 3.0
+   },
+   "G_total_J": -1944884.7883563996,
+   "G_per_atom_J": -216098.30981737774,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.1338898745824289,
+     "x": {
+      "FE": 0.772500258229489,
+      "MN": 0.22735520738389384,
+      "S": 0.00014453438661713756
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 8.866110125417572,
+     "x": {
+      "FE": 0.2139123031952455,
+      "MN": 0.44772277623956896,
+      "S": 0.3383649205651854
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "FE": -121309.586351222,
+    "MN": -155496.14699177555,
+    "S": -360093.67589561763
+   },
+   "certificate_J": 0.0,
+   "passes": 14,
+   "exact_finish": true,
+   "seconds": 0.04
+  },
+  "TestThermo75": {
+   "class": "computed",
+   "T_K": 1500.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "FE": 0.4,
+    "MN": 0.2,
+    "CA": 0.5
+   },
+   "G_total_J": -116594.09801237666,
+   "G_per_atom_J": -105994.63455670605,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 1.0999999999999999,
+     "x": {
+      "CA": 0.45454545454545453,
+      "FE": 0.36363636363636365,
+      "MN": 0.18181818181818182
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CA": -113841.29701166356,
+    "FE": -92132.43693971593,
+    "MN": -114102.37365329254
+   },
+   "certificate_J": -4.729372449219227e-11,
+   "passes": 8,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo76": {
+   "class": "computed",
+   "T_K": 2500.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TE": 0.5,
+    "CS": 1.0
+   },
+   "G_total_J": -559081.2997733537,
+   "G_per_atom_J": -372720.86651556916,
+   "phases": [
+    {
+     "phase": "IONIC_LIQUID",
+     "moles_of_atoms": 1.4999999999999996,
+     "x": {
+      "CS": 0.6666666666666666,
+      "TE": 0.33333333333333337
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CS": -478442.134683603,
+    "TE": -161278.33017950124
+   },
+   "certificate_J": -2.1827872842550278e-10,
+   "passes": 23,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo77": {
+   "class": "computed",
+   "T_K": 2500.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "NB": 1.0,
+    "O": 0.3,
+    "SN": 0.7
+   },
+   "G_total_J": -535982.4171791424,
+   "G_per_atom_J": -267991.2085895712,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.7984956091372984,
+     "x": {
+      "NB": 0.6223905983739785,
+      "O": 0.3753063166296641,
+      "SN": 0.0023030849963572683
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 1.2015043908627023,
+     "x": {
+      "NB": 0.4186616743604759,
+      "O": 0.0002659616495376427,
+      "SN": 0.5810723639899864
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "NB": -183696.3417543303,
+    "O": -593051.6852394515,
+    "SN": -249100.8140756804
+   },
+   "certificate_J": 0.0,
+   "passes": 20,
+   "exact_finish": true,
+   "seconds": 0.26
+  },
+  "TestThermo78": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: line 339: SUBI reciprocal term of two cations with Va and a neutral with more than one parameter"
+  },
+  "TestThermo80": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo81": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo82": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo83": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo84": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo85": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo86": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo87": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo88": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo89": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo90": {
+   "class": "computed",
+   "T_K": 673.15,
+   "P_atm": 1e-05,
+   "amounts": {
+    "I": 1.0,
+    "CS": 1.0
+   },
+   "G_total_J": -441869.3321740898,
+   "G_per_atom_J": -220934.6660870449,
+   "phases": [
+    {
+     "phase": "CSI_CSI_B2(S)",
+     "moles_of_atoms": 2.0,
+     "x": {
+      "CS": 0.5,
+      "I": 0.5
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CS": -349328.27972419193,
+    "I": -92541.05244989786
+   },
+   "certificate_J": -4.3655745685100555e-11,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo30__grid1": {
+   "class": "computed",
+   "T_K": 1255.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "W": 1.95,
+    "AU": 1.0,
+    "AR": 2.0,
+    "O": 10.0
+   },
+   "G_total_J": 160709.8003337488,
+   "G_per_atom_J": 10749.819420317646,
+   "phases": [
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 3.5746484330812502,
+     "x": {
+      "W": 0.03777026056298226,
+      "AU": 0.15955415417930055,
+      "AR": 0.1337792642317993,
+      "O": 0.6688963210259179
+     }
+    },
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 11.37535156691875,
+     "x": {
+      "W": 0.15955415413618654,
+      "AU": 0.037770260571185,
+      "AR": 0.13377926420846817,
+      "O": 0.6688963210841603
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": 90307.45709597932,
+    "AU": 247070.89438368767,
+    "AR": -252154.91553055122,
+    "O": 24184.91956740039
+   },
+   "certificate_J": -3.637978807091713e-12,
+   "passes": 38,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo30__grid2": {
+   "class": "computed",
+   "T_K": 1355.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "W": 1.95,
+    "AU": 1.0,
+    "AR": 2.0,
+    "O": 10.0
+   },
+   "G_total_J": -149243.7138445329,
+   "G_per_atom_J": -9982.857113346683,
+   "phases": [
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 12.706861057081491,
+     "x": {
+      "W": 0.1440571437503172,
+      "AU": 0.053267270970232865,
+      "AR": 0.13377926419973785,
+      "O": 0.6688963210797121
+     }
+    },
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 2.2431389429185074,
+     "x": {
+      "W": 0.05326727105421442,
+      "AU": 0.1440571436341383,
+      "AR": 0.133779264295104,
+      "O": 0.6688963210165433
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": 67710.51087861214,
+    "AU": 222595.01454736714,
+    "AR": -274056.49054409855,
+    "O": 4423.8756483003435
+   },
+   "certificate_J": -1.000444171950221e-11,
+   "passes": 50,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo30__grid3": {
+   "class": "computed",
+   "T_K": 1455.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "W": 1.95,
+    "AU": 1.0,
+    "AR": 2.0,
+    "O": 10.0
+   },
+   "G_total_J": -462038.00729088794,
+   "G_per_atom_J": -30905.552327149697,
+   "phases": [
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 14.95,
+     "x": {
+      "W": 0.1304347826086957,
+      "AU": 0.06688963210702341,
+      "AR": 0.13377926421404682,
+      "O": 0.6688963210702341
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": 44526.839613978394,
+    "AU": 197387.18429613372,
+    "AR": -296038.03679377516,
+    "O": -15417.645524672937
+   },
+   "certificate_J": -9.094947017729282e-12,
+   "passes": 13,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo30__grid4": {
+   "class": "computed",
+   "T_K": 1555.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "W": 1.95,
+    "AU": 1.0,
+    "AR": 2.0,
+    "O": 10.0
+   },
+   "G_total_J": -777348.1941355286,
+   "G_per_atom_J": -51996.53472478453,
+   "phases": [
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 14.95,
+     "x": {
+      "W": 0.13043478260869565,
+      "AU": 0.06688963210702341,
+      "AR": 0.13377926421404682,
+      "O": 0.6688963210702341
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": 20624.76777225843,
+    "AU": 171226.63718995033,
+    "AR": -318032.7774249881,
+    "O": -35272.75736314067
+   },
+   "certificate_J": -2.546585164964199e-11,
+   "passes": 10,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo30__grid5": {
+   "class": "computed",
+   "T_K": 1655.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "W": 1.95,
+    "AU": 1.0,
+    "AR": 2.0,
+    "O": 10.0
+   },
+   "G_total_J": -1095003.2371085363,
+   "G_per_atom_J": -73244.36368618972,
+   "phases": [
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 14.95,
+     "x": {
+      "W": 0.13043478260869565,
+      "AU": 0.06688963210702341,
+      "AR": 0.13377926421404682,
+      "O": 0.6688963210702341
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": -3555.4350770472806,
+    "AU": 144871.93869698944,
+    "AR": -340161.2823708083,
+    "O": -55261.9512663667
+   },
+   "certificate_J": -1.4551915228366852e-11,
+   "passes": 11,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo31__grid1": {
+   "class": "computed",
+   "T_K": 800.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "W": 1.0,
+    "AU": 3.0,
+    "AR": 5.0,
+    "O": 2.0
+   },
+   "G_total_J": 743714.1586588604,
+   "G_per_atom_J": 67610.3780598964,
+   "phases": [
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 2.749999978966523,
+     "x": {
+      "W": 0.36363636641764985,
+      "AU": 1.0472263782335378e-07,
+      "AR": 0.45454588472608376,
+      "O": 0.18181764413362866
+     }
+    },
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 8.250000021033475,
+     "x": {
+      "W": 5.975149934375595e-47,
+      "AU": 0.3636363278017227,
+      "AR": 0.45454531115191293,
+      "O": 0.1818183610463644
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": 193267.23964657768,
+    "AU": 359690.00457550935,
+    "AR": -146885.57127045302,
+    "O": 102902.38081900984
+   },
+   "certificate_J": -1.8189894035458565e-11,
+   "passes": 27,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo31__grid2": {
+   "class": "computed",
+   "T_K": 900.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "W": 1.0,
+    "AU": 3.0,
+    "AR": 5.0,
+    "O": 2.0
+   },
+   "G_total_J": 514414.5187709205,
+   "G_per_atom_J": 46764.956251901865,
+   "phases": [
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 8.249999630774184,
+     "x": {
+      "W": 7.303801914370143e-42,
+      "AU": 0.3636361938645101,
+      "AR": 0.454544775286855,
+      "O": 0.18181903084863496
+     }
+    },
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 2.750000369225816,
+     "x": {
+      "W": 0.36363631481312186,
+      "AU": 5.581387111174155e-07,
+      "AR": 0.4545474923208886,
+      "O": 0.18181563472727846
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": 172253.56515131536,
+    "AU": 336406.1275584737,
+    "AR": -166675.02262833496,
+    "O": 83158.84204292964
+   },
+   "certificate_J": 0.0,
+   "passes": 39,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo31__grid3": {
+   "class": "computed",
+   "T_K": 1000.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "W": 1.0,
+    "AU": 3.0,
+    "AR": 5.0,
+    "O": 2.0
+   },
+   "G_total_J": 282358.1233954712,
+   "G_per_atom_J": 25668.9203086792,
+   "phases": [
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 8.249997125254072,
+     "x": {
+      "W": 8.578459186407692e-38,
+      "AU": 0.3636357809439702,
+      "AR": 0.4545431234411869,
+      "O": 0.18182109561484283
+     }
+    },
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 2.75000287474593,
+     "x": {
+      "W": 0.3636359835050677,
+      "AU": 2.128206039281979e-06,
+      "AR": 0.45455244784851034,
+      "O": 0.18180944044038258
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": 150898.20444592813,
+    "AU": 312858.4787259182,
+    "AR": -186695.92949020935,
+    "O": 63182.0651114179
+   },
+   "certificate_J": -2.9103830456733704e-11,
+   "passes": 29,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo31__grid4": {
+   "class": "computed",
+   "T_K": 1100.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "W": 1.0,
+    "AU": 3.0,
+    "AR": 5.0,
+    "O": 2.0
+   },
+   "G_total_J": 47785.502163048564,
+   "G_per_atom_J": 4344.136560277142,
+   "phases": [
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 8.249987807473143,
+     "x": {
+      "W": 1.8343649875346518e-34,
+      "AU": 0.36363478137630667,
+      "AR": 0.4545391218071627,
+      "O": 0.18182609681653072
+     }
+    },
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 2.7500121925268544,
+     "x": {
+      "W": 0.36363475140855567,
+      "AU": 6.358979918269748e-06,
+      "AR": 0.45456445264802237,
+      "O": 0.18179443696350367
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": 129214.69230568,
+    "AU": 289068.1793781583,
+    "AR": -206925.0975061784,
+    "O": 42995.87962689285
+   },
+   "certificate_J": -1.0913936421275139e-11,
+   "passes": 26,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo31__grid5": {
+   "class": "computed",
+   "T_K": 1200.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "W": 1.0,
+    "AU": 3.0,
+    "AR": 5.0,
+    "O": 2.0
+   },
+   "G_total_J": -189112.79633004728,
+   "G_per_atom_J": -17192.07239364066,
+   "phases": [
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 8.249962168046368,
+     "x": {
+      "W": 1.0935866803685531e-31,
+      "AU": 0.363632758741778,
+      "AR": 0.4545310125797826,
+      "O": 0.18183622867843957
+     }
+    },
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 2.75003783195363,
+     "x": {
+      "W": 0.36363136113280253,
+      "AU": 1.581698894989825e-05,
+      "AR": 0.4545887796477647,
+      "O": 0.18176404223048293
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": 107214.72236315928,
+    "AU": 265050.2978118811,
+    "AR": -227343.59510663152,
+    "O": 22619.781702153665
+   },
+   "certificate_J": -1.0913936421275139e-11,
+   "passes": 35,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo32__grid1": {
+   "class": "computed",
+   "T_K": 2252.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "W": 1.95,
+    "AU": 1.0,
+    "AR": 2.0,
+    "O": 10.0,
+    "NE": 10.0
+   },
+   "G_total_J": -7564591.850482681,
+   "G_per_atom_J": -303190.0541275624,
+   "phases": [
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 14.866912243741151,
+     "x": {
+      "W": 0.099193562854012,
+      "AR": 0.0991935629311985,
+      "NE": 0.40080643692008666,
+      "O": 0.40080643729470283
+     }
+    },
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 4.789616841604937,
+     "x": {
+      "W": 0.0992350790519842,
+      "AU": 0.09917596903589929,
+      "NE": 0.4007944763140361,
+      "O": 0.40079447559808046
+     }
+    },
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 5.29347091465391,
+     "x": {
+      "AU": 0.09917596920573443,
+      "AR": 0.09923507906762538,
+      "NE": 0.40079447606547786,
+      "O": 0.4007944756611624
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": -165597.78843830127,
+    "AU": -23988.47445590703,
+    "AR": -479176.04098012345,
+    "NE": -440426.5838764639,
+    "O": -185506.97678472023
+   },
+   "certificate_J": 0.0,
+   "passes": 72,
+   "exact_finish": true,
+   "seconds": 0.13
+  },
+  "TestThermo32__grid2": {
+   "class": "computed",
+   "T_K": 2352.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "W": 1.95,
+    "AU": 1.0,
+    "AR": 2.0,
+    "O": 10.0,
+    "NE": 10.0
+   },
+   "G_total_J": -8114859.044460623,
+   "G_per_atom_J": -325244.8514813877,
+   "phases": [
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 4.789564386703265,
+     "x": {
+      "W": 0.09923351935847587,
+      "AU": 0.0991769229913655,
+      "NE": 0.40079477861572205,
+      "O": 0.4007947790344367
+     }
+    },
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 5.293426386271714,
+     "x": {
+      "AU": 0.09917692310207103,
+      "AR": 0.09923351924772865,
+      "NE": 0.40079477876485253,
+      "O": 0.40079477888534765
+     }
+    },
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 14.867009227025022,
+     "x": {
+      "W": 0.09919376837627175,
+      "AR": 0.09919376845013032,
+      "NE": 0.4008062316756969,
+      "O": 0.400806231497901
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": -191743.9800539803,
+    "AU": -51292.83606157081,
+    "AR": -502303.036512407,
+    "NE": -461832.5886052936,
+    "O": -206673.34882160393
+   },
+   "certificate_J": -4.3655745685100555e-11,
+   "passes": 59,
+   "exact_finish": true,
+   "seconds": 0.1
+  },
+  "TestThermo32__grid3": {
+   "class": "computed",
+   "T_K": 2452.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "W": 1.95,
+    "AU": 1.0,
+    "AR": 2.0,
+    "O": 10.0,
+    "NE": 10.0
+   },
+   "G_total_J": -8667681.920602249,
+   "G_per_atom_J": -347402.08098606206,
+   "phases": [
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 5.293385483402659,
+     "x": {
+      "AU": 0.09917779917116497,
+      "AR": 0.09923208664810414,
+      "NE": 0.4007950568512137,
+      "O": 0.40079505732951715
+     }
+    },
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 4.7895162224123355,
+     "x": {
+      "W": 0.09923208648494285,
+      "AU": 0.0991777990788976,
+      "NE": 0.40079505733655557,
+      "O": 0.400795057099604
+     }
+    },
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 14.867098294185007,
+     "x": {
+      "W": 0.09919395720773261,
+      "AR": 0.0991939572785352,
+      "NE": 0.4008060428038478,
+      "O": 0.40080604270988446
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": -218111.87318154078,
+    "AU": -78773.28139471982,
+    "AR": -525518.4345083884,
+    "NE": -483326.99582719174,
+    "O": -227928.36592148285
+   },
+   "certificate_J": 0.0,
+   "passes": 70,
+   "exact_finish": true,
+   "seconds": 0.12
+  },
+  "TestThermo32__grid4": {
+   "class": "computed",
+   "T_K": 2552.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "W": 1.95,
+    "AU": 1.0,
+    "AR": 2.0,
+    "O": 10.0,
+    "NE": 10.0
+   },
+   "G_total_J": -9222967.926302979,
+   "G_per_atom_J": -369658.0331183559,
+   "phases": [
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 14.867180362416264,
+     "x": {
+      "W": 0.09919413121352569,
+      "AR": 0.0991941313496627,
+      "NE": 0.40080586869618207,
+      "O": 0.40080586874062957
+     }
+    },
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 4.789471833841784,
+     "x": {
+      "W": 0.09923076632316365,
+      "AU": 0.09917860636931067,
+      "NE": 0.40079531397510926,
+      "O": 0.4007953133324164
+     }
+    },
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 5.293347803741949,
+     "x": {
+      "AU": 0.09917860638278553,
+      "AR": 0.09923076620055798,
+      "NE": 0.4007953134799898,
+      "O": 0.4007953139366666
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": -244695.2754271069,
+    "AU": -106428.43245761095,
+    "AR": -548818.6276529799,
+    "NE": -504906.1981706741,
+    "O": -249268.44697498102
+   },
+   "certificate_J": 0.0,
+   "passes": 56,
+   "exact_finish": true,
+   "seconds": 0.09
+  },
+  "TestThermo32__grid5": {
+   "class": "computed",
+   "T_K": 2652.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "W": 1.95,
+    "AU": 1.0,
+    "AR": 2.0,
+    "O": 10.0,
+    "NE": 10.0
+   },
+   "G_total_J": -9780631.508318627,
+   "G_per_atom_J": -392009.27889052616,
+   "phases": [
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 4.789430782054929,
+     "x": {
+      "W": 0.09922954569980978,
+      "AU": 0.09917935281249929,
+      "NE": 0.4007955503557787,
+      "O": 0.40079555113191223
+     }
+    },
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 14.867256253260944,
+     "x": {
+      "W": 0.09919429208819465,
+      "AR": 0.09919429208820918,
+      "NE": 0.4008057079866305,
+      "O": 0.40080570783696573
+     }
+    },
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 5.293312964684126,
+     "x": {
+      "AU": 0.0991793529304115,
+      "AR": 0.09922954568682361,
+      "NE": 0.4007955508323274,
+      "O": 0.4007955505504374
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": -271488.3616244349,
+    "AU": -134256.92671405658,
+    "AR": -572200.2914754541,
+    "NE": -526566.8712483497,
+    "O": -270690.29810025194
+   },
+   "certificate_J": 0.0,
+   "passes": 75,
+   "exact_finish": true,
+   "seconds": 0.15
+  },
+  "TestThermo33__grid1": {
+   "class": "computed",
+   "T_K": 700.0,
+   "P_atm": 2.0,
+   "amounts": {
+    "W": 20.0,
+    "AU": 2.0,
+    "AR": 7.0,
+    "O": 5.0,
+    "NE": 1.0
+   },
+   "G_total_J": 4495166.236278812,
+   "G_per_atom_J": 128433.3210365375,
+   "phases": [
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 32.3418509242418,
+     "x": {
+      "W": 0.6183937971530572,
+      "AR": 0.21643782899457378,
+      "NE": 0.03091968985765287,
+      "O": 0.13424868399471604
+     }
+    },
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 2.6581490757582054,
+     "x": {
+      "W": 4.7512209500829444e-17,
+      "AU": 0.7524032486513286,
+      "AR": 1.0945829016115109e-10,
+      "O": 0.24759675123921304
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": 217012.84797629074,
+    "AU": 306302.07123893045,
+    "AR": -131674.52240713182,
+    "NE": -139069.23034488945,
+    "O": 120619.20429399003
+   },
+   "certificate_J": -5.093170329928398e-11,
+   "passes": 95,
+   "exact_finish": true,
+   "seconds": 0.17
+  },
+  "TestThermo33__grid2": {
+   "class": "computed",
+   "T_K": 800.0,
+   "P_atm": 2.0,
+   "amounts": {
+    "W": 20.0,
+    "AU": 2.0,
+    "AR": 7.0,
+    "O": 5.0,
+    "NE": 1.0
+   },
+   "G_total_J": 3785553.493838375,
+   "G_per_atom_J": 108158.671252525,
+   "phases": [
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 32.3430301791997,
+     "x": {
+      "W": 0.6183712499783738,
+      "AR": 0.21642993736274194,
+      "NE": 0.03091856249891871,
+      "O": 0.1342802501599655
+     }
+    },
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 2.6569698208002985,
+     "x": {
+      "W": 4.842381397774114e-15,
+      "AU": 0.7527371911953391,
+      "AR": 1.5786919433882592e-09,
+      "O": 0.24726280722596405
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": 196798.2691929083,
+    "AU": 284082.52842246654,
+    "AR": -151820.63255249668,
+    "NE": -160273.26574992132,
+    "O": 100888.1493505346
+   },
+   "certificate_J": -9.094947017729282e-12,
+   "passes": 120,
+   "exact_finish": true,
+   "seconds": 0.24
+  },
+  "TestThermo33__grid3": {
+   "class": "computed",
+   "T_K": 900.0,
+   "P_atm": 2.0,
+   "amounts": {
+    "W": 20.0,
+    "AU": 2.0,
+    "AR": 7.0,
+    "O": 5.0,
+    "NE": 1.0
+   },
+   "G_total_J": 3064797.5051560234,
+   "G_per_atom_J": 87565.64300445782,
+   "phases": [
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 32.344200240829245,
+     "x": {
+      "W": 0.6183488802036543,
+      "AR": 0.21642210703800413,
+      "NE": 0.030917444010183447,
+      "O": 0.13431156874815803
+     }
+    },
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 2.655799759170755,
+     "x": {
+      "W": 1.766403665874264e-13,
+      "AU": 0.7530688234659974,
+      "AR": 1.2584011328150411e-08,
+      "O": 0.24693116394981462
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": 176225.78196861787,
+    "AU": 261569.60947913214,
+    "AR": -172227.30713477795,
+    "NE": -181737.8655370308,
+    "O": 80894.33246117589
+   },
+   "certificate_J": -2.7284841053187847e-11,
+   "passes": 120,
+   "exact_finish": true,
+   "seconds": 0.39
+  },
+  "TestThermo33__grid4": {
+   "class": "computed",
+   "T_K": 1000.0,
+   "P_atm": 2.0,
+   "amounts": {
+    "W": 20.0,
+    "AU": 2.0,
+    "AR": 7.0,
+    "O": 5.0,
+    "NE": 1.0
+   },
+   "G_total_J": 2333662.358105015,
+   "G_per_atom_J": 66676.067374429,
+   "phases": [
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 2.6546388700435637,
+     "x": {
+      "W": 3.1387311748572715e-12,
+      "AU": 0.7533981448735355,
+      "AR": 6.623263362582644e-08,
+      "O": 0.24660178889069206
+     }
+    },
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 32.34536112995644,
+     "x": {
+      "W": 0.6183266873922395,
+      "AR": 0.21641433515154898,
+      "NE": 0.03091633436962486,
+      "O": 0.1343426430865867
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": 155311.58532979988,
+    "AU": 238792.50909103162,
+    "AR": -192865.47275939214,
+    "NE": -203433.95627515318,
+    "O": 60667.579783570494
+   },
+   "certificate_J": -4.3655745685100555e-11,
+   "passes": 66,
+   "exact_finish": true,
+   "seconds": 0.11
+  },
+  "TestThermo33__grid5": {
+   "class": "computed",
+   "T_K": 1100.0,
+   "P_atm": 2.0,
+   "amounts": {
+    "W": 20.0,
+    "AU": 2.0,
+    "AR": 7.0,
+    "O": 5.0,
+    "NE": 1.0
+   },
+   "G_total_J": 1592766.6045151162,
+   "G_per_atom_J": 45507.617271860465,
+   "phases": [
+    {
+     "phase": "QUATERNARY",
+     "moles_of_atoms": 32.34651268584078,
+     "x": {
+      "W": 0.6183046745767745,
+      "AR": 0.2164066149576464,
+      "NE": 0.0309152337289743,
+      "O": 0.13437347673660474
+     }
+    },
+    {
+     "phase": "DELETE",
+     "moles_of_atoms": 2.653487314159222,
+     "x": {
+      "W": 3.3053344633344216e-11,
+      "AU": 0.7537251033113439,
+      "AR": 2.577636711831939e-07,
+      "O": 0.2462746388919315
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "W": 134069.271031987,
+    "AU": 215772.36171975223,
+    "AR": -213711.90377906954,
+    "NE": -225338.31189060595,
+    "O": 40231.61975599289
+   },
+   "certificate_J": 0.0,
+   "passes": 70,
+   "exact_finish": true,
+   "seconds": 0.12
+  },
+  "TestThermo40__grid1": {
+   "class": "computed",
+   "T_K": 2050.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.8,
+    "RU": 0.2
+   },
+   "G_total_J": -125935.15324406655,
+   "G_per_atom_J": -125935.15324406655,
+   "phases": [
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "RU": 0.2,
+      "MO": 0.8
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -142444.37460199592,
+    "MO": -121807.84790458439
+   },
+   "certificate_J": 0.0,
+   "passes": 23,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo40__grid2": {
+   "class": "computed",
+   "T_K": 2150.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.8,
+    "RU": 0.2
+   },
+   "G_total_J": -135063.58707722984,
+   "G_per_atom_J": -135063.58707722984,
+   "phases": [
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "RU": 0.2,
+      "MO": 0.8
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -153493.75098114178,
+    "MO": -130456.04610125188
+   },
+   "certificate_J": -2.9103830456733704e-11,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo40__grid3": {
+   "class": "computed",
+   "T_K": 2250.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.8,
+    "RU": 0.2
+   },
+   "G_total_J": -144372.58557330133,
+   "G_per_atom_J": -144372.58557330133,
+   "phases": [
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "RU": 0.2,
+      "MO": 0.8
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -164722.49809518727,
+    "MO": -139285.10744282987
+   },
+   "certificate_J": -5.820766091346741e-11,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo40__grid4": {
+   "class": "computed",
+   "T_K": 2350.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.8,
+    "RU": 0.2
+   },
+   "G_total_J": -153860.6145232659,
+   "G_per_atom_J": -153860.6145232659,
+   "phases": [
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "RU": 0.2,
+      "MO": 0.8
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -176127.61094576833,
+    "MO": -148293.86541764025
+   },
+   "certificate_J": -1.0186340659856796e-10,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo40__grid5": {
+   "class": "computed",
+   "T_K": 2450.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.8,
+    "RU": 0.2
+   },
+   "G_total_J": -163686.25885435694,
+   "G_per_atom_J": -163686.25885435694,
+   "phases": [
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 0.42190290938122,
+     "x": {
+      "RU": 0.2598989076502273,
+      "MO": 0.7401010923497727
+     }
+    },
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 0.57809709061878,
+     "x": {
+      "RU": 0.1562849842760185,
+      "MO": 0.8437150157239816
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -193549.6085972688,
+    "MO": -156220.421418629
+   },
+   "certificate_J": -2.9103830456733704e-11,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo41__grid1": {
+   "class": "computed",
+   "T_K": 2050.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 4.3,
+    "RU": 4.5
+   },
+   "G_total_J": -1143587.2265700004,
+   "G_per_atom_J": -129953.09392840913,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 8.799999999999999,
+     "x": {
+      "RU": 0.5113636363636365,
+      "MO": 0.4886363636363636
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -134794.83292217023,
+    "MO": -124886.15777214756
+   },
+   "certificate_J": -2.1827872842550278e-11,
+   "passes": 4,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo41__grid2": {
+   "class": "computed",
+   "T_K": 2150.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 4.3,
+    "RU": 4.5
+   },
+   "G_total_J": -1224119.4565740058,
+   "G_per_atom_J": -139104.48370159155,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 8.799999999999999,
+     "x": {
+      "RU": 0.5113636363636365,
+      "MO": 0.4886363636363636
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -142901.52595740554,
+    "MO": -135130.83482922806
+   },
+   "certificate_J": -8.731149137020111e-11,
+   "passes": 4,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo41__grid3": {
+   "class": "computed",
+   "T_K": 2250.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 4.3,
+    "RU": 4.5
+   },
+   "G_total_J": -1306236.5665479945,
+   "G_per_atom_J": -148435.973471363,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 8.799999999999999,
+     "x": {
+      "RU": 0.5113636363636365,
+      "MO": 0.4886363636363636
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -151187.58971523034,
+    "MO": -145556.37507661807
+   },
+   "certificate_J": -2.9103830456733704e-11,
+   "passes": 4,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo41__grid4": {
+   "class": "computed",
+   "T_K": 2350.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 4.3,
+    "RU": 4.5
+   },
+   "G_total_J": -1395708.0432479212,
+   "G_per_atom_J": -158603.1867327183,
+   "phases": [
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 8.8,
+     "x": {
+      "RU": 0.5113636363636364,
+      "MO": 0.4886363636363637
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -155657.02696300377,
+    "MO": -161686.37718939641
+   },
+   "certificate_J": -1.4551915228366852e-11,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo41__grid5": {
+   "class": "computed",
+   "T_K": 2450.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 4.3,
+    "RU": 4.5
+   },
+   "G_total_J": -1491753.3884482707,
+   "G_per_atom_J": -169517.4305054853,
+   "phases": [
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 8.799999999999999,
+     "x": {
+      "RU": 0.5113636363636365,
+      "MO": 0.4886363636363636
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -166532.91829357535,
+    "MO": -172640.75723887957
+   },
+   "certificate_J": -1.4551915228366852e-11,
+   "passes": 4,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo42__grid1": {
+   "class": "computed",
+   "T_K": 2110.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.22,
+    "TC": 0.78
+   },
+   "G_total_J": -137174.91717478234,
+   "G_per_atom_J": -137174.91717478234,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.2720688164027647,
+     "x": {
+      "TC": 0.9339265116881348,
+      "MO": 0.06607348831186521
+     }
+    },
+    {
+     "phase": "SIGMA",
+     "moles_of_atoms": 0.7279311835972354,
+     "x": {
+      "TC": 0.7224690069725483,
+      "MO": 0.27753099302745166
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "TC": -136674.6962777421,
+    "MO": -138948.42762792486
+   },
+   "certificate_J": -6.730260793119669e-11,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo42__grid2": {
+   "class": "computed",
+   "T_K": 2210.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.22,
+    "TC": 0.78
+   },
+   "G_total_J": -146335.71416342107,
+   "G_per_atom_J": -146335.71416342107,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.37198177186045006,
+     "x": {
+      "TC": 0.8959439857838334,
+      "MO": 0.10405601421616659
+     }
+    },
+    {
+     "phase": "SIGMA",
+     "moles_of_atoms": 0.6280182281395499,
+     "x": {
+      "TC": 0.7113251632899267,
+      "MO": 0.28867483671007343
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "TC": -146548.06926774408,
+    "MO": -145582.8187935486
+   },
+   "certificate_J": -5.638867150992155e-11,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo42__grid3": {
+   "class": "computed",
+   "T_K": 2310.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.22,
+    "TC": 0.78
+   },
+   "G_total_J": -155880.47209130804,
+   "G_per_atom_J": -155880.47209130804,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.6758264759276182,
+     "x": {
+      "TC": 0.8349913973030708,
+      "MO": 0.16500860269692919
+     }
+    },
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 0.32417352407238176,
+     "x": {
+      "TC": 0.665355713881891,
+      "MO": 0.33464428611810915
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "TC": -157065.7986230907,
+    "MO": -151677.95075135125
+   },
+   "certificate_J": -6.184563972055912e-11,
+   "passes": 105,
+   "exact_finish": true,
+   "seconds": 0.14
+  },
+  "TestThermo42__grid4": {
+   "class": "computed",
+   "T_K": 2410.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.22,
+    "TC": 0.78
+   },
+   "G_total_J": -166706.38708997951,
+   "G_per_atom_J": -166706.38708997951,
+   "phases": [
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "TC": 0.78,
+      "MO": 0.22
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "TC": -166375.2419279729,
+    "MO": -167880.44720982114
+   },
+   "certificate_J": -4.3655745685100555e-11,
+   "passes": 17,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo42__grid5": {
+   "class": "computed",
+   "T_K": 2510.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.22,
+    "TC": 0.78
+   },
+   "G_total_J": -178053.69936267636,
+   "G_per_atom_J": -178053.69936267636,
+   "phases": [
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "TC": 0.78,
+      "MO": 0.22
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "TC": -177615.9703406922,
+    "MO": -179605.64771334748
+   },
+   "certificate_J": -1.4551915228366852e-11,
+   "passes": 20,
+   "exact_finish": true,
+   "seconds": 0.03
+  },
+  "TestThermo43__grid2": {
+   "class": "computed",
+   "T_K": 300.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "PD": 0.4,
+    "RU": 0.6
+   },
+   "G_total_J": -9720.35019637164,
+   "G_per_atom_J": -9720.35019637164,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.38185868555856217,
+     "x": {
+      "PD": 0.9984350922893955,
+      "RU": 0.0015649077106044827
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.6181413144414378,
+     "x": {
+      "PD": 0.030314893382854462,
+      "RU": 0.9696851066171455
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -11350.130462760562,
+    "RU": -8633.830018779028
+   },
+   "certificate_J": -3.9754866065777605e-12,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo43__grid3": {
+   "class": "computed",
+   "T_K": 400.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "PD": 0.4,
+    "RU": 0.6
+   },
+   "G_total_J": -13377.028006363596,
+   "G_per_atom_J": -13377.028006363596,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.37658601967223504,
+     "x": {
+      "PD": 0.9945304314444536,
+      "RU": 0.005469568555546301
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.6234139803277651,
+     "x": {
+      "PD": 0.040861681295677035,
+      "RU": 0.9591383187043229
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -15557.515254972986,
+    "RU": -11923.369840624007
+   },
+   "certificate_J": 0.0,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo43__grid4": {
+   "class": "computed",
+   "T_K": 500.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "PD": 0.4,
+    "RU": 0.6
+   },
+   "G_total_J": -17683.96037869062,
+   "G_per_atom_J": -17683.96037869062,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.3736268204431033,
+     "x": {
+      "PD": 0.9883045637181586,
+      "RU": 0.011695436281841469
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.6263731795568966,
+     "x": {
+      "PD": 0.04908081832354941,
+      "RU": 0.9509191816764505
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -20456.370970420478,
+    "RU": -15835.686650870713
+   },
+   "certificate_J": -4.860112312599085e-12,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo43__grid5": {
+   "class": "computed",
+   "T_K": 600.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "PD": 0.4,
+    "RU": 0.6
+   },
+   "G_total_J": -22521.64244711474,
+   "G_per_atom_J": -22521.64244711474,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.37249952754645344,
+     "x": {
+      "PD": 0.9803608568098339,
+      "RU": 0.019639143190166224
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.6275004724535465,
+     "x": {
+      "PD": 0.05548369370491272,
+      "RU": 0.9445163062950872
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -25926.16984425362,
+    "RU": -20251.95751568882
+   },
+   "certificate_J": -6.366462912410498e-12,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo44__grid1": {
+   "class": "computed",
+   "T_K": 800.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "PD": 40.0,
+    "TC": 60.0
+   },
+   "G_total_J": -3688567.7883312753,
+   "G_per_atom_J": -36885.677883312754,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 100.0,
+     "x": {
+      "PD": 0.4,
+      "TC": 0.6
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -39246.12330140285,
+    "TC": -35312.04760458603
+   },
+   "certificate_J": -7.275957614183426e-12,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo44__grid2": {
+   "class": "computed",
+   "T_K": 900.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "PD": 40.0,
+    "TC": 60.0
+   },
+   "G_total_J": -4349335.903724838,
+   "G_per_atom_J": -43493.35903724838,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 100.0,
+     "x": {
+      "PD": 0.4,
+      "TC": 0.6
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -46361.29573306473,
+    "TC": -41581.40124003751
+   },
+   "certificate_J": 0.0,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo44__grid3": {
+   "class": "computed",
+   "T_K": 1000.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "PD": 40.0,
+    "TC": 60.0
+   },
+   "G_total_J": -5043088.448398217,
+   "G_per_atom_J": -50430.88448398217,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 100.0,
+     "x": {
+      "PD": 0.4,
+      "TC": 0.6
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -53808.59792404239,
+    "TC": -48179.07552394202
+   },
+   "certificate_J": -1.0913936421275139e-11,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo44__grid4": {
+   "class": "computed",
+   "T_K": 1100.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "PD": 40.0,
+    "TC": 60.0
+   },
+   "G_total_J": -5767114.249053125,
+   "G_per_atom_J": -57671.14249053125,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 100.0,
+     "x": {
+      "PD": 0.4,
+      "TC": 0.6
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -61560.3206318837,
+    "TC": -55078.357062962954
+   },
+   "certificate_J": -1.4551915228366852e-11,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo44__grid5": {
+   "class": "computed",
+   "T_K": 1200.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "PD": 40.0,
+    "TC": 60.0
+   },
+   "G_total_J": -6519191.448332451,
+   "G_per_atom_J": -65191.91448332451,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 99.99999999999997,
+     "x": {
+      "PD": 0.4000000000000001,
+      "TC": 0.6
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -69593.77731861641,
+    "TC": -62257.339259796594
+   },
+   "certificate_J": -7.275957614183426e-12,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo45__grid1": {
+   "class": "computed",
+   "T_K": 1034.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 1.0,
+    "RU": 99.0
+   },
+   "G_total_J": -4375117.835011658,
+   "G_per_atom_J": -43751.178350116585,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 100.0,
+     "x": {
+      "RU": 0.99,
+      "TC": 0.010000000000000005
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -43296.02433864874,
+    "TC": -88811.42548543224
+   },
+   "certificate_J": -1.3869794202037156e-11,
+   "passes": 7,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo45__grid2": {
+   "class": "computed",
+   "T_K": 1134.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 1.0,
+    "RU": 99.0
+   },
+   "G_total_J": -4996149.751483725,
+   "G_per_atom_J": -49961.497514837254,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 100.0,
+     "x": {
+      "RU": 0.99,
+      "TC": 0.010000000000000031
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -49460.84112554892,
+    "TC": -99526.48005438216
+   },
+   "certificate_J": -1.0231815394945443e-11,
+   "passes": 9,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo45__grid3": {
+   "class": "computed",
+   "T_K": 1234.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 1.0,
+    "RU": 99.0
+   },
+   "G_total_J": -5642820.397952218,
+   "G_per_atom_J": -56428.20397952218,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 100.0,
+     "x": {
+      "RU": 0.99,
+      "TC": 0.010000000000000012
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -55881.876150221375,
+    "TC": -110514.65908030169
+   },
+   "certificate_J": -9.549694368615746e-12,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo45__grid4": {
+   "class": "computed",
+   "T_K": 1334.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 1.0,
+    "RU": 99.0
+   },
+   "G_total_J": -6313686.028984446,
+   "G_per_atom_J": -63136.86028984446,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 100.0,
+     "x": {
+      "RU": 0.99,
+      "TC": 0.010000000000000005
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -62544.720447403255,
+    "TC": -121758.70469152404
+   },
+   "certificate_J": -8.86757334228605e-12,
+   "passes": 10,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo45__grid5": {
+   "class": "computed",
+   "T_K": 1434.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 1.0,
+    "RU": 99.0
+   },
+   "G_total_J": -7007544.637701476,
+   "G_per_atom_J": -70075.44637701476,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 100.0,
+     "x": {
+      "RU": 0.99,
+      "TC": 0.010000000000000005
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -69437.3808969656,
+    "TC": -133243.92890188075
+   },
+   "certificate_J": -3.524291969370097e-11,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo46__grid1": {
+   "class": "computed",
+   "T_K": 2050.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.55,
+    "RU": 0.45
+   },
+   "G_total_J": -135652.53359046738,
+   "G_per_atom_J": -135652.53359046738,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "RU": 0.44999999999999996,
+      "TC": 0.55
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -129900.59267462419,
+    "TC": -140358.66706706636
+   },
+   "certificate_J": -4.3655745685100555e-11,
+   "passes": 15,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo46__grid2": {
+   "class": "computed",
+   "T_K": 2150.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.55,
+    "RU": 0.45
+   },
+   "G_total_J": -144964.5798407444,
+   "G_per_atom_J": -144964.5798407444,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "RU": 0.45000000000000007,
+      "TC": 0.55
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -138873.28113072974,
+    "TC": -149948.36969439278
+   },
+   "certificate_J": -2.9103830456733704e-11,
+   "passes": 17,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo46__grid3": {
+   "class": "computed",
+   "T_K": 2250.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.55,
+    "RU": 0.45
+   },
+   "G_total_J": -154452.05966093065,
+   "G_per_atom_J": -154452.05966093065,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "RU": 0.44999999999999996,
+      "TC": 0.55
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -148025.3403485307,
+    "TC": -159710.28455289424
+   },
+   "certificate_J": -4.3655745685100555e-11,
+   "passes": 53,
+   "exact_finish": true,
+   "seconds": 0.06
+  },
+  "TestThermo46__grid4": {
+   "class": "computed",
+   "T_K": 2350.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.55,
+    "RU": 0.45
+   },
+   "G_total_J": -164110.85968245994,
+   "G_per_atom_J": -164110.85968245994,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 1.0000000000000002,
+     "x": {
+      "RU": 0.44999999999999996,
+      "TC": 0.55
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -157353.76527159635,
+    "TC": -169639.39147316644
+   },
+   "certificate_J": -4.3655745685100555e-11,
+   "passes": 18,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo46__grid5": {
+   "class": "computed",
+   "T_K": 2450.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.55,
+    "RU": 0.45
+   },
+   "G_total_J": -173937.2778153116,
+   "G_per_atom_J": -173937.2778153116,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "RU": 0.45000000000000007,
+      "TC": 0.55
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -166855.94362391275,
+    "TC": -179731.09669918337
+   },
+   "certificate_J": -4.3655745685100555e-11,
+   "passes": 19,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo47__grid1": {
+   "class": "computed",
+   "T_K": 1773.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.3,
+    "PD": 0.4,
+    "RU": 0.3
+   },
+   "G_total_J": -119383.67264562158,
+   "G_per_atom_J": -119383.67264562158,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.12015431522900435,
+     "x": {
+      "PD": 0.6317622610213004,
+      "RU": 0.1138491631708899,
+      "MO": 0.25438857580780966
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.8798456847709956,
+     "x": {
+      "PD": 0.36834986378754797,
+      "RU": 0.3254213059354032,
+      "MO": 0.3062288302770488
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -127867.03406861768,
+    "RU": -104593.0294124262,
+    "MO": -122863.16731482217
+   },
+   "certificate_J": -3.637978807091713e-11,
+   "passes": 24,
+   "exact_finish": true,
+   "seconds": 0.03
+  },
+  "TestThermo47__grid2": {
+   "class": "computed",
+   "T_K": 1873.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.3,
+    "PD": 0.4,
+    "RU": 0.3
+   },
+   "G_total_J": -128856.47637881503,
+   "G_per_atom_J": -128856.47637881503,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.07146461682291884,
+     "x": {
+      "PD": 0.6262525010043224,
+      "RU": 0.12268739192058394,
+      "MO": 0.25106010707509374
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.9285353831770813,
+     "x": {
+      "PD": 0.3825865028059816,
+      "RU": 0.3136468440770784,
+      "MO": 0.30376665311694007
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -137446.72352746615,
+    "RU": -112047.0910868342,
+    "MO": -134212.19880592768
+   },
+   "certificate_J": -7.275957614183426e-11,
+   "passes": 19,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo47__grid3": {
+   "class": "computed",
+   "T_K": 1973.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.3,
+    "PD": 0.4,
+    "RU": 0.3
+   },
+   "G_total_J": -138528.53467941415,
+   "G_per_atom_J": -138528.53467941415,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.023270887424894637,
+     "x": {
+      "PD": 0.620506855055389,
+      "RU": 0.13193154756278802,
+      "MO": 0.24756159738182293
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.9767291125751054,
+     "x": {
+      "PD": 0.39474635276624154,
+      "RU": 0.3040042853089852,
+      "MO": 0.30124936192477325
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -147220.53281171978,
+    "RU": -119682.32088648231,
+    "MO": -145785.41762927172
+   },
+   "certificate_J": -1.0186340659856796e-10,
+   "passes": 18,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo47__grid4": {
+   "class": "computed",
+   "T_K": 2073.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.3,
+    "PD": 0.4,
+    "RU": 0.3
+   },
+   "G_total_J": -148812.04810999188,
+   "G_per_atom_J": -148812.04810999188,
+   "phases": [
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 0.49449308318664686,
+     "x": {
+      "PD": 0.5329502940725337,
+      "RU": 0.17132428639647565,
+      "MO": 0.2957254195309907
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.5055069168133532,
+     "x": {
+      "PD": 0.26994638720092395,
+      "RU": 0.42587216561181557,
+      "MO": 0.30418144718726037
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -163001.45455285077,
+    "RU": -126484.92386403952,
+    "MO": -152219.9637654656
+   },
+   "certificate_J": -8.003553375601768e-11,
+   "passes": 19,
+   "exact_finish": true,
+   "seconds": 0.03
+  },
+  "TestThermo47__grid5": {
+   "class": "computed",
+   "T_K": 2173.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.3,
+    "PD": 0.4,
+    "RU": 0.3
+   },
+   "G_total_J": -160504.94459121136,
+   "G_per_atom_J": -160504.94459121136,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.11129451387413773,
+     "x": {
+      "PD": 0.08436954650153937,
+      "RU": 0.6932146355512011,
+      "MO": 0.2224158179472595
+     }
+    },
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 0.8887054861258622,
+     "x": {
+      "PD": 0.4395270856705501,
+      "RU": 0.25075687908415895,
+      "MO": 0.30971603524529095
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -178142.3635416052,
+    "RU": -132242.43403086194,
+    "MO": -165250.89655103555
+   },
+   "certificate_J": -9.458744898438454e-11,
+   "passes": 20,
+   "exact_finish": true,
+   "seconds": 0.03
+  },
+  "TestThermo48__grid1": {
+   "class": "computed",
+   "T_K": 1773.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.1,
+    "PD": 0.3,
+    "RU": 0.6
+   },
+   "G_total_J": -109771.50905303936,
+   "G_per_atom_J": -109771.50905303936,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.31407543964978585,
+     "x": {
+      "PD": 0.7077310918974427,
+      "RU": 0.16677331808262244,
+      "MO": 0.12549559001993496
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.6859245603502142,
+     "x": {
+      "PD": 0.11330553044901406,
+      "RU": 0.798368550211625,
+      "MO": 0.08832591933936097
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -121069.66436149839,
+    "RU": -96871.01332873631,
+    "MO": -153280.0174734805
+   },
+   "certificate_J": -6.184563972055912e-11,
+   "passes": 18,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo48__grid2": {
+   "class": "computed",
+   "T_K": 1873.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.1,
+    "PD": 0.3,
+    "RU": 0.6
+   },
+   "G_total_J": -118367.97209576877,
+   "G_per_atom_J": -118367.97209576877,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.3268428104945611,
+     "x": {
+      "PD": 0.6894681963089813,
+      "RU": 0.18081547156112995,
+      "MO": 0.12971633212988878
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.673157189505439,
+     "x": {
+      "PD": 0.11089872935413946,
+      "RU": 0.8035296532916115,
+      "MO": 0.0855716173542492
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -130936.2156741095,
+    "RU": -104605.08854212562,
+    "MO": -163240.54268260498
+   },
+   "certificate_J": -6.184563972055912e-11,
+   "passes": 19,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo48__grid3": {
+   "class": "computed",
+   "T_K": 1973.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.1,
+    "PD": 0.3,
+    "RU": 0.6
+   },
+   "G_total_J": -127255.52158400184,
+   "G_per_atom_J": -127255.52158400184,
+   "phases": [
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 0.30752801080188735,
+     "x": {
+      "PD": 0.7360751824715333,
+      "RU": 0.1376823204931739,
+      "MO": 0.1262424970352929
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.6924719891981128,
+     "x": {
+      "PD": 0.10633825552881133,
+      "RU": 0.8053160828958857,
+      "MO": 0.08834566157530287
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -141753.72311099275,
+    "RU": -112627.6163974178,
+    "MO": -171528.348122533
+   },
+   "certificate_J": -6.912159733474255e-11,
+   "passes": 18,
+   "exact_finish": true,
+   "seconds": 0.03
+  },
+  "TestThermo48__grid4": {
+   "class": "computed",
+   "T_K": 2073.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.1,
+    "PD": 0.3,
+    "RU": 0.6
+   },
+   "G_total_J": -136811.45054671314,
+   "G_per_atom_J": -136811.45054671314,
+   "phases": [
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 0.37459371402601765,
+     "x": {
+      "PD": 0.6701706757343544,
+      "RU": 0.19309047964219694,
+      "MO": 0.13673884462344874
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.6254062859739825,
+     "x": {
+      "PD": 0.0782823560353198,
+      "RU": 0.8437227637806568,
+      "MO": 0.07799488018402335
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -154525.2149181207,
+    "RU": -120484.95133540087,
+    "MO": -181629.15270036337
+   },
+   "certificate_J": -1.4551915228366852e-10,
+   "passes": 18,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo48__grid5": {
+   "class": "computed",
+   "T_K": 2173.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.1,
+    "PD": 0.3,
+    "RU": 0.6
+   },
+   "G_total_J": -146823.69985113683,
+   "G_per_atom_J": -146823.69985113683,
+   "phases": [
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 0.451601757336179,
+     "x": {
+      "PD": 0.5963096115251921,
+      "RU": 0.2614437995295934,
+      "MO": 0.14224658894521452
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.548398242663821,
+     "x": {
+      "PD": 0.05599130181310967,
+      "RU": 0.878798440977539,
+      "MO": 0.06521025720935134
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -168105.26575485765,
+    "RU": -128468.70603375132,
+    "MO": -193108.96504428738
+   },
+   "certificate_J": -8.36735125631094e-11,
+   "passes": 18,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo49__grid1": {
+   "class": "computed",
+   "T_K": 1700.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.125,
+    "PD": 0.874
+   },
+   "G_total_J": -109641.13761928547,
+   "G_per_atom_J": -109750.88850779326,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.999,
+     "x": {
+      "PD": 0.8748748748748749,
+      "TC": 0.12512512512512514
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -109759.59881644112,
+    "TC": -109689.98602972738
+   },
+   "certificate_J": -4.001776687800884e-11,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo49__grid2": {
+   "class": "computed",
+   "T_K": 1800.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.125,
+    "PD": 0.874
+   },
+   "G_total_J": -118705.96348460678,
+   "G_per_atom_J": -118824.78827287965,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.999,
+     "x": {
+      "PD": 0.8748748748748749,
+      "TC": 0.12512512512512514
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -118816.0052744713,
+    "TC": -118886.19899775193
+   },
+   "certificate_J": 0.0,
+   "passes": 106,
+   "exact_finish": true,
+   "seconds": 0.1
+  },
+  "TestThermo49__grid3": {
+   "class": "computed",
+   "T_K": 1900.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.125,
+    "PD": 0.874
+   },
+   "G_total_J": -128092.34441453002,
+   "G_per_atom_J": -128220.56497950952,
+   "phases": [
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 0.6767618155082648,
+     "x": {
+      "PD": 0.9035798148831357,
+      "TC": 0.09642018511686437
+     }
+    },
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.3222381844917351,
+     "x": {
+      "PD": 0.8145890110357162,
+      "TC": 0.18541098896428368
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -128776.23906904219,
+    "TC": -124335.29174549725
+   },
+   "certificate_J": -1.8189894035458565e-11,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo49__grid4": {
+   "class": "computed",
+   "T_K": 2000.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.125,
+    "PD": 0.874
+   },
+   "G_total_J": -139181.1046487957,
+   "G_per_atom_J": -139320.42507386958,
+   "phases": [
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 0.999,
+     "x": {
+      "PD": 0.8748748748748748,
+      "TC": 0.12512512512512514
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -139825.7696239874,
+    "TC": -135787.05597945608
+   },
+   "certificate_J": 0.0,
+   "passes": 106,
+   "exact_finish": true,
+   "seconds": 0.11
+  },
+  "TestThermo49__grid5": {
+   "class": "computed",
+   "T_K": 2100.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.125,
+    "PD": 0.874
+   },
+   "G_total_J": -150531.98553209944,
+   "G_per_atom_J": -150682.66820029973,
+   "phases": [
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 0.999,
+     "x": {
+      "PD": 0.8748748748748748,
+      "TC": 0.12512512512512514
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -150443.45103822532,
+    "TC": -152355.27459752394
+   },
+   "certificate_J": -2.9103830456733704e-11,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo50__grid1": {
+   "class": "computed",
+   "T_K": 1034.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 1.0,
+    "RU": 99.0
+   },
+   "G_total_J": -4375117.835011658,
+   "G_per_atom_J": -43751.178350116585,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 100.0,
+     "x": {
+      "RU": 0.99,
+      "TC": 0.010000000000000005
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -43296.02433864874,
+    "TC": -88811.42548543224
+   },
+   "certificate_J": -1.3869794202037156e-11,
+   "passes": 7,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo50__grid2": {
+   "class": "computed",
+   "T_K": 1134.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 1.0,
+    "RU": 99.0
+   },
+   "G_total_J": -4996149.751483725,
+   "G_per_atom_J": -49961.497514837254,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 100.0,
+     "x": {
+      "RU": 0.99,
+      "TC": 0.010000000000000031
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -49460.84112554892,
+    "TC": -99526.48005438216
+   },
+   "certificate_J": -1.0231815394945443e-11,
+   "passes": 9,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo50__grid3": {
+   "class": "computed",
+   "T_K": 1234.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 1.0,
+    "RU": 99.0
+   },
+   "G_total_J": -5642820.397952218,
+   "G_per_atom_J": -56428.20397952218,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 100.0,
+     "x": {
+      "RU": 0.99,
+      "TC": 0.010000000000000012
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -55881.876150221375,
+    "TC": -110514.65908030169
+   },
+   "certificate_J": -9.549694368615746e-12,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo50__grid4": {
+   "class": "computed",
+   "T_K": 1334.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 1.0,
+    "RU": 99.0
+   },
+   "G_total_J": -6313686.028984446,
+   "G_per_atom_J": -63136.86028984446,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 100.0,
+     "x": {
+      "RU": 0.99,
+      "TC": 0.010000000000000005
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -62544.720447403255,
+    "TC": -121758.70469152404
+   },
+   "certificate_J": -8.86757334228605e-12,
+   "passes": 10,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo50__grid5": {
+   "class": "computed",
+   "T_K": 1434.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 1.0,
+    "RU": 99.0
+   },
+   "G_total_J": -7007544.637701476,
+   "G_per_atom_J": -70075.44637701476,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 100.0,
+     "x": {
+      "RU": 0.99,
+      "TC": 0.010000000000000005
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -69437.3808969656,
+    "TC": -133243.92890188075
+   },
+   "certificate_J": -3.524291969370097e-11,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo51__grid1": {
+   "class": "computed",
+   "T_K": 2050.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.55,
+    "RU": 0.45
+   },
+   "G_total_J": -135652.53359046738,
+   "G_per_atom_J": -135652.53359046738,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "RU": 0.44999999999999996,
+      "TC": 0.55
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -129900.59267462419,
+    "TC": -140358.66706706636
+   },
+   "certificate_J": -4.3655745685100555e-11,
+   "passes": 15,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo51__grid2": {
+   "class": "computed",
+   "T_K": 2150.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.55,
+    "RU": 0.45
+   },
+   "G_total_J": -144964.5798407444,
+   "G_per_atom_J": -144964.5798407444,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "RU": 0.45000000000000007,
+      "TC": 0.55
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -138873.28113072974,
+    "TC": -149948.36969439278
+   },
+   "certificate_J": -2.9103830456733704e-11,
+   "passes": 17,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo51__grid3": {
+   "class": "computed",
+   "T_K": 2250.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.55,
+    "RU": 0.45
+   },
+   "G_total_J": -154452.05966093065,
+   "G_per_atom_J": -154452.05966093065,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "RU": 0.44999999999999996,
+      "TC": 0.55
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -148025.3403485307,
+    "TC": -159710.28455289424
+   },
+   "certificate_J": -4.3655745685100555e-11,
+   "passes": 53,
+   "exact_finish": true,
+   "seconds": 0.06
+  },
+  "TestThermo51__grid4": {
+   "class": "computed",
+   "T_K": 2350.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.55,
+    "RU": 0.45
+   },
+   "G_total_J": -164110.85968245994,
+   "G_per_atom_J": -164110.85968245994,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 1.0000000000000002,
+     "x": {
+      "RU": 0.44999999999999996,
+      "TC": 0.55
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -157353.76527159635,
+    "TC": -169639.39147316644
+   },
+   "certificate_J": -4.3655745685100555e-11,
+   "passes": 18,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo51__grid5": {
+   "class": "computed",
+   "T_K": 2450.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.55,
+    "RU": 0.45
+   },
+   "G_total_J": -173937.2778153116,
+   "G_per_atom_J": -173937.2778153116,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "RU": 0.45000000000000007,
+      "TC": 0.55
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "RU": -166855.94362391275,
+    "TC": -179731.09669918337
+   },
+   "certificate_J": -4.3655745685100555e-11,
+   "passes": 19,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo52__grid1": {
+   "class": "computed",
+   "T_K": 1773.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.3,
+    "PD": 0.4,
+    "RU": 0.3
+   },
+   "G_total_J": -119383.67264562158,
+   "G_per_atom_J": -119383.67264562158,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.12015431522900435,
+     "x": {
+      "PD": 0.6317622610213004,
+      "RU": 0.1138491631708899,
+      "MO": 0.25438857580780966
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.8798456847709956,
+     "x": {
+      "PD": 0.36834986378754797,
+      "RU": 0.3254213059354032,
+      "MO": 0.3062288302770488
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -127867.03406861768,
+    "RU": -104593.0294124262,
+    "MO": -122863.16731482217
+   },
+   "certificate_J": -3.637978807091713e-11,
+   "passes": 24,
+   "exact_finish": true,
+   "seconds": 0.03
+  },
+  "TestThermo52__grid2": {
+   "class": "computed",
+   "T_K": 1873.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.3,
+    "PD": 0.4,
+    "RU": 0.3
+   },
+   "G_total_J": -128856.47637881503,
+   "G_per_atom_J": -128856.47637881503,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.07146461682291884,
+     "x": {
+      "PD": 0.6262525010043224,
+      "RU": 0.12268739192058394,
+      "MO": 0.25106010707509374
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.9285353831770813,
+     "x": {
+      "PD": 0.3825865028059816,
+      "RU": 0.3136468440770784,
+      "MO": 0.30376665311694007
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -137446.72352746615,
+    "RU": -112047.0910868342,
+    "MO": -134212.19880592768
+   },
+   "certificate_J": -7.275957614183426e-11,
+   "passes": 19,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo52__grid3": {
+   "class": "computed",
+   "T_K": 1973.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.3,
+    "PD": 0.4,
+    "RU": 0.3
+   },
+   "G_total_J": -138528.53467941415,
+   "G_per_atom_J": -138528.53467941415,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.023270887424894637,
+     "x": {
+      "PD": 0.620506855055389,
+      "RU": 0.13193154756278802,
+      "MO": 0.24756159738182293
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.9767291125751054,
+     "x": {
+      "PD": 0.39474635276624154,
+      "RU": 0.3040042853089852,
+      "MO": 0.30124936192477325
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -147220.53281171978,
+    "RU": -119682.32088648231,
+    "MO": -145785.41762927172
+   },
+   "certificate_J": -1.0186340659856796e-10,
+   "passes": 18,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo52__grid4": {
+   "class": "computed",
+   "T_K": 2073.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.3,
+    "PD": 0.4,
+    "RU": 0.3
+   },
+   "G_total_J": -148812.04810999188,
+   "G_per_atom_J": -148812.04810999188,
+   "phases": [
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 0.49449308318664686,
+     "x": {
+      "PD": 0.5329502940725337,
+      "RU": 0.17132428639647565,
+      "MO": 0.2957254195309907
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.5055069168133532,
+     "x": {
+      "PD": 0.26994638720092395,
+      "RU": 0.42587216561181557,
+      "MO": 0.30418144718726037
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -163001.45455285077,
+    "RU": -126484.92386403952,
+    "MO": -152219.9637654656
+   },
+   "certificate_J": -8.003553375601768e-11,
+   "passes": 19,
+   "exact_finish": true,
+   "seconds": 0.03
+  },
+  "TestThermo52__grid5": {
+   "class": "computed",
+   "T_K": 2173.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.3,
+    "PD": 0.4,
+    "RU": 0.3
+   },
+   "G_total_J": -160504.94459121136,
+   "G_per_atom_J": -160504.94459121136,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.11129451387413773,
+     "x": {
+      "PD": 0.08436954650153937,
+      "RU": 0.6932146355512011,
+      "MO": 0.2224158179472595
+     }
+    },
+    {
+     "phase": "LIQN",
+     "moles_of_atoms": 0.8887054861258622,
+     "x": {
+      "PD": 0.4395270856705501,
+      "RU": 0.25075687908415895,
+      "MO": 0.30971603524529095
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -178142.3635416052,
+    "RU": -132242.43403086194,
+    "MO": -165250.89655103555
+   },
+   "certificate_J": -9.458744898438454e-11,
+   "passes": 20,
+   "exact_finish": true,
+   "seconds": 0.03
+  },
+  "TestThermo53__grid1": {
+   "class": "computed",
+   "T_K": 773.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.1,
+    "PD": 0.3,
+    "RU": 0.6
+   },
+   "G_total_J": -36671.17891030754,
+   "G_per_atom_J": -36671.17891030754,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.27999402246908633,
+     "x": {
+      "PD": 0.8991489251376603,
+      "RU": 0.03683825229423249,
+      "MO": 0.0640128225681072
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.720005977530914,
+     "x": {
+      "PD": 0.06700454879192971,
+      "RU": 0.819000852717349,
+      "MO": 0.11399459849072119
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -37349.20052600502,
+    "RU": -31725.65050721148,
+    "MO": -64310.28448179144
+   },
+   "certificate_J": -1.000444171950221e-11,
+   "passes": 20,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo53__grid2": {
+   "class": "computed",
+   "T_K": 873.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.1,
+    "PD": 0.3,
+    "RU": 0.6
+   },
+   "G_total_J": -42711.569556641596,
+   "G_per_atom_J": -42711.569556641596,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.7238841954230174,
+     "x": {
+      "PD": 0.07932640572831579,
+      "RU": 0.8100853331298427,
+      "MO": 0.1105882611418416
+     }
+    },
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.2761158045769828,
+     "x": {
+      "PD": 0.8785330813829834,
+      "RU": 0.04922583270501429,
+      "MO": 0.07224108591200239
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -44267.43787539277,
+    "RU": -37050.003702687405,
+    "MO": -72013.35972411309
+   },
+   "certificate_J": -1.3642420526593924e-11,
+   "passes": 20,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo53__grid3": {
+   "class": "computed",
+   "T_K": 973.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.1,
+    "PD": 0.3,
+    "RU": 0.6
+   },
+   "G_total_J": -49092.25575125146,
+   "G_per_atom_J": -49092.25575125146,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.2736854021133698,
+     "x": {
+      "PD": 0.8581144345588773,
+      "RU": 0.06198144504510277,
+      "MO": 0.07990412039601995
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.7263145978866304,
+     "x": {
+      "PD": 0.08969474950389951,
+      "RU": 0.8027328446732788,
+      "MO": 0.10757240582282176
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -51570.30204896526,
+    "RU": -42691.132599584,
+    "MO": -80064.85576811476
+   },
+   "certificate_J": -5.4569682106375694e-12,
+   "passes": 12,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo53__grid4": {
+   "class": "computed",
+   "T_K": 1073.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.1,
+    "PD": 0.3,
+    "RU": 0.6
+   },
+   "G_total_J": -55783.38330068202,
+   "G_per_atom_J": -55783.38330068202,
+   "phases": [
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.27284870087801716,
+     "x": {
+      "PD": 0.8380997466094624,
+      "RU": 0.07487576692917473,
+      "MO": 0.08702448646136285
+     }
+    },
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.7271512991219831,
+     "x": {
+      "PD": 0.09808904009046905,
+      "RU": 0.7970421629803126,
+      "MO": 0.10486879692921838
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -59226.24474361884,
+    "RU": -48621.56790143056,
+    "MO": -88425.69136738012
+   },
+   "certificate_J": -2.3646862246096134e-11,
+   "passes": 16,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo53__grid5": {
+   "class": "computed",
+   "T_K": 1173.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 0.1,
+    "PD": 0.3,
+    "RU": 0.6
+   },
+   "G_total_J": -62761.06411676007,
+   "G_per_atom_J": -62761.06411676007,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.7263344944505422,
+     "x": {
+      "PD": 0.10462299822887769,
+      "RU": 0.7929837983478739,
+      "MO": 0.10239320342324845
+     }
+    },
+    {
+     "phase": "FCCN",
+     "moles_of_atoms": 0.2736655055494579,
+     "x": {
+      "PD": 0.8185492980701744,
+      "RU": 0.08780249330759686,
+      "MO": 0.09364820862222875
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -67209.97254621706,
+    "RU": -54819.89886168112,
+    "MO": -97061.33035886269
+   },
+   "certificate_J": -2.3646862246096134e-11,
+   "passes": 52,
+   "exact_finish": true,
+   "seconds": 0.04
+  },
+  "TestThermo54__grid1": {
+   "class": "computed",
+   "T_K": 1600.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.01,
+    "PD": 0.09,
+    "MO": 0.9
+   },
+   "G_total_J": -88789.3629471506,
+   "G_per_atom_J": -88789.3629471506,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.0943056111268876,
+     "x": {
+      "PD": 0.5094170173925892,
+      "TC": 0.011306336541022435,
+      "MO": 0.4792766460663884
+     }
+    },
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 0.9056943888731125,
+     "x": {
+      "PD": 0.046328118371763496,
+      "TC": 0.009863977443879509,
+      "MO": 0.943807904184357
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -119180.84980598264,
+    "TC": -135763.59693175147,
+    "MO": -85228.27832810514
+   },
+   "certificate_J": -5.093170329928398e-11,
+   "passes": 17,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo54__grid2": {
+   "class": "computed",
+   "T_K": 1700.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.01,
+    "PD": 0.09,
+    "MO": 0.9
+   },
+   "G_total_J": -97078.8097860103,
+   "G_per_atom_J": -97078.8097860103,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.08796473872057964,
+     "x": {
+      "PD": 0.5018978173780797,
+      "TC": 0.012240190826204589,
+      "MO": 0.48586199179571576
+     }
+    },
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 0.9120352612794204,
+     "x": {
+      "PD": 0.050272935243301675,
+      "TC": 0.009783936203919477,
+      "MO": 0.9399431285527788
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -130272.3776474207,
+    "TC": -146784.0957288229,
+    "MO": -93207.17204494913
+   },
+   "certificate_J": -3.637978807091713e-11,
+   "passes": 12,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo54__grid3": {
+   "class": "computed",
+   "T_K": 1800.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.01,
+    "PD": 0.09,
+    "MO": 0.9
+   },
+   "G_total_J": -105594.9947852898,
+   "G_per_atom_J": -105594.9947852898,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.08091834925276051,
+     "x": {
+      "PD": 0.4953687231933794,
+      "TC": 0.013208681093486201,
+      "MO": 0.49142259571313457
+     }
+    },
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 0.9190816507472396,
+     "x": {
+      "PD": 0.054310278751796726,
+      "TC": 0.009717499335176204,
+      "MO": 0.935972221913027
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -141550.03153771057,
+    "TC": -157976.00704550988,
+    "MO": -101417.47986271196
+   },
+   "certificate_J": -5.820766091346741e-11,
+   "passes": 17,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo54__grid4": {
+   "class": "computed",
+   "T_K": 1900.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.01,
+    "PD": 0.09,
+    "MO": 0.9
+   },
+   "G_total_J": -114333.68957906574,
+   "G_per_atom_J": -114333.68957906574,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.07316213361489636,
+     "x": {
+      "PD": 0.48971607220033214,
+      "TC": 0.014213361083781349,
+      "MO": 0.4960705667158865
+     }
+    },
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 0.9268378663851038,
+     "x": {
+      "PD": 0.058447468815229366,
+      "TC": 0.00966740840252711,
+      "MO": 0.9318851227822434
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -152999.937919602,
+    "TC": -169322.5381141974,
+    "MO": -109856.07753906622
+   },
+   "certificate_J": -3.637978807091713e-11,
+   "passes": 16,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo54__grid5": {
+   "class": "computed",
+   "T_K": 2000.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TC": 0.01,
+    "PD": 0.09,
+    "MO": 0.9
+   },
+   "G_total_J": -123291.86950114279,
+   "G_per_atom_J": -123291.86950114279,
+   "phases": [
+    {
+     "phase": "HCPN",
+     "moles_of_atoms": 0.06468784099246491,
+     "x": {
+      "PD": 0.48484455506982216,
+      "TC": 0.015257754996667457,
+      "MO": 0.4998976899335105
+     }
+    },
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 0.935312159007535,
+     "x": {
+      "PD": 0.06269185314323338,
+      "TC": 0.00963636437746874,
+      "MO": 0.9276717824792978
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -164609.68814073474,
+    "TC": -180806.75907138785,
+    "MO": -118521.03330862537
+   },
+   "certificate_J": -5.820766091346741e-11,
+   "passes": 16,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo55__grid3": {
+   "class": "computed",
+   "T_K": 300.0,
+   "P_atm": 1000.0,
+   "amounts": {
+    "V": 0.1,
+    "CR": 1.0,
+    "FE": 2.0,
+    "NI": 1.0,
+    "SN": 0.1,
+    "H": 1.0
+   },
+   "G_total_J": -44893.50774498211,
+   "G_per_atom_J": -8633.36687403502,
+   "phases": [
+    {
+     "phase": "FCC_A1",
+     "moles_of_atoms": 1.0852749292076282,
+     "x": {
+      "CR": 0.15223302371666872,
+      "FE": 0.015100105081463923,
+      "NI": 0.8322683684912698,
+      "SN": 2.1733773260250416e-07,
+      "V": 0.00039828537286489414
+     }
+    },
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 2.4310344460856452,
+     "x": {
+      "CR": 0.033411699032505494,
+      "FE": 0.7159849334686699,
+      "H": 0.20287114515438467,
+      "NI": 0.03980041183791675,
+      "SN": 1.6689637164496253e-08,
+      "V": 0.007931793816886199
+     }
+    },
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 1.4836922746304702,
+     "x": {
+      "CR": 0.5078952944607361,
+      "FE": 0.09640073335524103,
+      "H": 0.34158920059018133,
+      "NI": 2.5835259669436488e-06,
+      "SN": 3.69697683192424e-07,
+      "V": 0.05411181837019141
+     }
+    },
+    {
+     "phase": "FESN_B35",
+     "moles_of_atoms": 0.19999835007625663,
+     "x": {
+      "FE": 0.5,
+      "SN": 0.5
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CR": -9030.90492265954,
+    "FE": -8913.188708670601,
+    "H": -1740.7327111319726,
+    "NI": -10056.316691916498,
+    "SN": -45951.49340786816,
+    "V": -16440.266611460713
+   },
+   "certificate_J": -3.637978807091713e-12,
+   "passes": 30,
+   "exact_finish": true,
+   "seconds": 0.45
+  },
+  "TestThermo55__grid4": {
+   "class": "computed",
+   "T_K": 400.0,
+   "P_atm": 1000.0,
+   "amounts": {
+    "V": 0.1,
+    "CR": 1.0,
+    "FE": 2.0,
+    "NI": 1.0,
+    "SN": 0.1,
+    "H": 1.0
+   },
+   "G_total_J": -62007.1980897,
+   "G_per_atom_J": -11924.461171096154,
+   "phases": [
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 2.762746448252509,
+     "x": {
+      "CR": 0.0848406729544412,
+      "FE": 0.5871426697440131,
+      "H": 0.2192977269335802,
+      "NI": 0.09540074864276446,
+      "SN": 3.999991586110069e-06,
+      "V": 0.013314181733614774
+     }
+    },
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 1.301655266446653,
+     "x": {
+      "CR": 0.4757525668274174,
+      "FE": 0.17361382299367686,
+      "H": 0.3027959813663583,
+      "NI": 0.00023412787180436453,
+      "SN": 2.3011602645822646e-05,
+      "V": 0.04758048933809739
+     }
+    },
+    {
+     "phase": "FCC_A1",
+     "moles_of_atoms": 0.9357355737963126,
+     "x": {
+      "CR": 0.15639129481594205,
+      "FE": 0.05552527147869486,
+      "NI": 0.7866828913671865,
+      "SN": 2.953837835152436e-05,
+      "V": 0.0013710039598252251
+     }
+    },
+    {
+     "phase": "FESN_B35",
+     "moles_of_atoms": 0.19986271150452672,
+     "x": {
+      "FE": 0.5,
+      "SN": 0.5
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CR": -12512.762770108206,
+    "FE": -12624.463598568978,
+    "H": -2894.1937836896373,
+    "NI": -14242.601735197508,
+    "SN": -48378.7439160117,
+    "V": -22708.382119655118
+   },
+   "certificate_J": -3.723243935382925e-12,
+   "passes": 32,
+   "exact_finish": true,
+   "seconds": 0.5
+  },
+  "TestThermo55__grid5": {
+   "class": "computed",
+   "T_K": 500.0,
+   "P_atm": 1000.0,
+   "amounts": {
+    "V": 0.1,
+    "CR": 1.0,
+    "FE": 2.0,
+    "NI": 1.0,
+    "SN": 0.1,
+    "H": 1.0
+   },
+   "G_total_J": -82579.48834172855,
+   "G_per_atom_J": -15880.670834947798,
+   "phases": [
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 3.145721640199998,
+     "x": {
+      "CR": 0.12777424081705005,
+      "FE": 0.48980222644206883,
+      "H": 0.22232633904477242,
+      "NI": 0.14325969331010288,
+      "SN": 0.0001251541077857476,
+      "V": 0.016712346278219905
+     }
+    },
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 1.0990115313436422,
+     "x": {
+      "CR": 0.4369734800034568,
+      "FE": 0.24478607756176046,
+      "H": 0.2735396449506572,
+      "NI": 0.003113684839942547,
+      "SN": 0.00033740091594756477,
+      "V": 0.041249711728235675
+     }
+    },
+    {
+     "phase": "FCC_A1",
+     "moles_of_atoms": 0.7576281109175902,
+     "x": {
+      "CR": 0.15551021733317896,
+      "FE": 0.12060858727936631,
+      "NI": 0.7205684413963224,
+      "SN": 0.0005492585901764637,
+      "V": 0.002763495400955922
+     }
+    },
+    {
+     "phase": "FESN_B35",
+     "moles_of_atoms": 0.1976387175387711,
+     "x": {
+      "FE": 0.5,
+      "SN": 0.5
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CR": -16788.454850221977,
+    "FE": -17246.707813153058,
+    "H": -3914.9977715390482,
+    "NI": -19253.01665462654,
+    "SN": -51279.181220669714,
+    "V": -30016.85316967892
+   },
+   "certificate_J": -5.002220859751105e-12,
+   "passes": 36,
+   "exact_finish": true,
+   "seconds": 0.52
+  },
+  "TestThermo56__grid1": {
+   "class": "computed",
+   "T_K": 1200.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "C": 1.0,
+    "FE": 1.0,
+    "CU": 1.0
+   },
+   "G_total_J": -135585.15811667527,
+   "G_per_atom_J": -45195.052705558424,
+   "phases": [
+    {
+     "phase": "FCC_A1",
+     "moles_of_atoms": 1.0157537509278112,
+     "x": {
+      "CU": 0.971144370093374,
+      "FE": 0.028851189076738844,
+      "C": 4.440829887289938e-06
+     }
+    },
+    {
+     "phase": "FCC_A1",
+     "moles_of_atoms": 1.0393938423483893,
+     "x": {
+      "CU": 0.013042662783723655,
+      "FE": 0.9339042208326002,
+      "C": 0.05305311638367622
+     }
+    },
+    {
+     "phase": "C_GRAPHITE(S)",
+     "moles_of_atoms": 0.9448524067237991,
+     "x": {
+      "C": 1.0
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CU": -60138.41180790533,
+    "FE": -57486.455555316876,
+    "C": -17960.29075345305
+   },
+   "certificate_J": -2.876172910948327e-11,
+   "passes": 6,
+   "exact_finish": true,
+   "seconds": 0.64
+  },
+  "TestThermo56__grid2": {
+   "class": "computed",
+   "T_K": 1300.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "C": 1.0,
+    "FE": 1.0,
+    "CU": 1.0
+   },
+   "G_total_J": -153943.82427444085,
+   "G_per_atom_J": -51314.60809148028,
+   "phases": [
+    {
+     "phase": "FCC_A1",
+     "moles_of_atoms": 1.0240777091576676,
+     "x": {
+      "CU": 0.9588436670221084,
+      "FE": 0.041142843431865445,
+      "C": 1.348954602612055e-05
+     }
+    },
+    {
+     "phase": "FCC_A1",
+     "moles_of_atoms": 1.0446994426320133,
+     "x": {
+      "CU": 0.01729643311586078,
+      "FE": 0.9168823989575566,
+      "C": 0.06582116792658255
+     }
+    },
+    {
+     "phase": "C_GRAPHITE(S)",
+     "moles_of_atoms": 0.9312228482103189,
+     "x": {
+      "C": 1.0
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CU": -67409.31539173948,
+    "FE": -65633.10673544169,
+    "C": -20901.402147259698
+   },
+   "certificate_J": -1.0948963957702063e-11,
+   "passes": 6,
+   "exact_finish": true,
+   "seconds": 0.56
+  },
+  "TestThermo56__grid3": {
+   "class": "computed",
+   "T_K": 1400.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "C": 1.0,
+    "FE": 1.0,
+    "CU": 1.0
+   },
+   "G_total_J": -173233.89645143208,
+   "G_per_atom_J": -57744.632150477366,
+   "phases": [
+    {
+     "phase": "LIQUID",
+     "moles_of_atoms": 1.0010169253358656,
+     "x": {
+      "CU": 0.9753873299068273,
+      "FE": 0.024587807500137178,
+      "C": 2.4862593035440813e-05
+     }
+    },
+    {
+     "phase": "FCC_A1",
+     "moles_of_atoms": 1.084086262732528,
+     "x": {
+      "CU": 0.02178864802287034,
+      "FE": 0.8997320804314216,
+      "C": 0.07847927154570798
+     }
+    },
+    {
+     "phase": "C_GRAPHITE(S)",
+     "moles_of_atoms": 0.9148968119316059,
+     "x": {
+      "C": 1.0
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CU": -75096.84811461522,
+    "FE": -74116.2340664866,
+    "C": -24020.814270330324
+   },
+   "certificate_J": -3.2741464155106446e-11,
+   "passes": 6,
+   "exact_finish": true,
+   "seconds": 0.44
+  },
+  "TestThermo56__grid4": {
+   "class": "computed",
+   "T_K": 1500.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "C": 1.0,
+    "FE": 1.0,
+    "CU": 1.0
+   },
+   "G_total_J": -194843.17421385,
+   "G_per_atom_J": -64947.724737950004,
+   "phases": [
+    {
+     "phase": "LIQUID",
+     "moles_of_atoms": 0.994244450286055,
+     "x": {
+      "CU": 0.9650676624400479,
+      "FE": 0.03483877304571551,
+      "C": 9.356451423651348e-05
+     }
+    },
+    {
+     "phase": "LIQUID",
+     "moles_of_atoms": 1.2069196209611421,
+     "x": {
+      "CU": 0.033545591409148146,
+      "FE": 0.7998558698347671,
+      "C": 0.1665985387560847
+     }
+    },
+    {
+     "phase": "C_GRAPHITE(S)",
+     "moles_of_atoms": 0.7988359287528026,
+     "x": {
+      "C": 1.0
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CU": -83792.81623908083,
+    "FE": -83741.8477542167,
+    "C": -27308.510220552624
+   },
+   "certificate_J": -8.158719396117228e-11,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.4
+  },
+  "TestThermo56__grid5": {
+   "class": "computed",
+   "T_K": 1600.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "C": 1.0,
+    "FE": 1.0,
+    "CU": 1.0
+   },
+   "G_total_J": -217445.8385981535,
+   "G_per_atom_J": -72481.9461993845,
+   "phases": [
+    {
+     "phase": "LIQUID",
+     "moles_of_atoms": 0.9854784045709881,
+     "x": {
+      "CU": 0.953605166209909,
+      "FE": 0.0461167561901462,
+      "C": 0.00027807759994469614
+     }
+    },
+    {
+     "phase": "LIQUID",
+     "moles_of_atoms": 1.2252416587778823,
+     "x": {
+      "CU": 0.04916801659592269,
+      "FE": 0.7790731941304252,
+      "C": 0.17175878927365215
+     }
+    },
+    {
+     "phase": "C_GRAPHITE(S)",
+     "moles_of_atoms": 0.789279936651129,
+     "x": {
+      "C": 1.0
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CU": -92712.65705553503,
+    "FE": -93977.69869071885,
+    "C": -30755.482851899647
+   },
+   "certificate_J": -7.932401276611031e-11,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.39
+  },
+  "TestThermo57__grid1": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo57__grid2": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo57__grid3": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo57__grid4": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo57__grid5": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo58__grid1": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo58__grid2": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo58__grid3": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo58__grid4": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo58__grid5": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo59__grid1": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo59__grid2": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo59__grid3": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo59__grid4": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo59__grid5": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo60__grid1": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo60__grid2": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo60__grid3": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo60__grid4": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo60__grid5": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo61__grid1": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo61__grid2": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo61__grid3": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo61__grid4": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo61__grid5": {
+   "class": "refused",
+   "reason": "phase SLAGBSOLN carries chemical-group override strings, which change the mixed chemical-group excess interpolation; mixed chemical groups are not supported, so its energy is not computed (suspend the phase to compute without it)"
+  },
+  "TestThermo62__grid1": {
+   "class": "computed",
+   "T_K": 1800.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CL": 2.0,
+    "AL": 1.0
+   },
+   "G_total_J": -895861.6698356024,
+   "G_per_atom_J": -298620.55661186745,
+   "phases": [
+    {
+     "phase": "GAS_IDEAL",
+     "moles_of_atoms": 2.5101944316154268,
+     "x": {
+      "CL": 0.75,
+      "AL": 0.25
+     }
+    },
+    {
+     "phase": "MSSOLN",
+     "moles_of_atoms": 0.4898055683845738,
+     "x": {
+      "CL": 0.23959338942485997,
+      "AL": 0.76040661057514
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CL": -387570.1818010006,
+    "AL": -120721.30623360089
+   },
+   "certificate_J": -7.275957614183426e-11,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 5.78
+  },
+  "TestThermo62__grid2": {
+   "class": "computed",
+   "T_K": 1900.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CL": 2.0,
+    "AL": 1.0
+   },
+   "G_total_J": -929625.6692384561,
+   "G_per_atom_J": -309875.22307948535,
+   "phases": [
+    {
+     "phase": "GAS_IDEAL",
+     "moles_of_atoms": 2.5153495826715626,
+     "x": {
+      "CL": 0.75,
+      "AL": 0.25
+     }
+    },
+    {
+     "phase": "MSSOLN",
+     "moles_of_atoms": 0.4846504173284374,
+     "x": {
+      "CL": 0.2341642737499591,
+      "AL": 0.7658357262500409
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CL": -399542.6266733034,
+    "AL": -130540.41589184916
+   },
+   "certificate_J": -1.8553691916167736e-10,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 5.56
+  },
+  "TestThermo62__grid3": {
+   "class": "computed",
+   "T_K": 2000.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CL": 2.0,
+    "AL": 1.0
+   },
+   "G_total_J": -963746.1758337248,
+   "G_per_atom_J": -321248.72527790826,
+   "phases": [
+    {
+     "phase": "GAS_IDEAL",
+     "moles_of_atoms": 2.518685219858959,
+     "x": {
+      "CL": 0.7500000000000001,
+      "AL": 0.25
+     }
+    },
+    {
+     "phase": "MSSOLN",
+     "moles_of_atoms": 0.4813147801410405,
+     "x": {
+      "CL": 0.23058939738617198,
+      "AL": 0.769410602613828
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CL": -411594.7948981635,
+    "AL": -140556.5860373978
+   },
+   "certificate_J": -8.985357867747832e-11,
+   "passes": 4,
+   "exact_finish": true,
+   "seconds": 5.9
+  },
+  "TestThermo62__grid4": {
+   "class": "computed",
+   "T_K": 2100.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CL": 2.0,
+    "AL": 1.0
+   },
+   "G_total_J": -998204.6534387886,
+   "G_per_atom_J": -332734.8844795962,
+   "phases": [
+    {
+     "phase": "GAS_IDEAL",
+     "moles_of_atoms": 2.520647699585159,
+     "x": {
+      "CL": 0.75,
+      "AL": 0.25
+     }
+    },
+    {
+     "phase": "MSSOLN",
+     "moles_of_atoms": 0.4793523004148403,
+     "x": {
+      "CL": 0.22846291801740506,
+      "AL": 0.7715370819825949
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CL": -423723.43227853783,
+    "AL": -150757.78888171335
+   },
+   "certificate_J": -1.329026755826366e-10,
+   "passes": 4,
+   "exact_finish": true,
+   "seconds": 5.79
+  },
+  "TestThermo62__grid5": {
+   "class": "computed",
+   "T_K": 2200.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CL": 2.0,
+    "AL": 1.0
+   },
+   "G_total_J": -1032984.6362130621,
+   "G_per_atom_J": -344328.2120710207,
+   "phases": [
+    {
+     "phase": "GAS_IDEAL",
+     "moles_of_atoms": 2.5215417310051595,
+     "x": {
+      "CL": 0.75,
+      "AL": 0.25
+     }
+    },
+    {
+     "phase": "MSSOLN",
+     "moles_of_atoms": 0.47845826899484023,
+     "x": {
+      "CL": 0.2274883909411626,
+      "AL": 0.7725116090588374
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CL": -435925.323552646,
+    "AL": -161133.9891077699
+   },
+   "certificate_J": -1.3869101988970698e-10,
+   "passes": 4,
+   "exact_finish": true,
+   "seconds": 6.01
+  },
+  "TestThermo63__grid1": {
+   "class": "computed",
+   "T_K": 800.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CL": 3.0,
+    "NA": 1.0,
+    "AL": 1.0
+   },
+   "G_total_J": -1098690.7305934185,
+   "G_per_atom_J": -219738.1461186837,
+   "phases": [
+    {
+     "phase": "MSSOLN",
+     "moles_of_atoms": 4.473570509105561,
+     "x": {
+      "CL": 0.6117675465229158,
+      "AL": 0.22353509304583175,
+      "NA": 0.1646973604312525
+     }
+    },
+    {
+     "phase": "NACL_S1(S)",
+     "moles_of_atoms": 0.5264294908944401,
+     "x": {
+      "CL": 0.5,
+      "NA": 0.5
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CL": -290704.7723361353,
+    "AL": -33180.92570589654,
+    "NA": -193395.48787911626
+   },
+   "certificate_J": -1.1650948720192718e-10,
+   "passes": 19,
+   "exact_finish": true,
+   "seconds": 38.04
+  },
+  "TestThermo63__grid2": {
+   "class": "computed",
+   "T_K": 900.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CL": 3.0,
+    "NA": 1.0,
+    "AL": 1.0
+   },
+   "G_total_J": -1136084.0568734065,
+   "G_per_atom_J": -227216.8113746813,
+   "phases": [
+    {
+     "phase": "MSSOLN",
+     "moles_of_atoms": 4.609383618820643,
+     "x": {
+      "CL": 0.6084743734408311,
+      "AL": 0.21694874688166227,
+      "NA": 0.17457687967750665
+     }
+    },
+    {
+     "phase": "NACL_S1(S)",
+     "moles_of_atoms": 0.39061638117935693,
+     "x": {
+      "CL": 0.5,
+      "NA": 0.5
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CL": -299376.2556355436,
+    "AL": -40307.37171791228,
+    "NA": -197647.91824886325
+   },
+   "certificate_J": -1.062502118268628e-10,
+   "passes": 12,
+   "exact_finish": true,
+   "seconds": 32.54
+  },
+  "TestThermo63__grid3": {
+   "class": "computed",
+   "T_K": 1000.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CL": 3.0,
+    "NA": 1.0,
+    "AL": 1.0
+   },
+   "G_total_J": -1175837.1667624116,
+   "G_per_atom_J": -235167.43335248233,
+   "phases": [
+    {
+     "phase": "MSSOLN",
+     "moles_of_atoms": 4.952903339161439,
+     "x": {
+      "CL": 0.604696629165681,
+      "AL": 0.193401673650206,
+      "NA": 0.20190169718411302
+     }
+    },
+    {
+     "phase": "MSSOLN",
+     "moles_of_atoms": 0.04709666083856086,
+     "x": {
+      "CL": 0.106080688878516,
+      "AL": 0.8939106091363004,
+      "NA": 8.701985183643053e-06
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CL": -308498.4577597693,
+    "AL": -47468.71264650442,
+    "NA": -202873.08083659943
+   },
+   "certificate_J": -6.625688813735901e-11,
+   "passes": 19,
+   "exact_finish": true,
+   "seconds": 38.71
+  },
+  "TestThermo63__grid4": {
+   "class": "computed",
+   "T_K": 1100.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CL": 3.0,
+    "NA": 1.0,
+    "AL": 1.0
+   },
+   "G_total_J": -1217664.902000723,
+   "G_per_atom_J": -243532.9804001446,
+   "phases": [
+    {
+     "phase": "MSSOLN",
+     "moles_of_atoms": 4.993292042832217,
+     "x": {
+      "CL": 0.6006148304827573,
+      "AL": 0.19911652371837552,
+      "NA": 0.2002686457988672
+     }
+    },
+    {
+     "phase": "MSSOLN",
+     "moles_of_atoms": 0.006707957167783015,
+     "x": {
+      "CL": 0.14233038756007685,
+      "AL": 0.8576450887691803,
+      "NA": 2.4523670742707814e-05
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CL": -316523.42185371165,
+    "AL": -55799.50007545196,
+    "NA": -212295.13636413575
+   },
+   "certificate_J": -2.0195232138595984e-10,
+   "passes": 11,
+   "exact_finish": true,
+   "seconds": 33.31
+  },
+  "TestThermo63__grid5": {
+   "class": "computed",
+   "T_K": 1200.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CL": 3.0,
+    "NA": 1.0,
+    "AL": 1.0
+   },
+   "G_total_J": -1261095.9423991847,
+   "G_per_atom_J": -252219.1884798369,
+   "phases": [
+    {
+     "phase": "MSSOLN",
+     "moles_of_atoms": 4.999999999999999,
+     "x": {
+      "CL": 0.6,
+      "AL": 0.20000000000000007,
+      "NA": 0.20000000000000004
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CL": -324525.8127229798,
+    "AL": -65108.84321049394,
+    "NA": -222409.66101975084
+   },
+   "certificate_J": -1.7817657723867349e-10,
+   "passes": 22,
+   "exact_finish": true,
+   "seconds": 47.29
+  },
+  "TestThermo64__grid1": {
+   "class": "computed",
+   "T_K": 400.0,
+   "P_atm": 100.0,
+   "amounts": {
+    "NB": 1.0,
+    "ZR": 1.0,
+    "O": 1.0,
+    "H": 0.1
+   },
+   "G_total_J": -497975.32471027266,
+   "G_per_atom_J": -160637.20151944278,
+   "phases": [
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 1.6681208697293433,
+     "x": {
+      "H": 0.059654033088689815,
+      "NB": 0.004092383348212822,
+      "O": 0.33701431575478474,
+      "ZR": 0.5992392678083126
+     }
+    },
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 0.44947936591192583,
+     "x": {
+      "H": 0.0010898441106964112,
+      "NB": 0.9982572163232666,
+      "O": 0.0006529390533896863,
+      "ZR": 5.126472889344989e-10
+     }
+    },
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 0.9823997643587306,
+     "x": {
+      "H": 1.4383071581528641e-12,
+      "NB": 0.5542320031757535,
+      "O": 0.4453644226449815,
+      "ZR": 0.0004035741778267016
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "H": -61066.868707127775,
+    "NB": -14903.59439358131,
+    "O": -414492.7454154237,
+    "ZR": -62472.29803055502
+   },
+   "certificate_J": -2.1827872842550278e-11,
+   "passes": 24,
+   "exact_finish": true,
+   "seconds": 0.15
+  },
+  "TestThermo64__grid2": {
+   "class": "computed",
+   "T_K": 500.0,
+   "P_atm": 100.0,
+   "amounts": {
+    "NB": 1.0,
+    "ZR": 1.0,
+    "O": 1.0,
+    "H": 0.1
+   },
+   "G_total_J": -513167.1343615299,
+   "G_per_atom_J": -165537.78527791286,
+   "phases": [
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 1.698966672885606,
+     "x": {
+      "H": 0.058389120757101017,
+      "NB": 0.012113271630846228,
+      "O": 0.3423297626763508,
+      "ZR": 0.587167844935702
+     }
+    },
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 0.4542769005846363,
+     "x": {
+      "H": 0.001758462067956974,
+      "NB": 0.9962567924902326,
+      "O": 0.0019847230157875443,
+      "ZR": 2.2426022871127847e-08
+     }
+    },
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 0.9467564265297578,
+     "x": {
+      "H": 1.1371087677998428e-09,
+      "NB": 0.5564720688000191,
+      "O": 0.44097036635513975,
+      "ZR": 0.0025575637077323303
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "H": -65206.563043917864,
+    "NB": -19572.00003395534,
+    "O": -416731.3069885917,
+    "ZR": -70343.17103459111
+   },
+   "certificate_J": -1.382431946694851e-10,
+   "passes": 112,
+   "exact_finish": true,
+   "seconds": 0.7
+  },
+  "TestThermo64__grid3": {
+   "class": "computed",
+   "T_K": 600.0,
+   "P_atm": 100.0,
+   "amounts": {
+    "NB": 1.0,
+    "ZR": 1.0,
+    "O": 1.0,
+    "H": 0.1
+   },
+   "G_total_J": -529924.1599778824,
+   "G_per_atom_J": -170943.27741222014,
+   "phases": [
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 1.7398389543966464,
+     "x": {
+      "H": 0.05681477101854079,
+      "NB": 0.025855358728353532,
+      "O": 0.3477253680809717,
+      "ZR": 0.569604502172134
+     }
+    },
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 0.45156366754882976,
+     "x": {
+      "H": 0.002549632395496521,
+      "NB": 0.993244530313498,
+      "O": 0.004205552641239201,
+      "ZR": 2.8464976643066665e-07
+     }
+    },
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 0.9085973780545241,
+     "x": {
+      "H": 1.39601333261738e-07,
+      "NB": 0.5574556003098422,
+      "O": 0.4326611477217747,
+      "ZR": 0.009883112367049807
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "H": -69389.1005696108,
+    "NB": -24772.301712159016,
+    "O": -419413.22061883914,
+    "ZR": -78799.72758992322
+   },
+   "certificate_J": -1.5279510989785194e-10,
+   "passes": 18,
+   "exact_finish": true,
+   "seconds": 0.16
+  },
+  "TestThermo64__grid4": {
+   "class": "computed",
+   "T_K": 700.0,
+   "P_atm": 100.0,
+   "amounts": {
+    "NB": 1.0,
+    "ZR": 1.0,
+    "O": 1.0,
+    "H": 0.1
+   },
+   "G_total_J": -548065.8084213613,
+   "G_per_atom_J": -176795.42207140685,
+   "phases": [
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 1.7868701980368407,
+     "x": {
+      "H": 0.055098337548609495,
+      "NB": 0.04569447964654114,
+      "O": 0.3530775007609109,
+      "ZR": 0.5461296820439386
+     }
+    },
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 0.4430920064665833,
+     "x": {
+      "H": 0.0034785820749583885,
+      "NB": 0.9893404122257781,
+      "O": 0.00717922606596327,
+      "ZR": 1.7796333000662797e-06
+     }
+    },
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 0.8700377954965758,
+     "x": {
+      "H": 5.851196108728748e-06,
+      "NB": 0.5516784101307322,
+      "O": 0.42057400322672944,
+      "ZR": 0.02774173544642964
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "H": -73593.54187376691,
+    "NB": -30424.849833660453,
+    "O": -422535.7692597492,
+    "ZR": -87745.83514057499
+   },
+   "certificate_J": -7.275957614183426e-12,
+   "passes": 26,
+   "exact_finish": true,
+   "seconds": 0.25
+  },
+  "TestThermo64__grid5": {
+   "class": "computed",
+   "T_K": 800.0,
+   "P_atm": 100.0,
+   "amounts": {
+    "NB": 1.0,
+    "ZR": 1.0,
+    "O": 1.0,
+    "H": 0.1
+   },
+   "G_total_J": -567454.2366129316,
+   "G_per_atom_J": -183049.75374610696,
+   "phases": [
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 1.8485362398695762,
+     "x": {
+      "H": 0.05298165445858787,
+      "NB": 0.07200430478642728,
+      "O": 0.35851898243593433,
+      "ZR": 0.5164950583190505
+     }
+    },
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 0.44180047293241304,
+     "x": {
+      "H": 0.004500063807772139,
+      "NB": 0.9848700411684931,
+      "O": 0.010622783122202138,
+      "ZR": 7.1119015326709e-06
+     }
+    },
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 0.8096632871980102,
+     "x": {
+      "H": 9.06072533027043e-05,
+      "NB": 0.5332851199227876,
+      "O": 0.4107528684296519,
+      "ZR": 0.055871404394257786
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "H": -77911.5611407088,
+    "NB": -36470.84780426765,
+    "O": -426086.6810804178,
+    "ZR": -97105.55161417526
+   },
+   "certificate_J": -8.003553375601768e-11,
+   "passes": 119,
+   "exact_finish": true,
+   "seconds": 2.27
+  },
+  "TestThermo65__grid2": {
+   "class": "computed",
+   "T_K": 300.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 1.0,
+    "TC": 1.0,
+    "RU": 1.0,
+    "PD": 1.0
+   },
+   "G_total_J": -29572.82372845618,
+   "G_per_atom_J": -7393.205932114045,
+   "phases": [
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.028674186862949,
+     "x": {
+      "PD": 0.9689056678275849,
+      "RU": 0.00040584573159484146,
+      "TC": 0.03068848644082033,
+      "MO": 9.96156392932682e-202
+     }
+    },
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.0679796000516102,
+     "x": {
+      "PD": 0.000512330787392356,
+      "RU": 0.9342742868639456,
+      "TC": 0.06520033455072355,
+      "MO": 1.304779793862617e-05
+     }
+    },
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.9033462130854402,
+     "x": {
+      "PD": 0.0014524899107354803,
+      "RU": 0.0009439363875304085,
+      "TC": 0.4722204046581277,
+      "MO": 0.5253831690436064
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -6237.855552345579,
+    "RU": -1246.6989985006642,
+    "TC": -12002.5412142746,
+    "MO": -10085.727963335337
+   },
+   "certificate_J": -3.637978807091713e-12,
+   "passes": 13,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo65__grid3": {
+   "class": "computed",
+   "T_K": 400.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 1.0,
+    "TC": 1.0,
+    "RU": 1.0,
+    "PD": 1.0
+   },
+   "G_total_J": -44892.80578941038,
+   "G_per_atom_J": -11223.201447352594,
+   "phases": [
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.0624631540580498,
+     "x": {
+      "PD": 0.9299172882864611,
+      "RU": 0.003492971552535758,
+      "TC": 0.06658974016100311,
+      "MO": 1.6107586220558478e-142
+     }
+    },
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.8230558588445773,
+     "x": {
+      "PD": 0.004086006264662207,
+      "RU": 0.006595049317858816,
+      "TC": 0.44092178741418026,
+      "MO": 0.5483971570032987
+     }
+    },
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.1144809870973729,
+     "x": {
+      "PD": 0.0040809374647432384,
+      "RU": 0.8831606052719235,
+      "TC": 0.11254189910377665,
+      "MO": 0.00021655815955664876
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -10246.756270259999,
+    "RU": -4943.566985212288,
+    "TC": -16407.25141547173,
+    "MO": -13295.231118466361
+   },
+   "certificate_J": -3.637978807091713e-12,
+   "passes": 13,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo65__grid4": {
+   "class": "computed",
+   "T_K": 500.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 1.0,
+    "TC": 1.0,
+    "RU": 1.0,
+    "PD": 1.0
+   },
+   "G_total_J": -63190.72795900832,
+   "G_per_atom_J": -15797.68198975208,
+   "phases": [
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.7627887995328928,
+     "x": {
+      "PD": 0.006981465250006193,
+      "RU": 0.022323513229849427,
+      "TC": 0.40347200606089084,
+      "MO": 0.5672230154592535
+     }
+    },
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.1381527421641222,
+     "x": {
+      "PD": 0.015845611938538867,
+      "RU": 0.8311602840630166,
+      "TC": 0.15290130317546005,
+      "MO": 9.280082298462738e-05
+     }
+    },
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.0990584583029848,
+     "x": {
+      "PD": 0.8822628289227289,
+      "RU": 0.01333960383745334,
+      "TC": 0.1043975672398178,
+      "MO": 3.397202533197942e-106
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -15017.741018950122,
+    "RU": -9338.039978148608,
+    "TC": -21654.419101862026,
+    "MO": -17180.527860047576
+   },
+   "certificate_J": -1.2732925824820995e-11,
+   "passes": 17,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo65__grid5": {
+   "class": "computed",
+   "T_K": 600.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "MO": 1.0,
+    "TC": 1.0,
+    "RU": 1.0,
+    "PD": 1.0
+   },
+   "G_total_J": -84097.98822527243,
+   "G_per_atom_J": -21024.49705631811,
+   "phases": [
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.1804570323380237,
+     "x": {
+      "PD": 0.8279202749734772,
+      "RU": 0.03397802005314222,
+      "TC": 0.13810170497338056,
+      "MO": 1.396739605972e-81
+     }
+    },
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.6919227564111265,
+     "x": {
+      "PD": 0.009835335107518245,
+      "RU": 0.05521431176862968,
+      "TC": 0.3631426268102298,
+      "MO": 0.5718077263136223
+     }
+    },
+    {
+     "phase": "BCCN",
+     "moles_of_atoms": 1.12762021125085,
+     "x": {
+      "PD": 0.005352034174959134,
+      "RU": 0.7684077033004401,
+      "TC": 0.19737815520020738,
+      "MO": 0.028862107324393274
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "PD": -20416.935377988928,
+    "RU": -14299.959586376073,
+    "TC": -27694.161464974608,
+    "MO": -21686.93179593283
+   },
+   "certificate_J": -1.0913936421275139e-11,
+   "passes": 19,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo70__grid1": {
+   "class": "computed",
+   "T_K": 1300.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "O": 0.3,
+    "SN": 0.7
+   },
+   "G_total_J": -162808.40838434006,
+   "G_per_atom_J": -162808.40838434006,
+   "phases": [
+    {
+     "phase": "O2SN",
+     "moles_of_atoms": 0.4451704729501107,
+     "x": {
+      "O": 0.6666666666666667,
+      "SN": 0.33333333333333337
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.5548295270498894,
+     "x": {
+      "O": 0.005803016139111743,
+      "SN": 0.9941969838608882
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "O": -300477.5080274932,
+    "SN": -103807.36568013155
+   },
+   "certificate_J": -1.4551915228366852e-11,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 0.06
+  },
+  "TestThermo70__grid2": {
+   "class": "computed",
+   "T_K": 1400.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "O": 0.3,
+    "SN": 0.7
+   },
+   "G_total_J": -171847.37508006176,
+   "G_per_atom_J": -171847.37508006176,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.5686170194855564,
+     "x": {
+      "O": 0.5200717443239873,
+      "SN": 0.4799282556760127
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.43138298051444346,
+     "x": {
+      "O": 0.009917764531966062,
+      "SN": 0.9900822354680339
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "O": -305212.39940574794,
+    "SN": -114690.93608333914
+   },
+   "certificate_J": -2.9103830456733704e-11,
+   "passes": 4,
+   "exact_finish": true,
+   "seconds": 0.06
+  },
+  "TestThermo70__grid3": {
+   "class": "computed",
+   "T_K": 1500.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "O": 0.3,
+    "SN": 0.7
+   },
+   "G_total_J": -181211.872258373,
+   "G_per_atom_J": -181211.872258373,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.5700503648077997,
+     "x": {
+      "O": 0.5145758805710532,
+      "SN": 0.485424119428947
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.4299496351922002,
+     "x": {
+      "O": 0.015503749773381134,
+      "SN": 0.9844962502266188
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "O": -310505.14380369184,
+    "SN": -125800.47016752213
+   },
+   "certificate_J": -2.1827872842550278e-11,
+   "passes": 4,
+   "exact_finish": true,
+   "seconds": 0.06
+  },
+  "TestThermo70__grid4": {
+   "class": "computed",
+   "T_K": 1600.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "O": 0.3,
+    "SN": 0.7
+   },
+   "G_total_J": -190806.36929955365,
+   "G_per_atom_J": -190806.36929955365,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.5690937184821383,
+     "x": {
+      "O": 0.5096716171461034,
+      "SN": 0.4903283828538966
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.43090628151786164,
+     "x": {
+      "O": 0.02308874254158879,
+      "SN": 0.9769112574584111
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "O": -316048.9387006502,
+    "SN": -137130.98241336946
+   },
+   "certificate_J": -2.9103830456733704e-11,
+   "passes": 4,
+   "exact_finish": true,
+   "seconds": 0.06
+  },
+  "TestThermo70__grid5": {
+   "class": "computed",
+   "T_K": 1700.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "O": 0.3,
+    "SN": 0.7
+   },
+   "G_total_J": -200621.8164050721,
+   "G_per_atom_J": -200621.8164050721,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.5658734918402932,
+     "x": {
+      "O": 0.5047752200500008,
+      "SN": 0.4952247799499993
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.43412650815970655,
+     "x": {
+      "O": 0.03308041173696405,
+      "SN": 0.9669195882630359
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "O": -321823.2844196251,
+    "SN": -148678.33011312093
+   },
+   "certificate_J": -2.9103830456733704e-11,
+   "passes": 6,
+   "exact_finish": true,
+   "seconds": 0.07
+  },
+  "TestThermo71__grid1": {
+   "class": "computed",
+   "T_K": 1800.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "O": 0.1,
+    "CR": 0.2,
+    "ZR": 0.7
+   },
+   "G_total_J": -174246.6485984797,
+   "G_per_atom_J": -174246.6485984797,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.5769946618201557,
+     "x": {
+      "CR": 0.34662359684866406,
+      "O": 2.2384858743837856e-07,
+      "ZR": 0.6533761793027485
+     }
+    },
+    {
+     "phase": "HCP_A3",
+     "moles_of_atoms": 0.42300533817984437,
+     "x": {
+      "CR": 8.26406098108071e-08,
+      "O": 0.23640333067864078,
+      "ZR": 0.7635965866807494
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CR": -105097.62872472523,
+    "O": -623226.263005967,
+    "ZR": -129863.56650419705
+   },
+   "certificate_J": 0.0,
+   "passes": 12,
+   "exact_finish": true,
+   "seconds": 0.22
+  },
+  "TestThermo71__grid2": {
+   "class": "computed",
+   "T_K": 1900.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "O": 0.1,
+    "CR": 0.2,
+    "ZR": 0.7
+   },
+   "G_total_J": -184024.17923168436,
+   "G_per_atom_J": -184024.17923168436,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.592439956217813,
+     "x": {
+      "CR": 0.33758690641995986,
+      "O": 8.265892422822154e-07,
+      "ZR": 0.6624122669907978
+     }
+    },
+    {
+     "phase": "HCP_A3",
+     "moles_of_atoms": 0.4075600437821868,
+     "x": {
+      "CR": 6.855640640787683e-08,
+      "O": 0.2453614180808863,
+      "ZR": 0.7546385133627074
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CR": -115612.63856979542,
+    "O": -626009.9302365831,
+    "ZR": -140429.51213438145
+   },
+   "certificate_J": -1.0186340659856796e-10,
+   "passes": 11,
+   "exact_finish": true,
+   "seconds": 0.24
+  },
+  "TestThermo71__grid3": {
+   "class": "computed",
+   "T_K": 2000.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "O": 0.1,
+    "CR": 0.2,
+    "ZR": 0.7
+   },
+   "G_total_J": -194029.80315794505,
+   "G_per_atom_J": -194029.80315794505,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.6058836749475969,
+     "x": {
+      "CR": 0.3300963292831344,
+      "O": 2.551843113479236e-06,
+      "ZR": 0.6699011188737521
+     }
+    },
+    {
+     "phase": "HCP_A3",
+     "moles_of_atoms": 0.3941163250524028,
+     "x": {
+      "CR": 5.817374457398423e-08,
+      "O": 0.2537282713843951,
+      "ZR": 0.7462716704418603
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CR": -126330.93480433439,
+    "O": -628949.9503653075,
+    "ZR": -151240.88737221065
+   },
+   "certificate_J": 0.0,
+   "passes": 19,
+   "exact_finish": true,
+   "seconds": 0.28
+  },
+  "TestThermo71__grid4": {
+   "class": "computed",
+   "T_K": 2100.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "O": 0.1,
+    "CR": 0.2,
+    "ZR": 0.7
+   },
+   "G_total_J": -204254.90559979435,
+   "G_per_atom_J": -204254.90559979435,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.6176439392133469,
+     "x": {
+      "CR": 0.3238111281235014,
+      "O": 6.81350952824416e-06,
+      "ZR": 0.6761820583669704
+     }
+    },
+    {
+     "phase": "HCP_A3",
+     "moles_of_atoms": 0.3823560607866531,
+     "x": {
+      "CR": 5.038414402958961e-08,
+      "O": 0.26152532137559276,
+      "ZR": 0.7384746282402632
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CR": -137252.14905354564,
+    "O": -632050.6477021697,
+    "ZR": -162284.87288409745
+   },
+   "certificate_J": -1.1641532182693481e-10,
+   "passes": 13,
+   "exact_finish": true,
+   "seconds": 0.22
+  },
+  "TestThermo71__grid5": {
+   "class": "computed",
+   "T_K": 2200.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "O": 0.1,
+    "CR": 0.2,
+    "ZR": 0.7
+   },
+   "G_total_J": -214691.28932053328,
+   "G_per_atom_J": -214691.28932053328,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.6279973568606082,
+     "x": {
+      "CR": 0.31847265165990624,
+      "O": 1.614922336258531e-05,
+      "ZR": 0.6815111991167312
+     }
+    },
+    {
+     "phase": "HCP_A3",
+     "moles_of_atoms": 0.37200264313939235,
+     "x": {
+      "CR": 4.4422237646541154e-08,
+      "O": 0.2687880319520901,
+      "ZR": 0.7312119236256722
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CR": -148374.37835629683,
+    "O": -635311.5361486628,
+    "ZR": -173550.37147772507
+   },
+   "certificate_J": -7.275957614183426e-11,
+   "passes": 24,
+   "exact_finish": true,
+   "seconds": 0.32
+  },
+  "TestThermo72__grid1": {
+   "class": "computed",
+   "T_K": 500.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TE": 0.8,
+    "CS": 0.2
+   },
+   "G_total_J": -71881.30644675743,
+   "G_per_atom_J": -71881.30644675743,
+   "phases": [
+    {
+     "phase": "CSTE4",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "CS": 0.2,
+      "TE": 0.8
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CS": -242866.52328774217,
+    "TE": -29135.00223651124
+   },
+   "certificate_J": 0.0,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo72__grid2": {
+   "class": "computed",
+   "T_K": 600.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TE": 0.8,
+    "CS": 0.2
+   },
+   "G_total_J": -80480.61781268098,
+   "G_per_atom_J": -80480.61781268098,
+   "phases": [
+    {
+     "phase": "IONIC_LIQUID",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "CS": 0.20000000000000007,
+      "TE": 0.8
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CS": -264212.52054128144,
+    "TE": -34547.64213053086
+   },
+   "certificate_J": 0.0,
+   "passes": 16,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo72__grid3": {
+   "class": "computed",
+   "T_K": 700.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TE": 0.8,
+    "CS": 0.2
+   },
+   "G_total_J": -90213.33506352067,
+   "G_per_atom_J": -90213.33506352067,
+   "phases": [
+    {
+     "phase": "IONIC_LIQUID",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "CS": 0.20000000000000007,
+      "TE": 0.8
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CS": -275754.2937534185,
+    "TE": -43828.09539103982
+   },
+   "certificate_J": -5.122274160385132e-09,
+   "passes": 13,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo72__grid4": {
+   "class": "computed",
+   "T_K": 800.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TE": 0.8,
+    "CS": 0.2
+   },
+   "G_total_J": -100573.28555667058,
+   "G_per_atom_J": -100573.28555667058,
+   "phases": [
+    {
+     "phase": "IONIC_LIQUID",
+     "moles_of_atoms": 1.0000000000000002,
+     "x": {
+      "CS": 0.2,
+      "TE": 0.7999999999999999
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CS": -287532.39024338505,
+    "TE": -53833.509384991936
+   },
+   "certificate_J": -1.4551915228366852e-11,
+   "passes": 17,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo72__grid5": {
+   "class": "computed",
+   "T_K": 900.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TE": 0.8,
+    "CS": 0.2
+   },
+   "G_total_J": -111380.41310445528,
+   "G_per_atom_J": -111380.41310445528,
+   "phases": [
+    {
+     "phase": "IONIC_LIQUID",
+     "moles_of_atoms": 1.0,
+     "x": {
+      "CS": 0.2,
+      "TE": 0.8
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CS": -299597.89311393874,
+    "TE": -64326.04310208442
+   },
+   "certificate_J": 0.0,
+   "passes": 16,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo73__grid1": {
+   "class": "computed",
+   "T_K": 2300.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CA": 1.0,
+    "MN": 1.0,
+    "S": 1.0
+   },
+   "G_total_J": -841377.789785767,
+   "G_per_atom_J": -280459.26326192234,
+   "phases": [
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 0.04742887707195868,
+     "x": {
+      "CA": 0.9999958058398799,
+      "MN": 4.194145747494297e-06,
+      "S": 1.437243489875798e-11
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.9526959867253866,
+     "x": {
+      "CA": 4.8200369006010716e-06,
+      "MN": 0.9998981196333216,
+      "S": 9.706032977777415e-05
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 1.9998751362026548,
+     "x": {
+      "CA": 0.4763131020425908,
+      "MN": 0.023701917439433326,
+      "S": 0.4999849805179759
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CA": -187167.1496576059,
+    "MN": -176782.39752187635,
+    "S": -477428.2426062845
+   },
+   "certificate_J": 0.0,
+   "passes": 4,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo73__grid2": {
+   "class": "computed",
+   "T_K": 2400.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CA": 1.0,
+    "MN": 1.0,
+    "S": 1.0
+   },
+   "G_total_J": -871186.5545170165,
+   "G_per_atom_J": -290395.51817233884,
+   "phases": [
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 0.05744424769812796,
+     "x": {
+      "CA": 0.9999961793011142,
+      "MN": 3.820668711016892e-06,
+      "S": 3.01746281695847e-11
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.9428094024825104,
+     "x": {
+      "CA": 4.474686140221116e-06,
+      "MN": 0.9998305320224963,
+      "S": 0.00016499329136361558
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 1.999746349819361,
+     "x": {
+      "CA": 0.4713356536882893,
+      "MN": 0.028678714202848916,
+      "S": 0.4999856321088619
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CA": -198862.57101081594,
+    "MN": -188938.2865332351,
+    "S": -483385.69697296555
+   },
+   "certificate_J": 0.0,
+   "passes": 4,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo73__grid3": {
+   "class": "computed",
+   "T_K": 2500.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CA": 1.0,
+    "MN": 1.0,
+    "S": 1.0
+   },
+   "G_total_J": -901530.1668842675,
+   "G_per_atom_J": -300510.0556280892,
+   "phases": [
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 0.06805971361027784,
+     "x": {
+      "CA": 0.9999965271523372,
+      "MN": 3.4727884661848996e-06,
+      "S": 5.919653153614608e-11
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.9323837479056905,
+     "x": {
+      "CA": 4.150887517181067e-06,
+      "MN": 0.9997281476420746,
+      "S": 0.0002677014704081854
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 1.9995565384840326,
+     "x": {
+      "CA": 0.466071668689713,
+      "MN": 0.03394226927393423,
+      "S": 0.4999860620363528
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CA": -210715.4156771918,
+    "MN": -201295.06768335335,
+    "S": -489519.6835237221
+   },
+   "certificate_J": 0.0,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo73__grid4": {
+   "class": "computed",
+   "T_K": 2600.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CA": 1.0,
+    "MN": 1.0,
+    "S": 1.0
+   },
+   "G_total_J": -932390.3642933872,
+   "G_per_atom_J": -310796.78809779574,
+   "phases": [
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 0.0791743950132446,
+     "x": {
+      "CA": 0.9999968483359087,
+      "MN": 3.151554717508129e-06,
+      "S": 1.0937385979896518e-10
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.9215391347370752,
+     "x": {
+      "CA": 3.850783163218477e-06,
+      "MN": 0.9995792982231217,
+      "S": 0.0004168509937150314
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 1.9992864702496795,
+     "x": {
+      "CA": 0.4605754700853212,
+      "MN": 0.039438224619249465,
+      "S": 0.4999863052954294
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CA": -222716.14917949686,
+    "MN": -213845.07176714556,
+    "S": -495829.1433467452
+   },
+   "certificate_J": 0.0,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo73__grid5": {
+   "class": "computed",
+   "T_K": 2700.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "CA": 1.0,
+    "MN": 1.0,
+    "S": 1.0
+   },
+   "G_total_J": -963749.9461805342,
+   "G_per_atom_J": -321249.98206017807,
+   "phases": [
+    {
+     "phase": "BCC_A2",
+     "moles_of_atoms": 0.09070490959710215,
+     "x": {
+      "CA": 0.9999971429361559,
+      "MN": 2.8568722316135253e-06,
+      "S": 1.9161245033760235e-10
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.910380288421399,
+     "x": {
+      "CA": 3.5751901654320384e-06,
+      "MN": 0.9993705204289447,
+      "S": 0.0006259043808899656
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 1.9989148019815015,
+     "x": {
+      "CA": 0.454892871806538,
+      "MN": 0.04512074158954171,
+      "S": 0.49998638660392025
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CA": -234856.45639051445,
+    "MN": -226581.323793425,
+    "S": -502312.1659965938
+   },
+   "certificate_J": 0.0,
+   "passes": 5,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo74__grid1": {
+   "class": "computed",
+   "T_K": 1700.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "FE": 2.0,
+    "MN": 4.0,
+    "S": 3.0
+   },
+   "G_total_J": -1751047.7600441447,
+   "G_per_atom_J": -194560.8622271272,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.24287501454994173,
+     "x": {
+      "FE": 0.7843239864671957,
+      "MN": 0.21563578412175852,
+      "S": 4.0229411045786354e-05
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 8.757124985450055,
+     "x": {
+      "FE": 0.20663257671683383,
+      "MN": 0.45079035212503116,
+      "S": 0.34257707115813507
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "FE": -101508.15177634238,
+    "MN": -132113.09060557254,
+    "S": -339859.6980230568
+   },
+   "certificate_J": 0.0,
+   "passes": 16,
+   "exact_finish": true,
+   "seconds": 0.03
+  },
+  "TestThermo74__grid2": {
+   "class": "computed",
+   "T_K": 1800.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "FE": 2.0,
+    "MN": 4.0,
+    "S": 3.0
+   },
+   "G_total_J": -1846579.758002369,
+   "G_per_atom_J": -205175.5286669299,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.1872278906994037,
+     "x": {
+      "FE": 0.7777057295629893,
+      "MN": 0.22221435431764686,
+      "S": 7.991611936369898e-05
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 8.812772109300608,
+     "x": {
+      "FE": 0.21042094061550123,
+      "MN": 0.4491657365087729,
+      "S": 0.3404133228757259
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "FE": -110930.10290430937,
+    "MN": -143637.55761000497,
+    "S": -350056.4405845766
+   },
+   "certificate_J": 0.0,
+   "passes": 19,
+   "exact_finish": true,
+   "seconds": 0.04
+  },
+  "TestThermo74__grid3": {
+   "class": "computed",
+   "T_K": 1900.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "FE": 2.0,
+    "MN": 4.0,
+    "S": 3.0
+   },
+   "G_total_J": -1944884.7883563996,
+   "G_per_atom_J": -216098.30981737774,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.1338898745824289,
+     "x": {
+      "FE": 0.772500258229489,
+      "MN": 0.22735520738389384,
+      "S": 0.00014453438661713756
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 8.866110125417572,
+     "x": {
+      "FE": 0.2139123031952455,
+      "MN": 0.44772277623956896,
+      "S": 0.3383649205651854
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "FE": -121309.586351222,
+    "MN": -155496.14699177555,
+    "S": -360093.67589561763
+   },
+   "certificate_J": 0.0,
+   "passes": 14,
+   "exact_finish": true,
+   "seconds": 0.04
+  },
+  "TestThermo74__grid4": {
+   "class": "computed",
+   "T_K": 2000.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "FE": 2.0,
+    "MN": 4.0,
+    "S": 3.0
+   },
+   "G_total_J": -1901893.4493919862,
+   "G_per_atom_J": -211321.49437688736,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 2.9782902317738635,
+     "x": {
+      "FE": 0.6715262262425638,
+      "MN": 0.32847377025385627,
+      "S": 3.5035800260974334e-09
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 6.021709768226135,
+     "x": {
+      "FE": 2.9994031966778664e-13,
+      "MN": 0.5018026266565047,
+      "S": 0.4981973733431953
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "FE": -134251.92358246737,
+    "MN": -161623.8645659465,
+    "S": -328964.714654422
+   },
+   "certificate_J": 0.0,
+   "passes": 23,
+   "exact_finish": true,
+   "seconds": 0.04
+  },
+  "TestThermo74__grid5": {
+   "class": "computed",
+   "T_K": 2100.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "FE": 2.0,
+    "MN": 4.0,
+    "S": 3.0
+   },
+   "G_total_J": -1996423.3502659965,
+   "G_per_atom_J": -221824.81669622182,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 2.9737399608244393,
+     "x": {
+      "FE": 0.6725537627172132,
+      "MN": 0.3274462316940008,
+      "S": 5.588785966824307e-09
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 6.026260039175558,
+     "x": {
+      "FE": 8.272214372915432e-13,
+      "MN": 0.5021788034563786,
+      "S": 0.49782119654279433
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "FE": -145096.94362289415,
+    "MN": -174083.35606760866,
+    "S": -336632.0129165915
+   },
+   "certificate_J": 0.0,
+   "passes": 19,
+   "exact_finish": true,
+   "seconds": 0.03
+  },
+  "TestThermo75__grid1": {
+   "class": "computed",
+   "T_K": 1300.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "FE": 0.4,
+    "MN": 0.2,
+    "CA": 0.5
+   },
+   "G_total_J": -93795.0137941448,
+   "G_per_atom_J": -85268.19435831346,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 1.1,
+     "x": {
+      "CA": 0.45454545454545453,
+      "FE": 0.36363636363636365,
+      "MN": 0.18181818181818185
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CA": -92687.49768129652,
+    "FE": -72604.56292832749,
+    "MN": -92047.19891082762
+   },
+   "certificate_J": -3.637978807091713e-11,
+   "passes": 6,
+   "exact_finish": true,
+   "seconds": 0.01
+  },
+  "TestThermo75__grid2": {
+   "class": "computed",
+   "T_K": 1400.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "FE": 0.4,
+    "MN": 0.2,
+    "CA": 0.5
+   },
+   "G_total_J": -105045.81990069285,
+   "G_per_atom_J": -95496.19990972076,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 1.1,
+     "x": {
+      "CA": 0.4545454545454545,
+      "FE": 0.36363636363636365,
+      "MN": 0.18181818181818182
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CA": -103139.29083053976,
+    "FE": -82234.09580566976,
+    "MN": -102912.6808157753
+   },
+   "certificate_J": -3.2741809263825417e-11,
+   "passes": 6,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo75__grid3": {
+   "class": "computed",
+   "T_K": 1500.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "FE": 0.4,
+    "MN": 0.2,
+    "CA": 0.5
+   },
+   "G_total_J": -116594.09801237666,
+   "G_per_atom_J": -105994.63455670605,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 1.0999999999999999,
+     "x": {
+      "CA": 0.45454545454545453,
+      "FE": 0.36363636363636365,
+      "MN": 0.18181818181818182
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CA": -113841.29701166356,
+    "FE": -92132.43693971593,
+    "MN": -114102.37365329254
+   },
+   "certificate_J": -4.729372449219227e-11,
+   "passes": 8,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo75__grid4": {
+   "class": "computed",
+   "T_K": 1600.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "FE": 0.4,
+    "MN": 0.2,
+    "CA": 0.5
+   },
+   "G_total_J": -128426.88471861121,
+   "G_per_atom_J": -116751.71338055564,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 1.1,
+     "x": {
+      "CA": 0.45454545454545453,
+      "FE": 0.36363636363636365,
+      "MN": 0.18181818181818182
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CA": -124776.80967073124,
+    "FE": -102292.25812959543,
+    "MN": -125607.88315703692
+   },
+   "certificate_J": -2.546585164964199e-11,
+   "passes": 8,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo75__grid5": {
+   "class": "computed",
+   "T_K": 1700.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "FE": 0.4,
+    "MN": 0.2,
+    "CA": 0.5
+   },
+   "G_total_J": -140531.79224186897,
+   "G_per_atom_J": -127756.17476533543,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 1.1,
+     "x": {
+      "CA": 0.45454545454545453,
+      "FE": 0.36363636363636365,
+      "MN": 0.18181818181818185
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CA": -135931.21497541072,
+    "FE": -112708.65863544343,
+    "MN": -137413.60649993198
+   },
+   "certificate_J": 0.0,
+   "passes": 29,
+   "exact_finish": true,
+   "seconds": 0.02
+  },
+  "TestThermo76__grid1": {
+   "class": "computed",
+   "T_K": 2300.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TE": 0.5,
+    "CS": 1.0
+   },
+   "G_total_J": -520067.60253343923,
+   "G_per_atom_J": -346711.7350222928,
+   "phases": [
+    {
+     "phase": "IONIC_LIQUID",
+     "moles_of_atoms": 1.5,
+     "x": {
+      "CS": 0.6666666666666667,
+      "TE": 0.3333333333333333
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CS": -441467.6849502782,
+    "TE": -157199.8351663222
+   },
+   "certificate_J": 0.0,
+   "passes": 20,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo76__grid2": {
+   "class": "computed",
+   "T_K": 2400.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TE": 0.5,
+    "CS": 1.0
+   },
+   "G_total_J": -539478.8474799767,
+   "G_per_atom_J": -359652.5649866511,
+   "phases": [
+    {
+     "phase": "IONIC_LIQUID",
+     "moles_of_atoms": 1.5,
+     "x": {
+      "CS": 0.6666666666666666,
+      "TE": 0.3333333333333333
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CS": -459831.6276036246,
+    "TE": -159294.43975270452
+   },
+   "certificate_J": -1.3096723705530167e-10,
+   "passes": 22,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo76__grid3": {
+   "class": "computed",
+   "T_K": 2500.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TE": 0.5,
+    "CS": 1.0
+   },
+   "G_total_J": -559081.2997733537,
+   "G_per_atom_J": -372720.86651556916,
+   "phases": [
+    {
+     "phase": "IONIC_LIQUID",
+     "moles_of_atoms": 1.4999999999999996,
+     "x": {
+      "CS": 0.6666666666666666,
+      "TE": 0.33333333333333337
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CS": -478442.134683603,
+    "TE": -161278.33017950124
+   },
+   "certificate_J": -2.1827872842550278e-10,
+   "passes": 23,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo76__grid4": {
+   "class": "computed",
+   "T_K": 2600.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TE": 0.5,
+    "CS": 1.0
+   },
+   "G_total_J": -578866.8012452576,
+   "G_per_atom_J": -385911.20083017176,
+   "phases": [
+    {
+     "phase": "IONIC_LIQUID",
+     "moles_of_atoms": 1.5,
+     "x": {
+      "CS": 0.6666666666666666,
+      "TE": 0.33333333333333337
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CS": -497298.4387565678,
+    "TE": -163136.72497737946
+   },
+   "certificate_J": -7.275957614183426e-11,
+   "passes": 20,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo76__grid5": {
+   "class": "computed",
+   "T_K": 2700.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "TE": 0.5,
+    "CS": 1.0
+   },
+   "G_total_J": -598827.6935462381,
+   "G_per_atom_J": -399218.4623641587,
+   "phases": [
+    {
+     "phase": "IONIC_LIQUID",
+     "moles_of_atoms": 1.5000000000000004,
+     "x": {
+      "CS": 0.6666666666666667,
+      "TE": 0.33333333333333337
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CS": -516400.0929387834,
+    "TE": -164855.20121490888
+   },
+   "certificate_J": -1.673470251262188e-10,
+   "passes": 20,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo77__grid1": {
+   "class": "computed",
+   "T_K": 2300.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "NB": 1.0,
+    "O": 0.3,
+    "SN": 0.7
+   },
+   "G_total_J": -489556.62158743106,
+   "G_per_atom_J": -244778.31079371553,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 1.2005835968323655,
+     "x": {
+      "NB": 0.41792823441502014,
+      "O": 0.0001412283691075615,
+      "SN": 0.5819305372158723
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.7994164031676346,
+     "x": {
+      "NB": 0.6232574352164447,
+      "O": 0.375061660417004,
+      "SN": 0.0016809043665513678
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "NB": -160978.75898568632,
+    "O": -574367.5989763065,
+    "SN": -223239.40415550396
+   },
+   "certificate_J": 0.0,
+   "passes": 109,
+   "exact_finish": true,
+   "seconds": 1.16
+  },
+  "TestThermo77__grid2": {
+   "class": "computed",
+   "T_K": 2400.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "NB": 1.0,
+    "O": 0.3,
+    "SN": 0.7
+   },
+   "G_total_J": -512625.535163793,
+   "G_per_atom_J": -256312.7675818965,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.798934023003808,
+     "x": {
+      "NB": 0.6228144577225591,
+      "O": 0.3752068852938266,
+      "SN": 0.0019786569836144144
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 1.2010659769961922,
+     "x": {
+      "NB": 0.41830536317687544,
+      "O": 0.00019520465816630654,
+      "SN": 0.5814994321649583
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "NB": -172258.39616917982,
+    "O": -583632.1281518049,
+    "SN": -236110.71507010225
+   },
+   "certificate_J": 0.0,
+   "passes": 117,
+   "exact_finish": true,
+   "seconds": 1.59
+  },
+  "TestThermo77__grid3": {
+   "class": "computed",
+   "T_K": 2500.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "NB": 1.0,
+    "O": 0.3,
+    "SN": 0.7
+   },
+   "G_total_J": -535982.4171791424,
+   "G_per_atom_J": -267991.2085895712,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.7984956091372984,
+     "x": {
+      "NB": 0.6223905983739785,
+      "O": 0.3753063166296641,
+      "SN": 0.0023030849963572683
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 1.2015043908627023,
+     "x": {
+      "NB": 0.4186616743604759,
+      "O": 0.0002659616495376427,
+      "SN": 0.5810723639899864
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "NB": -183696.3417543303,
+    "O": -593051.6852394515,
+    "SN": -249100.8140756804
+   },
+   "certificate_J": 0.0,
+   "passes": 20,
+   "exact_finish": true,
+   "seconds": 0.26
+  },
+  "TestThermo77__grid4": {
+   "class": "computed",
+   "T_K": 2600.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "NB": 1.0,
+    "O": 0.3,
+    "SN": 0.7
+   },
+   "G_total_J": -559619.2909675941,
+   "G_per_atom_J": -279809.64548379707,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 1.201917467778074,
+     "x": {
+      "NB": 0.41900287639229084,
+      "O": 0.00035685216888391575,
+      "SN": 0.5806402714388254
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.7980825322219257,
+     "x": {
+      "NB": 0.6219821932862634,
+      "O": 0.3753635508232137,
+      "SN": 0.002654255890522816
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "NB": -195291.02908866823,
+    "O": -602616.3662145741,
+    "SN": -262204.7885922197
+   },
+   "certificate_J": 0.0,
+   "passes": 33,
+   "exact_finish": true,
+   "seconds": 0.31
+  },
+  "TestThermo77__grid5": {
+   "class": "computed",
+   "T_K": 2700.0,
+   "P_atm": 1.0,
+   "amounts": {
+    "NB": 1.0,
+    "O": 0.3,
+    "SN": 0.7
+   },
+   "G_total_J": -583528.9712580875,
+   "G_per_atom_J": -291764.4856290438,
+   "phases": [
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 0.7976763083885995,
+     "x": {
+      "NB": 0.6215858764529726,
+      "O": 0.37538187159787617,
+      "SN": 0.0030322519491512057
+     }
+    },
+    {
+     "phase": "IONIC_LIQ",
+     "moles_of_atoms": 1.2023236916114004,
+     "x": {
+      "NB": 0.41933439076525647,
+      "O": 0.0004713992011945338,
+      "SN": 0.5801942100335489
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "NB": -207041.26486215988,
+    "O": -612316.7450643247,
+    "SN": -275418.11839518603
+   },
+   "certificate_J": 0.0,
+   "passes": 20,
+   "exact_finish": true,
+   "seconds": 0.26
+  },
+  "TestThermo78__grid1": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: line 339: SUBI reciprocal term of two cations with Va and a neutral with more than one parameter"
+  },
+  "TestThermo78__grid2": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: line 339: SUBI reciprocal term of two cations with Va and a neutral with more than one parameter"
+  },
+  "TestThermo78__grid3": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: line 339: SUBI reciprocal term of two cations with Va and a neutral with more than one parameter"
+  },
+  "TestThermo78__grid4": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: line 339: SUBI reciprocal term of two cations with Va and a neutral with more than one parameter"
+  },
+  "TestThermo78__grid5": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: line 339: SUBI reciprocal term of two cations with Va and a neutral with more than one parameter"
+  },
+  "TestThermo80__grid1": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo80__grid2": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo80__grid3": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo80__grid4": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo80__grid5": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo81__grid1": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo81__grid2": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo81__grid3": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo81__grid4": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo81__grid5": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo82__grid1": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo82__grid2": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo82__grid3": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo82__grid4": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo82__grid5": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo83__grid1": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo83__grid2": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo83__grid3": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo83__grid4": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo83__grid5": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo84__grid1": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo84__grid2": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo84__grid3": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo84__grid4": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo84__grid5": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo85__grid1": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo85__grid2": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo85__grid3": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo85__grid4": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo85__grid5": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo86__grid1": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo86__grid2": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo86__grid3": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo86__grid4": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo86__grid5": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo87__grid1": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo87__grid2": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo87__grid3": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo87__grid4": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo87__grid5": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo88__grid1": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo88__grid2": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo88__grid3": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo88__grid4": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo88__grid5": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo89__grid1": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo89__grid2": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo89__grid3": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo89__grid4": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo89__grid5": {
+   "class": "refused",
+   "reason": "failed to read ChemSage database: phase TESTSOLN is SUBM, which is not read: how a ChemSage file records its excess terms is not documented in any source the engine was written from"
+  },
+  "TestThermo90__grid1": {
+   "class": "computed",
+   "T_K": 473.15,
+   "P_atm": 1e-05,
+   "amounts": {
+    "I": 1.0,
+    "CS": 1.0
+   },
+   "G_total_J": -408679.88097824954,
+   "G_per_atom_J": -204339.94048912477,
+   "phases": [
+    {
+     "phase": "CSI_CSI_B2(S)",
+     "moles_of_atoms": 2.0,
+     "x": {
+      "CS": 0.5,
+      "I": 0.5
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CS": -354765.14090978715,
+    "I": -53914.74006846239
+   },
+   "certificate_J": -4.574088961817324e-06,
+   "passes": 104,
+   "exact_finish": true,
+   "seconds": 0.06
+  },
+  "TestThermo90__grid2": {
+   "class": "computed",
+   "T_K": 573.15,
+   "P_atm": 1e-05,
+   "amounts": {
+    "I": 1.0,
+    "CS": 1.0
+   },
+   "G_total_J": -424655.3989415856,
+   "G_per_atom_J": -212327.6994707928,
+   "phases": [
+    {
+     "phase": "CSI_CSI_B2(S)",
+     "moles_of_atoms": 2.0,
+     "x": {
+      "CS": 0.5,
+      "I": 0.5
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CS": -351831.4314682445,
+    "I": -72823.96747334108
+   },
+   "certificate_J": -1.1568772606551647e-08,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo90__grid3": {
+   "class": "computed",
+   "T_K": 673.15,
+   "P_atm": 1e-05,
+   "amounts": {
+    "I": 1.0,
+    "CS": 1.0
+   },
+   "G_total_J": -441869.3321740898,
+   "G_per_atom_J": -220934.6660870449,
+   "phases": [
+    {
+     "phase": "CSI_CSI_B2(S)",
+     "moles_of_atoms": 2.0,
+     "x": {
+      "CS": 0.5,
+      "I": 0.5
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CS": -349328.27972419193,
+    "I": -92541.05244989786
+   },
+   "certificate_J": -4.3655745685100555e-11,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo90__grid4": {
+   "class": "computed",
+   "T_K": 773.15,
+   "P_atm": 1e-05,
+   "amounts": {
+    "I": 1.0,
+    "CS": 1.0
+   },
+   "G_total_J": -460125.1881035004,
+   "G_per_atom_J": -230062.5940517502,
+   "phases": [
+    {
+     "phase": "CSI_CSI_B2(S)",
+     "moles_of_atoms": 2.0,
+     "x": {
+      "CS": 0.5,
+      "I": 0.5
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CS": -344141.3190260367,
+    "I": -115983.86907746369
+   },
+   "certificate_J": 0.0,
+   "passes": 3,
+   "exact_finish": true,
+   "seconds": 0.0
+  },
+  "TestThermo90__grid5": {
+   "class": "computed",
+   "T_K": 873.15,
+   "P_atm": 1e-05,
+   "amounts": {
+    "I": 1.0,
+    "CS": 1.0
+   },
+   "G_total_J": -490029.426479313,
+   "G_per_atom_J": -245014.7132396565,
+   "phases": [
+    {
+     "phase": "GAS_IDEAL",
+     "moles_of_atoms": 2.0000000000000027,
+     "x": {
+      "CS": 0.5,
+      "I": 0.5
+     }
+    }
+   ],
+   "mu_J_per_mol": {
+    "CS": -257884.31138584102,
+    "I": -232145.11509347134
+   },
+   "certificate_J": 0.0,
+   "passes": 27,
+   "exact_finish": true,
+   "seconds": 0.03
+  }
+ }
+}

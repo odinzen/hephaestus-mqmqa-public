@@ -1,0 +1,159 @@
+ {
+ "1":
+ {
+   "solution phases": {
+     "BCCN": {
+       "phase model": "QKTO",
+       "moles":   1.1804570323380232E+000,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "Pd": {
+           "mole fraction":  0.82792026760355752      ,
+           "moles":  9.7732430210779753E-001,
+           "chemical potential":  -20416.932226240941      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "Tc": {
+           "mole fraction":  0.13810170788255857      ,
+           "moles":  1.6302313224785769E-001,
+           "chemical potential":  -27694.128187648639      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "Ru": {
+           "mole fraction":   3.3978024513884007E-002 ,
+           "moles":  4.0109597982368121E-002,
+           "chemical potential":  -14299.902333003351      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Pd": {
+           "moles of element in phase":  9.7732430210779753E-001,
+           "mole fraction of phase by element":  0.82792026760355752      ,
+           "mole fraction of element by phase":  0.99999999109827320     
+         },
+         "Ru": {
+           "moles of element in phase":  4.0109597982368121E-002,
+           "mole fraction of phase by element":   3.3978024513884007E-002 ,
+           "mole fraction of element by phase":   1.0000001312831579     
+         },
+         "Tc": {
+           "moles of element in phase":  1.6302313224785769E-001,
+           "mole fraction of phase by element":  0.13810170788255857      ,
+           "mole fraction of element by phase":   1.0000000210654747     
+         }
+       }
+     },
+     "BCCN#2": {
+       "phase model": "QKTO",
+       "moles": 0.0,
+       "driving force":   2.8183306806679167E-004,
+       "species": {
+         "Pd": {
+           "mole fraction":   3.9990714340160244E-002 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -20437.577625016664      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "Tc": {
+           "mole fraction":  0.18353291705433655      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -27695.607599159175      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "Ru": {
+           "mole fraction":  0.77647636860550306      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -14293.062910175700      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Pd": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   3.9990714340160251E-002 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Ru": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.77647636860550329      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Tc": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.18353291705433658      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "BCCN#3": {
+       "phase model": "QKTO",
+       "moles": 0.0,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "Pd": {
+           "mole fraction":   3.0644646097753067E-002 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -21284.193613456267      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "Tc": {
+           "mole fraction":  0.17484705775719436      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -27818.111714540035      ,
+           "stoichiometry": [   0.0000000000000000      ,   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "Ru": {
+           "mole fraction":  0.79450829614505281      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -14227.406628015327      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ,   0.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Pd": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   3.0644646097753060E-002 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Ru": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.79450829614505258      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Tc": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.17484705775719434      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+   },
+   "elements": {
+     "Pd": {
+       "moles":   0.97732431080767157      ,
+       "element potential":  -2.0416931430411296E+004
+     },
+     "Ru": {
+       "moles":    4.0109592716654124E-002 ,
+       "element potential":  -1.4299907604358130E+004
+     },
+     "Tc": {
+       "moles":   0.16302312881369810      ,
+       "element potential":  -2.7694130155542756E+004
+     }
+   },
+   "temperature":    600.00000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -2.5042310656661168E+004,
+   "entropy":   0.0000000000000000E+000,
+   "enthalpy":   0.0000000000000000E+000,
+   "heat capacity":   0.0000000000000000E+000,
+   "functional norm":    9.0938966029132680E-006 ,
+   "GEM iterations":           26 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            0
+ }
+ }

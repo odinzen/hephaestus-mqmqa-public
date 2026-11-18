@@ -1,0 +1,2063 @@
+{
+ "ngrid": 150,
+ "nodes": 11476,
+ "pycalphad_status_pdens60": {
+  "ok": 11476
+ },
+ "pycalphad_ladder_points_without_result_pdens60": 520,
+ "hephaestus_failed": 0,
+ "pycalphad_seconds_per_node_pdens60": 22.79345155453963,
+ "pdens60": {
+  "field_vs_figure": {
+   "compared": 11476,
+   "agree": 11438,
+   "differ": 38,
+   "differ_within_1_step_of_boundary": 21,
+   "differ_within_2_steps_of_boundary": 30,
+   "max_grid_steps_from_boundary": 5.567764362830021,
+   "differ_by_pair": {
+    "CRISTOBALITE -> OLIVINE": 1,
+    "CRISTOBALITE -> ORTHOPYROXENE": 16,
+    "OLIVINE -> ORTHOPYROXENE": 13,
+    "MAGNESIOWUSTITE -> OLIVINE": 8
+   }
+  },
+  "field_vs_hephaestus_pointwise": {
+   "compared": 11476,
+   "agree": 11440
+  },
+  "liquidus_pyc_minus_heph_K": {
+   "n": 11476,
+   "mean": 2.294329387173807,
+   "rms": 7.879638685949823,
+   "mean_abs": 2.4651776792992415,
+   "max_abs": 97.87791080657439,
+   "p50_abs": 0.055363032475497675,
+   "p95_abs": 23.22663801512067,
+   "p99_abs": 29.50385244239243,
+   "nodes_over_0.5K": 2005,
+   "nodes_over_1K": 1855,
+   "nodes_over_5K": 1177,
+   "nodes_over_20K": 698
+  },
+  "worst_nodes": [
+   {
+    "x_Fe": 0.6666,
+    "x_Si": 0.3333,
+    "T_pyc": 1573.3,
+    "T_heph": 1475.4,
+    "prim_pyc": "OLIVINE",
+    "prim_heph": "OLIVINE"
+   },
+   {
+    "x_Fe": 0.6266,
+    "x_Si": 0.3667,
+    "T_pyc": 1572.4,
+    "T_heph": 1477.3,
+    "prim_pyc": "OLIVINE",
+    "prim_heph": "OLIVINE"
+   },
+   {
+    "x_Fe": 0.0867,
+    "x_Si": 0.5333,
+    "T_pyc": 1841.9,
+    "T_heph": 1777.8,
+    "prim_pyc": "ORTHOPYROXENE",
+    "prim_heph": "ORTHOPYROXENE"
+   },
+   {
+    "x_Fe": 0.3467,
+    "x_Si": 0.5866,
+    "T_pyc": 1998.4,
+    "T_heph": 1942.9,
+    "prim_pyc": "CRISTOBALITE",
+    "prim_heph": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.0934,
+    "x_Si": 0.5266,
+    "T_pyc": 1832.0,
+    "T_heph": 1777.4,
+    "prim_pyc": "ORTHOPYROXENE",
+    "prim_heph": "ORTHOPYROXENE"
+   },
+   {
+    "x_Fe": 0.0801,
+    "x_Si": 0.5399,
+    "T_pyc": 1832.0,
+    "T_heph": 1778.0,
+    "prim_pyc": "ORTHOPYROXENE",
+    "prim_heph": "ORTHOPYROXENE"
+   },
+   {
+    "x_Fe": 0.3267,
+    "x_Si": 0.6199,
+    "T_pyc": 1995.8,
+    "T_heph": 1942.2,
+    "prim_pyc": "CRISTOBALITE",
+    "prim_heph": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.1467,
+    "x_Si": 0.8265,
+    "T_pyc": 1996.0,
+    "T_heph": 1942.8,
+    "prim_pyc": "CRISTOBALITE",
+    "prim_heph": "CRISTOBALITE"
+   }
+  ]
+ },
+ "final": {
+  "field_vs_figure": {
+   "compared": 11476,
+   "agree": 11470,
+   "differ": 6,
+   "differ_within_1_step_of_boundary": 6,
+   "differ_within_2_steps_of_boundary": 6,
+   "max_grid_steps_from_boundary": 0.9999999999999981,
+   "differ_by_pair": {
+    "CRISTOBALITE -> OLIVINE": 1,
+    "CRISTOBALITE -> ORTHOPYROXENE": 2,
+    "MAGNESIOWUSTITE -> OLIVINE": 3
+   }
+  },
+  "field_vs_hephaestus_pointwise": {
+   "compared": 11476,
+   "agree": 11472
+  },
+  "liquidus_pyc_minus_heph_K": {
+   "n": 11476,
+   "mean": 2.5973722592546773,
+   "rms": 8.165892518698428,
+   "mean_abs": 2.7634561795954484,
+   "max_abs": 70.43888008238036,
+   "p50_abs": 0.05395542571102396,
+   "p95_abs": 20.842274598420715,
+   "p99_abs": 33.5249168665905,
+   "nodes_over_0.5K": 1913,
+   "nodes_over_1K": 1702,
+   "nodes_over_5K": 1353,
+   "nodes_over_20K": 580
+  },
+  "worst_nodes": [
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.3333,
+    "T_pyc": 2150.7,
+    "T_heph": 2080.2,
+    "prim_pyc": "OLIVINE",
+    "prim_heph": "OLIVINE"
+   },
+   {
+    "x_Fe": 0.3933,
+    "x_Si": 0.5799,
+    "T_pyc": 1975.3,
+    "T_heph": 1939.5,
+    "prim_pyc": "CRISTOBALITE",
+    "prim_heph": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.26,
+    "x_Si": 0.7199,
+    "T_pyc": 1975.4,
+    "T_heph": 1940.0,
+    "prim_pyc": "CRISTOBALITE",
+    "prim_heph": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.3067,
+    "x_Si": 0.6866,
+    "T_pyc": 1974.1,
+    "T_heph": 1938.7,
+    "prim_pyc": "CRISTOBALITE",
+    "prim_heph": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.34,
+    "x_Si": 0.6199,
+    "T_pyc": 1976.1,
+    "T_heph": 1941.0,
+    "prim_pyc": "CRISTOBALITE",
+    "prim_heph": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.3333,
+    "x_Si": 0.6132,
+    "T_pyc": 1976.8,
+    "T_heph": 1942.1,
+    "prim_pyc": "CRISTOBALITE",
+    "prim_heph": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.3667,
+    "x_Si": 0.5733,
+    "T_pyc": 1976.8,
+    "T_heph": 1942.1,
+    "prim_pyc": "CRISTOBALITE",
+    "prim_heph": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.6666,
+    "x_Si": 0.3333,
+    "T_pyc": 1510.1,
+    "T_heph": 1475.4,
+    "prim_pyc": "OLIVINE",
+    "prim_heph": "OLIVINE"
+   }
+  ]
+ },
+ "recheck_pdens2000": {
+  "disagreeing_nodes_rechecked": 1863,
+  "of_which_now_agree_within_1K_same_phase": 171,
+  "spot_check_agreeing_nodes": 500,
+  "spot_check_changed_by_over_0p5K_or_phase": 12,
+  "status": {
+   "ok": 2363
+  }
+ },
+ "referee_general_solver": {
+  "nodes_refereed": 1704,
+  "solver_failed": 1,
+  "sides_with_hephaestus_only": 1569,
+  "sides_with_pycalphad_only": 104,
+  "sides_with_both": 1,
+  "sides_with_neither": 29,
+  "gem_minus_hephaestus_K": {
+   "n": 1703,
+   "mean": -0.27567045440149207,
+   "rms": 1.4886238901559943,
+   "mean_abs": 0.37592246597084356,
+   "max_abs": 35.232921349794196
+  },
+  "gem_minus_pycalphad_K": {
+   "n": 1703,
+   "mean": -17.97085270505116,
+   "rms": 21.13828240861445,
+   "mean_abs": 17.9708920996658,
+   "max_abs": 36.41781977436699
+  },
+  "neither": [
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.3333,
+    "T_heph": 2080.2,
+    "T_pyc": 2150.7,
+    "T_gem": 2115.5,
+    "prim_heph": "OLIVINE",
+    "prim_pyc": "OLIVINE",
+    "prim_gem": "OLIVINE"
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.7199,
+    "T_heph": 1959.5,
+    "T_pyc": 1955.7,
+    "T_gem": 1954.7,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.6999,
+    "T_heph": 1957.7,
+    "T_pyc": 1955.7,
+    "T_gem": 1954.5,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.0268,
+    "x_Si": 0.5333,
+    "T_heph": 1800.8,
+    "T_pyc": 1803.3,
+    "T_gem": 1798.2,
+    "prim_heph": "ORTHOPYROXENE",
+    "prim_pyc": "ORTHOPYROXENE",
+    "prim_gem": "ORTHOPYROXENE"
+   },
+   {
+    "x_Fe": 0.0334,
+    "x_Si": 0.5199,
+    "T_heph": 1802.2,
+    "T_pyc": 1804.5,
+    "T_gem": 1801.4,
+    "prim_heph": "ORTHOPYROXENE",
+    "prim_pyc": "ORTHOPYROXENE",
+    "prim_gem": "OLIVINE"
+   },
+   {
+    "x_Fe": 0.0334,
+    "x_Si": 0.5266,
+    "T_heph": 1800.5,
+    "T_pyc": 1804.6,
+    "T_gem": 1798.0,
+    "prim_heph": "ORTHOPYROXENE",
+    "prim_pyc": "ORTHOPYROXENE",
+    "prim_gem": "ORTHOPYROXENE"
+   },
+   {
+    "x_Fe": 0.0667,
+    "x_Si": 0.5999,
+    "T_heph": 1959.3,
+    "T_pyc": 1955.9,
+    "T_gem": 1953.8,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.0734,
+    "x_Si": 0.5999,
+    "T_heph": 1963.3,
+    "T_pyc": 1955.9,
+    "T_gem": 1953.7,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.0801,
+    "x_Si": 0.5999,
+    "T_heph": 1957.7,
+    "T_pyc": 1955.9,
+    "T_gem": 1953.6,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.0867,
+    "x_Si": 0.5999,
+    "T_heph": 1962.6,
+    "T_pyc": 1955.9,
+    "T_gem": 1953.5,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.0934,
+    "x_Si": 0.5933,
+    "T_heph": 1958.0,
+    "T_pyc": 1955.9,
+    "T_gem": 1953.4,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.1001,
+    "x_Si": 0.5933,
+    "T_heph": 1960.1,
+    "T_pyc": 1955.9,
+    "T_gem": 1953.2,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.1201,
+    "x_Si": 0.5933,
+    "T_heph": 1957.0,
+    "T_pyc": 1965.6,
+    "T_gem": 1952.8,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.1267,
+    "x_Si": 0.5933,
+    "T_heph": 1960.4,
+    "T_pyc": 1966.1,
+    "T_gem": 1952.7,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.1401,
+    "x_Si": 0.5933,
+    "T_heph": 1957.2,
+    "T_pyc": 1966.9,
+    "T_gem": 1952.4,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.1667,
+    "x_Si": 0.5866,
+    "T_heph": 1952.8,
+    "T_pyc": 1963.0,
+    "T_gem": 1951.7,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.1734,
+    "x_Si": 0.5866,
+    "T_heph": 1953.8,
+    "T_pyc": 1965.0,
+    "T_gem": 1951.5,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.18,
+    "x_Si": 0.5866,
+    "T_heph": 1956.3,
+    "T_pyc": 1966.9,
+    "T_gem": 1951.3,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.1934,
+    "x_Si": 0.5866,
+    "T_heph": 1952.3,
+    "T_pyc": 1967.3,
+    "T_gem": 1950.9,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.3,
+    "x_Si": 0.5733,
+    "T_heph": 1945.1,
+    "T_pyc": 1969.4,
+    "T_gem": 1946.5,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.3067,
+    "x_Si": 0.6866,
+    "T_heph": 1938.7,
+    "T_pyc": 1974.1,
+    "T_gem": 1937.7,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.3133,
+    "x_Si": 0.6799,
+    "T_heph": 1938.7,
+    "T_pyc": 1965.5,
+    "T_gem": 1937.7,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.32,
+    "x_Si": 0.6732,
+    "T_heph": 1938.7,
+    "T_pyc": 1966.7,
+    "T_gem": 1937.6,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.3267,
+    "x_Si": 0.6666,
+    "T_heph": 1938.7,
+    "T_pyc": 1968.2,
+    "T_gem": 1937.6,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.34,
+    "x_Si": 0.5666,
+    "T_heph": 1943.0,
+    "T_pyc": 1965.9,
+    "T_gem": 1944.4,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.4133,
+    "x_Si": 0.5466,
+    "T_heph": 1941.4,
+    "T_pyc": 1943.7,
+    "T_gem": 1940.3,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.42,
+    "x_Si": 0.5466,
+    "T_heph": 1944.5,
+    "T_pyc": 1946.2,
+    "T_gem": 1939.8,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.4533,
+    "x_Si": 0.5466,
+    "T_heph": 1936.6,
+    "T_pyc": 1938.8,
+    "T_gem": 1937.8,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   },
+   {
+    "x_Fe": 0.2534,
+    "x_Si": 0.7399,
+    "T_heph": 1938.9,
+    "T_pyc": 1965.5,
+    "T_gem": 1937.9,
+    "prim_heph": "CRISTOBALITE",
+    "prim_pyc": "CRISTOBALITE",
+    "prim_gem": "CRISTOBALITE"
+   }
+  ]
+ },
+ "energy_test": {
+  "nodes": 1704,
+  "differ_in_phase_only": 2,
+  "undecided_driving_force_within_10mJ": 0,
+  "pycalphad_high_wrong": 1590,
+  "pycalphad_high_right": 8,
+  "hephaestus_high_wrong": 104,
+  "hephaestus_high_right": 0,
+  "hephaestus_right": 1590,
+  "pycalphad_right": 112,
+  "lowest_state_test_agrees": 1567,
+  "lowest_state_test_contradicts": 0,
+  "lowest_state_test_found_no_solid_state": 134,
+  "liquid_of_hephaestus_lower_by_over_1mJ": 13,
+  "liquid_of_pycalphad_lower_by_over_1mJ": 9,
+  "liquid_gap_max_J": 192.40262114722282,
+  "hephaestus_error_K_where_pycalphad_right": {
+   "n": 112,
+   "mean": 3.457515918690114,
+   "rms": 4.220570155975076,
+   "mean_abs": 3.891224497863551,
+   "max_abs": 11.837791993641076
+  },
+  "pycalphad_error_K_where_hephaestus_right": {
+   "n": 1590,
+   "mean": 19.218284730688325,
+   "rms": 21.906642630240768,
+   "mean_abs": 19.218284730688325,
+   "max_abs": 70.43888008238036
+  },
+  "pycalphad_right_nodes": [
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.6066,
+    "T_heph": 1957.7,
+    "T_pyc": 1954.8,
+    "driving_force_J": -2.846
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.6132,
+    "T_heph": 1960.2,
+    "T_pyc": 1955.3,
+    "driving_force_J": -5.602
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.6199,
+    "T_heph": 1956.6,
+    "T_pyc": 1954.8,
+    "driving_force_J": -1.839
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.6266,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.522
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.6332,
+    "T_heph": 1959.5,
+    "T_pyc": 1955.3,
+    "driving_force_J": -4.978
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.6399,
+    "T_heph": 1959.5,
+    "T_pyc": 1955.3,
+    "driving_force_J": -4.978
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.6466,
+    "T_heph": 1959.5,
+    "T_pyc": 1955.3,
+    "driving_force_J": -4.978
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.6532,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.522
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.6599,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.522
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.6666,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.522
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.6732,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.522
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.6799,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.522
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.6866,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.522
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.6932,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.522
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.6999,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.522
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.7066,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.522
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.7132,
+    "T_heph": 1959.5,
+    "T_pyc": 1955.3,
+    "driving_force_J": -4.979
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.7199,
+    "T_heph": 1959.5,
+    "T_pyc": 1955.7,
+    "driving_force_J": -5.371
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.7265,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.523
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.7332,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.523
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.7399,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.523
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.7465,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.523
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.7532,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.523
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.7599,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.523
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.7665,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.523
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.7732,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.523
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.7799,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.523
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.7865,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.524
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.7932,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.524
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.7999,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.524
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.8065,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.524
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.8132,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.524
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.8199,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.524
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.8265,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.525
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.8332,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.525
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.8398,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.525
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.8465,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.525
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.8532,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.525
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.8598,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.526
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.8665,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.526
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.8732,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.526
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.8798,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.527
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.8865,
+    "T_heph": 1959.5,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.527
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.8932,
+    "T_heph": 1959.6,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.621
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.8998,
+    "T_heph": 1959.6,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.622
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.9065,
+    "T_heph": 1959.6,
+    "T_pyc": 1955.0,
+    "driving_force_J": -4.869
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.9132,
+    "T_heph": 1959.6,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.623
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.9198,
+    "T_heph": 1959.6,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.624
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.9265,
+    "T_heph": 1959.6,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.625
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.9332,
+    "T_heph": 1959.7,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.726
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.9398,
+    "T_heph": 1959.7,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.728
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.9465,
+    "T_heph": 1959.7,
+    "T_pyc": 1955.0,
+    "driving_force_J": -4.976
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.9531,
+    "T_heph": 1959.7,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.731
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.9598,
+    "T_heph": 1960.0,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.963
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.9665,
+    "T_heph": 1960.1,
+    "T_pyc": 1954.8,
+    "driving_force_J": -5.05
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.9731,
+    "T_heph": 1961.7,
+    "T_pyc": 1954.8,
+    "driving_force_J": -6.545
+   },
+   {
+    "x_Fe": 0.0001,
+    "x_Si": 0.9798,
+    "T_heph": 1942.9,
+    "T_pyc": 1954.8,
+    "driving_force_J": 10.55
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.6066,
+    "T_heph": 1958.8,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.015
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.6132,
+    "T_heph": 1958.9,
+    "T_pyc": 1955.3,
+    "driving_force_J": -4.547
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.6199,
+    "T_heph": 1958.7,
+    "T_pyc": 1954.8,
+    "driving_force_J": -3.955
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.6266,
+    "T_heph": 1958.7,
+    "T_pyc": 1955.3,
+    "driving_force_J": -4.414
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.6332,
+    "T_heph": 1958.7,
+    "T_pyc": 1955.3,
+    "driving_force_J": -4.417
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.6399,
+    "T_heph": 1958.7,
+    "T_pyc": 1954.8,
+    "driving_force_J": -3.964
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.6466,
+    "T_heph": 1958.7,
+    "T_pyc": 1955.3,
+    "driving_force_J": -4.423
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.6532,
+    "T_heph": 1958.7,
+    "T_pyc": 1954.8,
+    "driving_force_J": -3.97
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.6599,
+    "T_heph": 1958.7,
+    "T_pyc": 1955.0,
+    "driving_force_J": -4.219
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.6666,
+    "T_heph": 1958.7,
+    "T_pyc": 1954.8,
+    "driving_force_J": -3.977
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.6732,
+    "T_heph": 1958.7,
+    "T_pyc": 1954.8,
+    "driving_force_J": -3.98
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.6799,
+    "T_heph": 1958.8,
+    "T_pyc": 1954.8,
+    "driving_force_J": -4.042
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.6866,
+    "T_heph": 1958.2,
+    "T_pyc": 1954.8,
+    "driving_force_J": -3.488
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.6932,
+    "T_heph": 1958.2,
+    "T_pyc": 1954.8,
+    "driving_force_J": -3.492
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.6999,
+    "T_heph": 1957.7,
+    "T_pyc": 1955.7,
+    "driving_force_J": -3.889
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.7066,
+    "T_heph": 1957.7,
+    "T_pyc": 1954.8,
+    "driving_force_J": -3.046
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.7132,
+    "T_heph": 1957.7,
+    "T_pyc": 1954.8,
+    "driving_force_J": -3.051
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.7199,
+    "T_heph": 1957.7,
+    "T_pyc": 1954.8,
+    "driving_force_J": -3.114
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.7265,
+    "T_heph": 1957.7,
+    "T_pyc": 1954.8,
+    "driving_force_J": -3.119
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.7332,
+    "T_heph": 1957.7,
+    "T_pyc": 1954.8,
+    "driving_force_J": -3.125
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.7399,
+    "T_heph": 1957.7,
+    "T_pyc": 1955.0,
+    "driving_force_J": -3.376
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.7465,
+    "T_heph": 1957.7,
+    "T_pyc": 1954.8,
+    "driving_force_J": -3.136
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.7532,
+    "T_heph": 1957.7,
+    "T_pyc": 1954.8,
+    "driving_force_J": -3.143
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.7599,
+    "T_heph": 1956.9,
+    "T_pyc": 1954.8,
+    "driving_force_J": -2.349
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.7665,
+    "T_heph": 1956.9,
+    "T_pyc": 1954.8,
+    "driving_force_J": -2.356
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.7732,
+    "T_heph": 1956.9,
+    "T_pyc": 1954.8,
+    "driving_force_J": -2.364
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.7799,
+    "T_heph": 1956.9,
+    "T_pyc": 1954.8,
+    "driving_force_J": -2.426
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.7865,
+    "T_heph": 1956.9,
+    "T_pyc": 1954.8,
+    "driving_force_J": -2.435
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.7932,
+    "T_heph": 1956.9,
+    "T_pyc": 1954.8,
+    "driving_force_J": -2.444
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.7999,
+    "T_heph": 1956.9,
+    "T_pyc": 1954.8,
+    "driving_force_J": -2.453
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.8065,
+    "T_heph": 1956.3,
+    "T_pyc": 1954.8,
+    "driving_force_J": -1.918
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.8132,
+    "T_heph": 1956.3,
+    "T_pyc": 1954.8,
+    "driving_force_J": -1.929
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.8199,
+    "T_heph": 1956.4,
+    "T_pyc": 1954.8,
+    "driving_force_J": -1.964
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.8265,
+    "T_heph": 1956.4,
+    "T_pyc": 1954.8,
+    "driving_force_J": -1.977
+   },
+   {
+    "x_Fe": 0.0068,
+    "x_Si": 0.8465,
+    "T_heph": 1955.8,
+    "T_pyc": 1954.8,
+    "driving_force_J": -1.544
+   },
+   {
+    "x_Fe": 0.0134,
+    "x_Si": 0.6066,
+    "T_heph": 1960.6,
+    "T_pyc": 1954.8,
+    "driving_force_J": -5.77
+   },
+   {
+    "x_Fe": 0.0134,
+    "x_Si": 0.6132,
+    "T_heph": 1956.4,
+    "T_pyc": 1954.8,
+    "driving_force_J": -1.941
+   },
+   {
+    "x_Fe": 0.0134,
+    "x_Si": 0.6199,
+    "T_heph": 1956.4,
+    "T_pyc": 1954.8,
+    "driving_force_J": -1.946
+   },
+   {
+    "x_Fe": 0.0134,
+    "x_Si": 0.6266,
+    "T_heph": 1956.4,
+    "T_pyc": 1954.8,
+    "driving_force_J": -1.952
+   },
+   {
+    "x_Fe": 0.0201,
+    "x_Si": 0.6066,
+    "T_heph": 1964.0,
+    "T_pyc": 1954.8,
+    "driving_force_J": -9.102
+   },
+   {
+    "x_Fe": 0.0268,
+    "x_Si": 0.6066,
+    "T_heph": 1956.7,
+    "T_pyc": 1954.8,
+    "driving_force_J": -2.517
+   },
+   {
+    "x_Fe": 0.0401,
+    "x_Si": 0.5999,
+    "T_heph": 1952.9,
+    "T_pyc": 1954.8,
+    "driving_force_J": 0.629
+   },
+   {
+    "x_Fe": 0.0534,
+    "x_Si": 0.5933,
+    "T_heph": 1943.4,
+    "T_pyc": 1944.6,
+    "driving_force_J": 2.995
+   },
+   {
+    "x_Fe": 0.0601,
+    "x_Si": 0.5999,
+    "T_heph": 1956.4,
+    "T_pyc": 1954.8,
+    "driving_force_J": -3.106
+   },
+   {
+    "x_Fe": 0.0667,
+    "x_Si": 0.5999,
+    "T_heph": 1959.3,
+    "T_pyc": 1955.9,
+    "driving_force_J": -6.903
+   },
+   {
+    "x_Fe": 0.0734,
+    "x_Si": 0.5999,
+    "T_heph": 1963.3,
+    "T_pyc": 1955.9,
+    "driving_force_J": -10.719
+   },
+   {
+    "x_Fe": 0.0801,
+    "x_Si": 0.5999,
+    "T_heph": 1957.7,
+    "T_pyc": 1955.9,
+    "driving_force_J": -5.849
+   },
+   {
+    "x_Fe": 0.0867,
+    "x_Si": 0.5999,
+    "T_heph": 1962.6,
+    "T_pyc": 1955.9,
+    "driving_force_J": -10.518
+   },
+   {
+    "x_Fe": 0.0934,
+    "x_Si": 0.5933,
+    "T_heph": 1958.0,
+    "T_pyc": 1955.9,
+    "driving_force_J": -6.537
+   },
+   {
+    "x_Fe": 0.1001,
+    "x_Si": 0.5933,
+    "T_heph": 1960.1,
+    "T_pyc": 1955.9,
+    "driving_force_J": -8.682
+   },
+   {
+    "x_Fe": 0.3267,
+    "x_Si": 0.5599,
+    "T_heph": 1944.4,
+    "T_pyc": 1945.7,
+    "driving_force_J": 0.979
+   },
+   {
+    "x_Fe": 0.3667,
+    "x_Si": 0.5533,
+    "T_heph": 1941.0,
+    "T_pyc": 1942.9,
+    "driving_force_J": 2.503
+   },
+   {
+    "x_Fe": 0.4,
+    "x_Si": 0.5466,
+    "T_heph": 1936.8,
+    "T_pyc": 1938.6,
+    "driving_force_J": 3.19
+   },
+   {
+    "x_Fe": 0.4066,
+    "x_Si": 0.5466,
+    "T_heph": 1938.8,
+    "T_pyc": 1941.1,
+    "driving_force_J": 1.639
+   },
+   {
+    "x_Fe": 0.44,
+    "x_Si": 0.5399,
+    "T_heph": 1935.5,
+    "T_pyc": 1937.6,
+    "driving_force_J": 3.573
+   }
+  ],
+  "contradicted_nodes": []
+ },
+ "hephaestus_minus_energy_settled_K": {
+  "n": 11476,
+  "mean": 0.0337436199802451,
+  "rms": 0.41695085162903245,
+  "mean_abs": 0.03797639802724972,
+  "max_abs": 11.837791993641076,
+  "nodes_off_by_over_1K": 112
+ },
+ "point_reader_fixed": {
+  "failed": 0,
+  "nodes_moved_over_1K": 174,
+  "primary_phase_changed": 0,
+  "nodes_checked": 1884,
+  "check_d_K": 0.3,
+  "checked_and_confirmed": 1884,
+  "of_which_within_1mJ_at_one_side": 18,
+  "not_confirmed": [],
+  "new_minus_old_K_over_moved_nodes": {
+   "n": 174,
+   "mean": -3.5776208933953138,
+   "rms": 4.44417032601983,
+   "mean_abs": 3.8806253887683178,
+   "max_abs": 11.711445066067427
+  },
+  "new_minus_energy_settled_K_where_old_was_off": {
+   "n": 112,
+   "mean": -0.35036099431456436,
+   "rms": 0.6342452970801183,
+   "mean_abs": 0.35678557468668465,
+   "max_abs": 2.653077084379447
+  },
+  "new_minus_energy_settled_K_all_nodes": {
+   "n": 11476,
+   "mean": -0.027599284785122725,
+   "rms": 0.32420425648134105,
+   "mean_abs": 0.03295596429953652,
+   "max_abs": 11.395548073438704
+  },
+  "new_off_energy_settled_by_over_1K": 70
+ },
+ "isotherms": {
+  "1473.15": {
+   "figure_arcs": 0,
+   "pycalphad_arcs": 0,
+   "energy_best_arcs": 0
+  },
+  "1573.15": {
+   "figure_arcs": 1,
+   "pycalphad_arcs": 1,
+   "energy_best_arcs": 1,
+   "pyc_to_figure_grid_steps": {
+    "mean": 0.4355694758775893,
+    "p95": 0.9675901897920663,
+    "max": 1.8340887227631966
+   },
+   "best_to_figure_grid_steps": {
+    "mean": 0.43202106328571516,
+    "p95": 0.9594508665910946,
+    "max": 1.8307534942955157
+   },
+   "turning_rms_deg": {
+    "pycalphad_raw": 12.162126499051126,
+    "hephaestus_raw": 12.166229652232603,
+    "figure": 9.578009511752043,
+    "energy_settled": 12.166229652232603,
+    "pycalphad_in_10K_steps": 35.99572607984799
+   }
+  },
+  "1673.15": {
+   "figure_arcs": 1,
+   "pycalphad_arcs": 1,
+   "energy_best_arcs": 1,
+   "pyc_to_figure_grid_steps": {
+    "mean": 0.4062745541937283,
+    "p95": 0.7072895738010616,
+    "max": 1.556348398426651
+   },
+   "best_to_figure_grid_steps": {
+    "mean": 0.4031762085775985,
+    "p95": 0.7053009946399889,
+    "max": 1.547291293857051
+   },
+   "turning_rms_deg": {
+    "pycalphad_raw": 11.347738615441754,
+    "hephaestus_raw": 11.35003932711032,
+    "figure": 8.479801590468304,
+    "energy_settled": 11.35003932711032,
+    "pycalphad_in_10K_steps": 19.112779458881327
+   }
+  },
+  "1773.15": {
+   "figure_arcs": 1,
+   "pycalphad_arcs": 1,
+   "energy_best_arcs": 1,
+   "pyc_to_figure_grid_steps": {
+    "mean": 0.3882697331904719,
+    "p95": 0.636415831552843,
+    "max": 1.6584056009947827
+   },
+   "best_to_figure_grid_steps": {
+    "mean": 0.38455106475586204,
+    "p95": 0.6325801654913381,
+    "max": 1.6544131864547547
+   },
+   "turning_rms_deg": {
+    "pycalphad_raw": 13.604944520930097,
+    "hephaestus_raw": 13.620138959146768,
+    "figure": 9.269415226268443,
+    "energy_settled": 13.620138959146768,
+    "pycalphad_in_10K_steps": 30.45790054961952
+   }
+  },
+  "1873.15": {
+   "figure_arcs": 2,
+   "pycalphad_arcs": 2,
+   "energy_best_arcs": 2,
+   "pyc_to_figure_grid_steps": {
+    "mean": 0.3942900346746616,
+    "p95": 0.5872969069161557,
+    "max": 1.4390000685735773
+   },
+   "best_to_figure_grid_steps": {
+    "mean": 0.39129587524532244,
+    "p95": 0.5868154680268659,
+    "max": 1.42580522845898
+   },
+   "turning_rms_deg": {
+    "pycalphad_raw": 9.635509517284564,
+    "hephaestus_raw": 9.61370941723398,
+    "figure": 10.404551425484115,
+    "energy_settled": 9.61370941723398,
+    "pycalphad_in_10K_steps": 27.38872310680232
+   }
+  },
+  "1973.15": {
+   "figure_arcs": 1,
+   "pycalphad_arcs": 2,
+   "energy_best_arcs": 1,
+   "pyc_to_figure_grid_steps": {
+    "mean": 32.12538115932015,
+    "p95": 71.13694104993836,
+    "max": 77.02761708928607
+   },
+   "best_to_figure_grid_steps": {
+    "mean": 0.45029575732527083,
+    "p95": 0.8774830814306398,
+    "max": 1.481620453155844
+   },
+   "turning_rms_deg": {
+    "pycalphad_raw": 43.01337921075304,
+    "hephaestus_raw": 11.052500442873791,
+    "figure": 9.794137188960232,
+    "energy_settled": 11.052500442873791,
+    "pycalphad_in_10K_steps": 32.97110928885028
+   }
+  }
+ },
+ "bowen_schairer_1935": {
+  "hephaestus": {
+   "olivine": {
+    "n": 23,
+    "mean": 5.609560835496594,
+    "rms": 26.646654484122152,
+    "mean_abs": 21.18301906953863,
+    "max_abs": 68.01353714613902
+   },
+   "pyroxene": {
+    "n": 8,
+    "mean": 18.813805083803402,
+    "rms": 19.54751500084712,
+    "mean_abs": 18.813805083803402,
+    "max_abs": 27.404605206799033
+   },
+   "silica": {
+    "n": 7,
+    "mean": 6.048738377457084,
+    "rms": 14.569850077931536,
+    "mean_abs": 11.2619900883286,
+    "max_abs": 28.059576510023817
+   },
+   "primary_as_measured": "29 of 37"
+  },
+  "pycalphad_pdens60": {
+   "olivine": {
+    "n": 23,
+    "mean": 5.568478260869557,
+    "rms": 26.625959362181142,
+    "mean_abs": 21.17717391304347,
+    "max_abs": 67.82500000000005
+   },
+   "pyroxene": {
+    "n": 8,
+    "mean": 18.787499999999966,
+    "rms": 19.512560057562883,
+    "mean_abs": 18.787499999999966,
+    "max_abs": 27.22499999999991
+   },
+   "silica": {
+    "n": 7,
+    "mean": 5.889285714285669,
+    "rms": 14.491447600962017,
+    "mean_abs": 11.274999999999993,
+    "max_abs": 27.875
+   },
+   "primary_as_measured": "29 of 37"
+  },
+  "pycalphad_pdens2000": {
+   "olivine": {
+    "n": 23,
+    "mean": 5.56456521739134,
+    "rms": 26.626600278505407,
+    "mean_abs": 21.178478260869575,
+    "max_abs": 67.81500000000005
+   },
+   "pyroxene": {
+    "n": 8,
+    "mean": 18.781250000000085,
+    "rms": 19.50577991263112,
+    "mean_abs": 18.781250000000085,
+    "max_abs": 27.205000000000155
+   },
+   "silica": {
+    "n": 7,
+    "mean": 5.899285714285725,
+    "rms": 14.493895143424067,
+    "mean_abs": 11.267857142857142,
+    "max_abs": 27.88499999999999
+   },
+   "primary_as_measured": "29 of 37"
+  },
+  "general_solver": {
+   "olivine": {
+    "n": 23,
+    "mean": 5.560688731544568,
+    "rms": 26.6258481052834,
+    "mean_abs": 21.178192770841722,
+    "max_abs": 67.81612761323981
+   },
+   "pyroxene": {
+    "n": 8,
+    "mean": 18.768166039124793,
+    "rms": 19.49409177327822,
+    "mean_abs": 18.768166039124793,
+    "max_abs": 27.20665903600002
+   },
+   "silica": {
+    "n": 7,
+    "mean": 5.8983569401984495,
+    "rms": 14.489915764971931,
+    "mean_abs": 11.267725871880398,
+    "max_abs": 27.874205792829116
+   },
+   "primary_as_measured": "29 of 37"
+  }
+ },
+ "measured_points": [
+  {
+   "x_Fe": 0.134,
+   "x_Si": 0.493,
+   "T_meas": 1768.2,
+   "primary_meas": "cpx",
+   "T_heph": 1784.2,
+   "T_pyc_pdens2000": 1784.1,
+   "T_general_solver": 1784.1,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.165,
+   "x_Si": 0.502,
+   "T_meas": 1738.2,
+   "primary_meas": "cpx",
+   "T_heph": 1752.5,
+   "T_pyc_pdens2000": 1752.5,
+   "T_general_solver": 1752.5,
+   "prim_heph": "ORTHOPYROXENE",
+   "prim_pyc_pdens2000": "ORTHOPYROXENE",
+   "prim_general_solver": "ORTHOPYROXENE"
+  },
+  {
+   "x_Fe": 0.227,
+   "x_Si": 0.493,
+   "T_meas": 1700.2,
+   "primary_meas": "cpx",
+   "T_heph": 1722.4,
+   "T_pyc_pdens2000": 1722.4,
+   "T_general_solver": 1722.4,
+   "prim_heph": "ORTHOPYROXENE",
+   "prim_pyc_pdens2000": "ORTHOPYROXENE",
+   "prim_general_solver": "ORTHOPYROXENE"
+  },
+  {
+   "x_Fe": 0.246,
+   "x_Si": 0.497,
+   "T_meas": 1689.2,
+   "primary_meas": "cpx",
+   "T_heph": 1708.8,
+   "T_pyc_pdens2000": 1708.7,
+   "T_general_solver": 1708.7,
+   "prim_heph": "ORTHOPYROXENE",
+   "prim_pyc_pdens2000": "ORTHOPYROXENE",
+   "prim_general_solver": "ORTHOPYROXENE"
+  },
+  {
+   "x_Fe": 0.268,
+   "x_Si": 0.499,
+   "T_meas": 1673.2,
+   "primary_meas": "trid+cpx",
+   "T_heph": 1701.2,
+   "T_pyc_pdens2000": 1701.0,
+   "T_general_solver": 1701.0,
+   "prim_heph": "CRISTOBALITE",
+   "prim_pyc_pdens2000": "CRISTOBALITE",
+   "prim_general_solver": "CRISTOBALITE"
+  },
+  {
+   "x_Fe": 0.328,
+   "x_Si": 0.494,
+   "T_meas": 1693.2,
+   "primary_meas": "trid",
+   "T_heph": 1715.6,
+   "T_pyc_pdens2000": 1715.4,
+   "T_general_solver": 1715.4,
+   "prim_heph": "CRISTOBALITE",
+   "prim_pyc_pdens2000": "CRISTOBALITE",
+   "prim_general_solver": "CRISTOBALITE"
+  },
+  {
+   "x_Fe": 0.391,
+   "x_Si": 0.489,
+   "T_meas": 1733.2,
+   "primary_meas": "trid",
+   "T_heph": 1731.1,
+   "T_pyc_pdens2000": 1730.9,
+   "T_general_solver": 1730.9,
+   "prim_heph": "CRISTOBALITE",
+   "prim_pyc_pdens2000": "CRISTOBALITE",
+   "prim_general_solver": "CRISTOBALITE"
+  },
+  {
+   "x_Fe": 0.45,
+   "x_Si": 0.488,
+   "T_meas": 1773.2,
+   "primary_meas": "crist",
+   "T_heph": 1768.3,
+   "T_pyc_pdens2000": 1768.1,
+   "T_general_solver": 1768.1,
+   "prim_heph": "CRISTOBALITE",
+   "prim_pyc_pdens2000": "CRISTOBALITE",
+   "prim_general_solver": "CRISTOBALITE"
+  },
+  {
+   "x_Fe": 0.574,
+   "x_Si": 0.333,
+   "T_meas": 1613.2,
+   "primary_meas": "ol",
+   "T_heph": 1570.6,
+   "T_pyc_pdens2000": 1570.5,
+   "T_general_solver": 1570.5,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.501,
+   "x_Si": 0.327,
+   "T_meas": 1723.2,
+   "primary_meas": "ol",
+   "T_heph": 1680.6,
+   "T_pyc_pdens2000": 1680.5,
+   "T_general_solver": 1680.5,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.442,
+   "x_Si": 0.338,
+   "T_meas": 1768.2,
+   "primary_meas": "ol",
+   "T_heph": 1749.9,
+   "T_pyc_pdens2000": 1749.7,
+   "T_general_solver": 1749.8,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.545,
+   "x_Si": 0.375,
+   "T_meas": 1578.2,
+   "primary_meas": "ol",
+   "T_heph": 1547.3,
+   "T_pyc_pdens2000": 1547.3,
+   "T_general_solver": 1547.3,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.538,
+   "x_Si": 0.412,
+   "T_meas": 1515.2,
+   "primary_meas": "ol",
+   "T_heph": 1501.7,
+   "T_pyc_pdens2000": 1501.7,
+   "T_general_solver": 1501.7,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.496,
+   "x_Si": 0.425,
+   "T_meas": 1541.2,
+   "primary_meas": "ol",
+   "T_heph": 1527.8,
+   "T_pyc_pdens2000": 1527.7,
+   "T_general_solver": 1527.7,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.471,
+   "x_Si": 0.44,
+   "T_meas": 1548.2,
+   "primary_meas": "ol",
+   "T_heph": 1544.9,
+   "T_pyc_pdens2000": 1544.9,
+   "T_general_solver": 1544.8,
+   "prim_heph": "ORTHOPYROXENE",
+   "prim_pyc_pdens2000": "ORTHOPYROXENE",
+   "prim_general_solver": "ORTHOPYROXENE"
+  },
+  {
+   "x_Fe": 0.445,
+   "x_Si": 0.404,
+   "T_meas": 1618.2,
+   "primary_meas": "ol",
+   "T_heph": 1620.9,
+   "T_pyc_pdens2000": 1620.9,
+   "T_general_solver": 1620.9,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.481,
+   "x_Si": 0.392,
+   "T_meas": 1608.2,
+   "primary_meas": "ol",
+   "T_heph": 1597.9,
+   "T_pyc_pdens2000": 1597.8,
+   "T_general_solver": 1597.8,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.43,
+   "x_Si": 0.374,
+   "T_meas": 1703.2,
+   "primary_meas": "ol",
+   "T_heph": 1700.9,
+   "T_pyc_pdens2000": 1700.8,
+   "T_general_solver": 1700.8,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.407,
+   "x_Si": 0.448,
+   "T_meas": 1588.2,
+   "primary_meas": "ol",
+   "T_heph": 1606.1,
+   "T_pyc_pdens2000": 1606.1,
+   "T_general_solver": 1606.1,
+   "prim_heph": "ORTHOPYROXENE",
+   "prim_pyc_pdens2000": "ORTHOPYROXENE",
+   "prim_general_solver": "ORTHOPYROXENE"
+  },
+  {
+   "x_Fe": 0.392,
+   "x_Si": 0.443,
+   "T_meas": 1623.2,
+   "primary_meas": "ol",
+   "T_heph": 1621.0,
+   "T_pyc_pdens2000": 1621.0,
+   "T_general_solver": 1620.9,
+   "prim_heph": "ORTHOPYROXENE",
+   "prim_pyc_pdens2000": "ORTHOPYROXENE",
+   "prim_general_solver": "ORTHOPYROXENE"
+  },
+  {
+   "x_Fe": 0.392,
+   "x_Si": 0.471,
+   "T_meas": 1578.2,
+   "primary_meas": "ol",
+   "T_heph": 1646.2,
+   "T_pyc_pdens2000": 1646.0,
+   "T_general_solver": 1646.0,
+   "prim_heph": "CRISTOBALITE",
+   "prim_pyc_pdens2000": "CRISTOBALITE",
+   "prim_general_solver": "CRISTOBALITE"
+  },
+  {
+   "x_Fe": 0.332,
+   "x_Si": 0.446,
+   "T_meas": 1673.2,
+   "primary_meas": "ol",
+   "T_heph": 1680.2,
+   "T_pyc_pdens2000": 1680.2,
+   "T_general_solver": 1680.2,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.381,
+   "x_Si": 0.397,
+   "T_meas": 1708.2,
+   "primary_meas": "ol",
+   "T_heph": 1723.1,
+   "T_pyc_pdens2000": 1723.0,
+   "T_general_solver": 1723.0,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.362,
+   "x_Si": 0.37,
+   "T_meas": 1782.2,
+   "primary_meas": "ol",
+   "T_heph": 1796.1,
+   "T_pyc_pdens2000": 1796.1,
+   "T_general_solver": 1796.1,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.329,
+   "x_Si": 0.384,
+   "T_meas": 1782.2,
+   "primary_meas": "ol",
+   "T_heph": 1807.9,
+   "T_pyc_pdens2000": 1807.8,
+   "T_general_solver": 1807.8,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.287,
+   "x_Si": 0.429,
+   "T_meas": 1743.2,
+   "primary_meas": "ol",
+   "T_heph": 1771.5,
+   "T_pyc_pdens2000": 1771.4,
+   "T_general_solver": 1771.4,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.314,
+   "x_Si": 0.471,
+   "T_meas": 1653.2,
+   "primary_meas": "ol",
+   "T_heph": 1671.4,
+   "T_pyc_pdens2000": 1671.4,
+   "T_general_solver": 1671.3,
+   "prim_heph": "ORTHOPYROXENE",
+   "prim_pyc_pdens2000": "ORTHOPYROXENE",
+   "prim_general_solver": "ORTHOPYROXENE"
+  },
+  {
+   "x_Fe": 0.249,
+   "x_Si": 0.446,
+   "T_meas": 1743.2,
+   "primary_meas": "ol",
+   "T_heph": 1776.7,
+   "T_pyc_pdens2000": 1776.7,
+   "T_general_solver": 1776.7,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.21,
+   "x_Si": 0.479,
+   "T_meas": 1736.2,
+   "primary_meas": "ol",
+   "T_heph": 1745.4,
+   "T_pyc_pdens2000": 1745.4,
+   "T_general_solver": 1745.4,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.21,
+   "x_Si": 0.452,
+   "T_meas": 1758.2,
+   "primary_meas": "ol",
+   "T_heph": 1801.4,
+   "T_pyc_pdens2000": 1801.3,
+   "T_general_solver": 1801.3,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.147,
+   "x_Si": 0.489,
+   "T_meas": 1758.2,
+   "primary_meas": "ol",
+   "T_heph": 1783.4,
+   "T_pyc_pdens2000": 1783.3,
+   "T_general_solver": 1783.3,
+   "prim_heph": "OLIVINE",
+   "prim_pyc_pdens2000": "OLIVINE",
+   "prim_general_solver": "OLIVINE"
+  },
+  {
+   "x_Fe": 0.151,
+   "x_Si": 0.509,
+   "T_meas": 1748.2,
+   "primary_meas": "cpx",
+   "T_heph": 1757.0,
+   "T_pyc_pdens2000": 1757.0,
+   "T_general_solver": 1757.0,
+   "prim_heph": "ORTHOPYROXENE",
+   "prim_pyc_pdens2000": "ORTHOPYROXENE",
+   "prim_general_solver": "ORTHOPYROXENE"
+  },
+  {
+   "x_Fe": 0.215,
+   "x_Si": 0.509,
+   "T_meas": 1703.2,
+   "primary_meas": "cpx",
+   "T_heph": 1723.0,
+   "T_pyc_pdens2000": 1723.0,
+   "T_general_solver": 1722.9,
+   "prim_heph": "ORTHOPYROXENE",
+   "prim_pyc_pdens2000": "ORTHOPYROXENE",
+   "prim_general_solver": "ORTHOPYROXENE"
+  },
+  {
+   "x_Fe": 0.231,
+   "x_Si": 0.494,
+   "T_meas": 1697.2,
+   "primary_meas": "cpx",
+   "T_heph": 1719.4,
+   "T_pyc_pdens2000": 1719.4,
+   "T_general_solver": 1719.3,
+   "prim_heph": "ORTHOPYROXENE",
+   "prim_pyc_pdens2000": "ORTHOPYROXENE",
+   "prim_general_solver": "ORTHOPYROXENE"
+  },
+  {
+   "x_Fe": 0.343,
+   "x_Si": 0.479,
+   "T_meas": 1625.2,
+   "primary_meas": "cpx",
+   "T_heph": 1652.6,
+   "T_pyc_pdens2000": 1652.4,
+   "T_general_solver": 1652.4,
+   "prim_heph": "CRISTOBALITE",
+   "prim_pyc_pdens2000": "CRISTOBALITE",
+   "prim_general_solver": "CRISTOBALITE"
+  },
+  {
+   "x_Fe": 0.465,
+   "x_Si": 0.459,
+   "T_meas": 1643.2,
+   "primary_meas": "trid",
+   "T_heph": 1636.5,
+   "T_pyc_pdens2000": 1636.3,
+   "T_general_solver": 1636.3,
+   "prim_heph": "CRISTOBALITE",
+   "prim_pyc_pdens2000": "CRISTOBALITE",
+   "prim_general_solver": "CRISTOBALITE"
+  },
+  {
+   "x_Fe": 0.121,
+   "x_Si": 0.53,
+   "T_meas": 1768.2,
+   "primary_meas": "crist",
+   "T_heph": 1763.5,
+   "T_pyc_pdens2000": 1763.5,
+   "T_general_solver": 1763.5,
+   "prim_heph": "ORTHOPYROXENE",
+   "prim_pyc_pdens2000": "ORTHOPYROXENE",
+   "prim_general_solver": "ORTHOPYROXENE"
+  },
+  {
+   "x_Fe": 0.247,
+   "x_Si": 0.522,
+   "T_meas": 1778.2,
+   "primary_meas": "crist",
+   "T_heph": 1788.3,
+   "T_pyc_pdens2000": 1788.1,
+   "T_general_solver": 1788.1,
+   "prim_heph": "CRISTOBALITE",
+   "prim_pyc_pdens2000": "CRISTOBALITE",
+   "prim_general_solver": "CRISTOBALITE"
+  }
+ ]
+}

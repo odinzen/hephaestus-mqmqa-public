@@ -1,0 +1,13 @@
+temperature       = 1100.0
+pressure          = 1.0
+mass(17)          = 2.9990452538565733
+mass(13)          = 0.9942469534793769
+mass(11)          = 0.9999998354962673
+temperature unit  = K
+pressure unit     = atm
+mass unit         = moles
+data file         = THERMOCHIMICA_DIR/data/ClAlNa.dat
+print mode        = 0
+heat capacity     = .FALSE.
+write json        = .TRUE.
+output            = REPO_DIR/validation/thermochimica/referee_runs/TestThermo63__grid4__A0.json

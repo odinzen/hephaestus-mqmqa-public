@@ -5,7 +5,9 @@ from pathlib import Path
 import numpy as np
 HERE = Path(__file__).resolve().parent
 CHUNKS = HERE / "_chunks"; CHUNKS.mkdir(exist_ok=True)
-OUT = HERE.parents[1] / "web" / "crystallization_cao_mgo_sio2.json"
+# the app map comes from crystallization_gem.py since 2026-11-16; this pycalphad map is kept
+# beside it for the comparison only
+OUT = HERE / "crystallization_pycalphad_5pctFeO.json"
 X_FE, NGRID = 0.05, 60
 PHASES = ["OLIVINE","ORTHOPYROXENE","CLINOPYROXENE","WOLLASTONITE","RANKINITE","LARNITE",
           "HATRURITE","CRISTOBALITE","LIME","MAGNESIOWUSTITE"]

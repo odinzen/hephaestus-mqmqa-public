@@ -209,7 +209,13 @@ def test_written_dat_matches_pycalphad(path):
                 if pdb_orig is not None:   # pycalphad alone: the writer changed nothing
                     g_po = _mqmqa_energy_pycalphad(pdb_orig, name, comps, db, p, T, Xkey)
                     assert U.rel(g_po, g_py) < U.ORACLE_TOL, (name, T, g_po, g_py)
+            db.beyond_data(clear=True)
             g_he = _mqmqa_energy_hephaestus(db, p, T, Xkey)
+            if db.beyond_data():
+                # above a species' data pycalphad's MQMQA takes zero (Shishin Sb2O3 above
+                # 1729 K) while its other paths, Thermochimica and Hephaestus carry the last
+                # range on; the writer is still checked against pycalphad's own reading above
+                continue
             d = U.rel(g_he, g_py)
             assert d < U.ORACLE_TOL, (name, T, g_he, g_py)
             worst, n = max(worst, d), n + 1

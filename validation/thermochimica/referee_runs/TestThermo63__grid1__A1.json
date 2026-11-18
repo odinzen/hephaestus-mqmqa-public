@@ -1,0 +1,171 @@
+ {
+ "1":
+ {
+   "solution phases": {
+     "gas_ideal": {
+       "phase model": "IDMX",
+       "moles": 0.0,
+       "driving force":   4.6370220209061355E+000,
+       "species": {
+         "Na": {
+           "mole fraction":   9.6864159379580986E-003 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "NaCl": {
+           "mole fraction":   8.4977717806706477E-008 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   0.0000000000000000      ,
+           "stoichiometry": [   1.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Cl": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   8.7727212396538598E-006 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Na": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.99999122727876033      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "MSsoln": {
+       "phase model": "SUBQ",
+       "moles": 0.0,
+       "driving force":  -1.0089175637186273E-002,
+       "cations": {
+         "Na": {
+           "mole fraction":    1.0000000000000000      ,
+           "charge":    1.0000000000000000      ,
+           "chemical group":            1
+         }
+       },
+       "anions": {
+         "Cl": {
+           "mole fraction":    2.8164551511558880E-003 ,
+           "charge":   -1.0000000000000000      ,
+           "chemical group":            1
+         },
+         "Va": {
+           "mole fraction":   0.99718354484884419      ,
+           "charge":   -1.0000000000000000      ,
+           "chemical group":            1
+         }
+       },
+       "moles of endmembers":    6.0411234976176540E-020 ,
+       "endmembers": {
+         "NaCl": {
+           "mole fraction":    2.8164551511558880E-003 ,
+           "constituents": [ "Na", "Cl" ],
+           "stoichiometric coefficients": [   1.0000000000000000      ,   1.0000000000000000      ]
+           },
+         "Na": {
+           "mole fraction":   0.99718354484884419      ,
+           "constituents": [ "Na", "Va" ],
+           "stoichiometric coefficients": [   1.0000000000000000      ,   1.0000000000000000      ]
+           }
+       },
+       "quadruplets": {
+         "Na-Na-Cl-Cl": {
+           "mole fraction":   4.3028515538540996E-006 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -176170.56888002352      ,
+           "constituents": [ "Na", "Na", "Cl", "Cl" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ],
+           "stoichiometry": [  0.33333333333333331      ,  0.33333333333333331      ]
+         },
+         "Na-Na-Va-Va": {
+           "mole fraction":  0.99437139254924223      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -17628.795238549166      ,
+           "constituents": [ "Na", "Na", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ],
+           "stoichiometry": [   0.0000000000000000      ,  0.33333333333333331      ]
+         },
+         "Na-Na-Cl-Va": {
+           "mole fraction":   5.6243045992040684E-003 ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":  -94856.760352632176      ,
+           "constituents": [ "Na", "Na", "Cl", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ],
+           "stoichiometry": [  0.16666666666666666      ,  0.33333333333333331      ]
+         }
+       },
+       "elements": {
+         "Cl": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   2.8085450100949531E-003 ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Na": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":  0.99719145498990502      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "Na_solid(s)": {
+       "moles": 0.0,
+       "chemical potential":  -50301.258402268519      ,
+       "driving force":   3.1125093480893185E-001,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "Cl": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "Na": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "NaCl_S1(s)": {
+       "moles":   2.6321474544722007E-001,
+       "chemical potential":  -484100.26021525165      ,
+       "driving force":   0.0000000000000000E+000,
+       "stoichiometry": [   1.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "Cl": {
+           "moles of element in phase":  2.6321474544722007E-001,
+           "mole fraction of phase by element":  0.50000000000000000      ,
+           "mole fraction of element by phase":   1.0000000000000000     
+         },
+         "Na": {
+           "moles of element in phase":  2.6321474544722007E-001,
+           "mole fraction of phase by element":  0.50000000000000000      ,
+           "mole fraction of element by phase":   1.0000000000000000     
+         }
+       }
+     }
+   },
+   "elements": {
+     "Cl": {
+       "moles":   0.26321474544722007      ,
+       "element potential":  -4.3172869206702901E+005
+     },
+     "Na": {
+       "moles":   0.26321474544722007      ,
+       "element potential":  -5.2371568148222672E+004
+     }
+   },
+   "temperature":    800.00000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -1.2742232676349045E+005,
+   "entropy":   0.0000000000000000E+000,
+   "enthalpy":   0.0000000000000000E+000,
+   "heat capacity":   0.0000000000000000E+000,
+   "functional norm":    0.0000000000000000      ,
+   "GEM iterations":         1025 ,
+   "# solution phases":            0 ,
+   "# pure condensed phases":            1
+ }
+ }

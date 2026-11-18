@@ -36,6 +36,15 @@ _ffi.cdef(
         const double *Za, const double *Zb, const double *Zx, const double *Zy,
         const double *zeta,
         int soln_type, double R_own);
+    void mqmqa_ideal_mixing_gradient(
+        double T,
+        int n_cat, int n_an, int n_quads,
+        const int *quad_ca, const int *quad_cb,
+        const int *quad_ax, const int *quad_ay,
+        const double *X,
+        const double *Za, const double *Zb, const double *Zx, const double *Zy,
+        const double *zeta,
+        int soln_type, double R_own, double *grad);
     double mqmqa_excess_energy(
         int n_cat, int n_an, int n_quads,
         const int *quad_ca, const int *quad_cb,
@@ -49,6 +58,19 @@ _ffi.cdef(
         const double *par_p, const double *par_q, const double *par_L,
         const double *par_r, const int *par_addcat,
         const int *cat_group, const int *an_group);
+    void mqmqa_excess_gradient(
+        int n_cat, int n_an, int n_quads,
+        const int *quad_ca, const int *quad_cb,
+        const int *quad_ax, const int *quad_ay,
+        const double *X,
+        const double *Za, const double *Zb, const double *Zx, const double *Zy,
+        int soln_type,
+        int n_params,
+        const int *par_mix, const int *par_code,
+        const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
+        const double *par_p, const double *par_q, const double *par_L,
+        const double *par_r, const int *par_addcat,
+        const int *cat_group, const int *an_group, double *grad);
     double mqmqa_coordination(
         int sp_is_cation, int sp_idx,
         int A, int B, int X, int Y,
@@ -81,8 +103,24 @@ _ffi.cdef(
         const double *target,
         double *X_out, double *comp_err_out);
 
+    int mqmqa_db_set_pressure(void *db, double P);
+    double mqmqa_db_pressure(const void *db);
+    void mqmqa_db_beyond_clear(void *db);
+    int mqmqa_db_beyond_count(const void *db);
+    const char *mqmqa_db_beyond_name(const void *db, int i);
+    double mqmqa_db_beyond_top(const void *db, int i);
+    double mqmqa_db_beyond_T(const void *db, int i);
+    int mqmqa_db_beyond_elements(const void *db, int i, double *out);
     double mqmqa_equilibrate_db(const void *db, int phase, double T,
         const double *target_elem, double *X_out, double *err_out);
+    int mqmqa_driving_force_db(const void *db, int phase, double T,
+        const double *mu_elem, const int *el_keep, int max_out,
+        double *y_out, double *g_out, double *df_out);
+    double mqmqa_equilibrate_sub_db(const void *db, int phase, double T,
+        const double *target_elem, const int *el_keep);
+    int mqmqa_tangent_rows_db(const void *db, int phase, double T,
+        const double *target_elem, const int *el_keep, int max_rows,
+        double *A_out, double *b_out);
 
     double mqmqa_db_R_own(const void *db);
     double mqmqa_db_R(const void *db);
@@ -153,6 +191,9 @@ _ffi.cdef(
                               double T, int per_mole_atoms);
     double mqmqa_ph_cef_line_gibbs(const void *db, int p, double y, double T,
                                    int per_mole_atoms, double *Y_out);
+    int mqmqa_ph_ionic_size(const void *db, int p, int *nc, int *na);
+    const char *mqmqa_ph_ionic_constituent(const void *db, int p, int i);
+    double mqmqa_ph_ionic_gibbs(const void *db, int p, const double *y, double T, double *n_el);
 
     double mqmqa_cef_gibbs(
         double T, int n_subl,
@@ -172,6 +213,23 @@ _ffi.cdef(
     char *mqmqa_db_write_tdb(const void *db, const char *source_name);
     char *mqmqa_db_write_utdb(const void *db, const char *source_name);
     char *mqmqa_db_write_dat(const void *db, const char *source_name);
+    void *mqmqa_gem_equilibrium(const void *db, double T, const double *b,
+                                const int *suspended, int grid, int max_iter);
+    void mqmqa_gem_free(void *r);
+    int mqmqa_gem_num_sets(const void *r);
+    int mqmqa_gem_set_phase(const void *r, int k);
+    double mqmqa_gem_set_amount(const void *r, int k);
+    void mqmqa_gem_set_x(const void *r, int k, double *x);
+    double mqmqa_gem_G(const void *r);
+    void mqmqa_gem_mu(const void *r, double *mu);
+    double mqmqa_gem_residual(const void *r);
+    int mqmqa_gem_passes(const void *r);
+    int mqmqa_gem_exact(const void *r);
+    int mqmqa_db_num_params(const void *db);
+    int mqmqa_db_param_info(const void *db, int i, int *phase, int *kind,
+                            int *term, int *slot, int *tfun);
+    double mqmqa_db_param_get(const void *db, int i);
+    int mqmqa_db_param_set(void *db, int i, double value);
     char *mqmqa_db_write_xtdb(const void *db, const char *source_name);
     void mqmqa_text_free(char *text);
 

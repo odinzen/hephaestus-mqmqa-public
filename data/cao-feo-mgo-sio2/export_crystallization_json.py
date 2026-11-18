@@ -1,8 +1,9 @@
-"""Precompute the CaO-MgO-SiO2 crystallization diagram at a fixed FeO level and export a
-compact JSON the browser embeds: the primary crystallizing phase across the section, plus
-the liquidus temperature per cell. This is the assessed multiphase result (the calibrated
-combined liquid+solids file, validated against pycalphad), precomputed offline like the
-FeO-MgO-SiO2 diagram; the live in-browser 4-cation multiphase solver is on the roadmap.
+"""The CaO-MgO-SiO2 crystallization diagram at a fixed FeO level computed by pycalphad: the
+primary crystallizing phase across the section, plus the liquidus temperature per cell.
+
+Until 16 November 2026 this wrote the browser's map; since then the map comes from Hephaestus's
+own solver (crystallization_gem.py), because pycalphad's all-phase equilibrium misses the stable
+liquid in many cells where the two differ. This output is kept beside it for that comparison.
 """
 import importlib.util
 import json
@@ -11,7 +12,9 @@ from pathlib import Path
 import numpy as np
 
 HERE = Path(__file__).resolve().parent
-OUT = HERE.parents[1] / "web" / "crystallization_cao_mgo_sio2.json"
+# the app map comes from crystallization_gem.py since 2026-11-16; this pycalphad map is kept
+# beside it for the comparison only
+OUT = HERE / "crystallization_pycalphad_5pctFeO.json"
 X_FE = 0.05          # fixed FeO level (cation fraction), a lean slag: shows both the
                      # Fe/Mg silicates and the calcium silicates (the latter are flux-
                      # suppressed at higher FeO)

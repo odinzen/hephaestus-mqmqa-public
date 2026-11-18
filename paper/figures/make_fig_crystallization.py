@@ -2,8 +2,10 @@
 primary crystallizing phase across the section, with liquidus isotherms in K. The FeO level and
 the cation-fraction basis go in the caption, not on the image.
 
-Draws web/crystallization_cao_mgo_sio2.json, the browser's precomputed export of the shipped
-quaternary (data/cao-feo-mgo-sio2/export_chunked.py), so it shows what the application shows.
+Draws web/crystallization_cao_mgo_sio2.json, the browser's precomputed map of the shipped
+quaternary, so it shows what the application shows. Since 16 November 2026 that map is computed by
+Hephaestus's general equilibrium solver (data/cao-feo-mgo-sio2/crystallization_gem.py); the submitted
+figure drew pycalphad's map (export_chunked.py), which missed the stable liquid in many cells.
 Colours are the dataviz reference categorical set; hatrurite, the ninth phase and a field of a few
 cells, reuses the clinopyroxene blue with hatching (the two fields never touch). No baked caption.
 """
@@ -105,6 +107,7 @@ for seg in [s for c in cs.allsegs for s in c]:
     lines[np.clip((py / H * (ny - 1)).astype(int), 0, ny - 1),
           np.clip((px * (nx - 1)).astype(int), 0, nx - 1)] = True
 blocked = binary_dilation(lines, iterations=int(0.012 * R))
+outside = []                                # thin fields, labelled outside with a leader
 for k in present:
     ph = phases[k]
     dist = distance_transform_edt(np.pad((idx == k) & ~blocked, 1), sampling=(1.0, 0.35))[1:-1, 1:-1]
@@ -112,13 +115,24 @@ for k in present:
         r, c = np.unravel_index(np.argmax(dist), dist.shape)
         ax.text(X[r, c], Y[r, c], ABBR[ph], color=INK, fontsize=11, ha="center", va="center",
                 zorder=5, path_effects=[pe.withStroke(linewidth=3, foreground="white")])
-    else:                                   # thin field: label outside with a leader
+    else:
         band = distance_transform_edt(np.pad(idx == k, 1))[1:-1, 1:-1]
         r, c = np.unravel_index(np.argmax(band), band.shape)
-        x0, y0 = X[r, c], Y[r, c]
-        left = x0 < 0.5
-        ax.annotate(ABBR[ph], xy=(x0, y0), xytext=(x0 + (-0.16 if left else 0.16), y0 - 0.05),
-                    fontsize=11, color=INK, ha="right" if left else "left", va="center", zorder=7,
+        outside.append((X[r, c], Y[r, c], ABBR[ph]))
+
+# Each leader label sits just outside the nearer side edge at its field's height, and labels on
+# one side are pushed apart so neither text nor leader crosses another.
+GAP = 0.05
+for side in ("left", "right"):
+    group = sorted([o for o in outside if (o[0] < 0.5) == (side == "left")], key=lambda o: -o[1])
+    ty_prev = None
+    for x0, y0, name in group:
+        ty = y0 - 0.04 if ty_prev is None else min(y0 - 0.04, ty_prev - GAP)
+        ty_prev = ty
+        edge = ty / H * 0.5 if side == "left" else 1.0 - ty / H * 0.5
+        tx = edge - 0.07 if side == "left" else edge + 0.07
+        ax.annotate(name, xy=(x0, y0), xytext=(tx, ty), fontsize=11, color=INK,
+                    ha="right" if side == "left" else "left", va="center", zorder=7,
                     arrowprops=dict(arrowstyle="-", color=INK, lw=0.8))
 
 for x, y, s, ha, va in ((-0.012, -0.025, "CaO", "right", "top"), (1.012, -0.025, "MgO", "left", "top"),

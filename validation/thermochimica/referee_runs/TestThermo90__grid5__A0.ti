@@ -1,0 +1,12 @@
+temperature       = 873.15
+pressure          = 1e-05
+mass(55)          = 1.0000000000000013
+mass(53)          = 1.0000000000000013
+temperature unit  = K
+pressure unit     = atm
+mass unit         = moles
+data file         = THERMOCHIMICA_DIR/data/CsI-Pham.dat
+print mode        = 0
+heat capacity     = .FALSE.
+write json        = .TRUE.
+output            = REPO_DIR/validation/thermochimica/referee_runs/TestThermo90__grid5__A0.json

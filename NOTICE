@@ -2,6 +2,12 @@ Sources consulted, not copied: the XTDB paper (Sundman et al., Calphad 90 (2025)
 CC BY-NC) and the XTDB documentation at https://github.com/sundmanbo/XTDB (GPL-3.0,
 documents and example databases) were read to write src/xtdb.c and
 python/mqmqa/utdb_xtdb.py. No text, code or data from them is included here.
+Sundman, Calphad 15 (1991) 109-119, was read to write the SUBI (ionic liquid) reader in
+src/cs_dat.c; no text from it is included. Pelton, Calphad 12 (1988) 127-142, and Kaye,
+Lewis and Thompson, J. Nucl. Mater. 366 (2007) 8-27, were read to write the QKTO reader;
+no text from them is included. pycalphad's pycalphad/core/calculate.py and
+pycalphad/core/workspace.py were opened to read the default sampling density of its
+equilibrium call for validation/fig4_comparison; no code from them is included.
 
 Hephaestus contains code translated from third-party software. Each source keeps its
 license and copyright notice, reproduced below. Which files are affected is listed in the
@@ -41,3 +47,32 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+
+------------------------------------------------------------------------------
+
+web/orchid/sgte-binary/ redistributes, unchanged, binary datasets of
+
+    B. Hallstedt, "The SGTE collection of binary datasets",
+    Calphad 89 (2025) 102833, doi:10.1016/j.calphad.2025.102833,
+
+published with its supplementary files under the Creative Commons Attribution 4.0
+International licence (https://creativecommons.org/licenses/by/4.0/), as distributed by
+ORCHID (orchid-project.org; R. Arróyave, J. Saal, D. Shin), whose catalogue is MIT-licensed.
+Each dataset's header names the assessment its parameters were taken from; cite that
+assessment, Hallstedt (2025) and ORCHID when using a dataset.
+
+------------------------------------------------------------------------------
+
+The Hermes tab of web/index.html runs, unchanged, Hermes 0.3.0
+(https://github.com/odinzen/hermes, doi:10.5281/zenodo.23923573; MIT, copyright
+Nigel Lee En Hew and Odinzen LLC, licence text in web/hermes/LICENSE-hermes.txt). The
+wheel web/hermes/hermes-0.3.0-py3-none-any.whl is built from the v0.3.0 release commit, and
+web/hermes/fe3pt_demo.npz is every fourth volume of the Fe3Pt example data in that
+release's tests/test_data/Fe3Pt_three_configs.pkl. Hermes's configuration.py and system.py
+were read for its API; web/hermes_worker.js calls Hermes and copies no code from it.
+
+The tab runs on Pyodide 0.28.3 (MPL-2.0, https://pyodide.org) with its numpy (BSD-3-Clause),
+scipy (BSD-3-Clause) and OpenBLAS (BSD-3-Clause) builds, packaging (Apache-2.0 or
+BSD-2-Clause), plotly 7.1.0 (MIT) and narwhals 2.29.0 (MIT). scripts/build_hermes_web.py
+fetches these into web/vendor/pyodide/ with pinned checksums; they are not tracked in git,
+and each keeps its own licence.

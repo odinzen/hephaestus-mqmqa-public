@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /* Engine version, recorded in the header of every file the writers produce. */
-#define HEPHAESTUS_VERSION "0.7.0"
+#define HEPHAESTUS_VERSION "0.8.0"
 MQMQA_API const char *mqmqa_version(void);
 
 /* Gas constant R (J/mol/K). Three values are in use, each matching the data it came
@@ -114,6 +114,18 @@ MQMQA_API double mqmqa_ideal_mixing_energy(
     const double *zeta,
     int soln_type, double R_own);
 
+/* Gradient of mqmqa_ideal_mixing_energy with respect to each quadruplet fraction
+ * (grad has n_quads entries, J per mole of quadruplets); X must be strictly positive. */
+MQMQA_API void mqmqa_ideal_mixing_gradient(
+    double T,
+    int n_cat, int n_an, int n_quads,
+    const int *quad_ca, const int *quad_cb,
+    const int *quad_ax, const int *quad_ay,
+    const double *X,
+    const double *Za, const double *Zb, const double *Zx, const double *Zy,
+    const double *zeta,
+    int soln_type, double R_own, double *grad);
+
 /* MQMQA excess energy for a set of MQMX interaction parameters, J per mole of
  * quadruplets (Poschmann eqs 19,20,24 mixing term, eq 17 assembly). Handles the Q
  * code (Xi, any exponents) and the G code (Chi, any exponents) for cation and anion
@@ -148,6 +160,22 @@ MQMQA_API double mqmqa_excess_energy(
     const double *par_p, const double *par_q, const double *par_L,
     const double *par_r, const int *par_addcat,
     const int *cat_group, const int *an_group);
+
+/* Gradient of mqmqa_excess_energy with respect to each quadruplet fraction (grad has
+ * n_quads entries); X must be strictly positive. All NaN for a refused term. */
+MQMQA_API void mqmqa_excess_gradient(
+    int n_cat, int n_an, int n_quads,
+    const int *quad_ca, const int *quad_cb,
+    const int *quad_ax, const int *quad_ay,
+    const double *X,
+    const double *Za, const double *Zb, const double *Zx, const double *Zy,
+    int soln_type,
+    int n_params,
+    const int *par_mix, const int *par_code,
+    const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
+    const double *par_p, const double *par_q, const double *par_L,
+    const double *par_r, const int *par_addcat,
+    const int *cat_group, const int *an_group, double *grad);
 
 /* Coordination number Z of a species in a quadruplet (Pelton 2001 eqs 23-24).
  * sp_is_cation selects the sublattice; sp_idx, A, B, X, Y are cation/anion indices
@@ -209,6 +237,65 @@ MQMQA_API double mqmqa_equilibrate(
     const int *cat_elem, const int *an_elem,
     const double *target,
     double *X_out, double *comp_err_out);
+
+/* Local minima of the driving force F(X) = G(X) - sum_e mu[e] n_e(X) over every
+ * quadruplet distribution (sum X = 1, X >= 0), the composition left free. This is the
+ * phase subproblem of a multiphase equilibrium. With mu the chemical potentials of the
+ * current hull, a minimum below zero is a liquid state below the hull. Each minimum is
+ * reached from several starts (the centre, one per quadruplet corner, the lowest points
+ * of a random walk) by Newton steps on the exact gradients.
+ *
+ * Arguments as mqmqa_equilibrate, with mu[e] (J/mol, per element id) in place of the
+ * target. Writes up to max_out distinct minima, lowest first: quadruplet fractions to
+ * X_out (max_out * n_quads) and F per mole of atoms to df_out. Returns how many were
+ * written, or -1 when an excess term cannot be evaluated or memory runs out. */
+MQMQA_API int mqmqa_driving_force_minima(
+    double T,
+    int n_cat, int n_an, int n_quads,
+    const int *quad_ca, const int *quad_cb,
+    const int *quad_ax, const int *quad_ay,
+    const double *Za, const double *Zb, const double *Zx, const double *Zy,
+    const double *zeta,
+    int soln_type,
+    int n_pairs,
+    const int *pair_c, const int *pair_a,
+    const double *Gax, const double *stoich,
+    const double *Zref,
+    int n_params,
+    const int *par_mix, const int *par_code,
+    const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
+    const double *par_p, const double *par_q, const double *par_L,
+    const double *par_r, const int *par_addcat,
+    const int *cat_group, const int *an_group,
+    double R_own,
+    int n_elem,
+    const int *cat_elem, const int *an_elem,
+    const double *mu,
+    int max_out, double *X_out, double *df_out);
+
+/* Exact gradient of the Gibbs energy per mole of quadruplets (reference, configurational
+ * entropy and excess terms) with respect to each quadruplet fraction, at X strictly
+ * positive. Arguments as mqmqa_equilibrate; writes n_quads values to grad. */
+MQMQA_API void mqmqa_gibbs_gradient(
+    double T,
+    int n_cat, int n_an, int n_quads,
+    const int *quad_ca, const int *quad_cb,
+    const int *quad_ax, const int *quad_ay,
+    const double *Za, const double *Zb, const double *Zx, const double *Zy,
+    const double *zeta,
+    int soln_type,
+    int n_pairs,
+    const int *pair_c, const int *pair_a,
+    const double *Gax, const double *stoich,
+    const double *Zref,
+    int n_params,
+    const int *par_mix, const int *par_code,
+    const int *par_A, const int *par_B, const int *par_X, const int *par_Y,
+    const double *par_p, const double *par_q, const double *par_L,
+    const double *par_r, const int *par_addcat,
+    const int *cat_group, const int *an_group,
+    double R_own,
+    const double *X, double *grad);
 
 #ifdef __cplusplus
 }

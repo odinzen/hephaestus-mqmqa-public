@@ -1,0 +1,13 @@
+temperature       = 2300.0
+pressure          = 1.0
+mass(20)          = 4.592029811070912e-06
+mass(25)          = 0.952598925708926
+mass(16)          = 9.246898664952796e-05
+temperature unit  = K
+pressure unit     = atm
+mass unit         = moles
+data file         = THERMOCHIMICA_DIR/data/CaMnS.dat
+print mode        = 0
+heat capacity     = .FALSE.
+write json        = .TRUE.
+output            = REPO_DIR/validation/thermochimica/referee_runs/TestThermo73__grid1__A1.json

@@ -34,7 +34,7 @@ mkdir -p "$BIN"
     -std=c11 -Wall -Wextra -D_CRT_SECURE_NO_WARNINGS \
     -shared -fuse-ld=lld -I"$ROOT/src" \
     -o "$OUT/mqmqa.dll" \
-    "$ROOT/src/mqmqa.c" "$ROOT/src/cs_dat.c" "$ROOT/src/cef.c" "$ROOT/src/gas.c" "$ROOT/src/equil.c" "$ROOT/src/hull.c" "$ROOT/src/equilibrium.c" "$ROOT/src/tq.c" \
+    "$ROOT/src/mqmqa.c" "$ROOT/src/cs_dat.c" "$ROOT/src/cef.c" "$ROOT/src/gas.c" "$ROOT/src/equil.c" "$ROOT/src/hull.c" "$ROOT/src/equilibrium.c" "$ROOT/src/gem.c" "$ROOT/src/tq.c" \
     "$ROOT/src/db_write.c" "$ROOT/src/xtdb.c" "$ROOT/src/vis3d.c"
 rm -f "$OUT/mqmqa.lib" "$OUT/mqmqa.exp"   # the .pdb stays, ASan symbolizes its reports with it
 

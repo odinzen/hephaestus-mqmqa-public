@@ -1,0 +1,7594 @@
+{
+ "generated_from": "ORNL-CEES/thermochimica test/daily/*.F90 (commit 1c076b20f958be65bac750f00af2e59ef4f28d9e)",
+ "files_read": "test/daily/*.F90, data/*.dat headers and model-type lines, inputs/*.ti, README.md; src/ not opened",
+ "databases": {
+  "FeTiVO.dat": {
+   "elements_in_file_order": [
+    "Fe",
+    "V",
+    "Ti",
+    "O"
+   ],
+   "solution_models": {
+    "IDMX": 1,
+    "QKTO": 1,
+    "SUBL": 2,
+    "SUBQ": 1
+   }
+  },
+  "CO.dat": {
+   "elements_in_file_order": [
+    "O",
+    "C"
+   ],
+   "solution_models": {
+    "IDMX": 1
+   }
+  },
+  "PdRuTcMo.dat": {
+   "elements_in_file_order": [
+    "Pd",
+    "Ru",
+    "Tc",
+    "Mo"
+   ],
+   "solution_models": {
+    "IDMX": 1,
+    "QKTO": 41
+   }
+  },
+  "WAuArO-1.dat": {
+   "elements_in_file_order": [
+    "W",
+    "Au",
+    "Ar",
+    "O"
+   ],
+   "solution_models": {
+    "RKMP": 1
+   }
+  },
+  "WAuArO-2.dat": {
+   "elements_in_file_order": [
+    "W",
+    "Au",
+    "Ar",
+    "O"
+   ],
+   "solution_models": {
+    "RKMP": 1
+   }
+  },
+  "WAuArNeO-1.dat": {
+   "elements_in_file_order": [
+    "W",
+    "Au",
+    "Ar",
+    "Ne",
+    "O"
+   ],
+   "solution_models": {
+    "RKMP": 1
+   }
+  },
+  "WAuArNeO-2.dat": {
+   "elements_in_file_order": [
+    "W",
+    "Au",
+    "Ar",
+    "Ne",
+    "O"
+   ],
+   "solution_models": {
+    "RKMP": 2
+   }
+  },
+  "NobleMetals-Kaye.dat": {
+   "elements_in_file_order": [
+    "Pd",
+    "Ru",
+    "Tc",
+    "Mo"
+   ],
+   "solution_models": {
+    "IDMX": 1,
+    "QKTO": 8
+   }
+  },
+  "ZIRC-noSUBI.dat": {
+   "elements_in_file_order": [
+    "Cr",
+    "Fe",
+    "H",
+    "Nb",
+    "Ni",
+    "O",
+    "Sn",
+    "V",
+    "Zr"
+   ],
+   "solution_models": {
+    "IDMX": 1,
+    "RKMP": 1,
+    "RKMPM": 1,
+    "SUBL": 16,
+    "SUBLM": 3
+   }
+  },
+  "CuFeC-Kang.dat": {
+   "elements_in_file_order": [
+    "Cu",
+    "Fe",
+    "C"
+   ],
+   "solution_models": {
+    "SUBG": 2,
+    "SUBLM": 4
+   }
+  },
+  "ClAlNa.dat": {
+   "elements_in_file_order": [
+    "Cl",
+    "Al",
+    "Na"
+   ],
+   "solution_models": {
+    "IDMX": 1,
+    "SUBQ": 1
+   }
+  },
+  "ZIRC-test64.dat": {
+   "elements_in_file_order": [
+    "Cr",
+    "Fe",
+    "H",
+    "Nb",
+    "Ni",
+    "O",
+    "Sn",
+    "V",
+    "Zr"
+   ],
+   "solution_models": {
+    "IDMX": 1,
+    "SUBLM": 1
+   }
+  },
+  "ternaryMiscibility-Kaye.dat": {
+   "elements_in_file_order": [
+    "Pd",
+    "Ru",
+    "Tc",
+    "Mo"
+   ],
+   "solution_models": {
+    "QKTO": 3
+   }
+  },
+  "ZIRC_no_liq.dat": {
+   "elements_in_file_order": [
+    "Cr",
+    "Fe",
+    "H",
+    "Nb",
+    "Ni",
+    "O",
+    "Sn",
+    "V",
+    "Zr"
+   ],
+   "solution_models": {
+    "IDMX": 1,
+    "RKMPM": 1,
+    "SUBI": 2,
+    "SUBL": 16,
+    "SUBLM": 3
+   }
+  },
+  "CsTe-1.dat": {
+   "elements_in_file_order": [
+    "Cs",
+    "Te"
+   ],
+   "solution_models": {
+    "IDMX": 1,
+    "SUBI": 1,
+    "SUBLM": 1
+   }
+  },
+  "CaMnS.dat": {
+   "elements_in_file_order": [
+    "Ca",
+    "Mn",
+    "S"
+   ],
+   "solution_models": {
+    "IDMX": 1,
+    "SUBI": 2,
+    "SUBL": 2,
+    "SUBLM": 3
+   }
+  },
+  "FeMnCaS-1.dat": {
+   "elements_in_file_order": [
+    "Ca",
+    "Fe",
+    "Mn",
+    "S"
+   ],
+   "solution_models": {
+    "IDMX": 1,
+    "SUBI": 2,
+    "SUBL": 4,
+    "SUBLM": 4
+   }
+  },
+  "FeMnCaS-2.dat": {
+   "elements_in_file_order": [
+    "Ca",
+    "Fe",
+    "Mn",
+    "S"
+   ],
+   "solution_models": {
+    "IDMX": 1,
+    "SUBI": 1,
+    "SUBL": 4,
+    "SUBLM": 4
+   }
+  },
+  "CsTe-2.dat": {
+   "elements_in_file_order": [
+    "Cs",
+    "Te"
+   ],
+   "solution_models": {
+    "SUBI": 1
+   }
+  },
+  "ZIRC_no_liq_mod1.dat": {
+   "elements_in_file_order": [
+    "Cr",
+    "Fe",
+    "H",
+    "Nb",
+    "Ni",
+    "O",
+    "Sn",
+    "V",
+    "Zr"
+   ],
+   "solution_models": {
+    "IDMX": 1,
+    "RKMPM": 1,
+    "SUBI": 2,
+    "SUBL": 16,
+    "SUBLM": 3
+   }
+  },
+  "ZIRC_no_liq_mod2.dat": {
+   "elements_in_file_order": [
+    "Cr",
+    "Fe",
+    "H",
+    "Nb",
+    "Ni",
+    "O",
+    "Sn",
+    "V",
+    "Zr"
+   ],
+   "solution_models": {
+    "IDMX": 1,
+    "RKMPM": 1,
+    "SUBI": 2,
+    "SUBL": 16,
+    "SUBLM": 3
+   }
+  },
+  "ZrFeKClNaFOLi.dat": {
+   "elements_in_file_order": [
+    "Zr",
+    "Fe",
+    "K",
+    "Cl",
+    "Na",
+    "F",
+    "O",
+    "Li"
+   ],
+   "solution_models": {
+    "SUBM": 1
+   }
+  },
+  "CsI-Pham.dat": {
+   "elements_in_file_order": [
+    "Cs",
+    "I"
+   ],
+   "solution_models": {
+    "IDMX": 1,
+    "RKMP": 1
+   }
+  }
+ },
+ "skipped_tests": [
+  {
+   "test": "parserTest",
+   "database": "C-O.dat (via inputs/trial-input.ti)",
+   "reason": "database C-O.dat not in data/; timing demo with no checks"
+  },
+  {
+   "test": "TestMSTDB01",
+   "database": "LiBeUPuThF_T1.dat",
+   "reason": "MSTDB test; MSTDB database not shipped in data/"
+  },
+  {
+   "test": "TestMSTDB02",
+   "database": "LiBeUPuThF_T1.dat",
+   "reason": "MSTDB test; MSTDB database not shipped in data/"
+  },
+  {
+   "test": "TestMSTDB03",
+   "database": "LiBeUPuThF_T1.dat",
+   "reason": "MSTDB test; MSTDB database not shipped in data/"
+  },
+  {
+   "test": "TestMSTDB04",
+   "database": "LiBeUPuThF_T1.dat",
+   "reason": "MSTDB test; MSTDB database not shipped in data/"
+  },
+  {
+   "test": "TestThermo01",
+   "database": null,
+   "reason": "database deliberately missing (input-validation test of a missing data file)"
+  },
+  {
+   "test": "TestThermo02",
+   "database": "dsts/C-O.dat",
+   "reason": "database deliberately missing (input-validation test of a missing data file)"
+  }
+ ],
+ "conditions": [
+  {
+   "id": "TestSUBQNonuniformZeta",
+   "grid": "test",
+   "category": "equilibrium_modified_data",
+   "description": "Regression test for zeta-weighted SUBQ pair fractions.",
+   "purpose": "Replace the uniform zeta values in the FeTiVO SUBQ phase with deterministic nonuniform values and check the resulting equilibrium calculation.",
+   "database": "FeTiVO.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "V": 0.5,
+    "Fe": 0.5
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "SlagBsoln"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy",
+    "phase_moles"
+   ],
+   "notes": [
+    "after parsing, the SUBQ phase SlagBsoln has its five species zeta values replaced in memory by 1.8 + 0.15*i (i = 1..5); the shipped FeTiVO.dat is not changed, so the condition is not reproducible from the data file alone (same state as TestThermo57 otherwise)"
+   ]
+  },
+  {
+   "id": "TestThermo03",
+   "grid": "test",
+   "category": "input_validation",
+   "description": "Unit test - no input units.",
+   "purpose": "The purpose of this unit test is to ensure that Thermochimica does not proceed when the input units are not specified.",
+   "database": "CO.dat",
+   "temperature": 300.0,
+   "temperature_unit": null,
+   "pressure": 1.0,
+   "pressure_unit": null,
+   "element_amounts": {},
+   "all_elements_amount": 1.0,
+   "mass_unit": null,
+   "checks": [
+    {
+     "quantity": "input_refused_with_error"
+    }
+   ],
+   "quantities_checked": [],
+   "notes": []
+  },
+  {
+   "id": "TestThermo04",
+   "grid": "test",
+   "category": "input_validation",
+   "description": "Unit test - no temperature specified.",
+   "purpose": "The purpose of this unit test is to ensure that Thermochimica does not proceed when the temperature is not specified.",
+   "database": "CO.dat",
+   "temperature": null,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {},
+   "all_elements_amount": 1.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "input_refused_with_error"
+    }
+   ],
+   "quantities_checked": [],
+   "notes": []
+  },
+  {
+   "id": "TestThermo05",
+   "grid": "test",
+   "category": "input_validation",
+   "description": "Unit test - no pressure specified.",
+   "purpose": "The purpose of this unit test is to ensure that Thermochimica does not proceed when the pressure is not specified.",
+   "database": "CO.dat",
+   "temperature": 300.0,
+   "temperature_unit": "K",
+   "pressure": null,
+   "pressure_unit": "atm",
+   "element_amounts": {},
+   "all_elements_amount": 1.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "input_refused_with_error"
+    }
+   ],
+   "quantities_checked": [],
+   "notes": []
+  },
+  {
+   "id": "TestThermo06",
+   "grid": "test",
+   "category": "input_validation",
+   "description": "Unit test - no mass specified.",
+   "purpose": "To verify that Thermochimica gracefully exits when mass is not specified.",
+   "database": "CO.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {},
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "input_refused_with_error"
+    }
+   ],
+   "quantities_checked": [],
+   "notes": []
+  },
+  {
+   "id": "TestThermo07",
+   "grid": "test",
+   "category": "input_validation",
+   "description": "Unit test - temperature out of range.",
+   "purpose": "The purpose of this unit test is to ensure that Thermochimica does not proceed when the temperature is out of range.",
+   "database": "CO.dat",
+   "temperature": -300.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {},
+   "all_elements_amount": 1.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "input_refused_with_error"
+    }
+   ],
+   "quantities_checked": [],
+   "notes": []
+  },
+  {
+   "id": "TestThermo08",
+   "grid": "test",
+   "category": "input_validation",
+   "description": "Unit test - pressure out of range.",
+   "purpose": "The purpose of this unit test is to ensure that Thermochimica does not proceed when the pressure is out of range.",
+   "database": "CO.dat",
+   "temperature": 300.0,
+   "temperature_unit": "K",
+   "pressure": -1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {},
+   "all_elements_amount": 1.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "input_refused_with_error"
+    }
+   ],
+   "quantities_checked": [],
+   "notes": []
+  },
+  {
+   "id": "TestThermo09",
+   "grid": "test",
+   "category": "input_validation",
+   "description": "Unit test - mass out of range.",
+   "purpose": "The purpose of this unit test is to ensure that Thermochimica does not proceed when the mass is out of range.",
+   "database": "CO.dat",
+   "temperature": 300.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {},
+   "all_elements_amount": -1.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "input_refused_with_error"
+    }
+   ],
+   "quantities_checked": [],
+   "notes": []
+  },
+  {
+   "id": "TestThermo10",
+   "grid": "test",
+   "category": "input_validation",
+   "description": "Unit test - pressure NAN.",
+   "purpose": "The purpose of this unit test is to ensure that Thermochimica does not proceed when the mass is out of range.",
+   "database": "CO.dat",
+   "temperature": 300.0,
+   "temperature_unit": "K",
+   "pressure": "NaN",
+   "pressure_unit": "atm",
+   "element_amounts": {},
+   "all_elements_amount": 1.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "input_refused_with_error"
+    }
+   ],
+   "quantities_checked": [],
+   "notes": [
+    "pressure is set to sqrt(-1), i.e. NaN"
+   ]
+  },
+  {
+   "id": "TestThermo11",
+   "grid": "test",
+   "category": "input_validation",
+   "description": "Unit test - temperature infinite.",
+   "purpose": "The purpose of this unit test is to ensure that Thermochimica does not proceed if the temperature of the system is an INF.",
+   "database": "CO.dat",
+   "temperature": 1e+37,
+   "temperature_unit": "K",
+   "pressure": 0.0,
+   "pressure_unit": "atm",
+   "element_amounts": {},
+   "all_elements_amount": 1.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "input_refused_with_error"
+    }
+   ],
+   "quantities_checked": [],
+   "notes": [
+    "temperature is squared after assignment (1E37**2, intended as infinite)"
+   ]
+  },
+  {
+   "id": "TestThermo12",
+   "grid": "test",
+   "category": "input_validation",
+   "description": "Unit test - number of elements out of range.",
+   "purpose": "The purpose of this unit test is to ensure that Thermochimica does not proceed if the number of chemical elements is out of range.",
+   "database": "CO.dat",
+   "temperature": 300.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {},
+   "all_elements_amount": 0.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "input_refused_with_error"
+    }
+   ],
+   "quantities_checked": [],
+   "notes": []
+  },
+  {
+   "id": "TestThermo13",
+   "grid": "test",
+   "category": "input_validation",
+   "description": "Unit test - unsupported mass unit.",
+   "purpose": "The purpose of this unit test is to ensure that Thermochimica does not proceed if a mass unit is specified, but is not supported.",
+   "database": "CO.dat",
+   "temperature": 300.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {},
+   "all_elements_amount": 1.0,
+   "mass_unit": "elephants",
+   "checks": [
+    {
+     "quantity": "input_refused_with_error"
+    }
+   ],
+   "quantities_checked": [],
+   "notes": []
+  },
+  {
+   "id": "TestThermo14",
+   "grid": "test",
+   "category": "parse_only",
+   "description": "Unit test - maximum solution phases.",
+   "purpose": "The purpose of this unit test is to ensure that Thermochimica can read a data file with many solution phases (42).",
+   "database": "PdRuTcMo.dat",
+   "temperature": null,
+   "temperature_unit": null,
+   "pressure": null,
+   "pressure_unit": null,
+   "element_amounts": {},
+   "all_elements_amount": null,
+   "mass_unit": null,
+   "checks": [
+    {
+     "quantity": "data_file_parses"
+    }
+   ],
+   "quantities_checked": [],
+   "notes": []
+  },
+  {
+   "id": "TestThermo30",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - W-Au-Ar-O.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for a fictive system labelled W-Au-Ar-O.",
+   "database": "WAuArO-1.dat",
+   "temperature": 1455.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 1.95,
+    "Au": 1.0,
+    "Ar": 2.0,
+    "O": 10.0
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo31",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - W-Au-Ar-O_02.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for a fictive W-Au-Ar-O_02 system.",
+   "database": "WAuArO-2.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 1.0,
+    "Au": 3.0,
+    "Ar": 5.0,
+    "O": 2.0
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo32",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - W-Au-Ar-Ne-O, 2452K.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for a fictive system labelled W-Au-Ar-Ne-O at 2452K.",
+   "database": "WAuArNeO-1.dat",
+   "temperature": 2452.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 1.95,
+    "Au": 1.0,
+    "Ar": 2.0,
+    "O": 10.0,
+    "Ne": 10.0
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo33",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - W-Au-Ar-Ne-O, 900K.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for a fictive system labelled W-Au-Ar-Ne-O at 900K.",
+   "database": "WAuArNeO-2.dat",
+   "temperature": 900.0,
+   "temperature_unit": "K",
+   "pressure": 2.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 20.0,
+    "Au": 2.0,
+    "Ar": 7.0,
+    "O": 5.0,
+    "Ne": 1.0
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "species_index_in_system": 1
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "species_index_in_system": 9
+    },
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy",
+    "mole_fraction"
+   ],
+   "notes": [
+    "mole fractions indexed by Thermochimica's internal system species index; the species name is not given in the test"
+   ]
+  },
+  {
+   "id": "TestThermo40",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 2250K with 80% Mo, 20% Ru.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Pd-Ru-Tc-Mo system at 2250K with 80% Mo, 20% Ru.",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2250.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.8,
+    "Ru": 0.2
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "BCCN",
+     "species": "Ru"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "BCCN",
+     "species": "Mo"
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo41",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 2250K with 48.86% Mo, 51.14% Ru.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Pd-Ru-Tc-Mo system at 2250K with 48.86% Mo, 51.14% Ru.",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2250.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 4.3,
+    "Ru": 4.5
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "HCPN",
+     "species": "Ru"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "HCPN",
+     "species": "Mo"
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo42",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 2310K with 22% Mo, 78% Tc.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Pd-Ru-Tc-Mo system at 2310K with 22% Mo, 78% Tc.",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2310.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.22,
+    "Tc": 0.78
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "LiqN",
+     "species": "Tc"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "LiqN",
+     "species": "Mo"
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo43",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 400K with 40% Pd, 60% Ru.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Pd-Ru-Tc-Mo system at 400K with 40% Pd, 60% Ru.",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 400.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Pd": 0.4,
+    "Ru": 0.6
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "FCCN",
+     "species": "Ru"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "FCCN",
+     "species": "Pd"
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo44",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 1000K with 40% Pd, 60% Tc.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Pd-Ru-Tc-Mo system at 1000K with 40% Pd, 60% Tc.",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Pd": 40.0,
+    "Tc": 60.0
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "HCPN",
+     "species": "Pd"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "HCPN",
+     "species": "Tc"
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo45",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 1234K with 1% Tc, 99% Ru.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Pd-Ru-Tc-Mo system at 1234K with 1% Tc, 99% Ru.",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1234.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 1.0,
+    "Ru": 99.0
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "HCPN",
+     "species": "Ru"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "HCPN",
+     "species": "Tc"
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo46",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 2250K with 55% Tc, 45% Ru.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Pd-Ru-Tc-Mo system at 2250K with 55% Tc, 45% Ru.",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2250.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.55,
+    "Ru": 0.45
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "HCPN",
+     "species": "Ru"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "HCPN",
+     "species": "Tc"
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo47",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 1973K with 30% Mo, 40% Pd, 30% Ru.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Pd-Ru-Tc-Mo system at 1973K with 30% Mo, 40% Pd, 30% Ru.",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1973.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.3,
+    "Pd": 0.4,
+    "Ru": 0.3
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "FCCN",
+     "species": "Ru"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "FCCN",
+     "species": "Mo"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "FCCN",
+     "species": "Pd"
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo48",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 1973K with 10% Mo, 30% Pd, 60% Ru.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Pd-Ru-Tc-Mo system at 1973K with 10% Mo, 30% Pd, 60% Ru.",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1973.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.1,
+    "Pd": 0.3,
+    "Ru": 0.6
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "LiqN",
+     "species": "Ru"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "LiqN",
+     "species": "Mo"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "LiqN",
+     "species": "Pd"
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo49",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 1000K with 40% Pd, 60% Tc.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Pd-Ru-Tc-Mo system at 1000K with Pd and Tc.",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.125,
+    "Pd": 0.874
+   },
+   "all_elements_amount": 0.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "LiqN",
+     "species": "Pd"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "LiqN",
+     "species": "Tc"
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction"
+   ],
+   "notes": [
+    "header says 1000 K but the code sets 1900 K; the code's temperature and composition are used"
+   ]
+  },
+  {
+   "id": "TestThermo50",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 1234K with 1% Tc, 99% Ru.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Pd-Ru-Tc-Mo system at 1234K with 1% Tc, 99% Ru.",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1234.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 1.0,
+    "Ru": 99.0
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "HCPN",
+     "species": "Ru"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "HCPN",
+     "species": "Tc"
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo51",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 2250K with 55% Tc, 45% Ru.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Pd-Ru-Tc-Mo system at 2250K with 55% Tc, 45% Ru.",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2250.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.55,
+    "Ru": 0.45
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "HCPN",
+     "species": "Ru"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "HCPN",
+     "species": "Tc"
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo52",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 1973K with 30% Mo, 40% Pd, 30% Ru.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Pd-Ru-Tc-Mo system at 1973K with 30% Mo, 40% Pd, 30% Ru.",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1973.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.3,
+    "Pd": 0.4,
+    "Ru": 0.3
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "FCCN",
+     "species": "Ru"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "FCCN",
+     "species": "Mo"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "FCCN",
+     "species": "Pd"
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo53",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 1973K with 10% Mo, 30% Pd, 60% Ru.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Pd-Ru-Tc-Mo system at 1973K with 10% Mo, 30% Pd, 60% Ru.",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 973.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.1,
+    "Pd": 0.3,
+    "Ru": 0.6
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "HCPN",
+     "species": "Ru"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "HCPN",
+     "species": "Mo"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "HCPN",
+     "species": "Pd"
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction"
+   ],
+   "notes": [
+    "header says 1973 K but the code sets 973 K; the code's temperature and composition are used"
+   ]
+  },
+  {
+   "id": "TestThermo54",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 1973K with 10% Mo, 30% Pd, 60% Ru.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Pd-Ru-Tc-Mo system at 1973K with 10% Mo, 30% Pd, 60% Ru.",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.01,
+    "Pd": 0.09,
+    "Mo": 0.9
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "BCCN",
+     "species": "Tc"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "BCCN",
+     "species": "Mo"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "BCCN",
+     "species": "Pd"
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction"
+   ],
+   "notes": [
+    "header says 1973 K but the code sets 1800 K; the code's temperature and composition are used"
+   ]
+  },
+  {
+   "id": "TestThermo55",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - Ni-Cr-Fe-H 300 K.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for a system including magnetic solution species and excess magnetic terms.",
+   "database": "ZIRC-noSUBI.dat",
+   "temperature": 300.0,
+   "temperature_unit": "K",
+   "pressure": 1000.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "V": 0.1,
+    "Cr": 1.0,
+    "Fe": 2.0,
+    "Ni": 1.0,
+    "Sn": 0.1,
+    "H": 1.0
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "magnetic_critical_temperature",
+     "unit": "K",
+     "phase": "FCC_A1"
+    },
+    {
+     "quantity": "magnetic_moment",
+     "unit": "-",
+     "phase": "FCC_A1"
+    },
+    {
+     "quantity": "magnetic_critical_temperature",
+     "unit": "K",
+     "phase": "BCC_A2"
+    },
+    {
+     "quantity": "magnetic_moment",
+     "unit": "-",
+     "phase": "BCC_A2"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy",
+    "magnetic_critical_temperature",
+    "magnetic_moment"
+   ],
+   "notes": [
+    "magnetic checks are Thermochimica's CompMagneticTemperatureMoment output for the phase; for FCC_A1 both are multiplied by minus the first species' magnetic structure factor"
+   ]
+  },
+  {
+   "id": "TestThermo56",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - Fe-Cu-C 1400 K.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for a system including magnetic solution species and excess magnetic terms. Also tests G-type asymmetric (and symmetric) excess mixing energy implementation for SUBG.",
+   "database": "CuFeC-Kang.dat",
+   "temperature": 1400.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "C": 1.0,
+    "Fe": 1.0,
+    "Cu": 1.0
+   },
+   "all_elements_amount": 0.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "magnetic_critical_temperature",
+     "unit": "K",
+     "phase": "FCC_A1"
+    },
+    {
+     "quantity": "magnetic_moment",
+     "unit": "-",
+     "phase": "FCC_A1"
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "Liquid"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "Liquid",
+     "species_position_in_phase": "last"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy",
+    "magnetic_critical_temperature",
+    "magnetic_moment",
+    "mole_fraction",
+    "phase_moles"
+   ],
+   "notes": [
+    "magnetic checks are Thermochimica's CompMagneticTemperatureMoment output for the phase; for FCC_A1 both are multiplied by minus the first species' magnetic structure factor"
+   ]
+  },
+  {
+   "id": "TestThermo57",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - Fe-Ti-V-O 2000 K.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for a system including SUBQ solution phase with compound constituent.",
+   "database": "FeTiVO.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "V": 0.5,
+    "Fe": 0.5
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "SlagBsoln"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "SlagBsoln",
+     "species_position_in_phase": 1
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "Hemasoln"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "Hemasoln",
+     "species_position_in_phase": 1
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction",
+    "phase_moles"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo58",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - Fe-Ti-O 2000 K.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for a system including SUBQ solution phase.",
+   "database": "FeTiVO.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "Fe": 0.5
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "SlagBsoln"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "SlagBsoln",
+     "species_position_in_phase": 1
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "gas_ideal"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "gas_ideal",
+     "species_position_in_phase": 5
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction",
+    "phase_moles"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo59",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - Fe-V-O 2000 K.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for a system including SUBQ solution phase with compound constituent.",
+   "database": "FeTiVO.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "V": 0.5,
+    "Fe": 0.5
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "SlagBsoln"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "SlagBsoln",
+     "species_position_in_phase": 1
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "gas_ideal"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "gas_ideal",
+     "species_position_in_phase": 1
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction",
+    "phase_moles"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo60",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - Ti-V-O 2000 K.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for a system including SUBQ solution phase with compound constituent.",
+   "database": "FeTiVO.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "V": 0.5
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "SlagBsoln"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "SlagBsoln",
+     "species_position_in_phase": 1
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "Hemasoln"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "Hemasoln",
+     "species_position_in_phase": 1
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction",
+    "phase_moles"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo61",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Tricky SUBL vacancy-vacancy",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica includes vacancy-vacancy species in the SUBL model if appropriate.",
+   "database": "FeTiVO.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "Rutilesoln"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "Rutilesoln",
+     "species_position_in_phase": 1
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "gas_ideal"
+    },
+    {
+     "quantity": "heat_capacity",
+     "unit": "J/K"
+    }
+   ],
+   "quantities_checked": [
+    "heat_capacity",
+    "integral_gibbs_energy",
+    "mole_fraction",
+    "phase_moles"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo62",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "",
+   "purpose": "",
+   "database": "ClAlNa.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cl": 2.0,
+    "Al": 1.0
+   },
+   "all_elements_amount": 0.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "MSsoln"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "MSsoln",
+     "species_position_in_phase": 1
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "gas_ideal"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy",
+    "mole_fraction",
+    "phase_moles"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo63",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "",
+   "purpose": "",
+   "database": "ClAlNa.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cl": 3.0,
+    "Na": 1.0,
+    "Al": 1.0
+   },
+   "all_elements_amount": 0.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "MSsoln"
+    },
+    {
+     "quantity": "mole_fraction",
+     "unit": "-",
+     "phase": "MSsoln",
+     "species_position_in_phase": 1
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "NaCl_S1(s)"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy",
+    "mole_fraction",
+    "phase_moles"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo64",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - Nb-Zr-O-H 600 K.",
+   "purpose": "The purpose of this application test is to ensure that ternary mixing SUBL cases with only one specified coefficient are handled correctly.",
+   "database": "ZIRC-test64.dat",
+   "temperature": 600.0,
+   "temperature_unit": "K",
+   "pressure": 100.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Nb": 1.0,
+    "Zr": 1.0,
+    "O": 1.0,
+    "H": 0.1
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy",
+    "phase_present:BCC_A2"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo65",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 400K with 25% Mo, 25% Ru, 25% Pd, 25% Tc.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Pd-Ru-Tc-Mo system at 400K with 25% Mo, 25% Ru, 25% Pd, 25% Tc. The database is modified such that it contains only the BCC phase, but with ternary miscibility gap possible.",
+   "database": "ternaryMiscibility-Kaye.dat",
+   "temperature": 400.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 1.0,
+    "Tc": 1.0,
+    "Ru": 1.0,
+    "Pd": 1.0
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "BCCN"
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "BCCN"
+    },
+    {
+     "quantity": "phase_moles",
+     "unit": "mol",
+     "phase": "BCCN"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy",
+    "phase_moles"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo70",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 1500K with 70% Sn, 30% O.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Zirc Data file at 1500K with 0.7 mols of Sn and 0.3 of O. It also tests mixing term Case #2 an #4 of the SUBI phase, with the presence of a miscibility gap. Permission was granted from N. Dupin to make use of the Zirc DAT file.",
+   "database": "ZIRC_no_liq.dat",
+   "temperature": 1500.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 0.3,
+    "Sn": 0.7
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 1,
+     "element": "O"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 2,
+     "element": "Sn"
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "SN+2",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "O-2",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Va",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "O2SN",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "SN+2",
+     "liquid_instance": 2
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "O-2",
+     "liquid_instance": 2
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Va",
+     "liquid_instance": 2
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "O2SN",
+     "liquid_instance": 2
+    }
+   ],
+   "quantities_checked": [
+    "element_chemical_potential",
+    "integral_gibbs_energy",
+    "site_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo71",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 2000K with 20% Cr, 70% Zr, 10% O.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Zirc Data file at 1500K with 0.7 mols of Cn, 0.2 mols of Zr and 0.1 of O. It also tests mixing term Case #2 an #3 of the SUBI phase. Permission was granted from N. Dupin to make use of the Zirc DAT file.",
+   "database": "ZIRC_no_liq.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 0.1,
+    "Cr": 0.2,
+    "Zr": 0.7
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 1,
+     "element": "Cr"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 2,
+     "element": "O"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 3,
+     "element": "Zr"
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "CR+3",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "ZR+4",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Va",
+     "liquid_instance": 1
+    }
+   ],
+   "quantities_checked": [
+    "element_chemical_potential",
+    "integral_gibbs_energy",
+    "site_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo72",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 700K with 20% Cs, 80% Te.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the open literature Cs-Te assessment file at 700K with 0.2 mols of Cs and 0.8 of Te. It also tests mixing term Case #5 of the SUBI phase. The DAT file was pulled from the following article. However, modifications may have been made from the original version: T. N. Pham Thi, J. C. Dumas, V. Bouineau, N. Dupin, C. Gueneau, S. Gosse, P. Benigni, P. Maugis and J. Rogez, \"Thermodynamic assessment of the Cs\u00e2\u20ac\u201cTe binary system,\" Calphad, vol. 48, pp. 1-12, 2015.",
+   "database": "CsTe-1.dat",
+   "temperature": 700.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Te": 0.8,
+    "Cs": 0.2
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 1,
+     "element": "Cs"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 2,
+     "element": "Te"
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQUID",
+     "constituent": "Cs+",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQUID",
+     "constituent": "Cs2Te",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQUID",
+     "constituent": "Te",
+     "liquid_instance": 1
+    }
+   ],
+   "quantities_checked": [
+    "element_chemical_potential",
+    "integral_gibbs_energy",
+    "site_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo73",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 2500K with 33% Ca, 33% Mn, 33% S.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the open literature Ca-Mn-S assessment file at 2500K with 1 mol of Ca, 1 mol of Mn, and 1 mol of S. It also tests mixing term Case #1, # 2, and #3 of the SUBI phase with a miscibility gap present. The DAT file was pulled from the following article. However, modifications may have been made from the original version: D. Dilner, \"Thermodynamic description of the Fe\u00e2\u20ac\u201cMn\u00e2\u20ac\u201cCa\u00e2\u20ac\u201cMg\u00e2\u20ac\u201cS system,\" Calphad, vol. 53, pp. 55-61, 2016.",
+   "database": "CaMnS.dat",
+   "temperature": 2500.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Ca": 1.0,
+    "Mn": 1.0,
+    "S": 1.0
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 1,
+     "element": "Ca"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 2,
+     "element": "Mn"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 3,
+     "element": "S"
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Ca+2",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Mn+2",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "S-2",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Va",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "S",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Ca+2",
+     "liquid_instance": 2
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Mn+2",
+     "liquid_instance": 2
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "S-2",
+     "liquid_instance": 2
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Va",
+     "liquid_instance": 2
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "S",
+     "liquid_instance": 2
+    }
+   ],
+   "quantities_checked": [
+    "element_chemical_potential",
+    "integral_gibbs_energy",
+    "site_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo74",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 1900K with , 2 mol Fe, 4 mol Mn, 3 mol S.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the open literature Ca-Mn-S assessment file at 2500K with 1 mol of Ca, 1 mol of Mn, and 1 mol of S. It also tests mixing term Case #1, # 2, and #3 of the SUBI phase with a miscibility gap present. The DAT file was pulled from the following article. However, modifications may have been made from the original version: D. Dilner, \"Thermodynamic description of the Fe\u00e2\u20ac\u201cMn\u00e2\u20ac\u201cCa\u00e2\u20ac\u201cMg\u00e2\u20ac\u201cS system,\" Calphad, vol. 53, pp. 55-61, 2016.",
+   "database": "FeMnCaS-1.dat",
+   "temperature": 1900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Fe": 2.0,
+    "Mn": 4.0,
+    "S": 3.0
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 1,
+     "element": "Fe"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 2,
+     "element": "Mn"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 3,
+     "element": "S"
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Fe+2",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Mn+2",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "S-2",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Va",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Fe+2",
+     "liquid_instance": 2
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Mn+2",
+     "liquid_instance": 2
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Va",
+     "liquid_instance": 2
+    }
+   ],
+   "quantities_checked": [
+    "element_chemical_potential",
+    "integral_gibbs_energy",
+    "site_fraction"
+   ],
+   "notes": [
+    "chemical potential index 1 is Fe by the database element order, but the test's comment names Ca"
+   ]
+  },
+  {
+   "id": "TestThermo75",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 1500K with 0.5 Ca - 0.2 Mn - 0.4 Fe.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the open literature Ca-Mn-S assessment file at 1500K with 0.5 mol of Ca, 0.2 mol of Mn, and 0.4 mol of Fe. It also tests mixing term Case #8 of the SUBI phase. The DAT file was pulled from the following article. However, modifications may have been made from the original version: D. Dilner, \"Thermodynamic description of the Fe\u00e2\u20ac\u201cMn\u00e2\u20ac\u201cCa\u00e2\u20ac\u201cMg\u00e2\u20ac\u201cS system,\" Calphad, vol. 53, pp. 55-61, 2016.",
+   "database": "FeMnCaS-2.dat",
+   "temperature": 1500.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Fe": 0.4,
+    "Mn": 0.2,
+    "Ca": 0.5
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 1,
+     "element": "Ca"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 2,
+     "element": "Fe"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 3,
+     "element": "Mn"
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Ca+2",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Mn+2",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Fe+2",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Va",
+     "liquid_instance": 1
+    }
+   ],
+   "quantities_checked": [
+    "element_chemical_potential",
+    "integral_gibbs_energy",
+    "site_fraction"
+   ],
+   "notes": [
+    "chemical potential index 2 is Fe by the database element order, but the test's comment names Mn",
+    "chemical potential index 3 is Mn by the database element order, but the test's comment names Fe"
+   ]
+  },
+  {
+   "id": "TestThermo76",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 2500K with 1.0 Cs - 0.5 Te",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the open literature Cs-Te assessment file at 2500K with 1.0 mol of Cs and 0.5 mol of Te. It also tests mixing term Case #9 of the SUBI phase. The DAT file was pulled from the following article. However, modifications may have been made from the original version: T. N. Pham Thi, J. C. Dumas, V. Bouineau, N. Dupin, C. Gueneau, S. Gosse, P. Benigni, P. Maugis and J. Rogez, \"Thermodynamic assessment of the Cs\u00e2\u20ac\u201cTe binary system,\" Calphad, vol. 48, pp. 1-12, 2015.",
+   "database": "CsTe-2.dat",
+   "temperature": 2500.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Te": 0.5,
+    "Cs": 1.0
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 1,
+     "element": "Cs"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 2,
+     "element": "Te"
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQUID",
+     "constituent": "Cs+",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQUID",
+     "constituent": "Va",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQUID",
+     "constituent": "Cs2Te",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQUID",
+     "constituent": "Te",
+     "liquid_instance": 1
+    }
+   ],
+   "quantities_checked": [
+    "element_chemical_potential",
+    "integral_gibbs_energy",
+    "site_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo77",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 2500K with 1.0 Nb - 0.7 Sn - 0.3 O.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Zirc Data file at 2500K with 1.0 mol of Nb, 0.7 mols of Sn, and 0.3 of O. It also tests mixing term Case #7 of the SUBI phase, with the presence of a miscibility gap. Permission was granted from N. Dupin to make use of the Zirc DAT file. The data file for this test case has been modified from it's original state.",
+   "database": "ZIRC_no_liq_mod1.dat",
+   "temperature": 2500.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Nb": 1.0,
+    "O": 0.3,
+    "Sn": 0.7
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 1,
+     "element": "Nb"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 2,
+     "element": "O"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 3,
+     "element": "Sn"
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "NB+2",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "O-2",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Va",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "NBO5/2",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "NB+2",
+     "liquid_instance": 2
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "SN+2",
+     "liquid_instance": 2
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Va",
+     "liquid_instance": 2
+    }
+   ],
+   "quantities_checked": [
+    "element_chemical_potential",
+    "integral_gibbs_energy",
+    "site_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo78",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "Spot test - 2000K with  0.5 Cr - 0.8 Sn - 0.6 O.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results for the Zirc Data file at 2000K with 0.5 mols of Cr, 0.8 mols of Sn, and 0.6 mols of O. It also tests mixing term Case #12 of the SUBI phase. Permission was granted from N. Dupin to make use of the Zirc DAT file. The data file for this test case has been modified from it's original state.",
+   "database": "ZIRC_no_liq_mod2.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cr": 0.5,
+    "Sn": 0.8,
+    "O": 0.6
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 1,
+     "element": "Cr"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 2,
+     "element": "O"
+    },
+    {
+     "quantity": "element_chemical_potential",
+     "unit": "J/mol",
+     "element_index_in_system": 3,
+     "element": "Sn"
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "CR+3",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "SN+2",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "Va",
+     "liquid_instance": 1
+    },
+    {
+     "quantity": "site_fraction",
+     "unit": "-",
+     "phase": "IONIC_LIQ",
+     "constituent": "O2SN",
+     "liquid_instance": 1
+    }
+   ],
+   "quantities_checked": [
+    "element_chemical_potential",
+    "integral_gibbs_energy",
+    "site_fraction"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo80",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "SUBM first sublattice binary mixing.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results a SUBM phase with a binary excess mixing term on the first sublattice.",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.1,
+    "Na": 0.4,
+    "F": 1.6,
+    "Fe": 0.3,
+    "K": 0.2
+   },
+   "all_elements_amount": 0.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo81",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "SUBM first sublattice binary mixing.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results a SUBM phase with a binary excess mixing term on the first sublattice.",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.1,
+    "Na": 0.4,
+    "Fe": 0.3,
+    "O": 0.8,
+    "K": 0.2
+   },
+   "all_elements_amount": 0.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo82",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "SUBM second sublattice binary mixing.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results a SUBM phase with a binary excess mixing term on the second sublattice.",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 1.2,
+    "Cl": 0.5,
+    "F": 0.3,
+    "O": 0.2
+   },
+   "all_elements_amount": 0.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo83",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "SUBM first sublattice ternary mixing.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results a SUBM phase with a ternary excess mixing term on the first sublattice.",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.1,
+    "Na": 0.4,
+    "Cl": 1.6,
+    "Fe": 0.3,
+    "K": 0.2
+   },
+   "all_elements_amount": 0.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo84",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "SUBM second sublattice ternary mixing.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results a SUBM phase with a ternary excess mixing term on the second sublattice.",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cl": 0.5,
+    "F": 0.3,
+    "O": 0.2,
+    "K": 1.2
+   },
+   "all_elements_amount": 0.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo85",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "SUBM all mixing.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results a SUBM phase with all excess mixing terms.",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 1.0,
+    "Na": 2.0,
+    "Cl": 2.0,
+    "F": 12.0,
+    "Fe": 3.0,
+    "O": 1.0,
+    "K": 4.0
+   },
+   "all_elements_amount": 0.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo86",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "SUBM mistmatch coefficients and charges.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results a SUBM phase where not all charges and coefficients are equal, i.e. with Zr(4+) + O(2-) -> ZrO2. Two constituents on first sublattice are tested.",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 2.0,
+    "O": 3.0,
+    "Zr": 1.0
+   },
+   "all_elements_amount": 0.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo87",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "SUBM mistmatch coefficients and charges.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results a SUBM phase where not all charges and coefficients are equal, i.e. with Zr(4+) + O(2-) -> ZrO2. Two constituents on second sublattice are tested.",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.0,
+    "Na": 0.0,
+    "Cl": 2.0,
+    "F": 0.0,
+    "Fe": 0.0,
+    "O": 1.0,
+    "K": 0.0,
+    "Zr": 1.0
+   },
+   "all_elements_amount": 0.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo88",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "SUBM mismatch coefficients and charges.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results a SUBM phase where not all charges and coefficients are equal, i.e. with Zr(4+) + O(2-) -> ZrO2. Two constituents on both sublattices are tested.",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 3.0,
+    "Na": 0.0,
+    "Cl": 0.0,
+    "F": 5.0,
+    "Fe": 0.0,
+    "O": 1.0,
+    "K": 0.0,
+    "Zr": 1.0
+   },
+   "all_elements_amount": 0.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo89",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "SUBM worst case scenario.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results a SUBM phase where everything and the kitchen sink is thrown in.",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 1.0,
+    "Na": 2.0,
+    "Cl": 2.0,
+    "F": 12.0,
+    "Fe": 3.0,
+    "O": 11.0,
+    "K": 4.0,
+    "Zr": 5.0
+   },
+   "all_elements_amount": 0.0,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy"
+   ],
+   "notes": []
+  },
+  {
+   "id": "TestThermo90",
+   "grid": "test",
+   "category": "equilibrium",
+   "description": "SUBM worst case scenario.",
+   "purpose": "The purpose of this application test is to ensure that Thermochimica computes the correct results of CsI at low pressure. This test is consistent with the test in the tutorial manual.",
+   "database": "CsI-Pham.dat",
+   "temperature": 400.0,
+   "temperature_unit": "C",
+   "pressure": 1e-05,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "I": 1.0,
+    "Cs": 1.0
+   },
+   "all_elements_amount": null,
+   "mass_unit": "moles",
+   "checks": [
+    {
+     "quantity": "integral_gibbs_energy",
+     "unit": "J"
+    }
+   ],
+   "quantities_checked": [
+    "integral_gibbs_energy"
+   ],
+   "notes": []
+  }
+ ],
+ "extended_grid_rule": "for each equilibrium test composition: T-200, T-100, T, T+100, T+200 K at the test pressure; points below 298.15 K are listed but not run. The .dat files state no upper limit; Gibbs functions are used as Thermochimica reads them.",
+ "extended_grid": [
+  {
+   "id": "TestThermo30__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo30",
+   "database": "WAuArO-1.dat",
+   "temperature": 1255.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 1.95,
+    "Au": 1.0,
+    "Ar": 2.0,
+    "O": 10.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo30__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo30",
+   "database": "WAuArO-1.dat",
+   "temperature": 1355.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 1.95,
+    "Au": 1.0,
+    "Ar": 2.0,
+    "O": 10.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo30__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo30",
+   "database": "WAuArO-1.dat",
+   "temperature": 1455.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 1.95,
+    "Au": 1.0,
+    "Ar": 2.0,
+    "O": 10.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo30__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo30",
+   "database": "WAuArO-1.dat",
+   "temperature": 1555.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 1.95,
+    "Au": 1.0,
+    "Ar": 2.0,
+    "O": 10.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo30__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo30",
+   "database": "WAuArO-1.dat",
+   "temperature": 1655.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 1.95,
+    "Au": 1.0,
+    "Ar": 2.0,
+    "O": 10.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo31__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo31",
+   "database": "WAuArO-2.dat",
+   "temperature": 800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 1.0,
+    "Au": 3.0,
+    "Ar": 5.0,
+    "O": 2.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo31__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo31",
+   "database": "WAuArO-2.dat",
+   "temperature": 900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 1.0,
+    "Au": 3.0,
+    "Ar": 5.0,
+    "O": 2.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo31__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo31",
+   "database": "WAuArO-2.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 1.0,
+    "Au": 3.0,
+    "Ar": 5.0,
+    "O": 2.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo31__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo31",
+   "database": "WAuArO-2.dat",
+   "temperature": 1100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 1.0,
+    "Au": 3.0,
+    "Ar": 5.0,
+    "O": 2.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo31__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo31",
+   "database": "WAuArO-2.dat",
+   "temperature": 1200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 1.0,
+    "Au": 3.0,
+    "Ar": 5.0,
+    "O": 2.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo32__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo32",
+   "database": "WAuArNeO-1.dat",
+   "temperature": 2252.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 1.95,
+    "Au": 1.0,
+    "Ar": 2.0,
+    "O": 10.0,
+    "Ne": 10.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo32__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo32",
+   "database": "WAuArNeO-1.dat",
+   "temperature": 2352.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 1.95,
+    "Au": 1.0,
+    "Ar": 2.0,
+    "O": 10.0,
+    "Ne": 10.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo32__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo32",
+   "database": "WAuArNeO-1.dat",
+   "temperature": 2452.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 1.95,
+    "Au": 1.0,
+    "Ar": 2.0,
+    "O": 10.0,
+    "Ne": 10.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo32__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo32",
+   "database": "WAuArNeO-1.dat",
+   "temperature": 2552.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 1.95,
+    "Au": 1.0,
+    "Ar": 2.0,
+    "O": 10.0,
+    "Ne": 10.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo32__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo32",
+   "database": "WAuArNeO-1.dat",
+   "temperature": 2652.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 1.95,
+    "Au": 1.0,
+    "Ar": 2.0,
+    "O": 10.0,
+    "Ne": 10.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo33__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo33",
+   "database": "WAuArNeO-2.dat",
+   "temperature": 700.0,
+   "temperature_unit": "K",
+   "pressure": 2.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 20.0,
+    "Au": 2.0,
+    "Ar": 7.0,
+    "O": 5.0,
+    "Ne": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo33__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo33",
+   "database": "WAuArNeO-2.dat",
+   "temperature": 800.0,
+   "temperature_unit": "K",
+   "pressure": 2.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 20.0,
+    "Au": 2.0,
+    "Ar": 7.0,
+    "O": 5.0,
+    "Ne": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo33__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo33",
+   "database": "WAuArNeO-2.dat",
+   "temperature": 900.0,
+   "temperature_unit": "K",
+   "pressure": 2.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 20.0,
+    "Au": 2.0,
+    "Ar": 7.0,
+    "O": 5.0,
+    "Ne": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo33__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo33",
+   "database": "WAuArNeO-2.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 2.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 20.0,
+    "Au": 2.0,
+    "Ar": 7.0,
+    "O": 5.0,
+    "Ne": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo33__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo33",
+   "database": "WAuArNeO-2.dat",
+   "temperature": 1100.0,
+   "temperature_unit": "K",
+   "pressure": 2.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "W": 20.0,
+    "Au": 2.0,
+    "Ar": 7.0,
+    "O": 5.0,
+    "Ne": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo40__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo40",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2050.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.8,
+    "Ru": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo40__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo40",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2150.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.8,
+    "Ru": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo40__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo40",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2250.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.8,
+    "Ru": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo40__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo40",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2350.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.8,
+    "Ru": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo40__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo40",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2450.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.8,
+    "Ru": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo41__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo41",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2050.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 4.3,
+    "Ru": 4.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo41__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo41",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2150.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 4.3,
+    "Ru": 4.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo41__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo41",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2250.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 4.3,
+    "Ru": 4.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo41__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo41",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2350.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 4.3,
+    "Ru": 4.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo41__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo41",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2450.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 4.3,
+    "Ru": 4.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo42__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo42",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2110.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.22,
+    "Tc": 0.78
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo42__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo42",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2210.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.22,
+    "Tc": 0.78
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo42__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo42",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2310.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.22,
+    "Tc": 0.78
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo42__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo42",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2410.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.22,
+    "Tc": 0.78
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo42__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo42",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2510.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.22,
+    "Tc": 0.78
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo43__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo43",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Pd": 0.4,
+    "Ru": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false,
+   "skipped": "below 298.15 K, the lower limit of the data"
+  },
+  {
+   "id": "TestThermo43__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo43",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 300.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Pd": 0.4,
+    "Ru": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo43__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo43",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 400.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Pd": 0.4,
+    "Ru": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo43__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo43",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 500.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Pd": 0.4,
+    "Ru": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo43__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo43",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 600.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Pd": 0.4,
+    "Ru": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo44__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo44",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Pd": 40.0,
+    "Tc": 60.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo44__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo44",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Pd": 40.0,
+    "Tc": 60.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo44__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo44",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Pd": 40.0,
+    "Tc": 60.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo44__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo44",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Pd": 40.0,
+    "Tc": 60.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo44__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo44",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Pd": 40.0,
+    "Tc": 60.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo45__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo45",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1034.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 1.0,
+    "Ru": 99.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo45__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo45",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1134.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 1.0,
+    "Ru": 99.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo45__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo45",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1234.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 1.0,
+    "Ru": 99.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo45__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo45",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1334.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 1.0,
+    "Ru": 99.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo45__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo45",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1434.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 1.0,
+    "Ru": 99.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo46__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo46",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2050.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.55,
+    "Ru": 0.45
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo46__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo46",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2150.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.55,
+    "Ru": 0.45
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo46__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo46",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2250.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.55,
+    "Ru": 0.45
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo46__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo46",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2350.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.55,
+    "Ru": 0.45
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo46__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo46",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2450.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.55,
+    "Ru": 0.45
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo47__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo47",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1773.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.3,
+    "Pd": 0.4,
+    "Ru": 0.3
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo47__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo47",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1873.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.3,
+    "Pd": 0.4,
+    "Ru": 0.3
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo47__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo47",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1973.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.3,
+    "Pd": 0.4,
+    "Ru": 0.3
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo47__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo47",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2073.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.3,
+    "Pd": 0.4,
+    "Ru": 0.3
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo47__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo47",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2173.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.3,
+    "Pd": 0.4,
+    "Ru": 0.3
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo48__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo48",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1773.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.1,
+    "Pd": 0.3,
+    "Ru": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo48__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo48",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1873.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.1,
+    "Pd": 0.3,
+    "Ru": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo48__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo48",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1973.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.1,
+    "Pd": 0.3,
+    "Ru": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo48__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo48",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2073.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.1,
+    "Pd": 0.3,
+    "Ru": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo48__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo48",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2173.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.1,
+    "Pd": 0.3,
+    "Ru": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo49__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo49",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1700.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.125,
+    "Pd": 0.874
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo49__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo49",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.125,
+    "Pd": 0.874
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo49__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo49",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.125,
+    "Pd": 0.874
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo49__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo49",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.125,
+    "Pd": 0.874
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo49__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo49",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.125,
+    "Pd": 0.874
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo50__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo50",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1034.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 1.0,
+    "Ru": 99.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo50__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo50",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1134.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 1.0,
+    "Ru": 99.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo50__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo50",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1234.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 1.0,
+    "Ru": 99.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo50__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo50",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1334.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 1.0,
+    "Ru": 99.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo50__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo50",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1434.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 1.0,
+    "Ru": 99.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo51__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo51",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2050.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.55,
+    "Ru": 0.45
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo51__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo51",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2150.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.55,
+    "Ru": 0.45
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo51__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo51",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2250.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.55,
+    "Ru": 0.45
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo51__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo51",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2350.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.55,
+    "Ru": 0.45
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo51__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo51",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2450.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.55,
+    "Ru": 0.45
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo52__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo52",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1773.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.3,
+    "Pd": 0.4,
+    "Ru": 0.3
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo52__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo52",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1873.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.3,
+    "Pd": 0.4,
+    "Ru": 0.3
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo52__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo52",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1973.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.3,
+    "Pd": 0.4,
+    "Ru": 0.3
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo52__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo52",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2073.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.3,
+    "Pd": 0.4,
+    "Ru": 0.3
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo52__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo52",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2173.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.3,
+    "Pd": 0.4,
+    "Ru": 0.3
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo53__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo53",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 773.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.1,
+    "Pd": 0.3,
+    "Ru": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo53__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo53",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 873.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.1,
+    "Pd": 0.3,
+    "Ru": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo53__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo53",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 973.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.1,
+    "Pd": 0.3,
+    "Ru": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo53__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo53",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1073.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.1,
+    "Pd": 0.3,
+    "Ru": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo53__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo53",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1173.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 0.1,
+    "Pd": 0.3,
+    "Ru": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo54__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo54",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1600.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.01,
+    "Pd": 0.09,
+    "Mo": 0.9
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo54__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo54",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1700.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.01,
+    "Pd": 0.09,
+    "Mo": 0.9
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo54__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo54",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.01,
+    "Pd": 0.09,
+    "Mo": 0.9
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo54__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo54",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 1900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.01,
+    "Pd": 0.09,
+    "Mo": 0.9
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo54__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo54",
+   "database": "NobleMetals-Kaye.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Tc": 0.01,
+    "Pd": 0.09,
+    "Mo": 0.9
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo55__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo55",
+   "database": "ZIRC-noSUBI.dat",
+   "temperature": 100.0,
+   "temperature_unit": "K",
+   "pressure": 1000.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "V": 0.1,
+    "Cr": 1.0,
+    "Fe": 2.0,
+    "Ni": 1.0,
+    "Sn": 0.1,
+    "H": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false,
+   "skipped": "below 298.15 K, the lower limit of the data"
+  },
+  {
+   "id": "TestThermo55__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo55",
+   "database": "ZIRC-noSUBI.dat",
+   "temperature": 200.0,
+   "temperature_unit": "K",
+   "pressure": 1000.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "V": 0.1,
+    "Cr": 1.0,
+    "Fe": 2.0,
+    "Ni": 1.0,
+    "Sn": 0.1,
+    "H": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false,
+   "skipped": "below 298.15 K, the lower limit of the data"
+  },
+  {
+   "id": "TestThermo55__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo55",
+   "database": "ZIRC-noSUBI.dat",
+   "temperature": 300.0,
+   "temperature_unit": "K",
+   "pressure": 1000.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "V": 0.1,
+    "Cr": 1.0,
+    "Fe": 2.0,
+    "Ni": 1.0,
+    "Sn": 0.1,
+    "H": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo55__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo55",
+   "database": "ZIRC-noSUBI.dat",
+   "temperature": 400.0,
+   "temperature_unit": "K",
+   "pressure": 1000.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "V": 0.1,
+    "Cr": 1.0,
+    "Fe": 2.0,
+    "Ni": 1.0,
+    "Sn": 0.1,
+    "H": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo55__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo55",
+   "database": "ZIRC-noSUBI.dat",
+   "temperature": 500.0,
+   "temperature_unit": "K",
+   "pressure": 1000.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "V": 0.1,
+    "Cr": 1.0,
+    "Fe": 2.0,
+    "Ni": 1.0,
+    "Sn": 0.1,
+    "H": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo56__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo56",
+   "database": "CuFeC-Kang.dat",
+   "temperature": 1200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "C": 1.0,
+    "Fe": 1.0,
+    "Cu": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo56__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo56",
+   "database": "CuFeC-Kang.dat",
+   "temperature": 1300.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "C": 1.0,
+    "Fe": 1.0,
+    "Cu": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo56__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo56",
+   "database": "CuFeC-Kang.dat",
+   "temperature": 1400.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "C": 1.0,
+    "Fe": 1.0,
+    "Cu": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo56__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo56",
+   "database": "CuFeC-Kang.dat",
+   "temperature": 1500.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "C": 1.0,
+    "Fe": 1.0,
+    "Cu": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo56__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo56",
+   "database": "CuFeC-Kang.dat",
+   "temperature": 1600.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "C": 1.0,
+    "Fe": 1.0,
+    "Cu": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo57__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo57",
+   "database": "FeTiVO.dat",
+   "temperature": 1800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "V": 0.5,
+    "Fe": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo57__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo57",
+   "database": "FeTiVO.dat",
+   "temperature": 1900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "V": 0.5,
+    "Fe": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo57__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo57",
+   "database": "FeTiVO.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "V": 0.5,
+    "Fe": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo57__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo57",
+   "database": "FeTiVO.dat",
+   "temperature": 2100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "V": 0.5,
+    "Fe": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo57__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo57",
+   "database": "FeTiVO.dat",
+   "temperature": 2200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "V": 0.5,
+    "Fe": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo58__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo58",
+   "database": "FeTiVO.dat",
+   "temperature": 1800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "Fe": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo58__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo58",
+   "database": "FeTiVO.dat",
+   "temperature": 1900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "Fe": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo58__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo58",
+   "database": "FeTiVO.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "Fe": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo58__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo58",
+   "database": "FeTiVO.dat",
+   "temperature": 2100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "Fe": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo58__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo58",
+   "database": "FeTiVO.dat",
+   "temperature": 2200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "Fe": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo59__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo59",
+   "database": "FeTiVO.dat",
+   "temperature": 1800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "V": 0.5,
+    "Fe": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo59__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo59",
+   "database": "FeTiVO.dat",
+   "temperature": 1900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "V": 0.5,
+    "Fe": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo59__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo59",
+   "database": "FeTiVO.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "V": 0.5,
+    "Fe": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo59__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo59",
+   "database": "FeTiVO.dat",
+   "temperature": 2100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "V": 0.5,
+    "Fe": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo59__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo59",
+   "database": "FeTiVO.dat",
+   "temperature": 2200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "V": 0.5,
+    "Fe": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo60__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo60",
+   "database": "FeTiVO.dat",
+   "temperature": 1800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "V": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo60__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo60",
+   "database": "FeTiVO.dat",
+   "temperature": 1900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "V": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo60__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo60",
+   "database": "FeTiVO.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "V": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo60__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo60",
+   "database": "FeTiVO.dat",
+   "temperature": 2100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "V": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo60__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo60",
+   "database": "FeTiVO.dat",
+   "temperature": 2200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5,
+    "V": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo61__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo61",
+   "database": "FeTiVO.dat",
+   "temperature": 800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo61__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo61",
+   "database": "FeTiVO.dat",
+   "temperature": 900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo61__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo61",
+   "database": "FeTiVO.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo61__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo61",
+   "database": "FeTiVO.dat",
+   "temperature": 1100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo61__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo61",
+   "database": "FeTiVO.dat",
+   "temperature": 1200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 2.0,
+    "Ti": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo62__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo62",
+   "database": "ClAlNa.dat",
+   "temperature": 1800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cl": 2.0,
+    "Al": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo62__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo62",
+   "database": "ClAlNa.dat",
+   "temperature": 1900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cl": 2.0,
+    "Al": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo62__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo62",
+   "database": "ClAlNa.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cl": 2.0,
+    "Al": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo62__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo62",
+   "database": "ClAlNa.dat",
+   "temperature": 2100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cl": 2.0,
+    "Al": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo62__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo62",
+   "database": "ClAlNa.dat",
+   "temperature": 2200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cl": 2.0,
+    "Al": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo63__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo63",
+   "database": "ClAlNa.dat",
+   "temperature": 800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cl": 3.0,
+    "Na": 1.0,
+    "Al": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo63__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo63",
+   "database": "ClAlNa.dat",
+   "temperature": 900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cl": 3.0,
+    "Na": 1.0,
+    "Al": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo63__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo63",
+   "database": "ClAlNa.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cl": 3.0,
+    "Na": 1.0,
+    "Al": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo63__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo63",
+   "database": "ClAlNa.dat",
+   "temperature": 1100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cl": 3.0,
+    "Na": 1.0,
+    "Al": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo63__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo63",
+   "database": "ClAlNa.dat",
+   "temperature": 1200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cl": 3.0,
+    "Na": 1.0,
+    "Al": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo64__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo64",
+   "database": "ZIRC-test64.dat",
+   "temperature": 400.0,
+   "temperature_unit": "K",
+   "pressure": 100.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Nb": 1.0,
+    "Zr": 1.0,
+    "O": 1.0,
+    "H": 0.1
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo64__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo64",
+   "database": "ZIRC-test64.dat",
+   "temperature": 500.0,
+   "temperature_unit": "K",
+   "pressure": 100.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Nb": 1.0,
+    "Zr": 1.0,
+    "O": 1.0,
+    "H": 0.1
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo64__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo64",
+   "database": "ZIRC-test64.dat",
+   "temperature": 600.0,
+   "temperature_unit": "K",
+   "pressure": 100.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Nb": 1.0,
+    "Zr": 1.0,
+    "O": 1.0,
+    "H": 0.1
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo64__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo64",
+   "database": "ZIRC-test64.dat",
+   "temperature": 700.0,
+   "temperature_unit": "K",
+   "pressure": 100.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Nb": 1.0,
+    "Zr": 1.0,
+    "O": 1.0,
+    "H": 0.1
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo64__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo64",
+   "database": "ZIRC-test64.dat",
+   "temperature": 800.0,
+   "temperature_unit": "K",
+   "pressure": 100.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Nb": 1.0,
+    "Zr": 1.0,
+    "O": 1.0,
+    "H": 0.1
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo65__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo65",
+   "database": "ternaryMiscibility-Kaye.dat",
+   "temperature": 200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 1.0,
+    "Tc": 1.0,
+    "Ru": 1.0,
+    "Pd": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false,
+   "skipped": "below 298.15 K, the lower limit of the data"
+  },
+  {
+   "id": "TestThermo65__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo65",
+   "database": "ternaryMiscibility-Kaye.dat",
+   "temperature": 300.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 1.0,
+    "Tc": 1.0,
+    "Ru": 1.0,
+    "Pd": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo65__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo65",
+   "database": "ternaryMiscibility-Kaye.dat",
+   "temperature": 400.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 1.0,
+    "Tc": 1.0,
+    "Ru": 1.0,
+    "Pd": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo65__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo65",
+   "database": "ternaryMiscibility-Kaye.dat",
+   "temperature": 500.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 1.0,
+    "Tc": 1.0,
+    "Ru": 1.0,
+    "Pd": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo65__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo65",
+   "database": "ternaryMiscibility-Kaye.dat",
+   "temperature": 600.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Mo": 1.0,
+    "Tc": 1.0,
+    "Ru": 1.0,
+    "Pd": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo70__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo70",
+   "database": "ZIRC_no_liq.dat",
+   "temperature": 1300.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 0.3,
+    "Sn": 0.7
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo70__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo70",
+   "database": "ZIRC_no_liq.dat",
+   "temperature": 1400.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 0.3,
+    "Sn": 0.7
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo70__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo70",
+   "database": "ZIRC_no_liq.dat",
+   "temperature": 1500.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 0.3,
+    "Sn": 0.7
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo70__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo70",
+   "database": "ZIRC_no_liq.dat",
+   "temperature": 1600.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 0.3,
+    "Sn": 0.7
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo70__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo70",
+   "database": "ZIRC_no_liq.dat",
+   "temperature": 1700.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 0.3,
+    "Sn": 0.7
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo71__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo71",
+   "database": "ZIRC_no_liq.dat",
+   "temperature": 1800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 0.1,
+    "Cr": 0.2,
+    "Zr": 0.7
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo71__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo71",
+   "database": "ZIRC_no_liq.dat",
+   "temperature": 1900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 0.1,
+    "Cr": 0.2,
+    "Zr": 0.7
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo71__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo71",
+   "database": "ZIRC_no_liq.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 0.1,
+    "Cr": 0.2,
+    "Zr": 0.7
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo71__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo71",
+   "database": "ZIRC_no_liq.dat",
+   "temperature": 2100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 0.1,
+    "Cr": 0.2,
+    "Zr": 0.7
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo71__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo71",
+   "database": "ZIRC_no_liq.dat",
+   "temperature": 2200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "O": 0.1,
+    "Cr": 0.2,
+    "Zr": 0.7
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo72__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo72",
+   "database": "CsTe-1.dat",
+   "temperature": 500.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Te": 0.8,
+    "Cs": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo72__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo72",
+   "database": "CsTe-1.dat",
+   "temperature": 600.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Te": 0.8,
+    "Cs": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo72__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo72",
+   "database": "CsTe-1.dat",
+   "temperature": 700.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Te": 0.8,
+    "Cs": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo72__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo72",
+   "database": "CsTe-1.dat",
+   "temperature": 800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Te": 0.8,
+    "Cs": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo72__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo72",
+   "database": "CsTe-1.dat",
+   "temperature": 900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Te": 0.8,
+    "Cs": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo73__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo73",
+   "database": "CaMnS.dat",
+   "temperature": 2300.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Ca": 1.0,
+    "Mn": 1.0,
+    "S": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo73__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo73",
+   "database": "CaMnS.dat",
+   "temperature": 2400.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Ca": 1.0,
+    "Mn": 1.0,
+    "S": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo73__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo73",
+   "database": "CaMnS.dat",
+   "temperature": 2500.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Ca": 1.0,
+    "Mn": 1.0,
+    "S": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo73__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo73",
+   "database": "CaMnS.dat",
+   "temperature": 2600.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Ca": 1.0,
+    "Mn": 1.0,
+    "S": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo73__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo73",
+   "database": "CaMnS.dat",
+   "temperature": 2700.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Ca": 1.0,
+    "Mn": 1.0,
+    "S": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo74__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo74",
+   "database": "FeMnCaS-1.dat",
+   "temperature": 1700.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Fe": 2.0,
+    "Mn": 4.0,
+    "S": 3.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo74__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo74",
+   "database": "FeMnCaS-1.dat",
+   "temperature": 1800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Fe": 2.0,
+    "Mn": 4.0,
+    "S": 3.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo74__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo74",
+   "database": "FeMnCaS-1.dat",
+   "temperature": 1900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Fe": 2.0,
+    "Mn": 4.0,
+    "S": 3.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo74__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo74",
+   "database": "FeMnCaS-1.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Fe": 2.0,
+    "Mn": 4.0,
+    "S": 3.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo74__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo74",
+   "database": "FeMnCaS-1.dat",
+   "temperature": 2100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Fe": 2.0,
+    "Mn": 4.0,
+    "S": 3.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo75__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo75",
+   "database": "FeMnCaS-2.dat",
+   "temperature": 1300.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Fe": 0.4,
+    "Mn": 0.2,
+    "Ca": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo75__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo75",
+   "database": "FeMnCaS-2.dat",
+   "temperature": 1400.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Fe": 0.4,
+    "Mn": 0.2,
+    "Ca": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo75__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo75",
+   "database": "FeMnCaS-2.dat",
+   "temperature": 1500.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Fe": 0.4,
+    "Mn": 0.2,
+    "Ca": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo75__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo75",
+   "database": "FeMnCaS-2.dat",
+   "temperature": 1600.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Fe": 0.4,
+    "Mn": 0.2,
+    "Ca": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo75__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo75",
+   "database": "FeMnCaS-2.dat",
+   "temperature": 1700.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Fe": 0.4,
+    "Mn": 0.2,
+    "Ca": 0.5
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo76__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo76",
+   "database": "CsTe-2.dat",
+   "temperature": 2300.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Te": 0.5,
+    "Cs": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo76__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo76",
+   "database": "CsTe-2.dat",
+   "temperature": 2400.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Te": 0.5,
+    "Cs": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo76__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo76",
+   "database": "CsTe-2.dat",
+   "temperature": 2500.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Te": 0.5,
+    "Cs": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo76__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo76",
+   "database": "CsTe-2.dat",
+   "temperature": 2600.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Te": 0.5,
+    "Cs": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo76__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo76",
+   "database": "CsTe-2.dat",
+   "temperature": 2700.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Te": 0.5,
+    "Cs": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo77__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo77",
+   "database": "ZIRC_no_liq_mod1.dat",
+   "temperature": 2300.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Nb": 1.0,
+    "O": 0.3,
+    "Sn": 0.7
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo77__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo77",
+   "database": "ZIRC_no_liq_mod1.dat",
+   "temperature": 2400.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Nb": 1.0,
+    "O": 0.3,
+    "Sn": 0.7
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo77__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo77",
+   "database": "ZIRC_no_liq_mod1.dat",
+   "temperature": 2500.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Nb": 1.0,
+    "O": 0.3,
+    "Sn": 0.7
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo77__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo77",
+   "database": "ZIRC_no_liq_mod1.dat",
+   "temperature": 2600.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Nb": 1.0,
+    "O": 0.3,
+    "Sn": 0.7
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo77__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo77",
+   "database": "ZIRC_no_liq_mod1.dat",
+   "temperature": 2700.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Nb": 1.0,
+    "O": 0.3,
+    "Sn": 0.7
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo78__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo78",
+   "database": "ZIRC_no_liq_mod2.dat",
+   "temperature": 1800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cr": 0.5,
+    "Sn": 0.8,
+    "O": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo78__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo78",
+   "database": "ZIRC_no_liq_mod2.dat",
+   "temperature": 1900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cr": 0.5,
+    "Sn": 0.8,
+    "O": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo78__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo78",
+   "database": "ZIRC_no_liq_mod2.dat",
+   "temperature": 2000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cr": 0.5,
+    "Sn": 0.8,
+    "O": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo78__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo78",
+   "database": "ZIRC_no_liq_mod2.dat",
+   "temperature": 2100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cr": 0.5,
+    "Sn": 0.8,
+    "O": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo78__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo78",
+   "database": "ZIRC_no_liq_mod2.dat",
+   "temperature": 2200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cr": 0.5,
+    "Sn": 0.8,
+    "O": 0.6
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo80__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo80",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.1,
+    "Na": 0.4,
+    "F": 1.6,
+    "Fe": 0.3,
+    "K": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo80__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo80",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.1,
+    "Na": 0.4,
+    "F": 1.6,
+    "Fe": 0.3,
+    "K": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo80__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo80",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.1,
+    "Na": 0.4,
+    "F": 1.6,
+    "Fe": 0.3,
+    "K": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo80__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo80",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.1,
+    "Na": 0.4,
+    "F": 1.6,
+    "Fe": 0.3,
+    "K": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo80__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo80",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.1,
+    "Na": 0.4,
+    "F": 1.6,
+    "Fe": 0.3,
+    "K": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo81__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo81",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.1,
+    "Na": 0.4,
+    "Fe": 0.3,
+    "O": 0.8,
+    "K": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo81__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo81",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.1,
+    "Na": 0.4,
+    "Fe": 0.3,
+    "O": 0.8,
+    "K": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo81__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo81",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.1,
+    "Na": 0.4,
+    "Fe": 0.3,
+    "O": 0.8,
+    "K": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo81__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo81",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.1,
+    "Na": 0.4,
+    "Fe": 0.3,
+    "O": 0.8,
+    "K": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo81__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo81",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.1,
+    "Na": 0.4,
+    "Fe": 0.3,
+    "O": 0.8,
+    "K": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo82__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo82",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 1.2,
+    "Cl": 0.5,
+    "F": 0.3,
+    "O": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo82__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo82",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 1.2,
+    "Cl": 0.5,
+    "F": 0.3,
+    "O": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo82__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo82",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 1.2,
+    "Cl": 0.5,
+    "F": 0.3,
+    "O": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo82__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo82",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 1.2,
+    "Cl": 0.5,
+    "F": 0.3,
+    "O": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo82__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo82",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 1.2,
+    "Cl": 0.5,
+    "F": 0.3,
+    "O": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo83__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo83",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.1,
+    "Na": 0.4,
+    "Cl": 1.6,
+    "Fe": 0.3,
+    "K": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo83__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo83",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.1,
+    "Na": 0.4,
+    "Cl": 1.6,
+    "Fe": 0.3,
+    "K": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo83__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo83",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.1,
+    "Na": 0.4,
+    "Cl": 1.6,
+    "Fe": 0.3,
+    "K": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo83__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo83",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.1,
+    "Na": 0.4,
+    "Cl": 1.6,
+    "Fe": 0.3,
+    "K": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo83__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo83",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.1,
+    "Na": 0.4,
+    "Cl": 1.6,
+    "Fe": 0.3,
+    "K": 0.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo84__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo84",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cl": 0.5,
+    "F": 0.3,
+    "O": 0.2,
+    "K": 1.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo84__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo84",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cl": 0.5,
+    "F": 0.3,
+    "O": 0.2,
+    "K": 1.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo84__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo84",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cl": 0.5,
+    "F": 0.3,
+    "O": 0.2,
+    "K": 1.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo84__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo84",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cl": 0.5,
+    "F": 0.3,
+    "O": 0.2,
+    "K": 1.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo84__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo84",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Cl": 0.5,
+    "F": 0.3,
+    "O": 0.2,
+    "K": 1.2
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo85__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo85",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 1.0,
+    "Na": 2.0,
+    "Cl": 2.0,
+    "F": 12.0,
+    "Fe": 3.0,
+    "O": 1.0,
+    "K": 4.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo85__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo85",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 1.0,
+    "Na": 2.0,
+    "Cl": 2.0,
+    "F": 12.0,
+    "Fe": 3.0,
+    "O": 1.0,
+    "K": 4.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo85__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo85",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 1.0,
+    "Na": 2.0,
+    "Cl": 2.0,
+    "F": 12.0,
+    "Fe": 3.0,
+    "O": 1.0,
+    "K": 4.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo85__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo85",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 1.0,
+    "Na": 2.0,
+    "Cl": 2.0,
+    "F": 12.0,
+    "Fe": 3.0,
+    "O": 1.0,
+    "K": 4.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo85__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo85",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 1.0,
+    "Na": 2.0,
+    "Cl": 2.0,
+    "F": 12.0,
+    "Fe": 3.0,
+    "O": 1.0,
+    "K": 4.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo86__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo86",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 2.0,
+    "O": 3.0,
+    "Zr": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo86__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo86",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 2.0,
+    "O": 3.0,
+    "Zr": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo86__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo86",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 2.0,
+    "O": 3.0,
+    "Zr": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo86__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo86",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 2.0,
+    "O": 3.0,
+    "Zr": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo86__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo86",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 2.0,
+    "O": 3.0,
+    "Zr": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo87__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo87",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.0,
+    "Na": 0.0,
+    "Cl": 2.0,
+    "F": 0.0,
+    "Fe": 0.0,
+    "O": 1.0,
+    "K": 0.0,
+    "Zr": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo87__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo87",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.0,
+    "Na": 0.0,
+    "Cl": 2.0,
+    "F": 0.0,
+    "Fe": 0.0,
+    "O": 1.0,
+    "K": 0.0,
+    "Zr": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo87__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo87",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.0,
+    "Na": 0.0,
+    "Cl": 2.0,
+    "F": 0.0,
+    "Fe": 0.0,
+    "O": 1.0,
+    "K": 0.0,
+    "Zr": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo87__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo87",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.0,
+    "Na": 0.0,
+    "Cl": 2.0,
+    "F": 0.0,
+    "Fe": 0.0,
+    "O": 1.0,
+    "K": 0.0,
+    "Zr": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo87__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo87",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 0.0,
+    "Na": 0.0,
+    "Cl": 2.0,
+    "F": 0.0,
+    "Fe": 0.0,
+    "O": 1.0,
+    "K": 0.0,
+    "Zr": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo88__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo88",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 3.0,
+    "Na": 0.0,
+    "Cl": 0.0,
+    "F": 5.0,
+    "Fe": 0.0,
+    "O": 1.0,
+    "K": 0.0,
+    "Zr": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo88__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo88",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 3.0,
+    "Na": 0.0,
+    "Cl": 0.0,
+    "F": 5.0,
+    "Fe": 0.0,
+    "O": 1.0,
+    "K": 0.0,
+    "Zr": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo88__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo88",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 3.0,
+    "Na": 0.0,
+    "Cl": 0.0,
+    "F": 5.0,
+    "Fe": 0.0,
+    "O": 1.0,
+    "K": 0.0,
+    "Zr": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo88__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo88",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 3.0,
+    "Na": 0.0,
+    "Cl": 0.0,
+    "F": 5.0,
+    "Fe": 0.0,
+    "O": 1.0,
+    "K": 0.0,
+    "Zr": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo88__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo88",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 3.0,
+    "Na": 0.0,
+    "Cl": 0.0,
+    "F": 5.0,
+    "Fe": 0.0,
+    "O": 1.0,
+    "K": 0.0,
+    "Zr": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo89__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo89",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 800.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 1.0,
+    "Na": 2.0,
+    "Cl": 2.0,
+    "F": 12.0,
+    "Fe": 3.0,
+    "O": 11.0,
+    "K": 4.0,
+    "Zr": 5.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo89__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo89",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 900.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 1.0,
+    "Na": 2.0,
+    "Cl": 2.0,
+    "F": 12.0,
+    "Fe": 3.0,
+    "O": 11.0,
+    "K": 4.0,
+    "Zr": 5.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo89__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo89",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1000.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 1.0,
+    "Na": 2.0,
+    "Cl": 2.0,
+    "F": 12.0,
+    "Fe": 3.0,
+    "O": 11.0,
+    "K": 4.0,
+    "Zr": 5.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo89__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo89",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1100.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 1.0,
+    "Na": 2.0,
+    "Cl": 2.0,
+    "F": 12.0,
+    "Fe": 3.0,
+    "O": 11.0,
+    "K": 4.0,
+    "Zr": 5.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo89__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo89",
+   "database": "ZrFeKClNaFOLi.dat",
+   "temperature": 1200.0,
+   "temperature_unit": "K",
+   "pressure": 1.0,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "Li": 1.0,
+    "Na": 2.0,
+    "Cl": 2.0,
+    "F": 12.0,
+    "Fe": 3.0,
+    "O": 11.0,
+    "K": 4.0,
+    "Zr": 5.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo90__grid1",
+   "grid": "extended",
+   "based_on": "TestThermo90",
+   "database": "CsI-Pham.dat",
+   "temperature": 473.15,
+   "temperature_unit": "K",
+   "pressure": 1e-05,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "I": 1.0,
+    "Cs": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo90__grid2",
+   "grid": "extended",
+   "based_on": "TestThermo90",
+   "database": "CsI-Pham.dat",
+   "temperature": 573.15,
+   "temperature_unit": "K",
+   "pressure": 1e-05,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "I": 1.0,
+    "Cs": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo90__grid3",
+   "grid": "extended",
+   "based_on": "TestThermo90",
+   "database": "CsI-Pham.dat",
+   "temperature": 673.15,
+   "temperature_unit": "K",
+   "pressure": 1e-05,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "I": 1.0,
+    "Cs": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": true
+  },
+  {
+   "id": "TestThermo90__grid4",
+   "grid": "extended",
+   "based_on": "TestThermo90",
+   "database": "CsI-Pham.dat",
+   "temperature": 773.15,
+   "temperature_unit": "K",
+   "pressure": 1e-05,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "I": 1.0,
+    "Cs": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  },
+  {
+   "id": "TestThermo90__grid5",
+   "grid": "extended",
+   "based_on": "TestThermo90",
+   "database": "CsI-Pham.dat",
+   "temperature": 873.15,
+   "temperature_unit": "K",
+   "pressure": 1e-05,
+   "pressure_unit": "atm",
+   "element_amounts": {
+    "I": 1.0,
+    "Cs": 1.0
+   },
+   "mass_unit": "moles",
+   "same_as_test_condition": false
+  }
+ ],
+ "not_run_with_thermochimica": [
+  {
+   "id": "TestSUBQNonuniformZeta",
+   "reason": "test changes SUBQ zeta values in memory after parsing; an input script cannot reproduce that (the compiled test program passes)"
+  },
+  {
+   "id": "TestThermo14",
+   "reason": "parse-only test, no equilibrium condition"
+  }
+ ]
+}

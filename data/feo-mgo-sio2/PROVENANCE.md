@@ -189,6 +189,14 @@ tridymite or cristobalite. The fix belongs to the FeO-SiO2 binary (below), not t
 - **Solidus 36-42 K low.** Mostly a knock-on of the MgO(l) heat-capacity excess, which the
   MgO-SiO2 fit needs high because forsterite comes out too unstable (data/mgo-sio2, "Known
   shortfalls"); possibly also a quench-detection bias in the measured solidus.
+- **Ternary peritectic 73 K low and toward FeO; olivine-join solidus 24-75 K low.** Neither was
+  fitted. L + olivine + orthopyroxene + silica falls at 1506 K with liquid 3.8/56.2/40.0 wt%
+  MgO/FeO/SiO2, olivine 79 wt% Fe2SiO4 and pyroxene 65 wt% FeSiO3, against Bowen & Schairer's
+  1579 K, 9/46/45, 68 and 62 (as quoted by Wu et al. 1993), so the pyroxene field reaches
+  further toward FeO than measured. On the Mg2SiO4-Fe2SiO4 join the solidus at the measured
+  compositions (41-80 wt% Fe2SiO4, Wu et al. Table 3) is 24 to 75 K low, most in mid-join. The
+  assessment of Wu et al. reproduces the peritectic within 4 K and the solidus within 1.5 wt%.
+  `validation/fig4_comparison/factsage_wu1993.py`.
 - **Forsterite melts at 2080 K** in this file (measured 2163 K), the same shortfall.
 - **Fayalite** is stable and melts congruently at 1475-1476 K in the full equilibrium (pycalphad
   on the shipped combined file; measured 1478 K). Until the two-site orthopyroxene and

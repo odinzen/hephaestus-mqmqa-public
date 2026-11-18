@@ -1,0 +1,2 @@
+237cd910dc4c696bb1b021f50076e0f6c5a25b99a237ac3ea2c025a441e73ec9  literature_values_round1.csv
+sealed 2026-11-14 15:28 UTC, 480 rows

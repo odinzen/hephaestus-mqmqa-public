@@ -428,6 +428,20 @@ def test_liquidus_agrees_with_the_full_equilibrium(fms, x2, x3):
     assert prim in below
 
 
+@pytest.mark.parametrize("i, j, T_ref", [(3, 91, 1954.40), (0, 147, 1954.64)])
+def test_liquidus_where_the_liquid_has_split(fms, i, j, T_ref):
+    """Nodes of Figure 4a's grid inside the silica-rich two-liquid gap, near its edge. The
+    reader once read them 9.6 K high (a three-level fit across the temperature at which the
+    bulk leaves the gap, on a hull tie-line 4 J above the true one) and 11.9 K low (a bracket
+    whose upper level still held a solid). T_ref is where the driving force for cristobalite
+    from the lower of pycalphad's and the general solver's liquid-only states crosses zero
+    (validation/fig4_comparison)."""
+    x_fe, x_si = (i / 150 + 1e-4) / 1.0003, (j / 150 + 1e-4) / 1.0003
+    T, prim = vis3d.liquidus_point(fms, 1.0 - x_fe - x_si, x_si, *WINDOW, t_tol=1e-2)
+    assert prim == "CRISTOBALITE"
+    assert abs(T - T_ref) < 0.1, (T, T_ref)
+
+
 def _check_surface(s, zpk=1e-3):
     nt, nv = len(s.tri), len(s.comp)
     assert s.patch_start[0] == 0 and s.patch_start[-1] == nt and np.all(np.diff(s.patch_start) > 0)

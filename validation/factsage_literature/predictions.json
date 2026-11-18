@@ -1,0 +1,347 @@
+{
+ "engine_commit": "3f38162",
+ "engine_dirty": false,
+ "predictions": {
+  "C": {
+   "C-G-00": {
+    "class": "computed",
+    "value": -381.2889137667022,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-G-01": {
+    "class": "computed",
+    "value": -372.8527938423148,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-G-02": {
+    "class": "computed",
+    "value": -363.89811415742065,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-G-03": {
+    "class": "computed",
+    "value": -354.8943787201265,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-G-04": {
+    "class": "computed",
+    "value": -345.8803275253893,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-G-05": {
+    "class": "computed",
+    "value": -336.8339040279005,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-G-06": {
+    "class": "computed",
+    "value": -327.7582860149611,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-G-07": {
+    "class": "computed",
+    "value": -318.6934287398536,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-G-08": {
+    "class": "computed",
+    "value": -309.6713190539633,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-G-09": {
+    "class": "computed",
+    "value": -300.66995906543485,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-H-00": {
+    "class": "computed",
+    "value": -230.34338013691595,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-H-01": {
+    "class": "computed",
+    "value": -222.99751365617203,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-H-02": {
+    "class": "computed",
+    "value": -216.02638772255654,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-H-03": {
+    "class": "computed",
+    "value": -209.19020695630036,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-H-04": {
+    "class": "computed",
+    "value": -202.35639774829983,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-H-05": {
+    "class": "computed",
+    "value": -195.45845697453134,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-H-06": {
+    "class": "computed",
+    "value": -188.52236105931738,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-H-07": {
+    "class": "computed",
+    "value": -181.63870125472954,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-H-08": {
+    "class": "computed",
+    "value": -174.88867685980023,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-H-09": {
+    "class": "computed",
+    "value": -168.32577650940547,
+    "unit": "kJ per mole of atoms"
+   },
+   "C-S-00": {
+    "class": "computed",
+    "value": 94.34095851861639,
+    "unit": "J/K per mole of atoms"
+   },
+   "C-S-01": {
+    "class": "computed",
+    "value": 93.65955011633923,
+    "unit": "J/K per mole of atoms"
+   },
+   "C-S-02": {
+    "class": "computed",
+    "value": 92.41982902179006,
+    "unit": "J/K per mole of atoms"
+   },
+   "C-S-03": {
+    "class": "computed",
+    "value": 91.06510735239135,
+    "unit": "J/K per mole of atoms"
+   },
+   "C-S-04": {
+    "class": "computed",
+    "value": 89.70245611068094,
+    "unit": "J/K per mole of atoms"
+   },
+   "C-S-05": {
+    "class": "computed",
+    "value": 88.35965440835571,
+    "unit": "J/K per mole of atoms"
+   },
+   "C-S-06": {
+    "class": "computed",
+    "value": 87.02245309727732,
+    "unit": "J/K per mole of atoms"
+   },
+   "C-S-07": {
+    "class": "computed",
+    "value": 85.65920467820251,
+    "unit": "J/K per mole of atoms"
+   },
+   "C-S-08": {
+    "class": "computed",
+    "value": 84.23915137135191,
+    "unit": "J/K per mole of atoms"
+   },
+   "C-S-09": {
+    "class": "computed",
+    "value": 82.71511409751838,
+    "unit": "J/K per mole of atoms"
+   }
+  },
+  "A": {
+   "A01": {
+    "class": "computed",
+    "T_K": 882.983,
+    "bulk_x": 0.0,
+    "phase": "LIQUID",
+    "how": "appears"
+   },
+   "A02": {
+    "class": "computed",
+    "T_K": 724.904,
+    "bulk_x": 0.18,
+    "phase": "LI4THCL8",
+    "how": "vanishes"
+   },
+   "A03": {
+    "class": "computed",
+    "T_K": 696.746,
+    "bulk_x": 0.6,
+    "phase": "LIQUID",
+    "how": "appears",
+    "x_liquid": 0.34287
+   },
+   "A04": {
+    "class": "computed",
+    "T_K": 679.142,
+    "bulk_x": 1.0,
+    "phase": "THCL4_BETA",
+    "how": "appears"
+   },
+   "A05": {
+    "class": "computed",
+    "T_K": 1043.01,
+    "bulk_x": 1.0,
+    "phase": "LIQUID",
+    "how": "appears"
+   },
+   "A06": {
+    "class": "computed",
+    "T_K": 1074.003,
+    "bulk_x": 0.0,
+    "phase": "LIQUID",
+    "how": "appears"
+   },
+   "A07": {
+    "class": "computed",
+    "T_K": 659.178,
+    "bulk_x": 0.166667,
+    "phase": "LIQUID",
+    "how": "appears",
+    "x_liquid": 0.24969
+   },
+   "A08": {
+    "class": "computed",
+    "T_K": 705.233,
+    "bulk_x": 0.333333,
+    "phase": "LIQUID",
+    "how": "appears"
+   },
+   "A09": {
+    "class": "computed",
+    "T_K": 655.668,
+    "bulk_x": 0.666667,
+    "phase": "LIQUID",
+    "how": "appears",
+    "x_liquid": 0.45594
+   },
+   "A10": {
+    "class": "computed",
+    "T_K": 1044.002,
+    "bulk_x": 0.0,
+    "phase": "LIQUID",
+    "how": "appears"
+   },
+   "A11": {
+    "class": "computed",
+    "T_K": 894.706,
+    "bulk_x": 0.166667,
+    "phase": "LIQUID",
+    "how": "appears",
+    "x_liquid": 0.20594
+   },
+   "A12": {
+    "class": "computed",
+    "T_K": 977.966,
+    "bulk_x": 0.333333,
+    "phase": "LIQUID",
+    "how": "appears"
+   },
+   "A13": {
+    "class": "computed",
+    "T_K": 697.989,
+    "bulk_x": 0.416667,
+    "phase": "LIQUID",
+    "how": "appears",
+    "x_liquid": 0.4655
+   },
+   "A14": {
+    "class": "computed",
+    "T_K": 703.672,
+    "bulk_x": 0.5,
+    "phase": "LIQUID",
+    "how": "appears"
+   },
+   "A15": {
+    "class": "computed",
+    "T_K": 699.486,
+    "bulk_x": 0.75,
+    "phase": "LIQUID",
+    "how": "appears",
+    "x_liquid": 0.53531
+   }
+  },
+  "B": {
+   "B01": {
+    "class": "computed",
+    "T_K": 1038.799,
+    "bulk_x": 0.5,
+    "phase": "LIQUID",
+    "how": "appears",
+    "x_liquid": 0.15934
+   },
+   "B02": {
+    "class": "computed",
+    "T_K": 1005.781,
+    "bulk_x": 0.25,
+    "phase": "LIQUID",
+    "how": "appears",
+    "x_liquid": 0.28146
+   },
+   "B03": {
+    "class": "computed",
+    "T_K": 1056.103,
+    "bulk_x": 0.52,
+    "phase": "NALAF4",
+    "how": "vanishes",
+    "x_liquid": 0.33231
+   },
+   "B04": {
+    "class": "computed",
+    "T_K": 634.481,
+    "bulk_x": 0.48,
+    "phase": "NALAF4",
+    "how": "appears"
+   },
+   "B05": {
+    "class": "computed",
+    "T_K": 1024.409,
+    "bulk_x": 0.5,
+    "phase": "LIQUID",
+    "how": "appears",
+    "x_liquid": 0.18472
+   },
+   "B06": {
+    "class": "computed",
+    "T_K": 1005.213,
+    "bulk_x": 0.25,
+    "phase": "LIQUID",
+    "how": "appears",
+    "x_liquid": 0.2538
+   },
+   "B07": {
+    "class": "computed",
+    "T_K": 1088.445,
+    "bulk_x": 0.52,
+    "phase": "NACEF4",
+    "how": "vanishes",
+    "x_liquid": 0.33342
+   },
+   "B08": {
+    "class": "not found",
+    "reason": "NACEF4 is already present at 298.15 K, the bottom of the data",
+    "bulk_x": 0.48
+   }
+  }
+ },
+ "engine_by_case": {
+  "C": {
+   "engine_commit": "3f38162",
+   "engine_dirty": false
+  },
+  "A": {
+   "engine_commit": "754177c",
+   "engine_dirty": false
+  },
+  "B": {
+   "engine_commit": "754177c",
+   "engine_dirty": false
+  }
+ }
+}

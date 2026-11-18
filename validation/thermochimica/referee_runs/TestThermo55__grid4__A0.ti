@@ -1,0 +1,16 @@
+temperature       = 400.0
+pressure          = 1000.0
+mass(24)          = 0.2343932678722351
+mass(26)          = 1.6221263254527678
+mass(1)           = 0.6058640161955973
+mass(28)          = 0.26356807947342786
+mass(50)          = 1.1050962547565512e-05
+mass(23)          = 0.03678370829593265
+temperature unit  = K
+pressure unit     = atm
+mass unit         = moles
+data file         = THERMOCHIMICA_DIR/data/ZIRC-noSUBI.dat
+print mode        = 0
+heat capacity     = .FALSE.
+write json        = .TRUE.
+output            = REPO_DIR/validation/thermochimica/referee_runs/TestThermo55__grid4__A0.json

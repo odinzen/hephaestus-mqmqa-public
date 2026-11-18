@@ -1,0 +1,66 @@
+ {
+ "1":
+ {
+   "solution phases": {
+     "IONIC_LIQUID": {
+       "phase model": "SUBI",
+       "moles":   7.7466487704324760E-001,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "Cs+:Va": {
+           "mole fraction":  0.35455961046225964      ,
+           "moles":  2.7466487704324816E-001,
+           "chemical potential":  -393766.74063476903      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "s2Te": {
+           "mole fraction":  0.46816058430661284      ,
+           "moles":  3.6266756147837720E-001,
+           "chemical potential":  -1181218.1942429033      ,
+           "stoichiometry": [   2.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "e": {
+           "mole fraction":  0.17727980523112755      ,
+           "moles":  1.3733243852162230E-001,
+           "chemical potential":  -393685.38839260087      ,
+           "stoichiometry": [  -0.0000000000000000      ,   1.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "Cs": {
+           "moles of element in phase":  1.0000000000000024E+000,
+           "mole fraction of phase by element":  0.66666666666666752      ,
+           "mole fraction of element by phase":   1.0000000000000024     
+         },
+         "Te": {
+           "moles of element in phase":  4.9999999999999950E-001,
+           "mole fraction of phase by element":  0.33333333333333259      ,
+           "mole fraction of element by phase":  0.99999999999999900     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+   },
+   "elements": {
+     "Cs": {
+       "moles":    1.0000000000000000      ,
+       "element potential":  -3.9376660267847468E+005
+     },
+     "Te": {
+       "moles":   0.50000000000000000      ,
+       "element potential":  -3.9368517439985042E+005
+     }
+   },
+   "temperature":    2600.0000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -5.9060918987839983E+005,
+   "entropy":   0.0000000000000000E+000,
+   "enthalpy":   0.0000000000000000E+000,
+   "heat capacity":   0.0000000000000000E+000,
+   "functional norm":    4.9335800049863940E-006 ,
+   "GEM iterations":          241 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            0
+ }
+ }

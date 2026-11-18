@@ -23,6 +23,7 @@
  */
 #include "vis3d.h"
 #include "cs_dat_priv.h"   /* NAME_MAX, mqmqa_db_set_error */
+#include "gem.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -2357,6 +2358,7 @@ typedef struct {
     const char *liq_name;
     LqLevel *lev; int nlev;
     double *s2, *s3, *sc;     /* per slot: stoichiometric composition and cations */
+    int exact;                /* split liquid from the general solver (one point at a time) */
 } Lq;
 
 static int lq_set_T(Lq *q, double T)
@@ -2469,6 +2471,56 @@ static int lq_drive(Lq *q, const Plane *p, int face, double T, int only, double 
     return 0;
 }
 
+/* The stable liquid's plane at T from the general solver with every other phase held
+ * out: one liquid or two, whichever is lower, with no hull in between. Near the edge of a
+ * two-liquid gap the hull's tie-line can sit 4 to 200 J above the true common tangent, or
+ * miss the second liquid altogether; this plane does not. The solver's potentials put
+ * the anion at zero, which leaves the plane over the charge-balanced components
+ * unchanged. Only a result the solver finished exactly is used: a sampled one (it can
+ * happen within 1e-4 of an edge) carries potentials too rough for a liquidus. Returns 1
+ * when there is no such result, so the caller keeps its own plane; *nliq, when given, is
+ * the number of liquids with mass. */
+static int lq_plane_exact(Lq *q, double T, double x2, double x3, Plane *p, int *nliq)
+{
+    const vis3d_hull *h = q->sys;
+    const mqmqa_db *db = q->db;
+    int nph = mqmqa_db_num_phases(db), nst = mqmqa_db_num_stoich(db);
+    double *b = calloc((size_t)h->ndbel, sizeof(double)), *mu = malloc((size_t)h->ndbel * sizeof(double));
+    int *mask = malloc((size_t)(nph + nst) * sizeof(int));
+    if (!b || !mu || !mask) { free(b); free(mu); free(mask); mqmqa_db_set_error("vis3d: out of memory"); return -5; }
+    for (int k = 0; k < nph + nst; ++k) mask[k] = k != h->liq_db_phase;
+    double x[3] = {1.0 - x2 - x3, x2, x3}, comp[3];
+    for (int i = 0; i < 3; ++i) {
+        if (x[i] < 0) x[i] = 0.0;
+        b[h->cat_el[i]] += x[i];
+        b[h->an_el] += x[i] * h->cat_q[i] / h->an_q;
+    }
+    /* the default grid, which the solver retries on coarser grids when it does not finish */
+    mqmqa_gem *r = mqmqa_gem_equilibrium(db, T, b, mask, 0, 0);
+    int rc = 1;
+    if (nliq) *nliq = 0;
+    if (r && mqmqa_gem_exact(r)) {
+        if (nliq)
+            for (int k = 0; k < mqmqa_gem_num_sets(r); ++k) *nliq += mqmqa_gem_set_amount(r, k) > 1e-9;
+        mqmqa_gem_mu(r, mu);
+        double mu_an = isfinite(mu[h->an_el]) ? mu[h->an_el] : 0.0;
+        rc = 0;
+        for (int i = 0; i < 3; ++i) {
+            double m = mu[h->cat_el[i]];
+            if (!isfinite(m)) { if (x[i] > 0) rc = 1; m = 0.0; }   /* absent: s_i is 0 in-face */
+            comp[i] = m + h->cat_q[i] / h->an_q * mu_an;
+        }
+    }
+    if (r) mqmqa_gem_free(r);
+    free(b); free(mu); free(mask);
+    if (rc) return 1;
+    memset(p, 0, sizeof *p);
+    p->dim = 2; p->x2 = x2; p->x3 = x3;
+    p->g2 = comp[1] - comp[0]; p->g3 = comp[2] - comp[0];
+    p->g0 = comp[0] * x[0] + comp[1] * x[1] + comp[2] * x[2];
+    return 0;
+}
+
 /* Liquid lattice at a level, to flag compositions whose liquid has split. */
 static int lq_level_lattice(Lq *q, LqLevel *L)
 {
@@ -2502,6 +2554,12 @@ static int lq_plane_level(Lq *q, LqLevel *L, double x2, double x3, Plane *p, int
             if (L->latG[k] - plane_at(p, a2, a3) < -SPLIT_EPS) { below = 1; break; }
         }
     if (!below) return 0;
+    if (q->exact) {
+        Plane t;
+        rc = lq_plane_exact(q, L->T, x2, x3, &t, NULL);
+        if (rc < 0) return rc;
+        if (rc == 0) { *p = t; *split = 2; return 0; }   /* 2: possibly split, plane exact */
+    }
     if (!L->lh) {
         const char *nm[1] = {q->liq_name};
         L->lh = vis3d_hull_build(q->db, nm, 1, L->T, &q->opt);
@@ -2536,12 +2594,42 @@ static int lq_drive_level(Lq *q, int k, double x2, double x3, int only, double *
     return lq_drive(q, &p, face_of(x2, x3), q->lev[k].T, only, D, arg);
 }
 
+/* driving force on the exact plane; 1 when the solver gives no exact result */
+static int lq_drive_exact(Lq *q, double T, double x2, double x3, int only, double *D, int *arg,
+                          int *nliq)
+{
+    Plane p;
+    int rc = lq_plane_exact(q, T, x2, x3, &p, nliq);
+    if (rc) return rc;
+    return lq_drive(q, &p, face_of(x2, x3), T, only, D, arg);
+}
+
 static int lq_drive_single(Lq *q, double T, double x2, double x3, int only, double *D, int *arg)
 {
     Plane p;
     int rc;
     if ((rc = lq_set_T(q, T)) || (rc = lq_plane_single(q, x2, x3, &p))) return rc;
     return lq_drive(q, &p, face_of(x2, x3), T, only, D, arg);
+}
+
+/* Regula falsi (Illinois) in T on the solver's exact plane, from a bracket with fa < 0 <= fb;
+ * the plane also carries the kink where the bulk leaves a two-liquid gap. 1 when the solver
+ * gives no exact result somewhere on the way, so the caller keeps its own answer. */
+static int lq_root_exact(Lq *q, double x2, double x3, int only, double Ta, double fa,
+                         double Tb, double fb, double *T, int *prim)
+{
+    int rc, arg, side = 0;
+    for (int it = 0; it < 100 && Tb - Ta > q->opt.t_tol; ++it) {
+        double Tr = (Ta * fb - Tb * fa) / (fb - fa), fr;
+        if (!(Tr > Ta && Tr < Tb)) Tr = 0.5 * (Ta + Tb);
+        if ((rc = lq_drive_exact(q, Tr, x2, x3, only, &fr, &arg, NULL))) return rc;
+        if (fr < 0) { Ta = Tr; fa = fr; if (side == -1) fb *= 0.5; side = -1; }
+        else { Tb = Tr; fb = fr; if (side == 1) fa *= 0.5; side = 1; }
+    }
+    double fd;
+    if ((rc = lq_drive_exact(q, Ta, x2, x3, only, &fd, prim, NULL))) return rc;
+    *T = 0.5 * (Ta + Tb);
+    return 0;
 }
 
 /* Liquidus temperature of (x2, x3), of solid `only` or of the first solid of all (-1).
@@ -2601,6 +2689,19 @@ static int lq_liquidus(Lq *q, double x2, double x3, int only, double guess, doub
         rc = -7; goto out;
     }
     EVAL(k - 1);
+    /* The single liquid's liquidus is only a guide: where a split liquid's plane crosses
+     * the single tangent between the bulk and a solid, the true liquidus lies above it,
+     * so climb until the level above has no stable solid. */
+    while (D[k - 1] < 0) {
+        if (k - 1 == 0) {
+            if (only >= 0) { rc = 2; goto out; }
+            mqmqa_db_set_error("vis3d: the liquidus at x2 = %.6f, x3 = %.6f lies above t_hi = %.1f K",
+                               x2, x3, q->lev[0].T);
+            rc = -7; goto out;
+        }
+        --k;
+        EVAL(k - 1);
+    }
     /* now D[k-1] >= 0 > D[k] */
     double Ta = q->lev[k].T, Tb = q->lev[k - 1].T;
     if (!Sp[k] && !Sp[k - 1]) {
@@ -2618,11 +2719,18 @@ static int lq_liquidus(Lq *q, double x2, double x3, int only, double guess, doub
         *T = 0.5 * (Ta + Tb);
         double fd;
         if ((rc = lq_drive_single(q, Ta, x2, x3, only, &fd, prim))) goto out;
+    } else if (q->exact && (rc = lq_root_exact(q, x2, x3, only, Ta, D[k], Tb, D[k - 1], T, prim)) <= 0) {
+        if (rc) goto out;
+        /* the liquid may be split: solved on the solver's exact plane */
     } else {
+        rc = 0;
         /* A split liquid is only known at the levels: the driving force is smooth in T,
          * so the root is interpolated through the two bracketing levels and the next one
          * above. This, not t_tol, sets the accuracy there: about 2 K at 25 to 50 K spacing
-         * (checked against 10 K spacing and against the full hull). */
+         * away from the edge of the gap, but up to about 10 K near it, where the hull's
+         * tie-line runs above the true one and the fit can straddle the temperature at
+         * which the bulk leaves the gap (validation/fig4_comparison). The point reader
+         * takes the exact branch above instead. */
         double t0 = q->lev[k].T, t1 = q->lev[k - 1].T, f0 = D[k], f1 = D[k - 1];
         double r = t0 + (t1 - t0) * f0 / (f0 - f1);
         if (k - 2 >= 0) {
@@ -2652,6 +2760,49 @@ out:
 #undef EVALS
     free(D); free(DS); free(A); free(Sp);
     return rc;
+}
+
+/* The point reader's check on lq_liquidus where the liquid has split. The lattice that
+ * flags a split can miss one whose bulk lies just inside the gap, and the single liquid
+ * then sets T a few kelvin off. So wherever the general solver finds two liquids just below
+ * or just above T, a solid must be stable on its exact plane t_tol below T and none just
+ * above; if not, the root is found again on that plane, stepping out from T by the level
+ * spacing to bracket it. Wherever the solver gives no exact result, T stands. */
+static int lq_liquidus_checked(Lq *q, double x2, double x3, double *T, int *prim)
+{
+    int rc = lq_liquidus(q, x2, x3, -1, NAN, T, prim), arg, na, nb;
+    if (rc || face_of(x2, x3) != 7) return rc;           /* edges and corners: no split */
+    double d = fmax(q->opt.t_tol, 0.01), Ta = *T - d, Tb = *T + d, fa, fb;
+    if ((rc = lq_drive_exact(q, Ta, x2, x3, -1, &fa, &arg, &na)) ||
+        (rc = lq_drive_exact(q, Tb, x2, x3, -1, &fb, &arg, &nb))) return rc < 0 ? rc : 0;
+    if ((na < 2 && nb < 2) || (fa < 0 && fb >= 0)) return 0;
+    double step = (q->opt.t_hi - q->opt.t_lo) / (q->nlev - 1);
+    while (fb < 0) {                                      /* a solid still stable above */
+        Ta = Tb; fa = fb;
+        if (Tb >= q->opt.t_hi) {
+            mqmqa_db_set_error("vis3d: the liquidus at x2 = %.6f, x3 = %.6f lies above t_hi = %.1f K",
+                               x2, x3, q->opt.t_hi);
+            return -7;
+        }
+        Tb = fmin(Tb + step, q->opt.t_hi);
+        if ((rc = lq_drive_exact(q, Tb, x2, x3, -1, &fb, &arg, NULL))) return rc < 0 ? rc : 0;
+    }
+    while (fa >= 0) {                                     /* no solid yet below */
+        Tb = Ta; fb = fa;
+        if (Ta <= q->opt.t_lo) {
+            mqmqa_db_set_error("vis3d: the liquidus at x2 = %.6f, x3 = %.6f lies below t_lo = %.1f K",
+                               x2, x3, q->opt.t_lo);
+            return -7;
+        }
+        Ta = fmax(Ta - step, q->opt.t_lo);
+        if ((rc = lq_drive_exact(q, Ta, x2, x3, -1, &fa, &arg, NULL))) return rc < 0 ? rc : 0;
+    }
+    double T1;
+    int prim1;
+    rc = lq_root_exact(q, x2, x3, -1, Ta, fa, Tb, fb, &T1, &prim1);
+    if (rc < 0) return rc;
+    if (rc == 0) { *T = T1; *prim = prim1; }
+    return 0;
 }
 
 /* ---- the surface over the lattice ----
@@ -2902,11 +3053,12 @@ int vis3d_liquidus_point(const mqmqa_db *db, const char *const *phases, int n_ph
 {
     Lq q;
     int rc = lq_open(&q, db, phases, n_phases, opt), prim = -1;
+    q.exact = 1;
     if (!rc) {
         if (x2 < -1e-12 || x3 < -1e-12 || x2 + x3 > 1.0 + 1e-12) {
             mqmqa_db_set_error("vis3d: composition outside the triangle");
             rc = -1;
-        } else rc = lq_liquidus(&q, fmax(x2, 0.0), fmax(x3, 0.0), -1, NAN, T, &prim);
+        } else rc = lq_liquidus_checked(&q, fmax(x2, 0.0), fmax(x3, 0.0), T, &prim);
         if (rc > 0) rc = -7;
     }
     if (!rc && primary && primary_len > 0) {

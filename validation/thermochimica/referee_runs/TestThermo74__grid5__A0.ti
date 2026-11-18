@@ -1,0 +1,13 @@
+temperature       = 2100.0
+pressure          = 1.0
+mass(26)          = 1.9999999999950149
+mass(25)          = 0.9737399442098281
+mass(16)          = 1.661959616204029e-08
+temperature unit  = K
+pressure unit     = atm
+mass unit         = moles
+data file         = THERMOCHIMICA_DIR/data/FeMnCaS-1.dat
+print mode        = 0
+heat capacity     = .FALSE.
+write json        = .TRUE.
+output            = REPO_DIR/validation/thermochimica/referee_runs/TestThermo74__grid5__A0.json

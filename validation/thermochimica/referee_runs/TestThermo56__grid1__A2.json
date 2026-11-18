@@ -1,0 +1,126 @@
+ {
+ "1":
+ {
+   "solution phases": {
+     "Liquid": {
+       "phase model": "SUBG",
+       "moles": 0.0,
+       "driving force":   2.9337401434243535E+000,
+       "cations": {
+         "C": {
+           "mole fraction":    1.0000000000000000      ,
+           "charge":    1.0000000000000000      ,
+           "chemical group":            1
+         }
+       },
+       "anions": {
+         "Va": {
+           "mole fraction":    1.0000000000000000      ,
+           "charge":   -1.0000000000000000      ,
+           "chemical group":            1
+         }
+       },
+       "moles of endmembers":    0.0000000000000000      ,
+       "endmembers": {
+         "C": {
+           "mole fraction":    1.0000000000000000      ,
+           "constituents": [ "C", "Va" ],
+           "stoichiometric coefficients": [   1.0000000000000000      ,   1.0000000000000000      ]
+           }
+       },
+       "quadruplets": {
+         "C-C-Va-Va": {
+           "mole fraction":   1.0000000000000000      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   23284.236748848980      ,
+           "constituents": [ "C", "C", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ],
+           "stoichiometry": [  0.33333333333333331      ]
+         }
+       },
+       "elements": {
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "Liquid#2": {
+       "phase model": "SUBG",
+       "moles": 0.0,
+       "driving force":   2.9337401434243535E+000,
+       "cations": {
+         "C": {
+           "mole fraction":    1.0000000000000000      ,
+           "charge":    1.0000000000000000      ,
+           "chemical group":            1
+         }
+       },
+       "anions": {
+         "Va": {
+           "mole fraction":    1.0000000000000000      ,
+           "charge":   -1.0000000000000000      ,
+           "chemical group":            1
+         }
+       },
+       "moles of endmembers":    0.0000000000000000      ,
+       "endmembers": {
+         "C": {
+           "mole fraction":    1.0000000000000000      ,
+           "constituents": [ "C", "Va" ],
+           "stoichiometric coefficients": [   1.0000000000000000      ,   1.0000000000000000      ]
+           }
+       },
+       "quadruplets": {
+         "C-C-Va-Va": {
+           "mole fraction":   1.0000000000000000      ,
+           "moles":  0.0000000000000000E+000,
+           "chemical potential":   23284.236748848980      ,
+           "constituents": [ "C", "C", "Va", "Va" ],
+           "coordination numbers": [   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ,   6.0000000000000000      ],
+           "stoichiometry": [  0.33333333333333331      ]
+         }
+       },
+       "elements": {
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "C_GRAPHITE(s)": {
+       "moles":   9.4485240672379911E-001,
+       "chemical potential":  -17960.290753453050      ,
+       "driving force":   0.0000000000000000E+000,
+       "stoichiometry": [   1.0000000000000000      ],
+       "elements": {
+         "C": {
+           "moles of element in phase":  9.4485240672379911E-001,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   1.0000000000000000     
+         }
+       }
+     }
+   },
+   "elements": {
+     "C": {
+       "moles":   0.94485240672379911      ,
+       "element potential":  -1.7960290753453050E+004
+     }
+   },
+   "temperature":    1200.0000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -1.6969823943859308E+004,
+   "entropy":   0.0000000000000000E+000,
+   "enthalpy":   0.0000000000000000E+000,
+   "heat capacity":   0.0000000000000000E+000,
+   "functional norm":    0.0000000000000000      ,
+   "GEM iterations":            1 ,
+   "# solution phases":            0 ,
+   "# pure condensed phases":            1
+ }
+ }
